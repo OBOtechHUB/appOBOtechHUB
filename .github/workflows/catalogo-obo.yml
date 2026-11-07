@@ -37,6 +37,7 @@ jobs:
           git add public/dati/obo-prodotti.json public/dati/obo-novita.json
           if git diff --cached --quiet; then echo "cambiato=no" >> "$GITHUB_OUTPUT"; exit 0; fi
           git commit -m "Catalogo prodotti OBO aggiornato"
+          git pull --rebase origin main
           git push
           echo "cambiato=si" >> "$GITHUB_OUTPUT"
       - name: Ripubblica l'app
