@@ -24,15 +24,60 @@ export function urlLocale(immagine: string): string {
   return risorsa("particolari/" + encodeURIComponent(immagine));
 }
 
+/** Indice nome file (minuscolo) → percorso nel bucket, comprese le sottocartelle di primo e secondo livello. */
+let indiceArchivio: Promise<Map<string, string>> | null = null;
+
+async function costruisciIndice(): Promise<Map<string, string>> {
+  const { supabase } = await import("@/integrations/supabase/client");
+  const indice = new Map<string, string>();
+  const elenca = async (cartella: string, profondita: number): Promise<void> => {
+    for (let offset = 0; ; offset += 1000) {
+      const { data, error } = await supabase.storage.from(BUCKET_PARTICOLARI).list(cartella, { limit: 1000, offset });
+      if (error || !data) return;
+      for (const voce of data) {
+        const percorso = cartella ? `${cartella}/${voce.name}` : voce.name;
+        if (voce.id === null) { if (profondita < 2) await elenca(percorso, profondita + 1); }
+        else if (!indice.has(voce.name.toLowerCase())) indice.set(voce.name.toLowerCase(), percorso);
+      }
+      if (data.length < 1000) return;
+    }
+  };
+  await elenca("", 0);
+  return indice;
+}
+
+async function percorsoInArchivio(file: string): Promise<string | null> {
+  if (!indiceArchivio) indiceArchivio = costruisciIndice();
+  const indice = await indiceArchivio;
+  if (indice.size === 0) indiceArchivio = null; // utente non collegato o bucket vuoto: riprova la prossima volta
+  return indice.get(file.toLowerCase()) ?? null;
+}
+
 export const firmaSupabase: FirmaArchivio = async (file) => {
   try {
     const { supabase } = await import("@/integrations/supabase/client");
-    const { data, error } = await supabase.storage.from(BUCKET_PARTICOLARI).createSignedUrl(file, 3600);
+    const percorso = (await percorsoInArchivio(file)) ?? file;
+    const { data, error } = await supabase.storage.from(BUCKET_PARTICOLARI).createSignedUrl(percorso, 3600);
     return error || !data ? null : data.signedUrl;
   } catch {
     return null;
   }
 };
+
+/** Diagnostica per l'interfaccia: utente collegato? quanti file vede nell'archivio? */
+export async function statoArchivio(): Promise<{ collegato: boolean; file: number }> {
+  try {
+    const { supabase } = await import("@/integrations/supabase/client");
+    const { data } = await supabase.auth.getSession();
+    if (!data.session) return { collegato: false, file: 0 };
+    if (!indiceArchivio) indiceArchivio = costruisciIndice();
+    const indice = await indiceArchivio;
+    if (indice.size === 0) indiceArchivio = null;
+    return { collegato: true, file: indice.size };
+  } catch {
+    return { collegato: false, file: 0 };
+  }
+}
 
 export async function trovaSchedaPdf(
   immagine: string | null | undefined,
@@ -82,4 +127,5 @@ export async function trovaFileArchivio(file: string, firma: FirmaArchivio = fir
 /** Solo per i test. */
 export function svuotaCacheSchede(): void {
   cache.clear();
+  indiceArchivio = null;
 }

@@ -3,7 +3,7 @@ import { Download, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { fileCollegato, trovaFileArchivio, trovaSchedaPdf, type SchedaPdf } from "@/lib/schedeParticolari";
+import { fileCollegato, statoArchivio, trovaFileArchivio, trovaSchedaPdf, type SchedaPdf } from "@/lib/schedeParticolari";
 import { VisualizzatoreDxf } from "./VisualizzatoreDxf";
 
 export interface DatiSchedaParticolare {
@@ -33,11 +33,16 @@ export function SchedaParticolare({ particolare, open, onOpenChange }: {
   const [pdf, setPdf] = useState<SchedaPdf | null>(null);
   const [dwg, setDwg] = useState<string | null>(null);
   const [dxf, setDxf] = useState<string | null>(null);
+  const [archivio, setArchivio] = useState<{ collegato: boolean; file: number } | null>(null);
   useEffect(() => {
-    setPdf(null); setDwg(null); setDxf(null);
+    setPdf(null); setDwg(null); setDxf(null); setArchivio(null);
     if (!open) return;
     let attivo = true;
-    void trovaSchedaPdf(particolare.immagine).then((risultato) => { if (attivo) setPdf(risultato); });
+    void trovaSchedaPdf(particolare.immagine).then((risultato) => {
+      if (!attivo) return;
+      setPdf(risultato);
+      if (risultato.tipo === "cartella") void statoArchivio().then((st) => { if (attivo) setArchivio(st); });
+    });
     void trovaFileArchivio(fileCollegato(particolare.immagine, "dwg")).then((u) => { if (attivo) setDwg(u); });
     void trovaFileArchivio(fileCollegato(particolare.immagine, "dxf")).then((u) => { if (attivo) setDxf(u); });
     return () => { attivo = false; };
@@ -46,7 +51,12 @@ export function SchedaParticolare({ particolare, open, onOpenChange }: {
   const vistaPdf = <>
     {!pdf && <p role="status" className="text-sm text-muted-foreground">Caricamento scheda…</p>}
     {pdf?.tipo === "locale" && <iframe src={pdf.url} title={`PDF ${particolare.id}`} className="h-[70vh] w-full border" />}
-    {pdf?.tipo === "cartella" && <p role="status" className="break-words text-sm">Scheda non disponibile: {pdf.fileAtteso}</p>}
+    {pdf?.tipo === "cartella" && <div role="status" className="break-words text-sm">
+      <p>Scheda non disponibile: {pdf.fileAtteso}</p>
+      {archivio && !archivio.collegato && <p className="mt-1 text-muted-foreground">Le schede sono nell'archivio privato: accedi per vederle.</p>}
+      {archivio?.collegato && archivio.file === 0 && <p className="mt-1 text-muted-foreground">L'archivio "particolari" risulta vuoto: carica i file in Supabase → Storage → particolari.</p>}
+      {archivio?.collegato && archivio.file > 0 && <p className="mt-1 text-muted-foreground">Nell'archivio ci sono {archivio.file} file, ma non questo: controlla il nome del file.</p>}
+    </div>}
   </>;
 
   return <Dialog open={open} onOpenChange={onOpenChange}>
