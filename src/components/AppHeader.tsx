@@ -3,12 +3,13 @@ import { Link, useNavigate, useRouter, useRouterState } from "@tanstack/react-ro
 import { useQueryClient } from "@tanstack/react-query";
 import {
   Box, Boxes, Building2, Package, ClipboardCheck, Compass, Gauge, ChevronLeft, ClipboardList, Download, FileText, FolderOpen, Info, LogIn, LogOut,
-  Mail, Menu, Ruler, Shield, SlidersHorizontal, User, UserPlus, Wrench, X,
+  Mail, Menu, Ruler, Smartphone, Shield, SlidersHorizontal, User, UserPlus, Wrench, X,
 } from "lucide-react";
 import { useAuth } from "@/lib/auth";
 import { supabase } from "@/integrations/supabase/client";
 import { salvaAttivo } from "@/components/ProjectSync";
 import { impostaAttivo } from "@/lib/statoProgetto";
+import { useAzioneInstalla } from "@/components/InstallaApp";
 
 type Icona = ComponentType<{ className?: string; strokeWidth?: number }>;
 type Voce = { etichetta: string; to: string; icona: Icona } | { etichetta: string; azione: () => void; icona: Icona };
@@ -21,6 +22,7 @@ export function AppHeader() {
   const router = useRouter();
   const percorso = useRouterState({ select: (s) => s.location.pathname });
   const [aperto, setAperto] = useState(false);
+  const installa = useAzioneInstalla();
 
   useEffect(() => { setAperto(false); }, [percorso]);
   useEffect(() => {
@@ -80,6 +82,7 @@ export function AppHeader() {
     {
       titolo: "Informazioni",
       voci: [
+        ...(installa.stato !== "installata" ? [{ etichetta: "Installa l'app", azione: () => { setAperto(false); installa.avvia(); }, icona: Smartphone }] : []),
         { etichetta: "Termini d'uso", to: "/termini", icona: FileText },
         { etichetta: "Privacy", to: "/privacy", icona: Shield },
       ],
@@ -125,6 +128,7 @@ export function AppHeader() {
           </div>
         ))}
       </nav>
+      {installa.dialogo}
     </>
   );
 }
