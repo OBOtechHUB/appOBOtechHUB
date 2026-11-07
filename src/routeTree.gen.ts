@@ -13,6 +13,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as ComputoMaterialiRouteImport } from './routes/computo-materiali'
+import { Route as Modelli3dRouteImport } from './routes/modelli-3d'
 import { Route as AssistenteRouteImport } from './routes/assistente'
 import { Route as VerificheRouteImport } from './routes/verifiche'
 import { Route as ResistenzaTerraRouteImport } from './routes/resistenza-terra'
@@ -47,6 +48,11 @@ const AuthRoute = AuthRouteImport.update({
 const ComputoMaterialiRoute = ComputoMaterialiRouteImport.update({
   id: '/computo-materiali',
   path: '/computo-materiali',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const Modelli3dRoute = Modelli3dRouteImport.update({
+  id: '/modelli-3d',
+  path: '/modelli-3d',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AssistenteRoute = AssistenteRouteImport.update({
@@ -134,6 +140,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/computo-materiali': typeof ComputoMaterialiRoute
+  '/modelli-3d': typeof Modelli3dRoute
   '/assistente': typeof AssistenteRoute
   '/verifiche': typeof VerificheRoute
   '/resistenza-terra': typeof ResistenzaTerraRoute
@@ -155,6 +162,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/computo-materiali': typeof ComputoMaterialiRoute
+  '/modelli-3d': typeof Modelli3dRoute
   '/assistente': typeof AssistenteRoute
   '/verifiche': typeof VerificheRoute
   '/resistenza-terra': typeof ResistenzaTerraRoute
@@ -178,6 +186,7 @@ export interface FileRoutesById {
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/auth': typeof AuthRoute
   '/computo-materiali': typeof ComputoMaterialiRoute
+  '/modelli-3d': typeof Modelli3dRoute
   '/assistente': typeof AssistenteRoute
   '/verifiche': typeof VerificheRoute
   '/resistenza-terra': typeof ResistenzaTerraRoute
@@ -201,6 +210,7 @@ export interface FileRouteTypes {
     | '/'
     | '/auth'
     | '/computo-materiali'
+    | '/modelli-3d'
     | '/assistente'
     | '/verifiche'
     | '/resistenza-terra'
@@ -222,6 +232,7 @@ export interface FileRouteTypes {
     | '/'
     | '/auth'
     | '/computo-materiali'
+    | '/modelli-3d'
     | '/assistente'
     | '/verifiche'
     | '/resistenza-terra'
@@ -244,6 +255,7 @@ export interface FileRouteTypes {
     | '/_authenticated'
     | '/auth'
     | '/computo-materiali'
+    | '/modelli-3d'
     | '/assistente'
     | '/verifiche'
     | '/resistenza-terra'
@@ -267,6 +279,7 @@ export interface RootRouteChildren {
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AuthRoute: typeof AuthRoute
   ComputoMaterialiRoute: typeof ComputoMaterialiRoute
+  Modelli3dRoute: typeof Modelli3dRoute
   AssistenteRoute: typeof AssistenteRoute
   VerificheRoute: typeof VerificheRoute
   ResistenzaTerraRoute: typeof ResistenzaTerraRoute
@@ -311,6 +324,13 @@ declare module '@tanstack/react-router' {
       path: '/computo-materiali'
       fullPath: '/computo-materiali'
       preLoaderRoute: typeof ComputoMaterialiRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/modelli-3d': {
+      id: '/modelli-3d'
+      path: '/modelli-3d'
+      fullPath: '/modelli-3d'
+      preLoaderRoute: typeof Modelli3dRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/assistente': {
@@ -446,6 +466,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AuthRoute: AuthRoute,
   ComputoMaterialiRoute: ComputoMaterialiRoute,
+  Modelli3dRoute: Modelli3dRoute,
   AssistenteRoute: AssistenteRoute,
   VerificheRoute: VerificheRoute,
   ResistenzaTerraRoute: ResistenzaTerraRoute,
