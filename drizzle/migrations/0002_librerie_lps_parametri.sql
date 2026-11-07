@@ -1,0 +1,2 @@
+ALTER TABLE public.librerie_lps ADD COLUMN IF NOT EXISTS parametri jsonb;
+COMMENT ON COLUMN public.librerie_lps.parametri IS 'Parametri normativi personali (es. pendenzaMassimaMaglia per il metodo della maglia, CEI EN IEC 62305-3:2024).';

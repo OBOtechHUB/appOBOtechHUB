@@ -1,0 +1,18 @@
+import { StrictMode } from "react";
+import { createRoot } from "react-dom/client";
+import { RouterProvider } from "@tanstack/react-router";
+import { getRouter } from "./router";
+import "./styles.css";
+
+// GitHub Pages: 404.html reindirizza qui con ?p=<percorso>; ripristina l'indirizzo originale.
+const p = new URLSearchParams(window.location.search).get("p");
+if (p) window.history.replaceState(null, "", import.meta.env.BASE_URL.replace(/\/$/, "") + p);
+
+const router = getRouter();
+const radice = document.getElementById("root");
+if (!radice) throw new Error("Elemento #root mancante");
+createRoot(radice).render(
+  <StrictMode>
+    <RouterProvider router={router} />
+  </StrictMode>,
+);

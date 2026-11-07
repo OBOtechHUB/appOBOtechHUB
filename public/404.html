@@ -1,0 +1,17 @@
+<!doctype html>
+<html lang="it">
+  <head>
+    <meta charset="utf-8" />
+    <title>Progettazione LPS</title>
+    <script>
+      // GitHub Pages non conosce le pagine dell'app: rimanda alla home passando il percorso richiesto.
+      (function () {
+        var segmenti = window.location.pathname.split("/");
+        var base = "/" + (segmenti[1] || "") + "/";
+        var percorso = window.location.pathname.slice(base.length - 1) + window.location.search + window.location.hash;
+        window.location.replace(base + "?p=" + encodeURIComponent(percorso));
+      })();
+    </script>
+  </head>
+  <body></body>
+</html>

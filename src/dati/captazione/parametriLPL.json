@@ -1,0 +1,7 @@
+{
+  "I": { "raggio": 20, "latoMaglia": 5 },
+  "II": { "raggio": 30, "latoMaglia": 10 },
+  "III": { "raggio": 45, "latoMaglia": 15 },
+  "IV": { "raggio": 60, "latoMaglia": 20 },
+  "pendenzaMassimaMaglia": { "valore": null, "unita": "Δz/Δx", "verificato": false, "riferimentoNorma": "CEI EN IEC 62305-3:2024 – da verificare" }
+}

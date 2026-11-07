@@ -1,0 +1,1 @@
+ALTER TABLE public.librerie_lps ADD COLUMN IF NOT EXISTS particolari_verificati text[] NOT NULL DEFAULT '{}';

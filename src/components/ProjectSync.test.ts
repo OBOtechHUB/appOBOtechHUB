@@ -1,0 +1,11 @@
+import {beforeEach,it,expect,vi} from "vitest";
+const mock=vi.hoisted(()=>({active:null as null|{id:string;codice:string;nome:string;proprietario:string;salvato:string},state:{versione:1,edificio:{nomeProgetto:"A",comune:"Roma"}},save:vi.fn(),user:vi.fn()}));
+vi.mock("@/lib/statoProgetto",()=>({leggiAttivo:()=>mock.active,snapshot:()=>mock.state}));
+vi.mock("@/lib/progetti.functions",()=>({salvaProgetto:mock.save,leggiProgetto:vi.fn()}));
+vi.mock("@/integrations/supabase/client",()=>({supabase:{auth:{getUser:mock.user}}}));
+import {salvaAttivo,AUTOSAVE_MS} from "./ProjectSync";
+beforeEach(()=>{mock.active={id:"a",codice:"A",nome:"A",proprietario:"owner",salvato:""};mock.state={versione:1,edificio:{nomeProgetto:"A",comune:"Roma"}};mock.save.mockReset().mockResolvedValue({});mock.user.mockReset().mockResolvedValue({data:{user:{id:"owner"}}});});
+it("usa l'intervallo richiesto di 5 secondi",()=>expect(AUTOSAVE_MS).toBe(5000));
+it("non salva il progetto di un altro utente",async()=>{mock.user.mockResolvedValue({data:{user:{id:"other"}}});await expect(salvaAttivo()).rejects.toThrow();expect(mock.save).not.toHaveBeenCalled();});
+it("mantiene lo snapshot e l'identità del progetto durante un salvataggio",async()=>{let finish:(v:unknown)=>void=()=>{};mock.save.mockImplementationOnce(()=>new Promise((r)=>{finish=r;}));const job=salvaAttivo();await vi.waitFor(()=>expect(mock.save).toHaveBeenCalledTimes(1));mock.active={id:"b",codice:"B",nome:"B",proprietario:"owner",salvato:""};mock.state={versione:1,edificio:{nomeProgetto:"B",comune:"Milano"}};finish({});await job;expect(mock.save).toHaveBeenCalledTimes(1);expect(mock.save.mock.calls[0]?.[0].data).toMatchObject({id:"a",dati:{edificio:{nomeProgetto:"A"}}});expect(mock.active.salvato).toBe("");});
+it("salva anche le modifiche arrivate durante un salvataggio",async()=>{let finish:(v:unknown)=>void=()=>{};mock.save.mockImplementationOnce(()=>new Promise((r)=>{finish=r;}));const job=salvaAttivo();await vi.waitFor(()=>expect(mock.save).toHaveBeenCalledTimes(1));mock.state={versione:1,edificio:{nomeProgetto:"Aggiornato",comune:"Roma"}};finish({});await job;expect(mock.save).toHaveBeenCalledTimes(2);expect(mock.save.mock.calls[1]?.[0].data.dati.edificio.nomeProgetto).toBe("Aggiornato");});

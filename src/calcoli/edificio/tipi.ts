@@ -1,0 +1,13 @@
+import { z } from "zod";
+const n = z.number().finite();
+export const punto2Schema = z.tuple([n, n]);
+export const punto3Schema = z.tuple([n, n, n]);
+export const corpoSchema = z.object({ id: z.string(), nome: z.string().max(200), impronta: z.array(punto2Schema).min(3).max(10000), quotaBase: n, altezzaGronda: n.nonnegative(), tipoTetto: z.enum(["piano", "falde", "altro"]), altezzaColmo: n.nonnegative(), mesh: z.object({ posizioni: z.array(n).max(3000000), indici: z.array(z.number().int().nonnegative()).optional() }).optional(), pareti: z.record(z.object({ tipo: z.string(), spessore: n.nonnegative().optional() })).optional(), copertura: z.string().optional() });
+export const modelloSchema = z.object({ corpi: z.array(corpoSchema).max(200), origineGeo: z.object({ lat: n.min(-90).max(90), lon: n.min(-180).max(180) }).optional() });
+export const astaSchema = z.object({ id: z.string(), x: n, y: n, z: n, altezza: n.positive(), diametro: n.positive(), codiceOBO: z.string().default(""), origine: z.string().max(50).optional() });
+export const conduttoreSchema = z.object({ id: z.string().max(200), tipo: z.enum(["captazione", "calata", "terra"]), sottotipo: z.enum(["anello", "dispersore", "uscita", "terra"]).optional(), punti: z.array(punto3Schema).min(2).max(10000), materiale: z.string().max(200), sezione: z.string().max(200), codiceOBO: z.string().max(100), origine: z.string().max(50).optional() });
+export type Corpo = z.infer<typeof corpoSchema>;
+export type ModelloEdificio = z.infer<typeof modelloSchema>;
+export type Asta = z.infer<typeof astaSchema>;
+export type Conduttore = z.infer<typeof conduttoreSchema>;
+export type Punto2 = [number, number]; export type Punto3 = [number, number, number];

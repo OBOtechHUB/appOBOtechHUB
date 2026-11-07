@@ -1,0 +1,2 @@
+import { Link } from "@tanstack/react-router";
+export function AppFooter(){return <footer className="mt-10 border-t bg-primary text-primary-foreground"><div className="mx-auto max-w-5xl px-4 py-6"><p className="text-sm">Calcoli di supporto – da validare da tecnico abilitato</p><nav className="mt-4 flex flex-wrap gap-5 text-xs"><Link to="/contatti">Contatti</Link><Link to="/termini">Termini</Link><Link to="/privacy">Privacy</Link></nav></div></footer>;}

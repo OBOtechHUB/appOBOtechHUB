@@ -1,0 +1,6 @@
+import {supabase} from "@/integrations/supabase/client";
+import type {Articolo} from "@/calcoli/materiali/tipi";
+import type {Particolare} from "@/calcoli/particolari/selezione";
+import type {Json} from "@/integrations/supabase/types";
+import type {ParametriCaptazione} from "@/lib/parametri";
+export async function salvaLibreria(patch:{catalogo?:Articolo[];particolari?:Particolare[];parametri?:ParametriCaptazione}){const {data}=await supabase.auth.getUser();if(!data.user)throw new Error("Accedi per salvare.");const changes={...(patch.catalogo?{catalogo:patch.catalogo as Json}:{}),...(patch.particolari?{particolari:patch.particolari as Json}:{}),...(patch.parametri?{parametri:patch.parametri as Json}:{})};const {error:insertError}=await supabase.from("librerie_lps").upsert({utente:data.user.id}, {onConflict:"utente",ignoreDuplicates:true});if(insertError)throw new Error("Libreria non disponibile.");const {error}=await supabase.from("librerie_lps").update(changes).eq("utente",data.user.id);if(error)throw new Error("Salvataggio libreria non riuscito.");}

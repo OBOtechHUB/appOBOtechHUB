@@ -1,0 +1,26 @@
+[
+  {
+    "id": "circondata-piu-alti",
+    "descrizione": "Circondata da oggetti più alti",
+    "valore": 0.25,
+    "riferimentoNorma": "CEI EN IEC 62305-2 – da verificare"
+  },
+  {
+    "id": "circondata-uguali-inferiori",
+    "descrizione": "Circondata da oggetti di altezza uguale o inferiore",
+    "valore": 0.5,
+    "riferimentoNorma": "CEI EN IEC 62305-2 – da verificare"
+  },
+  {
+    "id": "isolata",
+    "descrizione": "Isolata, nessun oggetto nelle vicinanze",
+    "valore": 1,
+    "riferimentoNorma": "CEI EN IEC 62305-2 – da verificare"
+  },
+  {
+    "id": "isolata-collina",
+    "descrizione": "Isolata sulla cima di una collina o di un'altura",
+    "valore": 2,
+    "riferimentoNorma": "CEI EN IEC 62305-2 – da verificare"
+  }
+]
