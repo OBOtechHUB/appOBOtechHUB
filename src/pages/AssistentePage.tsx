@@ -2,6 +2,7 @@ import { useMemo } from "react";
 import { Link } from "@tanstack/react-router";
 import { ArrowRight, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Saetta } from "@/components/Saetta";
 import { useEsteso, useAttivo } from "@/lib/statoProgetto";
 import { useComputo, useDatiEdificio } from "@/lib/progettoStore";
 import { applicaModifiche, generaComputo } from "@/calcoli/materiali/computo";
@@ -68,7 +69,7 @@ export function AssistentePage() {
   const comp = completamento(passi);
 
   return <>
-    <section className="bg-ardesia text-white"><div className="mx-auto max-w-5xl px-4 py-10">
+    <section className="bg-ardesia text-white"><div className="mx-auto grid max-w-5xl gap-8 px-4 py-10 md:grid-cols-[1fr_auto] md:items-end"><div>
       <h1 className="text-3xl font-bold">Assistente di progetto</h1>
       <p className="mt-2 max-w-3xl text-white/90">Tutti i passi dall'edificio al dossier, nell'ordine giusto. Lo stato si aggiorna da solo con i dati del progetto{attivo ? ` “${attivo.nome}”` : ""}.</p>
       <div className="mt-5 max-w-xl">
@@ -77,9 +78,12 @@ export function AssistentePage() {
       </div>
       {prossimo?.to && <div className="mt-6 flex flex-wrap items-center gap-4">
         <Button size="lg" asChild><Link to={prossimo.to}>Prossimo passo: {prossimo.titolo} <ArrowRight strokeWidth={1.5} /></Link></Button>
-        <span className="text-sm text-white/80">{prossimo.motivo}</span>
       </div>}
       {!prossimo && <p className="mt-6 text-lg">Tutti i passi disponibili sono completi. 🎉</p>}
+      </div>
+      <Saetta saluto chiaro>{prossimo
+        ? <><strong>Ciao, sono Saetta!</strong> {comp.completi === 0 ? "Partiamo insieme:" : `Ottimo lavoro, sei al ${comp.percento}%.`} Il prossimo passo è <strong>{prossimo.titolo.toLowerCase()}</strong>. {prossimo.motivo}</>
+        : <><strong>Complimenti!</strong> Hai completato tutti i passi disponibili. Ricordati le verifiche periodiche.</>}</Saetta>
     </div></section>
     <main className="mx-auto max-w-3xl px-4 py-10">
       <ol aria-label="Passi del progetto">{passi.map((p, i) => <VocePasso key={p.id} passo={p} n={i + 1} attuale={p.id === prossimo?.id} ultimo={i === passi.length - 1} />)}</ol>
