@@ -28,7 +28,7 @@ export function HomePage() {
         <p className="mt-3 max-w-2xl text-lg text-white/90">Dall’edificio al progetto: rischio, protezione esterna e documentazione tecnica secondo CEI EN IEC 62305:2024.</p>
         <div className="mt-6 flex flex-wrap gap-3">
           {!user && <Button asChild variant="outline" size="lg"><Link to="/auth">Accedi <ArrowRight strokeWidth={1.5} /></Link></Button>}
-          <Button asChild size="lg"><Link to="/dati-edificio">Inizia il progetto <ArrowRight strokeWidth={1.5} /></Link></Button>
+          <Button asChild size="lg"><Link to="/assistente">Apri l’assistente di progetto <ArrowRight strokeWidth={1.5} /></Link></Button>
         </div>
       </div>
     </section>

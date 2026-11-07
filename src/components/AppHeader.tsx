@@ -2,7 +2,7 @@ import { useEffect, useState, type ComponentType } from "react";
 import { Link, useNavigate, useRouter, useRouterState } from "@tanstack/react-router";
 import { useQueryClient } from "@tanstack/react-query";
 import {
-  Box, Building2, ClipboardCheck, Gauge, ChevronLeft, ClipboardList, Download, FileText, FolderOpen, Info, LogIn, LogOut,
+  Box, Building2, ClipboardCheck, Compass, Gauge, ChevronLeft, ClipboardList, Download, FileText, FolderOpen, Info, LogIn, LogOut,
   Mail, Menu, Ruler, Shield, SlidersHorizontal, User, UserPlus, Wrench, X,
 } from "lucide-react";
 import { useAuth } from "@/lib/auth";
@@ -56,6 +56,7 @@ export function AppHeader() {
     {
       titolo: "Strumenti",
       voci: [
+        { etichetta: "Assistente di progetto", to: "/assistente", icona: Compass },
         { etichetta: "Panoramica strumenti", to: "/strumenti", icona: Wrench },
         { etichetta: "Dati edificio", to: "/dati-edificio", icona: Building2 },
         { etichetta: "Dati normativi", to: "/dati-normativi", icona: SlidersHorizontal },
