@@ -3,18 +3,32 @@ import { Link, useNavigate, useRouter, useRouterState } from "@tanstack/react-ro
 import { useQueryClient } from "@tanstack/react-query";
 import {
   Box, Boxes, Building2, Package, ClipboardCheck, Compass, Gauge, ChevronLeft, ClipboardList, Download, FileText, FolderOpen, Info, LogIn, LogOut,
-  Mail, Menu, Ruler, Smartphone, Shield, SlidersHorizontal, User, UserPlus, Wrench, X,
+  Mail, Menu, Ruler, Search, Smartphone, Shield, SlidersHorizontal, User, UserPlus, Wrench, X,
 } from "lucide-react";
 import { useAuth } from "@/lib/auth";
 import { supabase } from "@/integrations/supabase/client";
-import { salvaAttivo } from "@/components/ProjectSync";
-import { impostaAttivo } from "@/lib/statoProgetto";
+import { salvaAttivo, useStatoSalvataggio } from "@/components/ProjectSync";
+import { SaettaFigura } from "@/components/Saetta";
+import { RicercaGlobale } from "@/components/RicercaGlobale";
+import { useAvanzamentoProgetto } from "@/lib/avanzamentoProgetto";
+import { impostaAttivo, useAttivo } from "@/lib/statoProgetto";
 import { useAzioneInstalla } from "@/components/InstallaApp";
 
 type Icona = ComponentType<{ className?: string; strokeWidth?: number }>;
 type Voce = { etichetta: string; to: string; icona: Icona } | { etichetta: string; azione: () => void; icona: Icona };
 
-/** Barra superiore arancione (freccia indietro · nome dell'app · menu) con pannello laterale a sezioni. */
+/** Icona con etichetta della barra in alto (come sul sito OBO). */
+function IconaBarra({ etichetta, icona: I, to, onClick, badge, titolo, nascondiMobile, espanso }: { etichetta: string; icona: Icona; to?: string; onClick?: () => void; badge?: number | undefined; titolo?: string; nascondiMobile?: boolean; espanso?: boolean }) {
+  const cls = `relative flex min-w-[52px] flex-col items-center justify-center gap-0.5 px-1.5 text-[11px] font-semibold text-foreground hover:text-primary sm:min-w-[72px] sm:px-2 sm:text-sm ${nascondiMobile ? "hidden md:flex" : "flex"}`;
+  const corpo = <>
+    <span className="relative"><I className="size-6 sm:size-7" strokeWidth={1.5} />{badge ? <span className="absolute -right-2 -top-1.5 flex min-w-4 items-center justify-center rounded-full bg-primary px-1 text-[10px] font-bold leading-4 text-white">{badge}</span> : null}</span>
+    <span>{etichetta}</span>
+  </>;
+  if (to) return <Link to={to as "/"} title={titolo ?? etichetta} className={cls} activeProps={{ className: "text-primary" }}>{corpo}</Link>;
+  return <button type="button" title={titolo ?? etichetta} aria-expanded={espanso} aria-controls={espanso !== undefined ? "menu-principale" : undefined} onClick={onClick} className={cls}>{corpo}</button>;
+}
+
+/** Barra superiore bianca (Saetta, nome, stato del progetto · icone con etichetta) con filo di avanzamento e menu laterale a sezioni. */
 export function AppHeader() {
   const { user } = useAuth();
   const qc = useQueryClient();
@@ -23,6 +37,10 @@ export function AppHeader() {
   const percorso = useRouterState({ select: (s) => s.location.pathname });
   const [aperto, setAperto] = useState(false);
   const installa = useAzioneInstalla();
+  const [ricerca, setRicerca] = useState(false);
+  const { comp, prossimo, mancanti } = useAvanzamentoProgetto();
+  const attivo = useAttivo();
+  const statoSalvataggio = useStatoSalvataggio();
 
   useEffect(() => { setAperto(false); }, [percorso]);
   useEffect(() => {
@@ -58,6 +76,7 @@ export function AppHeader() {
     {
       titolo: "Strumenti",
       voci: [
+        { etichetta: "Cerca", azione: () => { setAperto(false); setRicerca(true); }, icona: Search },
         { etichetta: "Assistente di progetto", to: "/assistente", icona: Compass },
         { etichetta: "Panoramica strumenti", to: "/strumenti", icona: Wrench },
         { etichetta: "Dati edificio", to: "/dati-edificio", icona: Building2 },
@@ -90,28 +109,42 @@ export function AppHeader() {
   ];
 
   const classeVoce = "flex w-full items-center gap-4 py-3 text-base text-foreground hover:text-primary";
+  const home = percorso.replace(/\/+$/, "").endsWith("/Lighting") || percorso === "/" || percorso === "";
 
   return (
     <>
-      <header className="sticky top-0 z-40 h-[50px] bg-primary text-primary-foreground shadow-[0_0_19px_-7px_rgba(0,0,0,0.15)]">
-        <div className="relative flex h-full items-center justify-between px-3 sm:px-6">
-          <button type="button" aria-label="Indietro" onClick={() => router.history.back()} className="flex h-[50px] w-12 items-center justify-start">
-            <ChevronLeft className="size-9" strokeWidth={1.25} />
-          </button>
-          <Link to="/" aria-label="Progettazione LPS – home" className="absolute left-1/2 -translate-x-1/2 select-none whitespace-nowrap text-lg font-black uppercase tracking-[0.06em] sm:text-xl">
-            <span className="text-white">LPS</span> <span className="text-[#1d1d1b]">Progettazione</span>
+      <header className="sticky top-0 z-40 bg-white shadow-[0_2px_14px_rgba(0,0,0,0.07)]">
+        <div className="mx-auto flex h-16 max-w-6xl items-center gap-2 px-3 sm:h-[76px] sm:gap-3 sm:px-6">
+          {!home && <button type="button" aria-label="Indietro" onClick={() => router.history.back()} className="-ml-1 flex size-9 shrink-0 items-center justify-center text-foreground hover:text-primary sm:hidden">
+            <ChevronLeft className="size-7" strokeWidth={1.5} />
+          </button>}
+          <Link to="/" aria-label="Progettazione LPS – home" className="flex min-w-0 items-center gap-2">
+            <SaettaFigura className="h-10 w-8 shrink-0 sm:h-12 sm:w-10" />
+            <span className="min-w-0">
+              <span className="block whitespace-nowrap text-lg font-bold leading-tight sm:text-xl">Progettazione <span className="text-primary">LPS</span></span>
+              <span className="block max-w-[46vw] truncate text-[11px] text-muted-foreground sm:max-w-[320px] sm:text-xs">{attivo ? `${attivo.codice ? attivo.codice + " · " : ""}${attivo.nome} · ${statoSalvataggio || "salvato"}` : user ? "Lavoro locale · nessun progetto aperto" : "Accedi per salvare i progetti"}</span>
+            </span>
           </Link>
-          <button type="button" aria-label={aperto ? "Chiudi menu" : "Apri menu"} aria-expanded={aperto} aria-controls="menu-principale" onClick={() => setAperto((v) => !v)} className="flex h-[50px] w-12 items-center justify-end">
-            {aperto ? <X className="size-10" strokeWidth={1.25} /> : <Menu className="size-10" strokeWidth={1.25} />}
-          </button>
+          <nav aria-label="Accessi rapidi" className="ml-auto flex items-stretch">
+            <IconaBarra to="/assistente" etichetta="Assistente" icona={Compass} badge={mancanti.length || undefined} titolo={prossimo ? `Prossimo passo: ${prossimo.titolo}` : "Progetto completo"} />
+            <IconaBarra to="/prodotti" etichetta="Prodotti" icona={Package} nascondiMobile />
+            <IconaBarra etichetta="Cerca" icona={Search} onClick={() => setRicerca(true)} nascondiMobile />
+            <IconaBarra to="/progetti" etichetta="Progetti" icona={ClipboardList} />
+            <IconaBarra to={user ? "/profilo" : "/auth"} etichetta={user ? "Profilo" : "Accedi"} icona={User} nascondiMobile />
+            <IconaBarra etichetta={aperto ? "Chiudi" : "Menu"} icona={aperto ? X : Menu} onClick={() => setAperto((v) => !v)} espanso={aperto} />
+          </nav>
+        </div>
+        <div className="h-[3px] w-full bg-muted" role="progressbar" aria-label="Avanzamento del progetto" aria-valuemin={0} aria-valuemax={100} aria-valuenow={comp.percento} title={`Progetto al ${comp.percento}%`}>
+          <div className="h-full bg-primary transition-all" style={{ width: `${comp.percento}%` }} />
         </div>
       </header>
+      <RicercaGlobale aperta={ricerca} onChiudi={() => setRicerca(false)} />
 
-      {aperto && <div className="fixed inset-0 top-[50px] z-30" aria-hidden="true" onClick={() => setAperto(false)} />}
+      {aperto && <div className="fixed inset-0 top-[67px] z-30 sm:top-[79px]" aria-hidden="true" onClick={() => setAperto(false)} />}
       <nav
         id="menu-principale"
         aria-label="Menu principale"
-        className={`fixed right-0 top-[50px] z-40 max-h-[calc(100dvh-50px)] w-[min(100vw,300px)] overflow-y-auto bg-background px-6 pb-6 pt-4 shadow-[0_8px_24px_rgba(0,0,0,0.18)] transition-transform duration-200 sm:right-4 ${aperto ? "translate-x-0" : "pointer-events-none translate-x-[110%]"}`}
+        className={`fixed right-0 top-[67px] z-40 max-h-[calc(100dvh-67px)] sm:top-[79px] sm:max-h-[calc(100dvh-79px)] w-[min(100vw,300px)] overflow-y-auto bg-background px-6 pb-6 pt-4 shadow-[0_8px_24px_rgba(0,0,0,0.18)] transition-transform duration-200 sm:right-4 ${aperto ? "translate-x-0" : "pointer-events-none translate-x-[110%]"}`}
       >
         {sezioni.map((sez) => (
           <div key={sez.titolo} className="mt-4 first:mt-2">

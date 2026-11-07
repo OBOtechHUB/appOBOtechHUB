@@ -15,7 +15,6 @@ import { AppFooter } from "@/components/AppFooter";
 import { AuthProvider, useAuth } from "@/lib/auth";
 import { supabase } from "@/integrations/supabase/client";
 import { ProjectSync } from "@/components/ProjectSync";
-import { BarraAvanzamento } from "@/components/BarraAvanzamento";
 import { impostaAttivo,ripristinaLocale,aggiornaEsteso } from "@/lib/statoProgetto";
 import {aggiornaComputo} from "@/lib/progettoStore";
 import {validaCatalogo} from "@/lib/catalogo";
@@ -124,5 +123,5 @@ function PortalShell(){
       if(event==="SIGNED_OUT"){impostaAttivo(null);ripristinaLocale();queryClient.clear();}else {void queryClient.invalidateQueries();if(session)libreria(session.user.id);}
     });return()=>data.subscription.unsubscribe();
   },[router,queryClient,setUser,setPronto]);
-  return <><AppHeader/><ProjectSync/><BarraAvanzamento/><Outlet/><AppFooter/></>;
+  return <><AppHeader/><ProjectSync/><Outlet/><AppFooter/></>;
 }
