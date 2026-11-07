@@ -68,6 +68,17 @@ export async function trovaSchedaPdf(
   return { tipo: "cartella", url: CARTELLA_ONEDRIVE, fileAtteso: file };
 }
 
+/** Nome di un file collegato al particolare con altra estensione: "X.pdf" → "X.dwg". */
+export function fileCollegato(immagine: string | null | undefined, estensione: "dwg" | "dxf"): string {
+  const base = (immagine ?? "").trim().replace(/\.[a-z0-9]+$/i, "");
+  return base ? `${base}.${estensione}` : "";
+}
+
+/** Link firmato (1 ora) a un file dell'archivio privato, o null se manca o l'utente non è collegato. */
+export async function trovaFileArchivio(file: string, firma: FirmaArchivio = firmaSupabase): Promise<string | null> {
+  return file ? firma(file) : null;
+}
+
 /** Solo per i test. */
 export function svuotaCacheSchede(): void {
   cache.clear();

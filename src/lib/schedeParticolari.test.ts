@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from "vitest";
-import { trovaSchedaPdf, svuotaCacheSchede, CARTELLA_ONEDRIVE } from "./schedeParticolari";
+import { trovaSchedaPdf, svuotaCacheSchede, CARTELLA_ONEDRIVE, fileCollegato, trovaFileArchivio } from "./schedeParticolari";
 
 const risposta = (ok: boolean, tipo: string) => async () => ({ ok, headers: new Headers({ "content-type": tipo }) });
 const nessunArchivio = async () => null;
@@ -26,5 +26,19 @@ describe("trovaSchedaPdf", () => {
   it("errore di rete → archivio, poi cartella OneDrive", async () => {
     const r = await trovaSchedaPdf("Y.pdf", async () => { throw new Error("rete"); }, nessunArchivio);
     expect(r.tipo).toBe("cartella");
+  });
+});
+
+describe("file collegati (DWG/DXF)", () => {
+  it("cambia l'estensione del PDF", () => {
+    expect(fileCollegato("OBO-TBS-200-T5.04.pdf", "dwg")).toBe("OBO-TBS-200-T5.04.dwg");
+    expect(fileCollegato("OBO-TBS-250-T2.16_V2.pdf", "dxf")).toBe("OBO-TBS-250-T2.16_V2.dxf");
+    expect(fileCollegato("", "dwg")).toBe("");
+    expect(fileCollegato(null, "dxf")).toBe("");
+  });
+  it("archivio: link firmato o null", async () => {
+    expect(await trovaFileArchivio("A.dwg", async (f) => `https://x/${f}`)).toBe("https://x/A.dwg");
+    expect(await trovaFileArchivio("A.dwg", async () => null)).toBeNull();
+    expect(await trovaFileArchivio("", async () => "no")).toBeNull();
   });
 });
