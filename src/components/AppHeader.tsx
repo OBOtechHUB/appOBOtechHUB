@@ -2,7 +2,7 @@ import { useEffect, useState, type ComponentType } from "react";
 import { Link, useNavigate, useRouter, useRouterState } from "@tanstack/react-router";
 import { useQueryClient } from "@tanstack/react-query";
 import {
-  Box, Building2, Gauge, ChevronLeft, ClipboardList, Download, FileText, FolderOpen, Info, LogIn, LogOut,
+  Box, Building2, ClipboardCheck, Gauge, ChevronLeft, ClipboardList, Download, FileText, FolderOpen, Info, LogIn, LogOut,
   Mail, Menu, Ruler, Shield, SlidersHorizontal, User, UserPlus, Wrench, X,
 } from "lucide-react";
 import { useAuth } from "@/lib/auth";
@@ -63,6 +63,7 @@ export function AppHeader() {
         { etichetta: "Resistenza di terra", to: "/resistenza-terra", icona: Gauge },
         { etichetta: "Computo materiali", to: "/computo-materiali", icona: ClipboardList },
         { etichetta: "Particolari costruttivi", to: "/particolari", icona: Ruler },
+        { etichetta: "Verifiche e dossier", to: "/verifiche", icona: ClipboardCheck },
         { etichetta: "Download CAD", to: "/download-cad", icona: Download },
       ],
     },

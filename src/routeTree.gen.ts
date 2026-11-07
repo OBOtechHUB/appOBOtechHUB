@@ -13,6 +13,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as ComputoMaterialiRouteImport } from './routes/computo-materiali'
+import { Route as VerificheRouteImport } from './routes/verifiche'
 import { Route as ResistenzaTerraRouteImport } from './routes/resistenza-terra'
 import { Route as ContattiRouteImport } from './routes/contatti'
 import { Route as DatiEdificioRouteImport } from './routes/dati-edificio'
@@ -45,6 +46,11 @@ const AuthRoute = AuthRouteImport.update({
 const ComputoMaterialiRoute = ComputoMaterialiRouteImport.update({
   id: '/computo-materiali',
   path: '/computo-materiali',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const VerificheRoute = VerificheRouteImport.update({
+  id: '/verifiche',
+  path: '/verifiche',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ResistenzaTerraRoute = ResistenzaTerraRouteImport.update({
@@ -122,6 +128,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/computo-materiali': typeof ComputoMaterialiRoute
+  '/verifiche': typeof VerificheRoute
   '/resistenza-terra': typeof ResistenzaTerraRoute
   '/contatti': typeof ContattiRoute
   '/dati-edificio': typeof DatiEdificioRoute
@@ -141,6 +148,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/computo-materiali': typeof ComputoMaterialiRoute
+  '/verifiche': typeof VerificheRoute
   '/resistenza-terra': typeof ResistenzaTerraRoute
   '/contatti': typeof ContattiRoute
   '/dati-edificio': typeof DatiEdificioRoute
@@ -162,6 +170,7 @@ export interface FileRoutesById {
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/auth': typeof AuthRoute
   '/computo-materiali': typeof ComputoMaterialiRoute
+  '/verifiche': typeof VerificheRoute
   '/resistenza-terra': typeof ResistenzaTerraRoute
   '/contatti': typeof ContattiRoute
   '/dati-edificio': typeof DatiEdificioRoute
@@ -183,6 +192,7 @@ export interface FileRouteTypes {
     | '/'
     | '/auth'
     | '/computo-materiali'
+    | '/verifiche'
     | '/resistenza-terra'
     | '/contatti'
     | '/dati-edificio'
@@ -202,6 +212,7 @@ export interface FileRouteTypes {
     | '/'
     | '/auth'
     | '/computo-materiali'
+    | '/verifiche'
     | '/resistenza-terra'
     | '/contatti'
     | '/dati-edificio'
@@ -222,6 +233,7 @@ export interface FileRouteTypes {
     | '/_authenticated'
     | '/auth'
     | '/computo-materiali'
+    | '/verifiche'
     | '/resistenza-terra'
     | '/contatti'
     | '/dati-edificio'
@@ -243,6 +255,7 @@ export interface RootRouteChildren {
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AuthRoute: typeof AuthRoute
   ComputoMaterialiRoute: typeof ComputoMaterialiRoute
+  VerificheRoute: typeof VerificheRoute
   ResistenzaTerraRoute: typeof ResistenzaTerraRoute
   ContattiRoute: typeof ContattiRoute
   DatiEdificioRoute: typeof DatiEdificioRoute
@@ -285,6 +298,13 @@ declare module '@tanstack/react-router' {
       path: '/computo-materiali'
       fullPath: '/computo-materiali'
       preLoaderRoute: typeof ComputoMaterialiRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/verifiche': {
+      id: '/verifiche'
+      path: '/verifiche'
+      fullPath: '/verifiche'
+      preLoaderRoute: typeof VerificheRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/resistenza-terra': {
@@ -406,6 +426,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AuthRoute: AuthRoute,
   ComputoMaterialiRoute: ComputoMaterialiRoute,
+  VerificheRoute: VerificheRoute,
   ResistenzaTerraRoute: ResistenzaTerraRoute,
   ContattiRoute: ContattiRoute,
   DatiEdificioRoute: DatiEdificioRoute,

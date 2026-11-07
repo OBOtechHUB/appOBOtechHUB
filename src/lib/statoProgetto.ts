@@ -1,4 +1,5 @@
 import { useSyncExternalStore } from "react";
+import { verificaSchema } from "@/calcoli/verifiche/verifiche";
 import { z } from "zod";
 import { modelloSchema, astaSchema, conduttoreSchema } from "@/calcoli/edificio/tipi";
 import { computoIniziale, computoSchema, datiIniziali, edificioSchema, leggiStatoBase, sostituisciStatoBase, impostaSalvataggioLocale, type DatiComputo } from "./progettoStore";
@@ -7,10 +8,11 @@ export const componenteSchema = z.object({ tipo: z.string().max(100).optional(),
 export type Componente = z.infer<typeof componenteSchema>;
 const distintaSchema = z.array(z.object({ codice: z.string().max(100), descrizione: z.string().max(500), quantita: z.number().finite().min(0), unita: z.enum(["m","pz"]), riferimento: z.string().max(100).optional() })).max(2000);
 export const picchettoSchema = z.object({ id: z.string(), x: z.number().finite(), y: z.number().finite(), z: z.number().finite(), lunghezza: z.number().finite().positive(), diametro: z.number().finite().positive().optional(), codiceOBO: z.string().default("") });
+export const pianoVerificheSchema = z.object({ critico: z.boolean(), intervalli: z.object({ visiva: z.number().positive().max(20), completa: z.number().positive().max(20), critica: z.number().positive().max(20) }).nullable() });
 export const terraSchema = z.object({ tipo: z.enum(["A", "B", "fondazione"]), distanzaAnello: z.number().finite().positive(), profondita: z.number().finite().positive(), lunghezzaPicchetto: z.number().finite().positive(), latoMagliaFondazione: z.number().finite().positive(), picchettiSuAnello: z.boolean(), l1: z.number().finite().nonnegative().nullable(), distinta: distintaSchema });
-export const estesoSchema = z.object({ modello: modelloSchema, aste: z.array(astaSchema).max(1000), conduttori: z.array(conduttoreSchema).max(5000), lpl: z.enum(["I","II","III","IV"]), particolari: z.array(particolareSchema).max(5000), supporti: z.array(componenteSchema).max(50000).default([]), morsetti: z.array(componenteSchema).max(20000).default([]), compensatori: z.array(componenteSchema).max(20000).default([]), distinta: distintaSchema.default([]), picchetti: z.array(picchettoSchema).max(5000).default([]), terra: terraSchema.nullable().default(null) });
+export const estesoSchema = z.object({ modello: modelloSchema, aste: z.array(astaSchema).max(1000), conduttori: z.array(conduttoreSchema).max(5000), lpl: z.enum(["I","II","III","IV"]), particolari: z.array(particolareSchema).max(5000), supporti: z.array(componenteSchema).max(50000).default([]), morsetti: z.array(componenteSchema).max(20000).default([]), compensatori: z.array(componenteSchema).max(20000).default([]), distinta: distintaSchema.default([]), picchetti: z.array(picchettoSchema).max(5000).default([]), terra: terraSchema.nullable().default(null), verifiche: z.array(verificaSchema).max(500).default([]), pianoVerifiche: pianoVerificheSchema.default({ critico: false, intervalli: null }) });
 export type StatoEsteso = z.infer<typeof estesoSchema>;
-export const estesoIniziale: StatoEsteso = { modello: {corpi:[]}, aste: [], conduttori: [], lpl:"III", particolari:[], supporti: [], morsetti: [], compensatori: [], distinta: [], picchetti: [], terra: null };
+export const estesoIniziale: StatoEsteso = { modello: {corpi:[]}, aste: [], conduttori: [], lpl:"III", particolari:[], supporti: [], morsetti: [], compensatori: [], distinta: [], picchetti: [], terra: null, verifiche: [], pianoVerifiche: { critico: false, intervalli: null } };
 let esteso=estesoIniziale, caricato=false;
 const listeners=new Set<()=>void>();
 export function aggiornaEsteso(p: Partial<StatoEsteso>) { esteso=estesoSchema.parse({...esteso,...p}); try {if(!attivo)localStorage.setItem("lps-stato-esteso",JSON.stringify(esteso));}catch{} listeners.forEach((f)=>f()); }

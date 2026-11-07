@@ -1,4 +1,4 @@
-import { ArrowRight, Gauge, Building2, ShieldAlert, Radio, ArrowDownToLine, Grid3x3, Cpu, ClipboardList } from "lucide-react";
+import { ArrowRight, ClipboardCheck, Gauge, Building2, ShieldAlert, Radio, ArrowDownToLine, Grid3x3, Cpu, ClipboardList } from "lucide-react";
 import { ModuleCard } from "@/components/ModuleCard";
 import { Link } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
@@ -51,6 +51,7 @@ export function HomePage() {
         <ModuleCard titolo="Scelta SPD" descrizione="Coordinamento SPD (parte 4)." icona={Cpu} />
         <ModuleCard titolo="Computo materiali" descrizione="Elenco e quantità componenti." icona={ClipboardList} to="/computo-materiali" />
         <ModuleCard titolo="Edificio 3D" descrizione="Modello geometrico, superfici e import CAD." icona={Building2} to="/edificio-3d" />
+        <ModuleCard titolo="Verifiche e dossier" descrizione="Piano delle verifiche, checklist, misure e dossier PDF." icona={ClipboardCheck} to="/verifiche" />
         <ModuleCard titolo="Particolari costruttivi" descrizione="Componenti e raccordi per le superfici." icona={ClipboardList} to="/particolari" />
       </div>
       <section className="mt-8 border-y py-5"><h2 className="font-display font-semibold">Norme di riferimento</h2><ul className="mt-3 space-y-1 text-sm text-muted-foreground"><li>CEI EN IEC 62305-1/2/3/4:2024</li><li>CEI EN 61643-12</li></ul><p className="mt-4 text-sm">Calcoli di supporto – da validare da tecnico abilitato</p></section>
