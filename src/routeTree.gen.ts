@@ -13,6 +13,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as ComputoMaterialiRouteImport } from './routes/computo-materiali'
+import { Route as CalateRouteImport } from './routes/calate'
 import { Route as ProdottiRouteImport } from './routes/prodotti'
 import { Route as Modelli3dRouteImport } from './routes/modelli-3d'
 import { Route as AssistenteRouteImport } from './routes/assistente'
@@ -49,6 +50,11 @@ const AuthRoute = AuthRouteImport.update({
 const ComputoMaterialiRoute = ComputoMaterialiRouteImport.update({
   id: '/computo-materiali',
   path: '/computo-materiali',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CalateRoute = CalateRouteImport.update({
+  id: '/calate',
+  path: '/calate',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ProdottiRoute = ProdottiRouteImport.update({
@@ -146,6 +152,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/computo-materiali': typeof ComputoMaterialiRoute
+  '/calate': typeof CalateRoute
   '/prodotti': typeof ProdottiRoute
   '/modelli-3d': typeof Modelli3dRoute
   '/assistente': typeof AssistenteRoute
@@ -169,6 +176,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/computo-materiali': typeof ComputoMaterialiRoute
+  '/calate': typeof CalateRoute
   '/prodotti': typeof ProdottiRoute
   '/modelli-3d': typeof Modelli3dRoute
   '/assistente': typeof AssistenteRoute
@@ -194,6 +202,7 @@ export interface FileRoutesById {
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/auth': typeof AuthRoute
   '/computo-materiali': typeof ComputoMaterialiRoute
+  '/calate': typeof CalateRoute
   '/prodotti': typeof ProdottiRoute
   '/modelli-3d': typeof Modelli3dRoute
   '/assistente': typeof AssistenteRoute
@@ -219,6 +228,7 @@ export interface FileRouteTypes {
     | '/'
     | '/auth'
     | '/computo-materiali'
+    | '/calate'
     | '/prodotti'
     | '/modelli-3d'
     | '/assistente'
@@ -242,6 +252,7 @@ export interface FileRouteTypes {
     | '/'
     | '/auth'
     | '/computo-materiali'
+    | '/calate'
     | '/prodotti'
     | '/modelli-3d'
     | '/assistente'
@@ -266,6 +277,7 @@ export interface FileRouteTypes {
     | '/_authenticated'
     | '/auth'
     | '/computo-materiali'
+    | '/calate'
     | '/prodotti'
     | '/modelli-3d'
     | '/assistente'
@@ -291,6 +303,7 @@ export interface RootRouteChildren {
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AuthRoute: typeof AuthRoute
   ComputoMaterialiRoute: typeof ComputoMaterialiRoute
+  CalateRoute: typeof CalateRoute
   ProdottiRoute: typeof ProdottiRoute
   Modelli3dRoute: typeof Modelli3dRoute
   AssistenteRoute: typeof AssistenteRoute
@@ -337,6 +350,13 @@ declare module '@tanstack/react-router' {
       path: '/computo-materiali'
       fullPath: '/computo-materiali'
       preLoaderRoute: typeof ComputoMaterialiRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/calate': {
+      id: '/calate'
+      path: '/calate'
+      fullPath: '/calate'
+      preLoaderRoute: typeof CalateRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/prodotti': {
@@ -486,6 +506,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AuthRoute: AuthRoute,
   ComputoMaterialiRoute: ComputoMaterialiRoute,
+  CalateRoute: CalateRoute,
   ProdottiRoute: ProdottiRoute,
   Modelli3dRoute: Modelli3dRoute,
   AssistenteRoute: AssistenteRoute,
