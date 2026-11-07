@@ -3,7 +3,8 @@ import type { Database } from "./types";
 
 // URL e chiave pubblica (publishable/anon) del progetto Supabase: arrivano da .env o dalle
 // variabili del repository GitHub (Settings → Secrets and variables → Actions → Variables).
-const SUPABASE_URL = import.meta.env["VITE_SUPABASE_URL"] as string | undefined;
+// tollera URL copiati con "/rest/v1/" o "/" finale
+const SUPABASE_URL = (import.meta.env["VITE_SUPABASE_URL"] as string | undefined)?.trim().replace(/\/(rest|auth|storage)\/v1\/?$/, "").replace(/\/+$/, "");
 const SUPABASE_PUBLISHABLE_KEY = import.meta.env["VITE_SUPABASE_PUBLISHABLE_KEY"] as string | undefined;
 
 function createSupabaseClient() {
