@@ -4,7 +4,10 @@ import { Box, Download, ExternalLink, FileText } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { inputCls } from "@/components/Campo";
-import { NOMI_CATEGORIE, cercaProdotti, nomeSottocategoria, useCatalogoObo, type ProdottoObo } from "@/lib/catalogoObo";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { NOMI_CATEGORIE, cercaProdotti, codiciDismessi, nomeSottocategoria, useCatalogoObo, useNovitaObo, type CatalogoObo, type NovitaObo, type ProdottoObo } from "@/lib/catalogoObo";
+import { useEsteso } from "@/lib/statoProgetto";
+import { useComputo } from "@/lib/progettoStore";
 
 const PAGINA = 48;
 
@@ -46,8 +49,43 @@ function Dettaglio({ p, onClose }: { p: ProdottoObo; onClose: () => void }) {
   </Dialog>;
 }
 
+const data = (d: string) => new Date(d).toLocaleDateString("it-IT");
+
+function Novita({ catalogo, novita }: { catalogo: CatalogoObo; novita: NovitaObo | null }) {
+  const s = useEsteso(), c = useComputo();
+  const usati = [
+    ...s.supporti, ...s.morsetti, ...s.compensatori, ...s.picchetti, ...s.aste, ...s.conduttori,
+  ].map((x) => x.codiceOBO ?? "").concat(s.distinta.map((x) => x.codice), s.terra?.distinta.map((x) => x.codice) ?? [], c.manuali.map((x) => x.codice), Object.values(c.modifiche).map((x) => x.codice ?? ""));
+  const problemi = codiciDismessi(usati, catalogo, novita);
+  const elenco = novita?.aggiornamenti ?? [];
+  return <div className="space-y-8">
+    <section aria-label="Verifica del progetto" className={`rounded-lg border-l-4 p-4 ${problemi.length ? "border-[#b3261e] bg-[#fdecea]" : "border-[#1d7a45] bg-[#e3f4ea]"}`}>
+      <h2 className="font-semibold">Verifica del progetto aperto</h2>
+      {problemi.length
+        ? <><p className="mt-1 text-sm">Il progetto usa {problemi.length} articoli non più presenti nel catalogo OBO: vanno sostituiti.</p>
+          <ul className="mt-2 text-sm">{problemi.map((p) => <li key={p.codice}><span className="font-mono">{p.codice}</span> · {p.nome} <span className="text-muted-foreground">(sparito il {p.data ? data(p.data) : "—"})</span></li>)}</ul></>
+        : <p className="mt-1 text-sm">Tutti gli articoli del progetto sono ancora a catalogo.</p>}
+    </section>
+    {!elenco.length && <p className="text-sm text-muted-foreground">Nessun confronto ancora disponibile: le differenze compaiono dal prossimo aggiornamento mensile del catalogo.</p>}
+    {elenco.map((a) => <section key={a.data} aria-label={`Aggiornamento del ${data(a.data)}`} className="rounded-lg border-[0.8px] border-bordo-scheda p-4">
+      <div className="flex flex-wrap items-baseline justify-between gap-2">
+        <h2 className="text-[1.3rem] font-medium">Aggiornamento del {data(a.data)}</h2>
+        <span className="text-sm text-muted-foreground">{a.primaLettura ? `Prima lettura: ${a.articoliDopo} articoli` : `${a.articoliPrima} → ${a.articoliDopo} articoli`}</span>
+      </div>
+      {!a.primaLettura && <div className="mt-3 grid gap-4 md:grid-cols-3">
+        <div><h3 className="font-semibold text-[#1d7a45]">Nuovi ({a.nuovi.length})</h3><ul className="mt-1 max-h-64 space-y-1 overflow-y-auto text-sm">{a.nuovi.map((x) => <li key={x.codice}><a href={x.url} target="_blank" rel="noopener noreferrer" className="hover:text-primary"><span className="font-mono">{x.codice}</span> · {x.nome}{x.tipo ? ` ${x.tipo}` : ""}</a></li>)}</ul></div>
+        <div><h3 className="font-semibold text-[#b3261e]">Non più presenti ({a.rimossi.length})</h3><ul className="mt-1 max-h-64 space-y-1 overflow-y-auto text-sm">{a.rimossi.map((x) => <li key={x.codice}><span className="font-mono">{x.codice}</span> · {x.nome}{x.tipo ? ` ${x.tipo}` : ""}</li>)}</ul></div>
+        <div><h3 className="font-semibold text-[#9a6200]">Dati tecnici cambiati ({a.modificati.length})</h3><ul className="mt-1 max-h-64 space-y-2 overflow-y-auto text-sm">{a.modificati.map((x) => <li key={x.codice}><a href={x.url} target="_blank" rel="noopener noreferrer" className="hover:text-primary"><span className="font-mono">{x.codice}</span> · {x.nome}</a><ul className="text-xs text-muted-foreground">{x.campi.map((f) => <li key={f.campo}>{f.campo}: {f.prima ?? "—"} → {f.dopo ?? "—"}</li>)}</ul></li>)}</ul></div>
+      </div>}
+    </section>)}
+    {novita?.ultimoControllo && <p className="text-xs text-muted-foreground">Ultimo controllo del sito OBO: {data(novita.ultimoControllo)}. Il controllo si ripete ogni mese.</p>}
+  </div>;
+}
+
 export function ProdottiPage() {
   const { catalogo, pronto } = useCatalogoObo();
+  const novita = useNovitaObo();
+  const ultimi = new Set((novita?.aggiornamenti.find((a) => !a.primaLettura)?.nuovi ?? []).map((x) => x.codice));
   const [testo, setTesto] = useState("");
   const [categoria, setCategoria] = useState<string | null>(null);
   const [limite, setLimite] = useState(PAGINA);
@@ -63,7 +101,10 @@ export function ProdottiPage() {
     <main className="mx-auto max-w-5xl px-4 py-8">
       {!pronto && <p role="status" className="text-sm text-muted-foreground">Caricamento del catalogo…</p>}
       {pronto && !catalogo && <p role="status" className="rounded-lg border-l-4 border-primary bg-muted p-4 text-sm">Il catalogo non è ancora stato generato: viene creato automaticamente dal lettore del sito OBO (GitHub Actions) e compare qui al termine.</p>}
-      {catalogo && <>
+      {catalogo && <Tabs defaultValue="catalogo">
+        <TabsList className="mb-5"><TabsTrigger value="catalogo">Catalogo</TabsTrigger><TabsTrigger value="novita">Novità e prodotti dismessi</TabsTrigger></TabsList>
+        <TabsContent value="novita"><Novita catalogo={catalogo} novita={novita} /></TabsContent>
+        <TabsContent value="catalogo">
         <div className="flex flex-wrap gap-3">
           <input aria-label="Cerca" className={`${inputCls} max-w-md`} placeholder="Cerca per nome, codice articolo o tipo (es. isFang, 5402864, V20)" value={testo} onChange={(e) => { setTesto(e.target.value); setLimite(PAGINA); }} />
           <div className="flex flex-wrap gap-2" role="group" aria-label="Categoria">
@@ -74,12 +115,13 @@ export function ProdottiPage() {
         <p className="mt-3 text-sm text-muted-foreground">{risultati.length} prodotti</p>
         <div className="mt-3 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">{risultati.slice(0, limite).map((p) => <button key={p.url} type="button" onClick={() => setAperto(p)} className="flex flex-col rounded-lg border-[0.8px] border-bordo-scheda bg-card p-3 text-left transition-colors hover:border-primary">
           <Immagine src={p.foto} alt={p.nome} className="h-40 w-full" />
-          <span className="mt-3 font-medium leading-snug">{p.nome}</span>
+          <span className="mt-3 font-medium leading-snug">{p.nome}{(ultimi.has(p.codice ?? "") || p.varianti.some((v) => ultimi.has(v.codice))) && <span className="ml-2 rounded-full bg-[#e3f4ea] px-2 py-0.5 align-middle text-[11px] font-semibold text-[#1d7a45]">Nuovo</span>}</span>
           <span className="mt-1 text-xs text-muted-foreground">art. {p.codice}{p.varianti.length > 1 ? ` · ${p.varianti.length} varianti` : ""}</span>
           <span className="mt-2 flex gap-2 text-[11px] text-muted-foreground">{p.scheda && <span className="rounded-full bg-muted px-2 py-0.5">PDF</span>}{p.disegno2d && <span className="rounded-full bg-muted px-2 py-0.5">2D</span>}{p.file3d.stp && <span className="inline-flex items-center gap-1 rounded-full bg-muted px-2 py-0.5"><Box className="size-3" />3D</span>}</span>
         </button>)}</div>
         {risultati.length > limite && <div className="mt-6 flex justify-center"><Button variant="outline" onClick={() => setLimite((l) => l + PAGINA)}>Mostra altri</Button></div>}
-      </>}
+        </TabsContent>
+      </Tabs>}
       {aperto && <Dettaglio p={aperto} onClose={() => setAperto(null)} />}
     </main>
   </>;
