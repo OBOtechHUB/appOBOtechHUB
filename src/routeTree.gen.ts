@@ -13,6 +13,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as ComputoMaterialiRouteImport } from './routes/computo-materiali'
+import { Route as RischioRouteImport } from './routes/rischio'
 import { Route as SpdRouteImport } from './routes/spd'
 import { Route as CalateRouteImport } from './routes/calate'
 import { Route as ProdottiRouteImport } from './routes/prodotti'
@@ -51,6 +52,11 @@ const AuthRoute = AuthRouteImport.update({
 const ComputoMaterialiRoute = ComputoMaterialiRouteImport.update({
   id: '/computo-materiali',
   path: '/computo-materiali',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RischioRoute = RischioRouteImport.update({
+  id: '/rischio',
+  path: '/rischio',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SpdRoute = SpdRouteImport.update({
@@ -158,6 +164,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/computo-materiali': typeof ComputoMaterialiRoute
+  '/rischio': typeof RischioRoute
   '/spd': typeof SpdRoute
   '/calate': typeof CalateRoute
   '/prodotti': typeof ProdottiRoute
@@ -183,6 +190,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/computo-materiali': typeof ComputoMaterialiRoute
+  '/rischio': typeof RischioRoute
   '/spd': typeof SpdRoute
   '/calate': typeof CalateRoute
   '/prodotti': typeof ProdottiRoute
@@ -210,6 +218,7 @@ export interface FileRoutesById {
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/auth': typeof AuthRoute
   '/computo-materiali': typeof ComputoMaterialiRoute
+  '/rischio': typeof RischioRoute
   '/spd': typeof SpdRoute
   '/calate': typeof CalateRoute
   '/prodotti': typeof ProdottiRoute
@@ -237,6 +246,7 @@ export interface FileRouteTypes {
     | '/'
     | '/auth'
     | '/computo-materiali'
+    | '/rischio'
     | '/spd'
     | '/calate'
     | '/prodotti'
@@ -262,6 +272,7 @@ export interface FileRouteTypes {
     | '/'
     | '/auth'
     | '/computo-materiali'
+    | '/rischio'
     | '/spd'
     | '/calate'
     | '/prodotti'
@@ -288,6 +299,7 @@ export interface FileRouteTypes {
     | '/_authenticated'
     | '/auth'
     | '/computo-materiali'
+    | '/rischio'
     | '/spd'
     | '/calate'
     | '/prodotti'
@@ -315,6 +327,7 @@ export interface RootRouteChildren {
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AuthRoute: typeof AuthRoute
   ComputoMaterialiRoute: typeof ComputoMaterialiRoute
+  RischioRoute: typeof RischioRoute
   SpdRoute: typeof SpdRoute
   CalateRoute: typeof CalateRoute
   ProdottiRoute: typeof ProdottiRoute
@@ -363,6 +376,13 @@ declare module '@tanstack/react-router' {
       path: '/computo-materiali'
       fullPath: '/computo-materiali'
       preLoaderRoute: typeof ComputoMaterialiRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/rischio': {
+      id: '/rischio'
+      path: '/rischio'
+      fullPath: '/rischio'
+      preLoaderRoute: typeof RischioRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/spd': {
@@ -526,6 +546,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AuthRoute: AuthRoute,
   ComputoMaterialiRoute: ComputoMaterialiRoute,
+  RischioRoute: RischioRoute,
   SpdRoute: SpdRoute,
   CalateRoute: CalateRoute,
   ProdottiRoute: ProdottiRoute,

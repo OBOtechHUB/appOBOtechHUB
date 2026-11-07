@@ -14,10 +14,11 @@ describe("assistente di progetto", () => {
     expect(completamento(passi).completi).toBe(0);
   });
 
-  it("dopo edificio e modello il prossimo passo è la captazione (l'analisi rischio in arrivo viene saltata)", () => {
+  it("dopo l'edificio il prossimo passo è l'analisi del rischio, poi la captazione", () => {
     const passi = passiAssistente({ ...vuoto, edificio: { nome: "Scuola", comune: "Milano", L: 20, W: 10, H: 8, lpl: "III", densita: 2 }, corpi: 1 });
     expect(passi.find((x) => x.id === "edificio")?.stato).toBe("completo");
-    expect(prossimoPasso(passi)?.id).toBe("captazione");
+    expect(prossimoPasso(passi)?.id).toBe("rischio");
+    expect(prossimoPasso(passiAssistente({ ...vuoto, edificio: { nome: "Scuola", comune: "Milano", L: 20, W: 10, H: 8, lpl: "III", densita: 2 }, corpi: 1, rischioValutato: true }))?.id).toBe("captazione");
   });
 
   it("progetto completo", () => {
@@ -25,7 +26,7 @@ describe("assistente di progetto", () => {
     const c = completamento(passi);
     expect(passi.find((x) => x.id === "calate")?.stato).toBe("in corso");
     expect(c.completi).toBe(c.totale - 1); // calate in corso finché manca la distanza s
-    expect(prossimoPasso(passi)?.id).toBe("calate");
+    expect(prossimoPasso(passi)?.id).toBe("rischio");
   });
 
   it("verifica scaduta riporta il passo in corso", () => {

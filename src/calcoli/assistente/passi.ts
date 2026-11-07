@@ -15,13 +15,16 @@ export interface RiassuntoProgetto {
   conduttoriTerra: number;
   picchetti: number;
   componentiPosizionati: number;
+  rischioValutato?: boolean;
+  calateCalcolate?: boolean;
+  spdScelti?: boolean;
   righeComputo: number;
   mancantiComputo: number;
   verifiche: number;
   verificaScaduta: boolean;
 }
 
-export type Destinazione = "/dati-edificio" | "/edificio-3d" | "/resistenza-terra" | "/particolari" | "/computo-materiali" | "/download-cad" | "/verifiche";
+export type Destinazione = "/rischio" | "/calate" | "/spd" | "/dati-edificio" | "/edificio-3d" | "/resistenza-terra" | "/particolari" | "/computo-materiali" | "/download-cad" | "/verifiche";
 
 export interface Passo {
   id: string;
@@ -48,7 +51,7 @@ export function passiAssistente(p: RiassuntoProgetto): Passo[] {
     },
     {
       id: "rischio", titolo: "Analisi del rischio", descrizione: "Valutazione R1–R4 secondo CEI EN IEC 62305-2 per stabilire se e come proteggere.",
-      stato: "in arrivo", motivo: "Modulo in preparazione: per ora l'LPL si sceglie nei dati dell'edificio.", to: null, obbligatorio: false,
+      stato: p.rischioValutato ? "completo" : "da fare", motivo: p.rischioValutato ? "Rischio R1 valutato e LPL impostato" : "Calcola R1 e il livello di protezione minimo.", to: "/rischio", obbligatorio: false,
     },
     {
       id: "modello", titolo: "Modello 3D", descrizione: "Corpi dell'edificio, coperture e superfici (manuale, DXF, IFC, mappa).",
@@ -63,9 +66,9 @@ export function passiAssistente(p: RiassuntoProgetto): Passo[] {
     },
     {
       id: "calate", titolo: "Calate e distanza di sicurezza", descrizione: "Numero e posizione delle calate; distanza di separazione s.",
-      stato: p.calate > 0 ? "in corso" : "da fare",
-      motivo: p.calate > 0 ? `${p.calate} calate nel progetto · calcolo della distanza s in arrivo` : "Le calate arrivano con la proposta di captazione.",
-      to: "/edificio-3d", obbligatorio: true,
+      stato: p.calateCalcolate ? "completo" : p.calate > 0 ? "in corso" : "da fare",
+      motivo: p.calateCalcolate ? "Calate e distanza di separazione verificate" : p.calate > 0 ? `${p.calate} calate nel progetto: verifica la distanza di separazione` : "Calcola numero di calate e distanza di separazione.",
+      to: "/calate", obbligatorio: true,
     },
     {
       id: "terra", titolo: "Impianto di terra", descrizione: "Dispersore di tipo A, B o di fondazione.",
@@ -80,7 +83,7 @@ export function passiAssistente(p: RiassuntoProgetto): Passo[] {
     },
     {
       id: "spd", titolo: "Scelta SPD", descrizione: "Coordinamento degli SPD secondo CEI EN IEC 62305-4.",
-      stato: "in arrivo", motivo: "Modulo in preparazione.", to: null, obbligatorio: false,
+      stato: p.spdScelti ? "completo" : "da fare", motivo: p.spdScelti ? "SPD scelti e salvati nel computo" : "Scegli gli SPD per la linea di alimentazione.", to: "/spd", obbligatorio: false,
     },
     {
       id: "particolari", titolo: "Particolari costruttivi", descrizione: "Abbinamento dei componenti ai particolari OBO, schede PDF e DWG.",

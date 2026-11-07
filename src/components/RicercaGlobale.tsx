@@ -11,6 +11,7 @@ const PAGINE: { titolo: string; to: string; parole: string }[] = [
   { titolo: "Edificio 3D · captazione e terra", to: "/edificio-3d", parole: "sfera rotolante maglia aste proposta terra dispersore" },
   { titolo: "Calate e distanza di separazione", to: "/calate", parole: "calate kc ki km distanza sicurezza" },
   { titolo: "Scelta SPD", to: "/spd", parole: "sovratensioni scaricatori iimp up uc" },
+  { titolo: "Analisi del rischio", to: "/rischio", parole: "rischio r1 perdite probabilità" },
   { titolo: "Resistenza di terra", to: "/resistenza-terra", parole: "picchetto wenner resistività" },
   { titolo: "Computo materiali", to: "/computo-materiali", parole: "distinta quantità excel relazione" },
   { titolo: "Particolari costruttivi", to: "/particolari", parole: "schede tbs dwg pdf" },

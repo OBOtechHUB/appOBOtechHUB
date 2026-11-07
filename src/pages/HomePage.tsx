@@ -48,12 +48,12 @@ export function HomePage() {
       {user&&<div className="mt-5 flex justify-end"><Button variant="outline" asChild><Link to="/dati-normativi">Dati normativi · Catalogo</Link></Button></div>}
       <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         <ModuleCard titolo="Dati edificio" descrizione="Geometria, copertura, materiali e area di raccolta." icona={Building2} to="/dati-edificio" />
-        <ModuleCard titolo="Analisi rischio" descrizione="Valutazione del rischio R1–R4 (parte 2)." icona={ShieldAlert} />
+        <ModuleCard titolo="Analisi rischio" descrizione="Valutazione del rischio R1–R4 (parte 2)." icona={ShieldAlert} to="/rischio" />
         <ModuleCard titolo="Captazione" descrizione="Sfera rotolante e maglia di captazione." icona={Radio} to="/edificio-3d" />
-        <ModuleCard titolo="Calate e distanza di sicurezza" descrizione="Numero calate e distanza s." icona={ArrowDownToLine} />
+        <ModuleCard titolo="Calate e distanza di sicurezza" descrizione="Numero calate e distanza s." icona={ArrowDownToLine} to="/calate" />
         <ModuleCard titolo="Impianto di terra" descrizione="Dispersori tipo A, B e fondazione." icona={Grid3x3} to="/edificio-3d" />
         <ModuleCard titolo="Resistenza di terra" descrizione="Stima R di picchetti, anelli e maglie · misura Wenner." icona={Gauge} to="/resistenza-terra" />
-        <ModuleCard titolo="Scelta SPD" descrizione="Coordinamento SPD (parte 4)." icona={Cpu} />
+        <ModuleCard titolo="Scelta SPD" descrizione="Coordinamento SPD (parte 4)." icona={Cpu} to="/spd" />
         <ModuleCard titolo="Computo materiali" descrizione="Elenco e quantità componenti." icona={ClipboardList} to="/computo-materiali" />
         <ModuleCard titolo="Edificio 3D" descrizione="Modello geometrico, superfici e import CAD." icona={Building2} to="/edificio-3d" />
         <ModuleCard titolo="Verifiche e dossier" descrizione="Piano delle verifiche, checklist, misure e dossier PDF." icona={ClipboardCheck} to="/verifiche" />
