@@ -8,7 +8,7 @@ import { writeFile, mkdir } from "node:fs/promises";
 const BASE = "https://www.obo-bettermann.com";
 const LINGUA = "en-xi";
 const RADICI = ["external-lightning-protection", "surge-protection", "equipotential-bonding-and-earthing"];
-const PAUSA_MS = Number(process.env.PAUSA_MS ?? 1200);
+const PAUSA_MS = Number(process.env.PAUSA_MS ?? 2500);
 const MAX_PAGINE = Number(process.env.MAX_PAGINE ?? 5000);
 const USCITA = process.env.USCITA ?? "public/dati/obo-prodotti.json";
 
@@ -16,19 +16,27 @@ const attesa = (ms) => new Promise((r) => setTimeout(r, ms));
 let richieste = 0;
 async function scarica(percorso) {
   if (richieste >= MAX_PAGINE) throw new Error("Limite di pagine raggiunto");
-  for (let tentativo = 1; tentativo <= 3; tentativo++) {
+  for (let tentativo = 1; tentativo <= 8; tentativo++) {
     richieste++;
     await attesa(PAUSA_MS);
     try {
       const r = await fetch(BASE + percorso, { headers: { "User-Agent": "LPS-catalogo/1.0 (progettazione LPS, uso tecnico)", "Accept-Language": "en" } });
       if (r.status === 404) return null;
+      if (r.status === 429 || r.status === 503) {
+        // il sito chiede di rallentare: aspetta quanto indicato (o un minuto, poi di più)
+        const dopo = Number(r.headers.get("retry-after")) || 60 * tentativo;
+        console.warn(`  ${percorso}: ${r.status}, attendo ${dopo} s`);
+        await attesa(dopo * 1000);
+        continue;
+      }
       if (!r.ok) throw new Error(`HTTP ${r.status}`);
       return await r.text();
     } catch (e) {
       console.warn(`  ${percorso}: ${e.message} (tentativo ${tentativo})`);
-      await attesa(3000 * tentativo);
+      await attesa(5000 * tentativo);
     }
   }
+  console.warn(`  ${percorso}: rinuncio dopo 8 tentativi`);
   return null;
 }
 
@@ -85,7 +93,7 @@ export function leggiProdotto(html, url) {
     foto: foto[0] ?? null,
     disegno2d: disegni[0] ?? null,
     scheda: schede.find((s) => s.codice === codice)?.url ?? null,
-    documenti,
+    documenti: documenti.filter((u) => /-(REACH|RoHS|CE|EU|DoC|declaration)/i.test(u)).concat(documenti.filter((u) => !/-(REACH|RoHS|CE|EU|DoC|declaration)/i.test(u))).slice(0, 8),
     file3d: { stp: stp.find((u) => codice && u.includes(codice)) ?? stp[0] ?? null, rfa: rfa[0] ?? null, cad: cad.filter((u) => codice && u.includes(codice)) },
     varianti,
   };

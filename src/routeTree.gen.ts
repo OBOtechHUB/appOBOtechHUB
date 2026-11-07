@@ -13,6 +13,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as ComputoMaterialiRouteImport } from './routes/computo-materiali'
+import { Route as ProdottiRouteImport } from './routes/prodotti'
 import { Route as Modelli3dRouteImport } from './routes/modelli-3d'
 import { Route as AssistenteRouteImport } from './routes/assistente'
 import { Route as VerificheRouteImport } from './routes/verifiche'
@@ -48,6 +49,11 @@ const AuthRoute = AuthRouteImport.update({
 const ComputoMaterialiRoute = ComputoMaterialiRouteImport.update({
   id: '/computo-materiali',
   path: '/computo-materiali',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ProdottiRoute = ProdottiRouteImport.update({
+  id: '/prodotti',
+  path: '/prodotti',
   getParentRoute: () => rootRouteImport,
 } as any)
 const Modelli3dRoute = Modelli3dRouteImport.update({
@@ -140,6 +146,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/computo-materiali': typeof ComputoMaterialiRoute
+  '/prodotti': typeof ProdottiRoute
   '/modelli-3d': typeof Modelli3dRoute
   '/assistente': typeof AssistenteRoute
   '/verifiche': typeof VerificheRoute
@@ -162,6 +169,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/computo-materiali': typeof ComputoMaterialiRoute
+  '/prodotti': typeof ProdottiRoute
   '/modelli-3d': typeof Modelli3dRoute
   '/assistente': typeof AssistenteRoute
   '/verifiche': typeof VerificheRoute
@@ -186,6 +194,7 @@ export interface FileRoutesById {
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/auth': typeof AuthRoute
   '/computo-materiali': typeof ComputoMaterialiRoute
+  '/prodotti': typeof ProdottiRoute
   '/modelli-3d': typeof Modelli3dRoute
   '/assistente': typeof AssistenteRoute
   '/verifiche': typeof VerificheRoute
@@ -210,6 +219,7 @@ export interface FileRouteTypes {
     | '/'
     | '/auth'
     | '/computo-materiali'
+    | '/prodotti'
     | '/modelli-3d'
     | '/assistente'
     | '/verifiche'
@@ -232,6 +242,7 @@ export interface FileRouteTypes {
     | '/'
     | '/auth'
     | '/computo-materiali'
+    | '/prodotti'
     | '/modelli-3d'
     | '/assistente'
     | '/verifiche'
@@ -255,6 +266,7 @@ export interface FileRouteTypes {
     | '/_authenticated'
     | '/auth'
     | '/computo-materiali'
+    | '/prodotti'
     | '/modelli-3d'
     | '/assistente'
     | '/verifiche'
@@ -279,6 +291,7 @@ export interface RootRouteChildren {
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AuthRoute: typeof AuthRoute
   ComputoMaterialiRoute: typeof ComputoMaterialiRoute
+  ProdottiRoute: typeof ProdottiRoute
   Modelli3dRoute: typeof Modelli3dRoute
   AssistenteRoute: typeof AssistenteRoute
   VerificheRoute: typeof VerificheRoute
@@ -324,6 +337,13 @@ declare module '@tanstack/react-router' {
       path: '/computo-materiali'
       fullPath: '/computo-materiali'
       preLoaderRoute: typeof ComputoMaterialiRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/prodotti': {
+      id: '/prodotti'
+      path: '/prodotti'
+      fullPath: '/prodotti'
+      preLoaderRoute: typeof ProdottiRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/modelli-3d': {
@@ -466,6 +486,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AuthRoute: AuthRoute,
   ComputoMaterialiRoute: ComputoMaterialiRoute,
+  ProdottiRoute: ProdottiRoute,
   Modelli3dRoute: Modelli3dRoute,
   AssistenteRoute: AssistenteRoute,
   VerificheRoute: VerificheRoute,
