@@ -25,3 +25,13 @@ bun install
 bun run dev            # http://localhost:5173
 bun run test
 ```
+
+## Controllo degli accessi (amministratore, richieste, Authenticator)
+1. Supabase → Authentication → Users → **Add user**: email dell'amministratore e password (≥ 6 caratteri), "Auto confirm".
+2. Supabase → SQL Editor: incolla `supabase/accessi.sql` e premi **Run** (crea tabelle, regole e primo amministratore).
+3. Supabase → Authentication → Sign In / Providers → Email: **disattiva "Allow new users to sign up"** (gli account li crea solo l'amministratore).
+4. Supabase → Edge Functions → **Deploy a new function** → "Via editor":
+   - `richiesta-accesso`: incolla `supabase/functions/richiesta-accesso/index.ts`; in *Details* disattiva **Verify JWT** (è pubblica).
+   - `gestione-accessi`: incolla `supabase/functions/gestione-accessi/index.ts` (Verify JWT attivo).
+5. Supabase → Edge Functions → **Secrets**: `RESEND_API_KEY` = chiave di resend.com (account creato con l'email dell'amministratore).
+6. Accedi all'app, cambia la password, collega Microsoft Authenticator, poi in **Admin → Impostazioni** imposta la password iniziale comune.

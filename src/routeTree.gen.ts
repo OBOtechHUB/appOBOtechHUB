@@ -13,6 +13,8 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as ComputoMaterialiRouteImport } from './routes/computo-materiali'
+import { Route as AdminRouteImport } from './routes/admin'
+import { Route as RichiestaAccessoRouteImport } from './routes/richiesta-accesso'
 import { Route as RischioRouteImport } from './routes/rischio'
 import { Route as SpdRouteImport } from './routes/spd'
 import { Route as CalateRouteImport } from './routes/calate'
@@ -52,6 +54,16 @@ const AuthRoute = AuthRouteImport.update({
 const ComputoMaterialiRoute = ComputoMaterialiRouteImport.update({
   id: '/computo-materiali',
   path: '/computo-materiali',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminRoute = AdminRouteImport.update({
+  id: '/admin',
+  path: '/admin',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RichiestaAccessoRoute = RichiestaAccessoRouteImport.update({
+  id: '/richiesta-accesso',
+  path: '/richiesta-accesso',
   getParentRoute: () => rootRouteImport,
 } as any)
 const RischioRoute = RischioRouteImport.update({
@@ -164,6 +176,8 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/computo-materiali': typeof ComputoMaterialiRoute
+  '/admin': typeof AdminRoute
+  '/richiesta-accesso': typeof RichiestaAccessoRoute
   '/rischio': typeof RischioRoute
   '/spd': typeof SpdRoute
   '/calate': typeof CalateRoute
@@ -190,6 +204,8 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/computo-materiali': typeof ComputoMaterialiRoute
+  '/admin': typeof AdminRoute
+  '/richiesta-accesso': typeof RichiestaAccessoRoute
   '/rischio': typeof RischioRoute
   '/spd': typeof SpdRoute
   '/calate': typeof CalateRoute
@@ -218,6 +234,8 @@ export interface FileRoutesById {
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/auth': typeof AuthRoute
   '/computo-materiali': typeof ComputoMaterialiRoute
+  '/admin': typeof AdminRoute
+  '/richiesta-accesso': typeof RichiestaAccessoRoute
   '/rischio': typeof RischioRoute
   '/spd': typeof SpdRoute
   '/calate': typeof CalateRoute
@@ -246,6 +264,8 @@ export interface FileRouteTypes {
     | '/'
     | '/auth'
     | '/computo-materiali'
+    | '/admin'
+    | '/richiesta-accesso'
     | '/rischio'
     | '/spd'
     | '/calate'
@@ -272,6 +292,8 @@ export interface FileRouteTypes {
     | '/'
     | '/auth'
     | '/computo-materiali'
+    | '/admin'
+    | '/richiesta-accesso'
     | '/rischio'
     | '/spd'
     | '/calate'
@@ -299,6 +321,8 @@ export interface FileRouteTypes {
     | '/_authenticated'
     | '/auth'
     | '/computo-materiali'
+    | '/admin'
+    | '/richiesta-accesso'
     | '/rischio'
     | '/spd'
     | '/calate'
@@ -327,6 +351,8 @@ export interface RootRouteChildren {
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AuthRoute: typeof AuthRoute
   ComputoMaterialiRoute: typeof ComputoMaterialiRoute
+  AdminRoute: typeof AdminRoute
+  RichiestaAccessoRoute: typeof RichiestaAccessoRoute
   RischioRoute: typeof RischioRoute
   SpdRoute: typeof SpdRoute
   CalateRoute: typeof CalateRoute
@@ -376,6 +402,20 @@ declare module '@tanstack/react-router' {
       path: '/computo-materiali'
       fullPath: '/computo-materiali'
       preLoaderRoute: typeof ComputoMaterialiRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin': {
+      id: '/admin'
+      path: '/admin'
+      fullPath: '/admin'
+      preLoaderRoute: typeof AdminRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/richiesta-accesso': {
+      id: '/richiesta-accesso'
+      path: '/richiesta-accesso'
+      fullPath: '/richiesta-accesso'
+      preLoaderRoute: typeof RichiestaAccessoRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/rischio': {
@@ -546,6 +586,8 @@ const rootRouteChildren: RootRouteChildren = {
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AuthRoute: AuthRoute,
   ComputoMaterialiRoute: ComputoMaterialiRoute,
+  AdminRoute: AdminRoute,
+  RichiestaAccessoRoute: RichiestaAccessoRoute,
   RischioRoute: RischioRoute,
   SpdRoute: SpdRoute,
   CalateRoute: CalateRoute,

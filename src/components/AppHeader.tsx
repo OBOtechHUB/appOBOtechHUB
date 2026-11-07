@@ -2,7 +2,7 @@ import { useEffect, useState, type ComponentType } from "react";
 import { Link, useNavigate, useRouter, useRouterState } from "@tanstack/react-router";
 import { useQueryClient } from "@tanstack/react-query";
 import {
-  ArrowDownToLine, Box, Boxes, Cpu, ShieldAlert, Building2, Package, ClipboardCheck, Compass, Gauge, ChevronLeft, ClipboardList, Download, FileText, FolderOpen, Info, LogIn, LogOut,
+  ArrowDownToLine, ShieldCheck, Box, Boxes, Cpu, ShieldAlert, Building2, Package, ClipboardCheck, Compass, Gauge, ChevronLeft, ClipboardList, Download, FileText, FolderOpen, Info, LogIn, LogOut,
   Mail, Menu, Ruler, Search, Smartphone, Shield, SlidersHorizontal, User, UserPlus, Wrench, X,
 } from "lucide-react";
 import { useAuth } from "@/lib/auth";
@@ -11,6 +11,7 @@ import { salvaAttivo, useStatoSalvataggio } from "@/components/ProjectSync";
 import { SaettaFigura } from "@/components/Saetta";
 import { RicercaGlobale } from "@/components/RicercaGlobale";
 import { useAvanzamentoProgetto } from "@/lib/avanzamentoProgetto";
+import { SEZIONE_PAGINA, puoVedere, useAccesso } from "@/lib/accesso";
 import { impostaAttivo, useAttivo } from "@/lib/statoProgetto";
 import { useAzioneInstalla } from "@/components/InstallaApp";
 
@@ -41,6 +42,10 @@ export function AppHeader() {
   const { comp, prossimo, mancanti } = useAvanzamentoProgetto();
   const attivo = useAttivo();
   const statoSalvataggio = useStatoSalvataggio();
+  const accesso = useAccesso();
+  const abilitato = accesso.stato === "abilitato";
+  const admin = abilitato && accesso.profilo?.ruolo === "admin";
+  const visibile = (to: string) => { const sez = SEZIONE_PAGINA[to]; return abilitato ? !sez || puoVedere(accesso, sez) : ["/", "/auth", "/richiesta-accesso", "/guida", "/contatti", "/termini", "/privacy"].includes(to); };
 
   useEffect(() => { setAperto(false); }, [percorso]);
   useEffect(() => {
@@ -70,9 +75,10 @@ export function AppHeader() {
           ]
         : [
             { etichetta: "Accedi", to: "/auth", icona: LogIn },
-            { etichetta: "Registrati", to: "/auth", icona: UserPlus },
+            { etichetta: "Richiedi l'accesso", to: "/richiesta-accesso", icona: UserPlus },
           ],
     },
+    ...(admin ? [{ titolo: "Amministrazione", voci: [{ etichetta: "Accessi e utenti", to: "/admin", icona: ShieldCheck } as Voce] }] : []),
     {
       titolo: "Strumenti",
       voci: [
@@ -125,21 +131,27 @@ export function AppHeader() {
             <SaettaFigura className="h-10 w-8 shrink-0 sm:h-12 sm:w-10" />
             <span className="min-w-0">
               <span className="block whitespace-nowrap text-lg font-bold leading-tight sm:text-xl">Progettazione <span className="text-primary">LPS</span></span>
-              <span className="block max-w-[46vw] truncate text-[11px] text-muted-foreground sm:max-w-[320px] sm:text-xs">{attivo ? `${attivo.codice ? attivo.codice + " · " : ""}${attivo.nome} · ${statoSalvataggio || "salvato"}` : user ? "Lavoro locale · nessun progetto aperto" : "Accedi per salvare i progetti"}</span>
+              <span className="block max-w-[46vw] truncate text-[11px] text-muted-foreground sm:max-w-[320px] sm:text-xs">{!abilitato ? "CEI EN IEC 62305:2024 · smart planning" : attivo ? `${attivo.codice ? attivo.codice + " · " : ""}${attivo.nome} · ${statoSalvataggio || "salvato"}` : "Lavoro locale · nessun progetto aperto"}</span>
             </span>
           </Link>
           <nav aria-label="Accessi rapidi" className="ml-auto flex items-stretch">
-            <IconaBarra to="/assistente" etichetta="Assistente" icona={Compass} badge={mancanti.length || undefined} titolo={prossimo ? `Prossimo passo: ${prossimo.titolo}` : "Progetto completo"} />
-            <IconaBarra to="/prodotti" etichetta="Prodotti" icona={Package} nascondiMobile />
-            <IconaBarra etichetta="Cerca" icona={Search} onClick={() => setRicerca(true)} nascondiMobile />
-            <IconaBarra to="/progetti" etichetta="Progetti" icona={ClipboardList} />
-            <IconaBarra to={user ? "/profilo" : "/auth"} etichetta={user ? "Profilo" : "Accedi"} icona={User} nascondiMobile />
+            {abilitato ? <>
+              {visibile("/assistente") && <IconaBarra to="/assistente" etichetta="Assistente" icona={Compass} badge={mancanti.length || undefined} titolo={prossimo ? `Prossimo passo: ${prossimo.titolo}` : "Progetto completo"} />}
+              {visibile("/prodotti") && <IconaBarra to="/prodotti" etichetta="Prodotti" icona={Package} nascondiMobile />}
+              <IconaBarra etichetta="Cerca" icona={Search} onClick={() => setRicerca(true)} nascondiMobile />
+              {visibile("/progetti") && <IconaBarra to="/progetti" etichetta="Progetti" icona={ClipboardList} />}
+              {admin && <IconaBarra to="/admin" etichetta="Admin" icona={ShieldCheck} nascondiMobile />}
+              <IconaBarra to="/profilo" etichetta="Profilo" icona={User} nascondiMobile />
+            </> : <>
+              <IconaBarra to="/richiesta-accesso" etichetta="Richiedi" icona={UserPlus} nascondiMobile />
+              {accesso.stato === "anonimo" && <IconaBarra to="/auth" etichetta="Accedi" icona={LogIn} />}
+            </>}
             <IconaBarra etichetta={aperto ? "Chiudi" : "Menu"} icona={aperto ? X : Menu} onClick={() => setAperto((v) => !v)} espanso={aperto} />
           </nav>
         </div>
-        <div className="h-[3px] w-full bg-muted" role="progressbar" aria-label="Avanzamento del progetto" aria-valuemin={0} aria-valuemax={100} aria-valuenow={comp.percento} title={`Progetto al ${comp.percento}%`}>
+        {abilitato && <div className="h-[3px] w-full bg-muted" role="progressbar" aria-label="Avanzamento del progetto" aria-valuemin={0} aria-valuemax={100} aria-valuenow={comp.percento} title={`Progetto al ${comp.percento}%`}>
           <div className="h-full bg-primary transition-all" style={{ width: `${comp.percento}%` }} />
-        </div>
+        </div>}
       </header>
       <RicercaGlobale aperta={ricerca} onChiudi={() => setRicerca(false)} />
 
@@ -149,11 +161,11 @@ export function AppHeader() {
         aria-label="Menu principale"
         className={`fixed right-0 top-[67px] z-40 max-h-[calc(100dvh-67px)] sm:top-[79px] sm:max-h-[calc(100dvh-79px)] w-[min(100vw,300px)] overflow-y-auto bg-background px-6 pb-6 pt-4 shadow-[0_8px_24px_rgba(0,0,0,0.18)] transition-transform duration-200 sm:right-4 ${aperto ? "translate-x-0" : "pointer-events-none translate-x-[110%]"}`}
       >
-        {sezioni.map((sez) => (
+        {sezioni.filter((sez) => sez.voci.some((v) => !("to" in v) || visibile(v.to))).map((sez) => (
           <div key={sez.titolo} className="mt-4 first:mt-2">
             <p className="text-base font-bold">{sez.titolo}</p>
             <ul className="mt-1">
-              {sez.voci.map((v) => (
+              {sez.voci.filter((v) => !("to" in v) || visibile(v.to)).map((v) => (
                 <li key={v.etichetta}>
                   {"to" in v
                     ? <Link to={v.to as "/"} className={classeVoce} activeProps={{ className: "text-primary" }}><v.icona className="size-6 shrink-0" strokeWidth={1.25} />{v.etichetta}</Link>

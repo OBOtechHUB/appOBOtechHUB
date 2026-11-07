@@ -15,6 +15,8 @@ import { AppFooter } from "@/components/AppFooter";
 import { AuthProvider, useAuth } from "@/lib/auth";
 import { supabase } from "@/integrations/supabase/client";
 import { ProjectSync } from "@/components/ProjectSync";
+import { ControlloAccesso } from "@/components/accesso/ControlloAccesso";
+import { aggiornaAccesso } from "@/lib/accesso";
 import { impostaAttivo,ripristinaLocale,aggiornaEsteso } from "@/lib/statoProgetto";
 import {aggiornaComputo} from "@/lib/progettoStore";
 import {validaCatalogo} from "@/lib/catalogo";
@@ -115,13 +117,15 @@ function PortalShell(){
   const previous=useRef<string|null>(null);
   useEffect(()=>{
     const libreria=(id:string)=>{void supabase.from("librerie_lps").select().eq("utente",id).maybeSingle().then(({data})=>{if(!data||previous.current!==id)return;impostaVerificati(data.particolari_verificati);try{aggiornaComputo({catalogo:validaCatalogo(data.catalogo as unknown[])});aggiornaEsteso({particolari:(data.particolari as unknown[]).map((p)=>particolareSchema.parse(p))});if(data.parametri)sostituisciParametriCaptazione(data.parametri);}catch{}});};
+    void aggiornaAccesso();
     void supabase.auth.getUser().then(({data})=>{previous.current=data.user?.id??null;setUser(data.user);setPronto(true);if(data.user)libreria(data.user.id);});
     const {data}=supabase.auth.onAuthStateChange((event,session)=>{
+      if(["SIGNED_IN","SIGNED_OUT","USER_UPDATED","MFA_CHALLENGE_VERIFIED","TOKEN_REFRESHED"].includes(event))setTimeout(()=>{void aggiornaAccesso();},0);
       if(!["SIGNED_IN","SIGNED_OUT","USER_UPDATED"].includes(event))return;
       if(previous.current!==(session?.user.id??null)){impostaAttivo(null);ripristinaLocale();queryClient.clear();}previous.current=session?.user.id??null;
       setUser(session?.user??null);setPronto(true);void router.invalidate();
       if(event==="SIGNED_OUT"){impostaAttivo(null);ripristinaLocale();queryClient.clear();}else {void queryClient.invalidateQueries();if(session)libreria(session.user.id);}
     });return()=>data.subscription.unsubscribe();
   },[router,queryClient,setUser,setPronto]);
-  return <><AppHeader/><ProjectSync/><Outlet/><AppFooter/></>;
+  return <><AppHeader/><ProjectSync/><ControlloAccesso/><AppFooter/></>;
 }

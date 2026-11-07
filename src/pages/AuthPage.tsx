@@ -1,33 +1,46 @@
 import { useState } from "react";
-import { useNavigate } from "@tanstack/react-router";
+import { Link, useNavigate } from "@tanstack/react-router";
+import { LogIn } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { urlApp } from "@/lib/base";
+import { aggiornaAccesso } from "@/lib/accesso";
 import { Button } from "@/components/ui/button";
 import { Campo, inputCls } from "@/components/Campo";
+import { SaettaFigura } from "@/components/Saetta";
+
+/** Accesso con email e password (gli account li crea l'amministratore); poi nuova password e Authenticator. */
 export function AuthPage() {
-  const [modo, setModo] = useState<"accesso" | "registrazione" | "recupero">("accesso");
-  const [email, setEmail] = useState(""); const [password, setPassword] = useState(""); const [nome, setNome] = useState("");
+  const [recupero, setRecupero] = useState(false);
+  const [email, setEmail] = useState(""); const [password, setPassword] = useState("");
   const [messaggio, setMessaggio] = useState(""); const [busy, setBusy] = useState(false); const navigate = useNavigate();
   async function invia() {
     setBusy(true); setMessaggio("");
     try {
-      if (modo === "recupero") {
+      if (recupero) {
         const { error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo: urlApp("reset-password") }); if (error) throw error;
-        setMessaggio("Se l’indirizzo è registrato, riceverai il link per reimpostare la password.");
-      } else if (modo === "registrazione") {
-        const { error, data } = await supabase.auth.signUp({ email, password, options: { emailRedirectTo: urlApp("auth"), data: { nome_visualizzato: nome } } }); if (error) throw error;
-        if (data.session) await navigate({ to: "/progetti" }); else setMessaggio("Controlla la tua email e conferma la registrazione prima di accedere.");
-      } else { const { error } = await supabase.auth.signInWithPassword({ email, password }); if (error) throw error; await navigate({ to: "/progetti" }); }
+        setMessaggio("Se l'indirizzo è abilitato, riceverai il link per reimpostare la password.");
+      } else {
+        const { error } = await supabase.auth.signInWithPassword({ email, password });
+        if (error) throw new Error(/invalid/i.test(error.message) ? "Email o password non corrette." : error.message);
+        await aggiornaAccesso();
+        await navigate({ to: "/" });
+      }
     } catch (e) { setMessaggio(e instanceof Error ? e.message : "Accesso non riuscito."); } finally { setBusy(false); }
   }
-  return <main className="mx-auto max-w-md px-4 py-10"><h1 className="font-display text-2xl font-bold">{modo === "accesso" ? "Accedi" : modo === "registrazione" ? "Crea account" : "Recupero password"}</h1>
-    <form className="mt-6 space-y-4" onSubmit={(e) => { e.preventDefault(); void invia(); }}>
-      {modo === "registrazione" && <Campo etichetta="Nome visualizzato"><input className={inputCls} maxLength={100} value={nome} onChange={(e) => setNome(e.target.value)} /></Campo>}
-      <Campo etichetta="Email"><input className={inputCls} required type="email" maxLength={254} autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} /></Campo>
-      {modo !== "recupero" && <Campo etichetta="Password"><input className={inputCls} required type="password" minLength={8} autoComplete={modo === "accesso" ? "current-password" : "new-password"} value={password} onChange={(e) => setPassword(e.target.value)} /></Campo>}
-      <Button className="w-full" disabled={busy}>{modo === "accesso" ? "Accedi" : modo === "registrazione" ? "Registrati" : "Invia link"}</Button>
-    </form>
-    <div className="mt-3 flex flex-wrap gap-2"><Button variant="link" onClick={() => { setModo(modo === "registrazione" ? "accesso" : "registrazione"); setMessaggio(""); }}>{modo === "registrazione" ? "Hai già un account? Accedi" : "Crea account"}</Button><Button variant="link" onClick={() => { setModo("recupero"); setMessaggio(""); }}>Password dimenticata?</Button></div>
-    {messaggio && <p role="status" className="mt-4 text-sm">{messaggio}</p>}
+  return <main className="mx-auto max-w-md px-4 py-10">
+    <div className="rounded-2xl border-[0.8px] border-bordo-scheda p-6 shadow-sm">
+      <div className="flex items-center gap-3"><SaettaFigura className="h-14 w-11" /><h1 className="text-2xl font-bold">{recupero ? "Recupero password" : "Accedi"}</h1></div>
+      <form className="mt-6 space-y-4" onSubmit={(e) => { e.preventDefault(); void invia(); }}>
+        <Campo etichetta="Email"><input className={inputCls} required type="email" maxLength={254} autoComplete="username" value={email} onChange={(e) => setEmail(e.target.value)} /></Campo>
+        {!recupero && <Campo etichetta="Password"><input className={inputCls} required type="password" minLength={6} autoComplete="current-password" value={password} onChange={(e) => setPassword(e.target.value)} /></Campo>}
+        <Button className="w-full" size="lg" disabled={busy}><LogIn strokeWidth={1.5} />{recupero ? "Invia il link" : "Accedi"}</Button>
+      </form>
+      {messaggio && <p role="status" className="mt-4 text-sm">{messaggio}</p>}
+      <div className="mt-4 flex flex-wrap justify-between gap-2 text-sm">
+        <Button variant="link" className="p-0" onClick={() => { setRecupero(!recupero); setMessaggio(""); }}>{recupero ? "Torna all'accesso" : "Password dimenticata?"}</Button>
+        <Link to="/richiesta-accesso" className="text-primary hover:underline">Non hai un accesso? Richiedilo</Link>
+      </div>
+      <p className="mt-4 text-xs text-muted-foreground">Dopo la password ti verrà chiesto il codice dell'app Microsoft Authenticator. Al primo accesso sceglierai la tua password e collegherai l'app.</p>
+    </div>
   </main>;
 }
