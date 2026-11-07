@@ -1,4 +1,4 @@
-import { ArrowRight, Building2, ShieldAlert, Radio, ArrowDownToLine, Grid3x3, Cpu, ClipboardList } from "lucide-react";
+import { ArrowRight, Gauge, Building2, ShieldAlert, Radio, ArrowDownToLine, Grid3x3, Cpu, ClipboardList } from "lucide-react";
 import { ModuleCard } from "@/components/ModuleCard";
 import { Link } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
@@ -47,6 +47,7 @@ export function HomePage() {
         <ModuleCard titolo="Captazione" descrizione="Sfera rotolante e maglia di captazione." icona={Radio} to="/edificio-3d" />
         <ModuleCard titolo="Calate e distanza di sicurezza" descrizione="Numero calate e distanza s." icona={ArrowDownToLine} />
         <ModuleCard titolo="Impianto di terra" descrizione="Dispersori tipo A, B e fondazione." icona={Grid3x3} to="/edificio-3d" />
+        <ModuleCard titolo="Resistenza di terra" descrizione="Stima R di picchetti, anelli e maglie · misura Wenner." icona={Gauge} to="/resistenza-terra" />
         <ModuleCard titolo="Scelta SPD" descrizione="Coordinamento SPD (parte 4)." icona={Cpu} />
         <ModuleCard titolo="Computo materiali" descrizione="Elenco e quantità componenti." icona={ClipboardList} to="/computo-materiali" />
         <ModuleCard titolo="Edificio 3D" descrizione="Modello geometrico, superfici e import CAD." icona={Building2} to="/edificio-3d" />

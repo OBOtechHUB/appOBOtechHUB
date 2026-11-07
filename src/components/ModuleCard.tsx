@@ -1,7 +1,7 @@
 import { Link } from "@tanstack/react-router";
 import type { LucideIcon } from "lucide-react";
 
-type Props = { titolo: string; descrizione: string; icona: LucideIcon; to?: "/dati-edificio" | "/computo-materiali" | "/dati-normativi" | "/edificio-3d" | "/particolari" };
+type Props = { titolo: string; descrizione: string; icona: LucideIcon; to?: "/dati-edificio" | "/computo-materiali" | "/dati-normativi" | "/edificio-3d" | "/particolari" | "/resistenza-terra" };
 
 export function ModuleCard({ titolo, descrizione, icona: Icona, to }: Props) {
   const corpo = (
