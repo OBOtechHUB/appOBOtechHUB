@@ -1,11 +1,11 @@
-import { useMemo, useState } from "react";
-import { Link } from "@tanstack/react-router";
+import { useEffect, useMemo, useState } from "react";
+import { Link, useSearch } from "@tanstack/react-router";
 import { Box, Download, ExternalLink, FileText } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { inputCls } from "@/components/Campo";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { NOMI_CATEGORIE, cercaProdotti, codiciDismessi, nomeSottocategoria, useCatalogoObo, useNovitaObo, type CatalogoObo, type NovitaObo, type ProdottoObo } from "@/lib/catalogoObo";
+import { NOMI_CATEGORIE, cercaProdotti, codiciDismessi, trovaArticolo, nomeSottocategoria, useCatalogoObo, useNovitaObo, type CatalogoObo, type NovitaObo, type ProdottoObo } from "@/lib/catalogoObo";
 import { useEsteso } from "@/lib/statoProgetto";
 import { useComputo } from "@/lib/progettoStore";
 
@@ -90,6 +90,12 @@ export function ProdottiPage() {
   const [categoria, setCategoria] = useState<string | null>(null);
   const [limite, setLimite] = useState(PAGINA);
   const [aperto, setAperto] = useState<ProdottoObo | null>(null);
+  const cerca = useSearch({ strict: false }) as { codice?: string };
+  useEffect(() => {
+    if (!catalogo || !cerca.codice) return;
+    const t = trovaArticolo(catalogo, cerca.codice);
+    if (t) { setAperto(t.prodotto); setTesto(cerca.codice); }
+  }, [catalogo, cerca.codice]);
   const risultati = useMemo(() => (catalogo ? cercaProdotti(catalogo, testo, categoria) : []), [catalogo, testo, categoria]);
 
   return <>

@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { CodiceObo } from "@/components/prodotti/CodiceObo";
 import { Link } from "@tanstack/react-router";
 import { Plus, Trash2, FileSpreadsheet, FileText, Download, RotateCcw } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -69,7 +70,7 @@ export function ComputoMaterialiPage() {
       {categorie.map((categoria) => {
         const gruppo = righe.filter((r) => r.categoria === categoria); if (!gruppo.length) return null;
         return <div key={categoria} className="mt-5"><h3 className="border-b border-accent pb-2 font-mono text-sm uppercase">{categoria}</h3><div className="overflow-x-auto"><table className="w-full min-w-[760px] text-sm"><thead><tr className="border-b text-left">{["Codice", "Descrizione", "Quantità", "Unità", "Provenienza", ""].map((h) => <th key={h} className="p-2">{h}</th>)}</tr></thead><tbody>{gruppo.map((r) => <tr key={r.id} className="border-b">
-          <td className="p-2"><input aria-label={`Codice ${r.descrizione}`} maxLength={100} list="codici-catalogo" className={`${inputCls} w-36`} value={r.codice} onChange={(e) => modifica(r.id, { codice: e.target.value })} />{r.codice && !c.catalogo.some((a) => a.codice === r.codice && a.unita === r.unita) && <span className="mt-1 block text-xs text-accent">Codice/unità fuori catalogo</span>}</td>
+          <td className="p-2"><input aria-label={`Codice ${r.descrizione}`} maxLength={100} list="codici-catalogo" className={`${inputCls} w-36`} value={r.codice} onChange={(e) => modifica(r.id, { codice: e.target.value })} />{/^\d{7}$/.test(r.codice) && <span className="mt-1 block text-xs">Anteprima: <CodiceObo codice={r.codice} /></span>}{r.codice && !c.catalogo.some((a) => a.codice === r.codice && a.unita === r.unita) && <span className="mt-1 block text-xs text-accent">Codice/unità fuori catalogo</span>}</td>
           <td className="p-2">{r.provenienza === "Inserimento manuale" && !c.catalogo.some((a) => a.codice === r.codice) ? <input aria-label={`Descrizione riga ${r.id}`} maxLength={500} className={`${inputCls} min-w-44`} value={r.descrizione} onChange={(e) => aggiornaComputo({ manuali: c.manuali.map((m) => m.id === r.id ? { ...m, descrizione: e.target.value } : m) })} /> : r.descrizione}{r.manuale && <span className="mt-1 block text-xs text-muted-foreground">Modifica manuale</span>}</td>
           <td className="p-2"><input aria-label={`Quantità ${r.descrizione}`} className={`${inputCls} w-28 font-mono`} type="number" min="0" step={r.unita === "pz" ? "1" : "0.01"} value={r.quantita} onChange={(e) => modifica(r.id, { quantita: Math.max(0, Number(e.target.value) || 0) })} /></td>
           <td className="p-2">{r.unita}</td><td className="p-2 text-muted-foreground">{r.provenienza.split(/(OBO-TBS-[A-Za-z0-9.-]+)/).map((parte,i)=>parte.startsWith("OBO-TBS-")?<RiferimentoParticolare key={i} riferimento={parte}/>:<span key={i}>{parte}</span>)}</td>

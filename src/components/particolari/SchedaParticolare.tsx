@@ -5,6 +5,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { fileCollegato, statoArchivio, trovaFileArchivio, trovaSchedaPdf, type SchedaPdf } from "@/lib/schedeParticolari";
 import { VisualizzatoreDxf } from "./VisualizzatoreDxf";
+import { CodiceObo } from "@/components/prodotti/CodiceObo";
 
 export interface DatiSchedaParticolare {
   id: string;
@@ -78,7 +79,7 @@ export function SchedaParticolare({ particolare, open, onOpenChange }: {
         <div className="mt-2 overflow-x-auto"><table className="w-full min-w-[540px] text-sm">
           <thead><tr className="border-b text-left">{["Codice OBO", "Descrizione", "Quantità", "Unità"].map((titolo) => <th key={titolo} className="p-2">{titolo}</th>)}</tr></thead>
           <tbody>{particolare.componenti.map((c, i) => <tr key={i} className="border-b">
-            <td className="p-2 font-mono">{c.codiceOBO ?? "Da definire"}</td>
+            <td className="p-2"><CodiceObo codice={c.codiceOBO} /></td>
             <td className="p-2">{c.descrizione}{c.nota && <p className="mt-1 text-xs text-muted-foreground">{c.nota}</p>}</td>
             <td className="p-2 font-mono">{c.quantita?.toLocaleString("it-IT") ?? "Da verificare"}</td><td className="p-2">{c.unitaQuantita}</td>
           </tr>)}</tbody>

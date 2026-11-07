@@ -1,4 +1,5 @@
 import { Button } from "@/components/ui/button";
+import { CodiceObo } from "@/components/prodotti/CodiceObo";
 import { etichettaParticolare, type RisultatoPosizioni } from "@/calcoli/particolari/posizioni";
 
 const NOMI_ORIGINE = { progetto: "progetto", "proposta-captazione": "proposta captazione", "proposta-terra": "proposta terra" } as const;
@@ -21,7 +22,7 @@ export function ParticolariProgetto({ risultato, onScheda }: { risultato: Risult
     </table></div>}
     {risultato.senzaParticolare.length > 0 && <div>
       <h4 className="font-semibold">Codici senza particolare</h4>
-      <ul className="mt-1 text-sm text-muted-foreground">{risultato.senzaParticolare.map((c) => <li key={`${c.codiceOBO}-${c.tipoComponente}`}><span className="font-mono">{c.codiceOBO}</span> · {c.tipoComponente} ×{c.quantita}</li>)}</ul>
+      <ul className="mt-1 text-sm text-muted-foreground">{risultato.senzaParticolare.map((c) => <li key={`${c.codiceOBO}-${c.tipoComponente}`}><CodiceObo codice={c.codiceOBO} /> · {c.tipoComponente} ×{c.quantita}</li>)}</ul>
     </div>}
   </div>;
 }
