@@ -101,7 +101,7 @@ export function DatiEdificioPage() {
           </fieldset>
         </form>
 
-        <aside className="fixed inset-x-0 bottom-0 z-10 border-t-4 border-accent bg-primary p-4 text-primary-foreground md:static md:rounded-lg md:border-t-0 md:border-l-4 md:self-start">
+        <aside className="fixed inset-x-0 bottom-0 z-10 border-t-4 border-primary bg-ardesia p-4 text-white md:static md:rounded-lg md:border-t-0 md:border-l-4 md:self-start">
           <div className="font-mono text-xs uppercase tracking-wider opacity-70">Area di raccolta A<sub>D</sub></div>
           <div className="mt-1 font-mono text-3xl font-bold text-accent">{fmt.format(AD)} <span className="text-base">m²</span></div>
           <div className="mt-2 hidden font-mono text-xs opacity-70 md:block">A<sub>D</sub> = L·W + 2·(3H)·(L+W) + π·(3H)²</div>

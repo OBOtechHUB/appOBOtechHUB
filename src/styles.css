@@ -11,8 +11,9 @@
  * The @theme inline block maps CSS custom properties to Tailwind utility
  * classes (e.g. --color-primary -> bg-primary, text-primary).
  *
- * The :root and .dark blocks define the actual color values using oklch.
- * All colors MUST use oklch format.
+ * The :root and .dark blocks define the actual color values.
+ * Stile ispirato a OBO Construct (senza loghi): arancione #F39B00, ardesia #41525D,
+ * testo #212529, bordi schede #7694A4, pulsanti a pillola, carattere tipo Nimbus Sans.
  *
  * To add a new semantic color:
  * 1. Add the variable to :root (light value) and .dark (dark value)
@@ -20,9 +21,9 @@
  */
 
 @theme inline {
-  --font-sans: "IBM Plex Sans", system-ui, sans-serif;
+  --font-sans: "Nimbus Sans L", "Nimbus Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
   --font-mono: "IBM Plex Mono", ui-monospace, monospace;
-  --font-display: "Space Grotesk", "IBM Plex Sans", sans-serif;
+  --font-display: "Nimbus Sans L", "Nimbus Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
@@ -64,11 +65,13 @@
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
   --color-exposed: var(--exposed);
+  --color-ardesia: var(--ardesia);
+  --color-bordo-scheda: var(--bordo-scheda);
   --color-protected: var(--protected);
 }
 
 :root {
-  --radius: 0.375rem;
+  --radius: 0.5rem;
   --exposed: oklch(0.60 0.21 25);
   --protected: oklch(0.63 0.17 150);
   --viewer-terra: #875b32;
@@ -82,25 +85,27 @@
   --google-background: #ffffff;
   --google-border: #747775;
   --google-foreground: #1f1f1f;
-  --background: oklch(0.975 0.005 250);
-  --foreground: oklch(0.22 0.05 258);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.22 0.05 258);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.22 0.05 258);
-  --primary: oklch(0.27 0.07 258);
-  --primary-foreground: oklch(0.97 0.01 250);
-  --secondary: oklch(0.94 0.01 250);
-  --secondary-foreground: oklch(0.27 0.07 258);
-  --muted: oklch(0.94 0.01 250);
-  --muted-foreground: oklch(0.5 0.03 255);
-  --accent: oklch(0.72 0.18 50);
-  --accent-foreground: oklch(0.2 0.04 50);
-  --destructive: oklch(0.577 0.245 27.325);
-  --destructive-foreground: oklch(0.984 0.003 247.858);
-  --border: oklch(0.89 0.015 252);
-  --input: oklch(0.86 0.02 252);
-  --ring: oklch(0.72 0.18 50);
+  --background: #ffffff;
+  --foreground: #212529;
+  --card: #ffffff;
+  --card-foreground: #212529;
+  --popover: #ffffff;
+  --popover-foreground: #212529;
+  --primary: #f39b00;
+  --primary-foreground: #ffffff;
+  --secondary: #41525d;
+  --secondary-foreground: #ffffff;
+  --muted: #f3f5f6;
+  --muted-foreground: #5b6a74;
+  --accent: #f39b00;
+  --accent-foreground: #ffffff;
+  --destructive: #d9342b;
+  --destructive-foreground: #ffffff;
+  --border: #c9d4da;
+  --input: #9fb2bd;
+  --ring: #f39b00;
+  --ardesia: #41525d;
+  --bordo-scheda: #7694a4;
   --chart-1: oklch(0.646 0.222 41.116);
   --chart-2: oklch(0.6 0.118 184.704);
   --chart-3: oklch(0.398 0.07 227.392);

@@ -1,4 +1,4 @@
-import { Building2, ShieldAlert, Radio, ArrowDownToLine, Grid3x3, Cpu, ClipboardList } from "lucide-react";
+import { ArrowRight, Building2, ShieldAlert, Radio, ArrowDownToLine, Grid3x3, Cpu, ClipboardList } from "lucide-react";
 import { ModuleCard } from "@/components/ModuleCard";
 import { Link } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
@@ -21,10 +21,20 @@ export function HomePage() {
   const completi = moduli.filter((m) => m.stato === "completo").length;
   const progresso = { moduli, completi, percento: Math.round(completi / moduli.length * 100) };
   return (
-    <main className="mx-auto max-w-5xl px-4 py-8">
-      <h1 className="font-display text-2xl font-bold sm:text-3xl">Progettazione LPS – Protezione contro i fulmini</h1>
-      <p className="mt-3 text-muted-foreground">Dall’edificio al progetto: rischio, protezione esterna e documentazione tecnica.</p>
-      <div className="mt-6 grid gap-4 sm:grid-cols-3">{[{titolo:"Valutare il rischio",to:"/dati-edificio",icona:ShieldAlert},{titolo:"Progettare l’LPS",to:"/strumenti",icona:Radio},{titolo:"Disegnare in CAD",to:"/edificio-3d",icona:Building2}].map((p)=><Link key={p.titolo} to={p.to as "/dati-edificio"|"/strumenti"|"/edificio-3d"} className="rounded-md border bg-card p-5"><p.icona className="size-7 text-accent"/><h2 className="mt-3 font-display font-semibold">{p.titolo}</h2></Link>)}</div>
+    <>
+    <section className="bg-ardesia text-white">
+      <div className="mx-auto max-w-5xl px-4 py-12">
+        <h1 className="text-3xl font-bold leading-tight sm:text-4xl">Progettazione LPS – protezione contro i fulmini</h1>
+        <p className="mt-3 max-w-2xl text-lg text-white/90">Dall’edificio al progetto: rischio, protezione esterna e documentazione tecnica secondo CEI EN IEC 62305:2024.</p>
+        <div className="mt-6 flex flex-wrap gap-3">
+          {!user && <Button asChild variant="outline" size="lg"><Link to="/auth">Accedi <ArrowRight strokeWidth={1.5} /></Link></Button>}
+          <Button asChild size="lg"><Link to="/dati-edificio">Inizia il progetto <ArrowRight strokeWidth={1.5} /></Link></Button>
+        </div>
+      </div>
+    </section>
+    <main className="mx-auto max-w-5xl px-4 py-10">
+      <h2 className="text-[1.7rem] font-medium">Panoramica degli strumenti</h2>
+      <div className="mt-6 grid gap-4 sm:grid-cols-3">{[{titolo:"Valutare il rischio",to:"/dati-edificio",icona:ShieldAlert},{titolo:"Progettare l’LPS",to:"/strumenti",icona:Radio},{titolo:"Disegnare in CAD",to:"/edificio-3d",icona:Building2}].map((p)=><Link key={p.titolo} to={p.to as "/dati-edificio"|"/strumenti"|"/edificio-3d"} className="rounded-lg border-[0.8px] border-bordo-scheda bg-card p-5 transition-colors hover:border-primary"><p.icona className="size-8 text-primary" strokeWidth={1.25}/><h3 className="mt-3 text-[1.3rem] font-medium">{p.titolo}</h3></Link>)}</div>
       <section className="mt-6 border-y py-5" aria-label="Avanzamento progetto">
         <div className="flex flex-wrap justify-between gap-2"><h2 className="font-display font-semibold">Avanzamento progetto</h2><span className="font-mono text-sm">{progresso.completi} / 7 completi · {progresso.percento}%</span></div>
         <progress aria-label="Moduli completi" className="mt-3 h-2 w-full overflow-hidden rounded bg-muted accent-accent" value={progresso.completi} max={7} />
@@ -44,5 +54,6 @@ export function HomePage() {
       </div>
       <section className="mt-8 border-y py-5"><h2 className="font-display font-semibold">Norme di riferimento</h2><ul className="mt-3 space-y-1 text-sm text-muted-foreground"><li>CEI EN IEC 62305-1/2/3/4:2024</li><li>CEI EN 61643-12</li></ul><p className="mt-4 text-sm">Calcoli di supporto – da validare da tecnico abilitato</p></section>
     </main>
+    </>
   );
 }
