@@ -190,3 +190,12 @@
   0%, 100% { transform: rotate(0deg); }
   50% { transform: rotate(-18deg); }
 }
+
+/* Aspetto da app vera quando è installata (PC, iPhone, iPad, Android) */
+html { -webkit-tap-highlight-color: transparent; }
+@media (display-mode: standalone) {
+  html, body { overscroll-behavior-y: none; }
+  header.sticky { padding-top: env(safe-area-inset-top); }
+  body { padding-bottom: env(safe-area-inset-bottom); }
+  header nav, header button, header a { -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
+}
