@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { RefreshCw } from "lucide-react";
 
 const ATTUALE = import.meta.env.VITE_VERSIONE as string | undefined;
+let ultima = "";
 
 /** Controlla se è stata pubblicata una versione nuova e mostra in alto "Aggiorna app". */
 export function AggiornaApp() {
@@ -14,7 +15,8 @@ export function AggiornaApp() {
         const r = await fetch(`${import.meta.env.BASE_URL}version.json?t=${Date.now()}`, { cache: "no-store" });
         if (!r.ok) return;
         const { versione } = (await r.json()) as { versione?: string };
-        if (attivo && versione && versione !== ATTUALE) setNuova(true);
+        let gia = ""; try { gia = sessionStorage.getItem("obo-aggiornato-lps") ?? ""; } catch { /* niente */ }
+        if (attivo && versione && versione !== ATTUALE && versione !== gia) { ultima = versione; setNuova(true); }
       } catch { /* offline: riprova più tardi */ }
     };
     void controlla();
@@ -33,6 +35,7 @@ export function AggiornaApp() {
 }
 
 async function aggiorna() {
+  try { sessionStorage.setItem("obo-aggiornato-lps", ultima); } catch { /* niente */ }
   try {
     const regs = await navigator.serviceWorker?.getRegistrations?.() ?? [];
     await Promise.all(regs.map((r) => r.update().catch(() => undefined)));
