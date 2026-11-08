@@ -63,12 +63,13 @@ export function AppHeader() {
   }, [aperto]);
 
   async function esci() {
-    try {
-      await salvaAttivo(); await qc.cancelQueries(); qc.clear(); impostaAttivo(null);
-      await supabase.auth.signOut(); await navigate({ to: "/auth", replace: true });
-    } catch {
-      window.alert("Salvataggio non riuscito. Riprova prima di uscire.");
+    try { await salvaAttivo(); } catch {
+      if (!window.confirm("Il progetto aperto non è stato salvato. Uscire lo stesso?")) return;
     }
+    try { await qc.cancelQueries(); qc.clear(); impostaAttivo(null); } catch { /* niente */ }
+    try { await supabase.auth.signOut(); } catch { /* niente */ }
+    try { await supabase.auth.signOut({ scope: "local" }); } catch { /* esce comunque da questo dispositivo */ }
+    window.location.assign(URL_HUB); // si torna alla pagina iniziale di OBO Hub
   }
 
   const sezioni: { titolo: string; voci: Voce[] }[] = [

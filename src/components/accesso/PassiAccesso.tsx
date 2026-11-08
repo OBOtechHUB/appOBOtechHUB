@@ -15,7 +15,7 @@ function Riquadro({ titolo, icona: I, children }: { titolo: string; icona: typeo
   </main>;
 }
 
-const esci = async () => { await supabase.auth.signOut(); await aggiornaAccesso(); };
+const esci = async () => { try { await supabase.auth.signOut(); } catch { /* niente */ } try { await supabase.auth.signOut({ scope: "local" }); } catch { /* niente */ } await aggiornaAccesso(); };
 
 /** Nuova password al primo accesso (o dopo una reimpostazione dell'amministratore). */
 export function CambiaPassword() {
