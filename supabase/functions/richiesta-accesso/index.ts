@@ -31,7 +31,7 @@ Deno.serve(async (req) => {
   const { data: imp } = await db.from("impostazioni_admin").select("valore").eq("chiave", "email_admin").maybeSingle();
   const destinatario = imp?.valore;
   const chiave = Deno.env.get("RESEND_API_KEY");
-  const app = pulisci(dati.app, 300) || "https://obotechhub.github.io/lps/";
+  const app = pulisci(dati.app, 300) || "https://obotechhub.github.io/appOBOtechHUB/";
   if (destinatario && chiave) {
     await fetch("https://api.resend.com/emails", {
       method: "POST",

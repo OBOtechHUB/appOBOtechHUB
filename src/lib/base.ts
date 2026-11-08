@@ -1,4 +1,4 @@
-/** Percorso di pubblicazione (es. "/lps/" su GitHub Pages, "/" in locale). */
+/** Percorso di pubblicazione (es. "/appOBOtechHUB/" su GitHub Pages, "/" in locale). */
 export const BASE = import.meta.env.BASE_URL || "/";
 
 /** Percorso di un file in public/ rispettando il percorso di pubblicazione: risorsa("cad/LPS.lsp"). */

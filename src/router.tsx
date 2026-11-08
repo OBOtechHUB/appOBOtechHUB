@@ -8,7 +8,7 @@ export const getRouter = () => {
   const router = createRouter({
     routeTree,
     context: { queryClient },
-    // percorso di pubblicazione (es. "/lps/" su GitHub Pages)
+    // percorso di pubblicazione (es. "/appOBOtechHUB/" su GitHub Pages)
     basepath: import.meta.env.BASE_URL,
     scrollRestoration: true,
     defaultPreloadStaleTime: 0,
