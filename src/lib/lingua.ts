@@ -112,3 +112,10 @@ export function avviaLingua() {
   void applica();
   window.addEventListener("storage", (e) => { if (e.key === CHIAVE) { lingua = leggiLingua(); void applica(); ascoltatori.forEach((f) => f()); } });
 }
+
+/** Per testi generati nel codice (PDF, Excel): sceglie la versione nella lingua attiva. */
+export const L = (it: string, en: string) => (leggiLingua() === "en" ? en : it);
+/** Traduce un testo con il dizionario se la lingua è inglese (testi di dati: categorie, descrizioni, esiti…). */
+export const tx = (it: string) => (leggiLingua() === "en" && dizionario ? traduci(it) : it);
+/** Formato locale per date e numeri nella lingua attiva. */
+export const locale = () => (leggiLingua() === "en" ? "en-GB" : "it-IT");

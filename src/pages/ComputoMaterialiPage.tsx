@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { CodiceObo } from "@/components/prodotti/CodiceObo";
+import { L } from "@/lib/lingua";
 import { Link } from "@tanstack/react-router";
 import { Plus, Trash2, FileSpreadsheet, FileText, Download, RotateCcw } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -40,7 +41,7 @@ export function ComputoMaterialiPage() {
     setBusy(true); setErrore(""); setDownload(null);
     try {
       const blob = tipo === "xlsx" ? await creaExcel(righe, generato.mancanti) : await creaRelazione(d, c.risultati, righe, generato.mancanti);
-      setDownload({ blob, nome: tipo === "xlsx" ? "computo-materiali.xlsx" : "relazione-progetto-LPS.pdf" });
+      setDownload({ blob, nome: tipo === "xlsx" ? L("computo-materiali.xlsx", "bill-of-materials.xlsx") : L("relazione-progetto-LPS.pdf", "LPS-design-report.pdf") });
     } catch (e) { setErrore(e instanceof Error ? e.message : "Esportazione non riuscita."); }
     finally { setBusy(false); }
   }

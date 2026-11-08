@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { CodiceObo } from "@/components/prodotti/CodiceObo";
+import { L, tx } from "@/lib/lingua";
 import { RiferimentoParticolare } from "@/components/particolari/RiferimentoParticolare";
 import { Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -35,7 +36,7 @@ export function ImpiantoTerra({ s, onAnteprima }: { s: StatoEsteso; onAnteprima:
     try {
       const X = await import("xlsx");
       const wb = X.utils.book_new();
-      X.utils.book_append_sheet(wb, X.utils.aoa_to_sheet([["Codice", "Descrizione", "Quantità", "Unità", "Riferimento"], ...corrente.proposta.distinta.map((v) => [v.codice, v.descrizione, v.quantita, v.unita, v.riferimento ?? ""])]), "Impianto di terra");
+      X.utils.book_append_sheet(wb, X.utils.aoa_to_sheet([[L("Codice", "Code"), L("Descrizione", "Description"), L("Quantità", "Quantity"), L("Unità", "Unit"), L("Riferimento", "Reference")], ...corrente.proposta.distinta.map((v) => [v.codice, tx(v.descrizione), v.quantita, v.unita, v.riferimento ?? ""])]), L("Impianto di terra", "Earthing system"));
       setExcel(new Blob([X.write(wb, { type: "array", bookType: "xlsx" })], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" }));
     } catch { setErrore("Esportazione Excel non riuscita."); }
   }
