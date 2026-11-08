@@ -32,8 +32,8 @@ export function SaettaFigura({ className = "", saluto = false }: { className?: s
 export function Saetta({ children, saluto = false, chiaro = false }: { children: ReactNode; saluto?: boolean; chiaro?: boolean }) {
   return <div className="flex items-end gap-3">
     <SaettaFigura className="h-28 w-24 shrink-0 sm:h-32 sm:w-28" saluto={saluto} />
-    <div className={`relative mb-6 max-w-md rounded-2xl border-[0.8px] px-4 py-3 text-sm leading-relaxed shadow-sm ${chiaro ? "border-white/40 bg-white text-foreground" : "border-bordo-scheda bg-white text-foreground"}`}>
-      <span aria-hidden="true" className="absolute -left-2 bottom-4 size-4 rotate-45 border-b-[0.8px] border-l-[0.8px] border-inherit bg-white" />
+    <div className={`relative mb-6 max-w-md rounded-2xl border-[0.8px] px-4 py-3 text-sm leading-relaxed shadow-sm ${chiaro ? "border-white/40 bg-background text-foreground" : "border-bordo-scheda bg-background text-foreground"}`}>
+      <span aria-hidden="true" className="absolute -left-2 bottom-4 size-4 rotate-45 border-b-[0.8px] border-l-[0.8px] border-inherit bg-background" />
       {children}
     </div>
   </div>;

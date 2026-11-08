@@ -53,7 +53,7 @@ export function percorsoApp(pathname: string): string {
   return (p.replace(/\/+$/, "") || "/");
 }
 
-export interface Profilo { utente: string; email: string; nome: string; azienda: string; ruolo: "utente" | "admin"; stato: "attivo" | "sospeso"; sezioni: string[]; deve_cambiare_password: boolean; ultimo_accesso: string | null }
+export interface Profilo { utente: string; email: string; nome: string; azienda: string; ruolo: "utente" | "admin"; stato: "attivo" | "sospeso"; sezioni: string[]; deve_cambiare_password: boolean; ultimo_accesso: string | null; mappa_ruolo?: "admin" | "guest" | "visitor"; mappa_persona?: string }
 export type StatoAccesso = "caricamento" | "anonimo" | "non-approvato" | "sospeso" | "cambia-password" | "attiva-authenticator" | "verifica-authenticator" | "abilitato";
 export interface Accesso { stato: StatoAccesso; profilo: Profilo | null; email: string | null }
 

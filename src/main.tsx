@@ -4,8 +4,10 @@ import { RouterProvider } from "@tanstack/react-router";
 import { getRouter } from "./router";
 import "./styles.css";
 import { avviaInstallazione } from "./lib/installazione";
+import { avviaTema } from "./lib/tema";
 
 avviaInstallazione();
+avviaTema();
 
 // GitHub Pages: 404.html reindirizza qui con ?p=<percorso>; ripristina l'indirizzo originale.
 const p = new URLSearchParams(window.location.search).get("p");

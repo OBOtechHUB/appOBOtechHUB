@@ -3,9 +3,10 @@ import { Link, useNavigate, useRouter, useRouterState } from "@tanstack/react-ro
 import { useQueryClient } from "@tanstack/react-query";
 import {
   ArrowDownToLine, ShieldCheck, Box, Boxes, Cpu, ShieldAlert, Building2, Package, ClipboardCheck, Compass, Gauge, ChevronLeft, ClipboardList, Download, FileText, FolderOpen, Info, LogIn, LogOut,
-  LayoutGrid, Mail, Menu, Ruler, Search, Smartphone, Shield, SlidersHorizontal, User, UserPlus, Wrench, X,
+  LayoutGrid, Mail, Moon, Sun, SunMoon, Menu, Ruler, Search, Smartphone, Shield, SlidersHorizontal, User, UserPlus, Wrench, X,
 } from "lucide-react";
 import { useAuth } from "@/lib/auth";
+import { NOMI_TEMA, impostaTema, useTema, type Tema } from "@/lib/tema";
 import { supabase } from "@/integrations/supabase/client";
 import { salvaAttivo, useStatoSalvataggio } from "@/components/ProjectSync";
 import { SaettaFigura } from "@/components/Saetta";
@@ -38,6 +39,7 @@ export function AppHeader() {
   const percorso = useRouterState({ select: (s) => s.location.pathname });
   const [aperto, setAperto] = useState(false);
   const installa = useAzioneInstalla();
+  const tema = useTema();
   const [ricerca, setRicerca] = useState(false);
   const { comp, prossimo, mancanti } = useAvanzamentoProgetto();
   const attivo = useAttivo();
@@ -110,6 +112,7 @@ export function AppHeader() {
     {
       titolo: "Informazioni",
       voci: [
+        { etichetta: `Aspetto: ${NOMI_TEMA[tema]}`, azione: () => { const ordine: Tema[] = ["auto", "light", "dark"]; impostaTema(ordine[(ordine.indexOf(tema) + 1) % 3]!); }, icona: tema === "dark" ? Moon : tema === "light" ? Sun : SunMoon },
         { etichetta: "OBO Hub · tutte le app", azione: () => { window.location.assign(URL_HUB); }, icona: LayoutGrid },
         ...(installa.stato !== "installata" ? [{ etichetta: "Installa l'app", azione: () => { setAperto(false); installa.avvia(); }, icona: Smartphone }] : []),
         { etichetta: "Termini d'uso", to: "/termini", icona: FileText },
@@ -123,7 +126,7 @@ export function AppHeader() {
 
   return (
     <>
-      <header className="sticky top-0 z-40 bg-white shadow-[0_2px_14px_rgba(0,0,0,0.07)]">
+      <header className="sticky top-0 z-40 bg-background shadow-[0_2px_14px_rgba(0,0,0,0.07)]">
         <div className="mx-auto flex h-16 max-w-6xl items-center gap-2 px-3 sm:h-[76px] sm:gap-3 sm:px-6">
           {!home && <button type="button" aria-label="Indietro" onClick={() => router.history.back()} className="-ml-1 flex size-9 shrink-0 items-center justify-center text-foreground hover:text-primary sm:hidden">
             <ChevronLeft className="size-7" strokeWidth={1.5} />

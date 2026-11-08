@@ -29,7 +29,7 @@ export function AppFooter() {
         type="button"
         aria-label="Torna su"
         onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
-        className={`fixed bottom-6 right-6 z-30 flex size-12 items-center justify-center rounded-full bg-white text-primary shadow-[0_2px_12px_rgba(0,0,0,0.18)] transition-opacity ${suVisibile ? "opacity-100" : "pointer-events-none opacity-0"}`}
+        className={`fixed bottom-6 right-6 z-30 flex size-12 items-center justify-center rounded-full bg-background text-primary shadow-[0_2px_12px_rgba(0,0,0,0.18)] transition-opacity ${suVisibile ? "opacity-100" : "pointer-events-none opacity-0"}`}
       >
         <ArrowUp className="size-6" strokeWidth={1.5} />
       </button>

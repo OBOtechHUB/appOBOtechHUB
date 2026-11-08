@@ -5,6 +5,7 @@ import { Campo, inputCls } from "@/components/Campo";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { SEZIONI, db, gestione, useAccesso, type Profilo } from "@/lib/accesso";
 import { ProgettiAdmin } from "@/components/accesso/ProgettiAdmin";
+import { MappaUtente, type PersonaMappa } from "@/components/accesso/MappaUtente";
 
 interface Richiesta { id: string; email: string; nome: string; azienda: string; motivo: string; stato: "in_attesa" | "approvata" | "rifiutata"; sezioni: string[]; creata_il: string; gestita_il: string | null }
 interface Evento { id: number; utente: string | null; email: string | null; evento: string; quando: string; dettagli: Record<string, unknown> }
@@ -57,6 +58,7 @@ export function AdminPage() {
   const [eventi, setEventi] = useState<Evento[]>([]);
   const [impostazioni, setImpostazioni] = useState<Record<string, string>>({});
   const [conAuth, setConAuth] = useState<Set<string>>(new Set());
+  const [persone, setPersone] = useState<PersonaMappa[]>([]);
   const [sezioniRichiesta, setSezioniRichiesta] = useState<Record<string, string[]>>({});
   const [modifica, setModifica] = useState<{ utente: string; sezioni: string[] } | null>(null);
   const [filtro, setFiltro] = useState("");
@@ -76,6 +78,7 @@ export function AdminPage() {
     setRichieste((r.data ?? []) as Richiesta[]);
     setEventi((e.data ?? []) as Evento[]);
     setImpostazioni(Object.fromEntries(((i.data ?? []) as { chiave: string; valore: string }[]).map((x) => [x.chiave, x.valore])));
+    try { const m = await db().rpc("mappa_persone"); setPersone((m.data ?? []) as PersonaMappa[]); } catch { /* script della Mappa non ancora eseguito */ }
     try { const f = await gestione("fattori"); setConAuth(new Set((f["conAuthenticator"] as string[] | undefined) ?? [])); } catch { /* funzione non ancora pubblicata */ }
   }, []);
   useEffect(() => { void carica(); }, [carica]);
@@ -150,14 +153,17 @@ export function AdminPage() {
         </TabsContent>
 
         <TabsContent value="utenti" className="mt-4">
-          <div className="overflow-x-auto"><table className="w-full min-w-[920px] text-sm">
-            <thead><tr className="border-b text-left"><th className="p-2">Utente</th><th className="p-2">Ruolo</th><th className="p-2">Stato</th><th className="p-2">Sezioni</th><th className="p-2">Authenticator</th><th className="p-2">Ultimo accesso</th><th className="p-2">Azioni</th></tr></thead>
+          <div className="overflow-x-auto"><table className="w-full min-w-[1100px] text-sm">
+            <thead><tr className="border-b text-left"><th className="p-2">Utente</th><th className="p-2">Ruolo</th><th className="p-2">Stato</th><th className="p-2">Sezioni</th><th className="p-2">Mappa carichi</th><th className="p-2">Authenticator</th><th className="p-2">Ultimo accesso</th><th className="p-2">Azioni</th></tr></thead>
             <tbody>{profili.map((p) => { const me = p.utente === io.profilo?.utente; return <tr key={p.utente} className="border-b align-top">
               <td className="p-2"><p className="font-semibold">{p.nome || "—"}</p><p className="text-xs text-muted-foreground">{p.email}{p.azienda ? ` · ${p.azienda}` : ""}</p>{p.deve_cambiare_password && <p className="text-xs text-[#9a6200]">deve cambiare la password</p>}</td>
               <td className="p-2"><select aria-label="Ruolo" className="rounded border px-2 py-1" disabled={busy || me} value={p.ruolo} onChange={(e) => void azione(() => gestione("aggiorna", { utente: p.utente, ruolo: e.target.value }), "Ruolo aggiornato.")}><option value="utente">Utente</option><option value="admin">Amministratore</option></select></td>
               <td className="p-2"><Button size="sm" variant={p.stato === "attivo" ? "outline" : "default"} disabled={busy || me} onClick={() => void azione(() => gestione("aggiorna", { utente: p.utente, stato: p.stato === "attivo" ? "sospeso" : "attivo" }), p.stato === "attivo" ? "Utente sospeso." : "Utente riattivato.")}>{p.stato === "attivo" ? "Attivo · sospendi" : "Sospeso · riattiva"}</Button></td>
               <td className="max-w-[260px] p-2 text-xs">{p.ruolo === "admin" || p.sezioni.includes("tutte") ? "Tutte" : p.sezioni.map((s) => SEZIONI.find((x) => x.id === s)?.nome ?? s).join(", ") || "Nessuna"}
                 {p.ruolo !== "admin" && <Button size="sm" variant="outline" className="mt-1 h-7 text-xs" onClick={() => setModifica({ utente: p.utente, sezioni: p.sezioni })}>Cambia sezioni</Button>}</td>
+              <td className="p-2"><MappaUtente p={p} persone={persone} abilitata={p.ruolo === "admin" || p.sezioni.includes("tutte") || p.sezioni.includes("app_mappa")}
+                onCambio={(m) => { setMsg(m); void carica(); }}
+                onNuovaPersona={async (nome) => { const { error } = await db().rpc("mappa_aggiungi_persona", { nome }); if (error) throw new Error(error.message); }} /></td>
               <td className="p-2">{conAuth.has(p.utente) ? <span className="inline-flex items-center gap-1 text-[#1d7a45]"><ShieldCheck className="size-4" />Collegato</span> : <span className="inline-flex items-center gap-1 text-muted-foreground"><ShieldX className="size-4" />No</span>}</td>
               <td className="p-2 text-xs">{data(p.ultimo_accesso)}</td>
               <td className="p-2"><div className="flex flex-wrap gap-1">
