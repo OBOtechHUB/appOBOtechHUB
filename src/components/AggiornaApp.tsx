@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { RefreshCw } from "lucide-react";
 
-const ATTUALE = import.meta.env.VITE_VERSIONE as string | undefined;
+const ATTUALE = import.meta.env["VITE_VERSIONE"] as string | undefined;
 let ultima = "";
 
 /** Controlla se è stata pubblicata una versione nuova e mostra in alto "Aggiorna app". */
