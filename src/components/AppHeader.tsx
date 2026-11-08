@@ -3,10 +3,10 @@ import { Link, useNavigate, useRouter, useRouterState } from "@tanstack/react-ro
 import { useQueryClient } from "@tanstack/react-query";
 import {
   ArrowDownToLine, ShieldCheck, Box, Boxes, Cpu, ShieldAlert, Building2, Package, ClipboardCheck, Compass, Gauge, ChevronLeft, ClipboardList, Download, FileText, FolderOpen, Info, LogIn, LogOut,
-  Languages, LayoutGrid, Mail, Moon, Sun, SunMoon, Menu, Ruler, Search, Smartphone, Shield, SlidersHorizontal, User, UserPlus, Wrench, X,
+  Languages, LayoutGrid, ZoomIn, ZoomOut, Mail, Moon, Sun, SunMoon, Menu, Ruler, Search, Smartphone, Shield, SlidersHorizontal, User, UserPlus, Wrench, X,
 } from "lucide-react";
 import { useAuth } from "@/lib/auth";
-import { NOMI_TEMA, impostaTema, useTema, type Tema } from "@/lib/tema";
+import { NOMI_TEMA, cambiaZoom, impostaTema, useTema, useZoom, type Tema } from "@/lib/tema";
 import { impostaLingua, useLingua } from "@/lib/lingua";
 import { supabase } from "@/integrations/supabase/client";
 import { salvaAttivo, useStatoSalvataggio } from "@/components/ProjectSync";
@@ -42,6 +42,7 @@ export function AppHeader() {
   const installa = useAzioneInstalla();
   const tema = useTema();
   const lingua = useLingua();
+  const zoom = useZoom();
   const cambiaTema = () => { const ordine: Tema[] = ["auto", "light", "dark"]; impostaTema(ordine[(ordine.indexOf(tema) + 1) % 3]!); };
   const iconaTema = tema === "dark" ? Moon : tema === "light" ? Sun : SunMoon;
   const [ricerca, setRicerca] = useState(false);
@@ -117,6 +118,8 @@ export function AppHeader() {
       titolo: "Informazioni",
       voci: [
         { etichetta: `Aspetto: ${NOMI_TEMA[tema]}`, azione: cambiaTema, icona: iconaTema },
+        { etichetta: `Testo più piccolo (${Math.round(zoom * 100)}%)`, azione: () => cambiaZoom(-1), icona: ZoomOut },
+        { etichetta: `Testo più grande (${Math.round(zoom * 100)}%)`, azione: () => cambiaZoom(1), icona: ZoomIn },
         { etichetta: lingua === "en" ? "Lingua: English → Italiano" : "Lingua: Italiano → English", azione: () => impostaLingua(lingua === "en" ? "it" : "en"), icona: Languages },
         { etichetta: "OBO Hub · tutte le app", azione: () => { window.location.assign(URL_HUB); }, icona: LayoutGrid },
         ...(installa.stato !== "installata" ? [{ etichetta: "Installa l'app", azione: () => { setAperto(false); installa.avvia(); }, icona: Smartphone }] : []),

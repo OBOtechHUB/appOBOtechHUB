@@ -23,12 +23,29 @@ export function impostaTema(t: Tema) {
   applicaTema(t); ascoltatori.forEach((f) => f());
 }
 export function avviaTema() {
-  applicaTema();
+  applicaTema(); applicaZoom();
   window.matchMedia?.("(prefers-color-scheme: dark)").addEventListener("change", () => applicaTema());
   // scelta cambiata in un'altra app/scheda di OBO Hub
-  window.addEventListener("storage", (e) => { if (e.key === CHIAVE) { applicaTema(); ascoltatori.forEach((f) => f()); } });
+  window.addEventListener("storage", (e) => { if (e.key === CHIAVE) { applicaTema(); ascoltatori.forEach((f) => f()); } if (e.key === "obo-zoom") { applicaZoom(); ascoltatori.forEach((f) => f()); } });
 }
 export function useTema(): Tema {
   return useSyncExternalStore((f) => { ascoltatori.add(f); return () => ascoltatori.delete(f); }, leggiTema, () => "auto");
 }
 export const NOMI_TEMA: Record<Tema, string> = { auto: "Automatico", light: "Chiaro", dark: "Scuro" };
+
+/* Dimensione del testo condivisa da tutte le app di OBO Hub ("obo-zoom"): pulsanti − e +. */
+const PASSI_ZOOM = [0.85, 0.9, 1, 1.1, 1.2, 1.3, 1.45];
+const CHIAVE_ZOOM = "obo-zoom";
+export function leggiZoom(): number {
+  try { const v = Number(localStorage.getItem(CHIAVE_ZOOM)); return PASSI_ZOOM.includes(v) ? v : 1; } catch { return 1; }
+}
+export function applicaZoom(z = leggiZoom()) { document.documentElement.style.fontSize = `${16 * z}px`; }
+export function cambiaZoom(verso: 1 | -1) {
+  const i = PASSI_ZOOM.indexOf(leggiZoom());
+  const z = PASSI_ZOOM[Math.min(PASSI_ZOOM.length - 1, Math.max(0, i + verso))]!;
+  try { if (z === 1) localStorage.removeItem(CHIAVE_ZOOM); else localStorage.setItem(CHIAVE_ZOOM, String(z)); } catch { /* niente */ }
+  applicaZoom(z); ascoltatori.forEach((f) => f());
+}
+export function useZoom(): number {
+  return useSyncExternalStore((f) => { ascoltatori.add(f); return () => ascoltatori.delete(f); }, leggiZoom, () => 1);
+}
