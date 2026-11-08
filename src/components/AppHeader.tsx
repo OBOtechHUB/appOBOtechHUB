@@ -3,7 +3,7 @@ import { Link, useNavigate, useRouter, useRouterState } from "@tanstack/react-ro
 import { useQueryClient } from "@tanstack/react-query";
 import {
   ArrowDownToLine, ShieldCheck, Box, Boxes, Cpu, ShieldAlert, Building2, Package, ClipboardCheck, Compass, Gauge, ChevronLeft, ClipboardList, Download, FileText, FolderOpen, Info, LogIn, LogOut,
-  Mail, Menu, Ruler, Search, Smartphone, Shield, SlidersHorizontal, User, UserPlus, Wrench, X,
+  LayoutGrid, Mail, Menu, Ruler, Search, Smartphone, Shield, SlidersHorizontal, User, UserPlus, Wrench, X,
 } from "lucide-react";
 import { useAuth } from "@/lib/auth";
 import { supabase } from "@/integrations/supabase/client";
@@ -11,7 +11,7 @@ import { salvaAttivo, useStatoSalvataggio } from "@/components/ProjectSync";
 import { SaettaFigura } from "@/components/Saetta";
 import { RicercaGlobale } from "@/components/RicercaGlobale";
 import { useAvanzamentoProgetto } from "@/lib/avanzamentoProgetto";
-import { SEZIONE_PAGINA, puoVedere, useAccesso } from "@/lib/accesso";
+import { SEZIONE_PAGINA, URL_HUB, puoVedere, useAccesso } from "@/lib/accesso";
 import { impostaAttivo, useAttivo } from "@/lib/statoProgetto";
 import { useAzioneInstalla } from "@/components/InstallaApp";
 
@@ -110,6 +110,7 @@ export function AppHeader() {
     {
       titolo: "Informazioni",
       voci: [
+        { etichetta: "OBO Hub · tutte le app", azione: () => { window.location.assign(URL_HUB); }, icona: LayoutGrid },
         ...(installa.stato !== "installata" ? [{ etichetta: "Installa l'app", azione: () => { setAperto(false); installa.avvia(); }, icona: Smartphone }] : []),
         { etichetta: "Termini d'uso", to: "/termini", icona: FileText },
         { etichetta: "Privacy", to: "/privacy", icona: Shield },

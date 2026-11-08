@@ -6,7 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 export const db = () => supabase as unknown as SupabaseClient;
 import { BASE } from "@/lib/base";
 
-export type Sezione = "assistente" | "progetti" | "edificio" | "rischio" | "captazione" | "calate" | "terra" | "spd" | "computo" | "particolari" | "verifiche" | "prodotti" | "modelli3d" | "cad";
+export type Sezione = "assistente" | "progetti" | "edificio" | "rischio" | "captazione" | "calate" | "terra" | "spd" | "computo" | "particolari" | "verifiche" | "prodotti" | "modelli3d" | "cad" | "app_mappa";
 export const SEZIONI: { id: Sezione; nome: string }[] = [
   { id: "assistente", nome: "Assistente di progetto" },
   { id: "progetti", nome: "Progetti salvati" },
@@ -22,7 +22,19 @@ export const SEZIONI: { id: Sezione; nome: string }[] = [
   { id: "prodotti", nome: "Prodotti OBO" },
   { id: "modelli3d", nome: "Modelli 3D prodotti" },
   { id: "cad", nome: "Download CAD" },
+  { id: "app_mappa", nome: "OBO Hub · Mappa carichi ufficio tecnico" },
 ];
+
+/** Indirizzo di OBO Hub (schermata iniziale con tutte le app), sullo stesso sito GitHub Pages. */
+export const URL_HUB = "/obo-hub/";
+
+/** Pagina a cui tornare dopo l'accesso completo (es. OBO Hub): solo percorsi interni allo stesso sito. */
+export function salvaRitorno(valore: string | null) {
+  try { if (valore && valore.startsWith("/") && !valore.startsWith("//")) sessionStorage.setItem("lps-ritorno", valore); } catch { /* niente */ }
+}
+export function prendiRitorno(): string | null {
+  try { const v = sessionStorage.getItem("lps-ritorno"); if (v) sessionStorage.removeItem("lps-ritorno"); return v; } catch { return null; }
+}
 
 /** Pagine pubbliche (visibili senza accesso). */
 export const PUBBLICHE = ["/", "/auth", "/reset-password", "/richiesta-accesso", "/privacy", "/termini", "/contatti", "/guida"];

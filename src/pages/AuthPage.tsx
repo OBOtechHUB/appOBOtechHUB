@@ -1,9 +1,9 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, useNavigate } from "@tanstack/react-router";
 import { LogIn } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { urlApp } from "@/lib/base";
-import { aggiornaAccesso } from "@/lib/accesso";
+import { aggiornaAccesso, salvaRitorno } from "@/lib/accesso";
 import { Button } from "@/components/ui/button";
 import { Campo, inputCls } from "@/components/Campo";
 import { SaettaFigura } from "@/components/Saetta";
@@ -13,6 +13,7 @@ export function AuthPage() {
   const [recupero, setRecupero] = useState(false);
   const [email, setEmail] = useState(""); const [password, setPassword] = useState("");
   const [messaggio, setMessaggio] = useState(""); const [busy, setBusy] = useState(false); const navigate = useNavigate();
+  useEffect(() => { salvaRitorno(new URLSearchParams(window.location.search).get("ritorno")); }, []);
   async function invia() {
     setBusy(true); setMessaggio("");
     try {

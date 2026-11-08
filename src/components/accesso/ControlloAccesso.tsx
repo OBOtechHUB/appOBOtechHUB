@@ -1,7 +1,8 @@
+import { useEffect } from "react";
 import { Link, Outlet, useRouterState } from "@tanstack/react-router";
 import { ShieldOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { PUBBLICHE, SEZIONE_PAGINA, percorsoApp, puoVedere, useAccesso } from "@/lib/accesso";
+import { PUBBLICHE, SEZIONE_PAGINA, percorsoApp, prendiRitorno, puoVedere, salvaRitorno, useAccesso } from "@/lib/accesso";
 import { PanoramicaPage } from "@/pages/PanoramicaPage";
 import { AccessoNonDisponibile, AttivaAuthenticator, CambiaPassword, VerificaAuthenticator } from "./PassiAccesso";
 
@@ -11,6 +12,9 @@ export function ControlloAccesso() {
   const p = percorsoApp(useRouterState({ select: (s) => s.location.pathname }));
   const pubblica = PUBBLICHE.includes(p);
   const legale = ["/privacy", "/termini", "/contatti"].includes(p);
+  // arrivati da OBO Hub (?ritorno=/obo-hub/): a accesso completato si torna lì
+  useEffect(() => { salvaRitorno(new URLSearchParams(window.location.search).get("ritorno")); }, []);
+  useEffect(() => { if (a.stato === "abilitato") { const r = prendiRitorno(); if (r) window.location.assign(r); } }, [a.stato]);
   if (a.stato === "caricamento") return <main className="flex min-h-[50vh] items-center justify-center text-sm text-muted-foreground" role="status">Caricamento…</main>;
   if (a.stato === "anonimo") return p !== "/" && pubblica ? <Outlet /> : <PanoramicaPage />;
   if (legale) return <Outlet />;
