@@ -5,9 +5,11 @@ import { getRouter } from "./router";
 import "./styles.css";
 import { avviaInstallazione } from "./lib/installazione";
 import { avviaTema } from "./lib/tema";
+import { avviaLingua } from "./lib/lingua";
 
 avviaInstallazione();
 avviaTema();
+avviaLingua();
 
 // GitHub Pages: 404.html reindirizza qui con ?p=<percorso>; ripristina l'indirizzo originale.
 const p = new URLSearchParams(window.location.search).get("p");

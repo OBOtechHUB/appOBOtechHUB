@@ -3,10 +3,11 @@ import { Link, useNavigate, useRouter, useRouterState } from "@tanstack/react-ro
 import { useQueryClient } from "@tanstack/react-query";
 import {
   ArrowDownToLine, ShieldCheck, Box, Boxes, Cpu, ShieldAlert, Building2, Package, ClipboardCheck, Compass, Gauge, ChevronLeft, ClipboardList, Download, FileText, FolderOpen, Info, LogIn, LogOut,
-  LayoutGrid, Mail, Moon, Sun, SunMoon, Menu, Ruler, Search, Smartphone, Shield, SlidersHorizontal, User, UserPlus, Wrench, X,
+  Languages, LayoutGrid, Mail, Moon, Sun, SunMoon, Menu, Ruler, Search, Smartphone, Shield, SlidersHorizontal, User, UserPlus, Wrench, X,
 } from "lucide-react";
 import { useAuth } from "@/lib/auth";
 import { NOMI_TEMA, impostaTema, useTema, type Tema } from "@/lib/tema";
+import { impostaLingua, useLingua } from "@/lib/lingua";
 import { supabase } from "@/integrations/supabase/client";
 import { salvaAttivo, useStatoSalvataggio } from "@/components/ProjectSync";
 import { SaettaFigura } from "@/components/Saetta";
@@ -40,6 +41,9 @@ export function AppHeader() {
   const [aperto, setAperto] = useState(false);
   const installa = useAzioneInstalla();
   const tema = useTema();
+  const lingua = useLingua();
+  const cambiaTema = () => { const ordine: Tema[] = ["auto", "light", "dark"]; impostaTema(ordine[(ordine.indexOf(tema) + 1) % 3]!); };
+  const iconaTema = tema === "dark" ? Moon : tema === "light" ? Sun : SunMoon;
   const [ricerca, setRicerca] = useState(false);
   const { comp, prossimo, mancanti } = useAvanzamentoProgetto();
   const attivo = useAttivo();
@@ -112,7 +116,8 @@ export function AppHeader() {
     {
       titolo: "Informazioni",
       voci: [
-        { etichetta: `Aspetto: ${NOMI_TEMA[tema]}`, azione: () => { const ordine: Tema[] = ["auto", "light", "dark"]; impostaTema(ordine[(ordine.indexOf(tema) + 1) % 3]!); }, icona: tema === "dark" ? Moon : tema === "light" ? Sun : SunMoon },
+        { etichetta: `Aspetto: ${NOMI_TEMA[tema]}`, azione: cambiaTema, icona: iconaTema },
+        { etichetta: lingua === "en" ? "Lingua: English → Italiano" : "Lingua: Italiano → English", azione: () => impostaLingua(lingua === "en" ? "it" : "en"), icona: Languages },
         { etichetta: "OBO Hub · tutte le app", azione: () => { window.location.assign(URL_HUB); }, icona: LayoutGrid },
         ...(installa.stato !== "installata" ? [{ etichetta: "Installa l'app", azione: () => { setAperto(false); installa.avvia(); }, icona: Smartphone }] : []),
         { etichetta: "Termini d'uso", to: "/termini", icona: FileText },
@@ -140,6 +145,8 @@ export function AppHeader() {
           </Link>
           <nav aria-label="Accessi rapidi" className="ml-auto flex items-stretch">
             <IconaBarra etichetta="OBO Hub" icona={LayoutGrid} titolo="Torna a OBO Hub (tutte le app)" onClick={() => window.location.assign(URL_HUB)} />
+            <IconaBarra etichetta={lingua === "en" ? "IT" : "EN"} icona={Languages} titolo={lingua === "en" ? "Passa all'italiano" : "Switch to English"} onClick={() => impostaLingua(lingua === "en" ? "it" : "en")} nascondiMobile />
+            <IconaBarra etichetta={NOMI_TEMA[tema]} icona={iconaTema} titolo="Aspetto: automatico, chiaro o scuro" onClick={cambiaTema} nascondiMobile />
             {abilitato ? <>
               {visibile("/assistente") && <IconaBarra to="/assistente" etichetta="Assistente" icona={Compass} badge={mancanti.length || undefined} titolo={prossimo ? `Prossimo passo: ${prossimo.titolo}` : "Progetto completo"} />}
               {visibile("/prodotti") && <IconaBarra to="/prodotti" etichetta="Prodotti" icona={Package} nascondiMobile />}
