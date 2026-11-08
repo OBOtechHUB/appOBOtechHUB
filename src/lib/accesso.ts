@@ -26,7 +26,10 @@ export const SEZIONI: { id: Sezione; nome: string }[] = [
 ];
 
 /** Indirizzo di OBO Hub (schermata iniziale con tutte le app), sullo stesso sito GitHub Pages. */
-export const URL_HUB = "/obo-hub/";
+// sul vecchio indirizzo personale OBO Hub sta in /obo-hub/, nell'organizzazione è la radice del sito
+export const URL_HUB = typeof location !== "undefined" && location.hostname.startsWith("loveteremarco1981-coder.") ? "/obo-hub/" : "/";
+/** Indirizzo completo di OBO Hub, da mettere nei messaggi. */
+export const urlHubCompleto = () => (typeof location !== "undefined" ? location.origin : "") + URL_HUB;
 
 /** Pagina a cui tornare dopo l'accesso completo (es. OBO Hub): solo percorsi interni allo stesso sito. */
 export function salvaRitorno(valore: string | null) {

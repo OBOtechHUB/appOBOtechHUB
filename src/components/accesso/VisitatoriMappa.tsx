@@ -2,12 +2,12 @@ import { useEffect, useState } from "react";
 import { Copy, Eye, EyeOff, Save } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Campo, inputCls } from "@/components/Campo";
-import { db } from "@/lib/accesso";
+import { db, urlHubCompleto } from "@/lib/accesso";
 
-const LINK = "https://loveteremarco1981-coder.github.io/obo-hub/mappa-carichi/?visitatore";
 
 /** Password dei visitatori della Mappa carichi (sola consultazione, esterni) e link da condividere. */
 export function VisitatoriMappa() {
+  const LINK = `${urlHubCompleto()}mappa-carichi/?visitatore`;
   const [pw, setPw] = useState(""); const [mostra, setMostra] = useState(false);
   const [msg, setMsg] = useState(""); const [busy, setBusy] = useState(false);
   useEffect(() => { void db().rpc("mappa_password_visitatori").then(({ data }) => setPw((data as string | null) ?? "")); }, []);

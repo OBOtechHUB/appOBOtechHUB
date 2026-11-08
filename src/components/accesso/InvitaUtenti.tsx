@@ -2,16 +2,15 @@ import { useState, type ReactNode } from "react";
 import { Copy, Mail, Send } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { inputCls } from "@/components/Campo";
-import { db, gestione, type Profilo } from "@/lib/accesso";
+import { db, gestione, urlHubCompleto, type Profilo } from "@/lib/accesso";
 import type { PersonaMappa } from "./MappaUtente";
 
-const URL_HUB = "https://loveteremarco1981-coder.github.io/obo-hub/";
 
 function testoInvito(nome: string, email: string, password: string) {
   return `Ciao ${nome.split(" ")[0] || ""},
 ti ho attivato l'accesso a OBO Hub, dove trovi le app dell'ufficio tecnico (tra cui la Mappa carichi).
 
-1. Apri ${URL_HUB} e premi "Accedi"
+1. Apri ${urlHubCompleto()} e premi "Accedi"
 2. Email: ${email}
 3. Password iniziale: ${password}
 4. Scegli la tua password personale (almeno 10 caratteri con lettere e numeri)
