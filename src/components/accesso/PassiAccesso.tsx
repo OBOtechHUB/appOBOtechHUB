@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { ClipboardPaste, KeyRound, LogOut, ShieldCheck, Smartphone } from "lucide-react";
+import { KeyRound, LogOut, ShieldCheck, Smartphone } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Campo, inputCls } from "@/components/Campo";
 import { SaettaFigura } from "@/components/Saetta";
@@ -47,11 +47,9 @@ export function CambiaPassword() {
 /** Campo del codice a 6 cifre: suggerimento automatico di iPhone/iPad (one-time-code), pulsante Incolla e invio automatico. */
 function CampoCodice({ codice, setCodice, onCompleto, autoFocus }: { codice: string; setCodice: (v: string) => void; onCompleto: (v: string) => void; autoFocus?: boolean }) {
   const imposta = (v: string) => { const c = v.replace(/\D/g, "").slice(0, 6); setCodice(c); if (c.length === 6) onCompleto(c); };
-  const incolla = async () => { try { imposta(await navigator.clipboard.readText()); } catch { /* permesso negato */ } };
   return <Campo etichetta="Codice a 6 cifre">
     <span className="flex gap-2">
       <input autoFocus={autoFocus} className={`${inputCls} text-center font-mono text-2xl tracking-[0.4em]`} inputMode="numeric" autoComplete="one-time-code" name="one-time-code" pattern="\d{6}" maxLength={6} required value={codice} onChange={(e) => imposta(e.target.value)} />
-      {typeof navigator !== "undefined" && "clipboard" in navigator && <Button type="button" variant="outline" className="h-auto" onClick={() => void incolla()}><ClipboardPaste />Incolla</Button>}
     </span>
   </Campo>;
 }
@@ -114,7 +112,7 @@ export function VerificaAuthenticator() {
     setBusy(false);
   }
   return <Riquadro titolo="Codice Authenticator" icona={ShieldCheck}>
-    <p className="text-sm">Apri <strong>Microsoft Authenticator</strong>, tocca il codice di <em>OBO Hub</em> per copiarlo e torna qui: premi <strong>Incolla</strong> (oppure scegli il codice suggerito sopra la tastiera). Si entra da soli appena ci sono le 6 cifre.</p>
+    <p className="text-sm">Apri <strong>Microsoft Authenticator</strong>, tocca il codice di <em>OBO Hub</em> per copiarlo, torna qui e incollalo nel campo (oppure scegli il codice suggerito sopra la tastiera). Si entra da soli appena ci sono le 6 cifre.</p>
     <form className="space-y-4" onSubmit={(e) => { e.preventDefault(); void verifica(); }}>
       <CampoCodice autoFocus codice={codice} setCodice={setCodice} onCompleto={(c) => void verifica(c)} />
       <Button className="w-full" disabled={busy || codice.length !== 6}>Entra</Button>
