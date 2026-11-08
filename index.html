@@ -1,6 +1,12 @@
 <!doctype html>
 <html lang="it">
   <head>
+    <script>
+      // Indirizzo con maiuscole/minuscole diverse (es. /appobotechhub/admin): lo riporta a quello esatto dell'app.
+      (function () { var b = "%BASE_URL%", l = location.pathname;
+        if (b.length > 1 && l.toLowerCase().indexOf(b.toLowerCase()) === 0 && l.indexOf(b) !== 0) history.replaceState(null, "", b + l.slice(b.length) + location.search + location.hash);
+        else if (b.length > 1 && (l + "/").toLowerCase() === b.toLowerCase() && l + "/" !== b) history.replaceState(null, "", b + location.search + location.hash); })();
+    </script>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
     <meta name="theme-color" content="#ffffff" />
