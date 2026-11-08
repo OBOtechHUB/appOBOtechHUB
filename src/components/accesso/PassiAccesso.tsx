@@ -52,7 +52,7 @@ export function AttivaAuthenticator() {
       // elimina eventuali collegamenti lasciati a metà, poi ne crea uno nuovo
       const { data: f } = await supabase.auth.mfa.listFactors();
       for (const x of f?.all ?? []) if (x.status !== "verified") await supabase.auth.mfa.unenroll({ factorId: x.id });
-      const { data, error } = await supabase.auth.mfa.enroll({ factorType: "totp", friendlyName: `Authenticator ${new Date().toLocaleDateString("it-IT")}`, issuer: "Progettazione LPS" });
+      const { data, error } = await supabase.auth.mfa.enroll({ factorType: "totp", friendlyName: `Authenticator ${new Date().toLocaleDateString("it-IT")}`, issuer: "OBO Hub" });
       if (!ok) return;
       if (error || !data) { setMsg(`Impossibile preparare il QR code: ${error?.message ?? ""}`); return; }
       setQr(data.totp.qr_code); setSegreto(data.totp.secret); setFattore(data.id);

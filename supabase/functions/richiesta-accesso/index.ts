@@ -37,10 +37,10 @@ Deno.serve(async (req) => {
       method: "POST",
       headers: { Authorization: `Bearer ${chiave}`, "Content-Type": "application/json" },
       body: JSON.stringify({
-        from: Deno.env.get("EMAIL_MITTENTE") ?? "Progettazione LPS <onboarding@resend.dev>",
+        from: Deno.env.get("EMAIL_MITTENTE") ?? "OBO Hub <onboarding@resend.dev>",
         to: [destinatario],
         subject: `Richiesta di accesso: ${nome}${azienda ? " · " + azienda : ""}`,
-        html: `<p>Nuova richiesta di accesso a <strong>Progettazione LPS</strong>.</p><ul><li><strong>Nome:</strong> ${html(nome)}</li><li><strong>Email:</strong> ${html(email)}</li><li><strong>Azienda:</strong> ${html(azienda || "—")}</li><li><strong>Motivo:</strong> ${html(motivo || "—")}</li></ul><p>Approva o rifiuta dalla <a href="${html(app)}admin">sezione admin</a>.</p>`,
+        html: `<p>Nuova richiesta di accesso a <strong>OBO Hub</strong>.</p><ul><li><strong>Nome:</strong> ${html(nome)}</li><li><strong>Email:</strong> ${html(email)}</li><li><strong>Azienda:</strong> ${html(azienda || "—")}</li><li><strong>Motivo:</strong> ${html(motivo || "—")}</li></ul><p>Approva o rifiuta dalla <a href="${html(app)}admin">sezione admin</a>.</p>`,
       }),
     }).catch(() => undefined);
   }

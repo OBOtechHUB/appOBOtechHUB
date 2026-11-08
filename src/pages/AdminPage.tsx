@@ -7,6 +7,7 @@ import { SEZIONI, db, gestione, useAccesso, type Profilo } from "@/lib/accesso";
 import { ProgettiAdmin } from "@/components/accesso/ProgettiAdmin";
 import { MappaUtente, type PersonaMappa } from "@/components/accesso/MappaUtente";
 import { InvitaUtenti } from "@/components/accesso/InvitaUtenti";
+import { VisitatoriMappa } from "@/components/accesso/VisitatoriMappa";
 
 interface Richiesta { id: string; email: string; nome: string; azienda: string; motivo: string; stato: "in_attesa" | "approvata" | "rifiutata"; sezioni: string[]; creata_il: string; gestita_il: string | null }
 interface Evento { id: number; utente: string | null; email: string | null; evento: string; quando: string; dettagli: Record<string, unknown> }
@@ -214,6 +215,7 @@ export function AdminPage() {
           </Campo>
           <div><p className="mb-2 text-sm font-semibold">Sezioni proposte per i nuovi utenti</p><SceltaSezioni valore={predefinite} onChange={(v) => setImpostazioni({ ...impostazioni, sezioni_predefinite: v.join(",") })} /></div>
           <Button size="lg" disabled={busy} onClick={() => void salvaImpostazioni()}><Save strokeWidth={1.5} />Salva impostazioni</Button>
+          <VisitatoriMappa />
           <p className="text-xs text-muted-foreground">La password iniziale è visibile solo agli amministratori. Ogni utente la cambia al primo accesso e collega Microsoft Authenticator: senza codice dell'app non si accede ai dati.</p>
         </TabsContent>
       </Tabs>
