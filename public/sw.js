@@ -1,6 +1,6 @@
 // Service worker dell'app LPS: rende l'app installabile e utilizzabile anche senza rete
 // per le parti già aperte. Pagine: prima la rete, poi la copia salvata. File con hash (assets): copia salvata.
-const CACHE = "lps-v1";
+const CACHE = "lps-v2";
 const BASE = new URL("./", self.location).pathname;
 const ESSENZIALI = ["./", "./manifest.webmanifest", "./icona-192.png", "./icona.svg"];
 
@@ -19,7 +19,8 @@ self.addEventListener("fetch", (e) => {
   if (url.origin !== self.location.origin || !url.pathname.startsWith(BASE)) return;
 
   if (req.mode === "navigate") {
-    e.respondWith(fetch(req).then((r) => {
+    // sempre la pagina aggiornata dal server (mai quella vecchia in memoria del browser)
+    e.respondWith(fetch(req.url, { cache: "no-cache", credentials: "same-origin" }).then((r) => {
       if (r.ok) { const copia = r.clone(); caches.open(CACHE).then((c) => c.put(BASE, copia)); }
       return r;
     }).catch(() => caches.match(BASE)));

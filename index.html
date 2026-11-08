@@ -2,6 +2,18 @@
 <html lang="it">
   <head>
     <script>
+      // Pagina rimasta in memoria dopo una nuova pubblicazione: i suoi file non esistono più e resterebbe bianca.
+      // Se un file dell'app non si carica, ricarica una volta la pagina aggiornata dal server.
+      window.addEventListener("error", function (e) {
+        var t = e.target; if (!t || (t.tagName !== "SCRIPT" && t.tagName !== "LINK")) return;
+        if (String(t.src || t.href || "").indexOf("/assets/") < 0) return;
+        try { if (sessionStorage.getItem("lps-ricaricata")) return; sessionStorage.setItem("lps-ricaricata", "1"); } catch (x) { return; }
+        var q = location.search.replace(/([?&])v=\d+&?/, "$1").replace(/[?&]$/, "");
+        location.replace(location.pathname + q + (q ? "&" : "?") + "v=" + Date.now() + location.hash);
+      }, true);
+      window.addEventListener("load", function () { setTimeout(function () { try { sessionStorage.removeItem("lps-ricaricata"); } catch (x) {} }, 5000); });
+    </script>
+    <script>
       // Indirizzo con maiuscole/minuscole diverse (es. /appobotechhub/admin): lo riporta a quello esatto dell'app.
       (function () { var b = "%BASE_URL%", l = location.pathname;
         if (b.length > 1 && l.toLowerCase().indexOf(b.toLowerCase()) === 0 && l.indexOf(b) !== 0) history.replaceState(null, "", b + l.slice(b.length) + location.search + location.hash);
