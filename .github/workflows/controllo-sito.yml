@@ -1,0 +1,39 @@
+name: Controllo del sito pubblicato
+on:
+  push:
+    paths: [".github/workflows/controllo-sito.yml"]
+  workflow_dispatch:
+jobs:
+  controllo:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Risposte del server
+        run: |
+          for u in /appOBOtechHUB/ /appobotechhub/ /appOBOtechHUB/admin /lps/ /lps/admin /appOBOtechHUB/version.json; do
+            echo "== $u"; curl -s -o /dev/null -w "%{http_code} -> %{redirect_url}\n" "https://obotechhub.github.io$u"
+          done
+          echo "== index.html"; curl -s https://obotechhub.github.io/appOBOtechHUB/ | head -c 3000; echo
+      - name: Apertura nel browser
+        run: |
+          npm i -s playwright@1.47.2 >/dev/null 2>&1 && npx -y playwright@1.47.2 install chromium >/dev/null 2>&1
+          cat > p.js <<'JS'
+          const { chromium } = require('playwright');
+          (async () => {
+            const b = await chromium.launch();
+            for (const u of ['https://obotechhub.github.io/appOBOtechHUB/', 'https://obotechhub.github.io/appOBOtechHUB/admin', 'https://obotechhub.github.io/lps/']) {
+              const p = await b.newPage();
+              p.on('console', m => console.log('  console.' + m.type(), m.text().slice(0, 400)));
+              p.on('pageerror', e => console.log('  ERRORE', e.message.slice(0, 600)));
+              p.on('requestfailed', r => console.log('  FALLITA', r.url(), r.failure()?.errorText));
+              p.on('response', r => { if (r.status() >= 400) console.log('  HTTP', r.status(), r.url()); });
+              console.log('== ' + u);
+              await p.goto(u, { waitUntil: 'networkidle' }).catch(e => console.log('  goto', e.message));
+              await p.waitForTimeout(3000);
+              console.log('  URL finale:', p.url());
+              console.log('  testo:', (await p.evaluate(() => document.body.innerText)).slice(0, 300).replace(/\n/g, ' | '));
+              await p.close();
+            }
+            await b.close();
+          })();
+          JS
+          node p.js
