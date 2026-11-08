@@ -208,3 +208,7 @@ select option:disabled { color: var(--muted-foreground); }
 .dark select option, .dark select optgroup { background-color: #242a2f !important; color: #eef1f3 !important; }
 .dark select option:checked { background-color: #41525d !important; }
 .dark select option:disabled { color: #a7b4bc !important; }
+
+/* Testo più piccolo / più grande: solo il contenuto, la barra in alto resta uguale; niente zoom con le dita */
+main { zoom: var(--obo-zoom, 1); }
+html { touch-action: pan-x pan-y; }

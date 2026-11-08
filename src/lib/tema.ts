@@ -24,6 +24,8 @@ export function impostaTema(t: Tema) {
 }
 export function avviaTema() {
   applicaTema(); applicaZoom();
+  // niente zoom con le dita su iPhone/iPad: si usano Testo più piccolo / più grande
+  document.addEventListener("gesturestart", (e) => e.preventDefault());
   window.matchMedia?.("(prefers-color-scheme: dark)").addEventListener("change", () => applicaTema());
   // scelta cambiata in un'altra app/scheda di OBO Hub
   window.addEventListener("storage", (e) => { if (e.key === CHIAVE) { applicaTema(); ascoltatori.forEach((f) => f()); } if (e.key === "obo-zoom") { applicaZoom(); ascoltatori.forEach((f) => f()); } });
@@ -39,7 +41,7 @@ const CHIAVE_ZOOM = "obo-zoom";
 export function leggiZoom(): number {
   try { const v = Number(localStorage.getItem(CHIAVE_ZOOM)); return PASSI_ZOOM.includes(v) ? v : 1; } catch { return 1; }
 }
-export function applicaZoom(z = leggiZoom()) { document.documentElement.style.fontSize = `${16 * z}px`; }
+export function applicaZoom(z = leggiZoom()) { document.documentElement.style.setProperty("--obo-zoom", String(z)); }
 export function cambiaZoom(verso: 1 | -1) {
   const i = PASSI_ZOOM.indexOf(leggiZoom());
   const z = PASSI_ZOOM[Math.min(PASSI_ZOOM.length - 1, Math.max(0, i + verso))]!;
