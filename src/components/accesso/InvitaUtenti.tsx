@@ -2,7 +2,7 @@ import { useState, type ReactNode } from "react";
 import { Copy, Mail, Send } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { inputCls } from "@/components/Campo";
-import { gestione, type Profilo } from "@/lib/accesso";
+import { db, gestione, type Profilo } from "@/lib/accesso";
 import type { PersonaMappa } from "./MappaUtente";
 
 const URL_HUB = "https://loveteremarco1981-coder.github.io/obo-hub/";
@@ -94,11 +94,19 @@ export function InvitaUtenti({ profili, persone, password, predefinite, scelta, 
           <option value="guest">Mappa: Guest</option><option value="admin">Mappa: Admin</option><option value="visitor">Mappa: Visitatore</option>
         </select>
         {mappaRuolo !== "visitor" && <select aria-label="Persona nella Mappa" className="rounded border px-2 py-2 text-sm" value={mappaPersona} onChange={(e) => setMappaPersona(e.target.value)}>
-          <option value="">Persona della Mappa: nessuna</option>{persone.filter((x) => !x.is_visitor).map((x) => <option key={x.name} value={x.name}>{x.name}</option>)}
+          <option value="">Persona della Mappa: nessuna</option>
+          {nome.trim() && !persone.some((x) => x.name.toLowerCase() === nome.trim().toLowerCase()) && <option value="__nuova">+ Crea “{nome.trim()}” nella Mappa</option>}
+          {persone.filter((x) => !x.is_visitor).map((x) => <option key={x.name} value={x.name}>{x.name}</option>)}
         </select>}
       </div>}
       <Button className="mt-4" disabled={busy || !nome.trim() || !email.includes("@")} onClick={async () => {
-        const ok = await invita({ email: email.trim(), nome: nome.trim(), azienda, sezioni, mappa_ruolo: mappaRuolo, mappa_persona: mappaPersona }, { nome: nome.trim(), email: email.trim() });
+        let persona = mappaPersona;
+        if (persona === "__nuova") {
+          const { error } = await db().rpc("mappa_aggiungi_persona", { nome: nome.trim() });
+          if (error) { setMsg(error.message); return; }
+          persona = nome.trim();
+        }
+        const ok = await invita({ email: email.trim(), nome: nome.trim(), azienda, sezioni, mappa_ruolo: mappaRuolo, mappa_persona: persona }, { nome: nome.trim(), email: email.trim() });
         if (ok) { setNome(""); setEmail(""); }
       }}><Send />Crea accesso</Button>
     </section>

@@ -95,6 +95,9 @@ GRANT SELECT, UPDATE ON public.accessi_profili TO authenticated;
 GRANT SELECT, INSERT, UPDATE, DELETE ON public.richieste_accesso TO authenticated;
 GRANT SELECT ON public.registro_accessi TO authenticated;
 GRANT SELECT, INSERT, UPDATE, DELETE ON public.impostazioni_admin TO authenticated;
+-- le funzioni Edge (gestione-accessi, richiesta-accesso) lavorano con il ruolo service_role
+GRANT ALL ON public.accessi_profili, public.richieste_accesso, public.registro_accessi, public.impostazioni_admin TO service_role;
+GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA public TO service_role;
 
 -- I dati dei progetti e delle librerie sono accessibili solo a utenti abilitati (approvati + Authenticator)
 DROP POLICY IF EXISTS "progetti_propri" ON public.progetti;
