@@ -73,7 +73,13 @@ function Inviluppo({inv,c}:{inv:InviluppoGriglia;c:ReturnType<typeof colors>}){
 /** Sfera wireframe animata lungo i centri calcolati con percorsoSfera. */
 function Sfera({r,anima,centri,posizione,color}:{r:RisultatoSfera;anima:boolean;centri:Punto3[];posizione:number;color:string}){
   const ref=useRef<THREE.Mesh>(null);const tempo=useRef(0);
-  useFrame((_,delta)=>{if(!ref.current||!centri.length)return;if(anima)tempo.current+=delta;const i=anima?Math.floor(tempo.current*4)%centri.length:Math.min(centri.length-1,Math.round(posizione*(centri.length-1)));const p=centri[i];if(p)ref.current.position.set(p[0],p[2],-p[1]);ref.current.rotation.z=tempo.current;});
+  useFrame((_,delta)=>{if(!ref.current||!centri.length)return;if(anima)tempo.current+=delta;
+    // percorso completo in circa 4 s qualunque sia la lunghezza, con movimento continuo tra un punto e l'altro
+    const DURATA=4;const n=centri.length-1;
+    const f=anima?((tempo.current%DURATA)/DURATA)*n:Math.min(n,posizione*n);
+    const i=Math.min(n,Math.floor(f)),t=f-i,p=centri[i],q=centri[Math.min(n,i+1)];
+    if(p&&q)ref.current.position.set(p[0]+(q[0]-p[0])*t,p[2]+(q[2]-p[2])*t,-(p[1]+(q[1]-p[1])*t));
+    ref.current.rotation.z=tempo.current*2;});
   return <mesh ref={ref}><sphereGeometry args={[r.raggio,32,20]}/><meshBasicMaterial color={color} wireframe transparent opacity={.35}/></mesh>;
 }
 /** Proposta automatica: conduttori tratteggiati arancioni, aste, supporti (punti piccoli) e connettori (punti grandi). */

@@ -34,7 +34,10 @@ jobs:
           VITE_BASE: /${{ github.event.repository.name }}/
           VITE_SUPABASE_URL: ${{ vars.VITE_SUPABASE_URL }}
           VITE_SUPABASE_PUBLISHABLE_KEY: ${{ vars.VITE_SUPABASE_PUBLISHABLE_KEY }}
-        run: bun run build
+          VITE_VERSIONE: ${{ github.sha }}
+        run: |
+          bun run build
+          echo "{\"versione\":\"${GITHUB_SHA}\"}" > dist/version.json
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:

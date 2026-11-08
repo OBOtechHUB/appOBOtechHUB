@@ -11,6 +11,7 @@ import { useEffect, useRef } from "react";
 
 import { risorsa } from "@/lib/base";
 import { AppHeader } from "@/components/AppHeader";
+import { AggiornaApp } from "@/components/AggiornaApp";
 import { AppFooter } from "@/components/AppFooter";
 import { AuthProvider, useAuth } from "@/lib/auth";
 import { supabase } from "@/integrations/supabase/client";
@@ -127,5 +128,5 @@ function PortalShell(){
       if(event==="SIGNED_OUT"){impostaAttivo(null);ripristinaLocale();queryClient.clear();}else {void queryClient.invalidateQueries();if(session)libreria(session.user.id);}
     });return()=>data.subscription.unsubscribe();
   },[router,queryClient,setUser,setPronto]);
-  return <><AppHeader/><ProjectSync/><ControlloAccesso/><AppFooter/></>;
+  return <><AggiornaApp/><AppHeader/><ProjectSync/><ControlloAccesso/><AppFooter/></>;
 }
