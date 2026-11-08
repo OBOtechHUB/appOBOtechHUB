@@ -139,6 +139,7 @@ export function AppHeader() {
             </span>
           </Link>
           <nav aria-label="Accessi rapidi" className="ml-auto flex items-stretch">
+            <IconaBarra etichetta="OBO Hub" icona={LayoutGrid} titolo="Torna a OBO Hub (tutte le app)" onClick={() => window.location.assign(URL_HUB)} />
             {abilitato ? <>
               {visibile("/assistente") && <IconaBarra to="/assistente" etichetta="Assistente" icona={Compass} badge={mancanti.length || undefined} titolo={prossimo ? `Prossimo passo: ${prossimo.titolo}` : "Progetto completo"} />}
               {visibile("/prodotti") && <IconaBarra to="/prodotti" etichetta="Prodotti" icona={Package} nascondiMobile />}
