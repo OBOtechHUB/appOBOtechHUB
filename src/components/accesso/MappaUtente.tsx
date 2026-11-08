@@ -20,7 +20,7 @@ export function MappaUtente({ p, persone, abilitata, onCambio, onNuovaPersona }:
   if (!abilitata) return <span className="text-xs text-muted-foreground">non abilitata</span>;
   const nomi = persone.filter((x) => !x.is_visitor).map((x) => x.name);
   return <div className="flex min-w-[170px] flex-col gap-1">
-    <select aria-label="Ruolo nella Mappa carichi" className="rounded border px-2 py-1 text-xs" disabled={busy} value={ruolo} onChange={(e) => void salva({ mappa_ruolo: e.target.value as Profilo["mappa_ruolo"] })}>
+    <select aria-label="Ruolo nella Mappa carichi" className="rounded border px-2 py-1 text-xs" disabled={busy} value={ruolo} onChange={(e) => void salva({ mappa_ruolo: e.target.value as "admin" | "guest" | "visitor" })}>
       <option value="admin">Admin (gestisce tutto)</option>
       <option value="guest">Guest (i propri progetti)</option>
       <option value="visitor">Visitatore (sola lettura)</option>
