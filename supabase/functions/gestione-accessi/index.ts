@@ -4,7 +4,7 @@ import { createClient } from "npm:@supabase/supabase-js@2.45.4";
 
 const CORS = { "Access-Control-Allow-Origin": "*", "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type", "Access-Control-Allow-Methods": "POST, OPTIONS" };
 const risposta = (corpo: unknown, status = 200) => new Response(JSON.stringify(corpo), { status, headers: { ...CORS, "Content-Type": "application/json" } });
-const SEZIONI = ["tutte", "assistente", "progetti", "edificio", "rischio", "captazione", "calate", "terra", "spd", "computo", "particolari", "verifiche", "prodotti", "modelli3d", "cad"];
+const SEZIONI = ["tutte", "assistente", "progetti", "edificio", "rischio", "captazione", "calate", "terra", "spd", "computo", "particolari", "verifiche", "prodotti", "modelli3d", "cad", "app_mappa"];
 const sezioniValide = (v: unknown) => (Array.isArray(v) ? v.map(String).filter((s) => SEZIONI.includes(s)) : []);
 
 Deno.serve(async (req) => {
@@ -44,6 +44,33 @@ Deno.serve(async (req) => {
       await admin.from("accessi_profili").upsert({ utente, email: r.email, nome: r.nome, azienda: r.azienda, ruolo: "utente", stato: "attivo", sezioni, deve_cambiare_password: true });
       await admin.from("richieste_accesso").update({ stato: "approvata", sezioni, gestita_il: new Date().toISOString(), gestita_da: io.user.id }).eq("id", r.id);
       await registra("approvazione", { email: r.email, sezioni });
+      return risposta({ ok: true });
+    }
+    case "invita": {
+      // l'amministratore crea direttamente l'accesso (senza richiesta), es. per le persone della Mappa carichi
+      const email = String(d.email ?? "").trim().toLowerCase();
+      const nome = String(d.nome ?? "").trim().slice(0, 120);
+      if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) return risposta({ errore: "Email non valida" }, 400);
+      const pw = await passwordIniziale();
+      if (pw.length < 6) return risposta({ errore: "Imposta prima la password iniziale (almeno 6 caratteri) nelle impostazioni admin." }, 400);
+      const sezioni = sezioniValide(d.sezioni);
+      let utente: string | null = null;
+      const creato = await admin.auth.admin.createUser({ email, password: pw, email_confirm: true, user_metadata: { nome_visualizzato: nome } });
+      if (creato.error) {
+        const { data: lista } = await admin.auth.admin.listUsers({ page: 1, perPage: 1000 });
+        const esistente = lista?.users.find((u) => u.email?.toLowerCase() === email);
+        if (!esistente) return risposta({ errore: creato.error.message }, 400);
+        const { data: gia } = await admin.from("accessi_profili").select("utente").eq("utente", esistente.id).maybeSingle();
+        if (gia) return risposta({ errore: "Questa email ha già un accesso: modificalo dalla scheda Utenti." }, 400);
+        utente = esistente.id;
+        await admin.auth.admin.updateUserById(utente, { password: pw });
+      } else utente = creato.data.user.id;
+      const profilo: Record<string, unknown> = { utente, email, nome, azienda: String(d.azienda ?? "").slice(0, 120), ruolo: "utente", stato: "attivo", sezioni, deve_cambiare_password: true };
+      if (d.mappa_ruolo === "admin" || d.mappa_ruolo === "guest" || d.mappa_ruolo === "visitor") profilo.mappa_ruolo = d.mappa_ruolo;
+      if (typeof d.mappa_persona === "string") profilo.mappa_persona = d.mappa_persona.slice(0, 80);
+      const { error } = await admin.from("accessi_profili").upsert(profilo);
+      if (error) return risposta({ errore: error.message }, 400);
+      await registra("invito", { email, sezioni });
       return risposta({ ok: true });
     }
     case "rifiuta": {

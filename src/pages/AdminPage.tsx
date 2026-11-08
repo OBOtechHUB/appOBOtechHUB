@@ -6,13 +6,14 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { SEZIONI, db, gestione, useAccesso, type Profilo } from "@/lib/accesso";
 import { ProgettiAdmin } from "@/components/accesso/ProgettiAdmin";
 import { MappaUtente, type PersonaMappa } from "@/components/accesso/MappaUtente";
+import { InvitaUtenti } from "@/components/accesso/InvitaUtenti";
 
 interface Richiesta { id: string; email: string; nome: string; azienda: string; motivo: string; stato: "in_attesa" | "approvata" | "rifiutata"; sezioni: string[]; creata_il: string; gestita_il: string | null }
 interface Evento { id: number; utente: string | null; email: string | null; evento: string; quando: string; dettagli: Record<string, unknown> }
 
 const data = (d: string | null) => (d ? new Date(d).toLocaleString("it-IT", { dateStyle: "short", timeStyle: "short" }) : "—");
 const giorno = (d: Date) => d.toISOString().slice(0, 10);
-const NOMI_EVENTO: Record<string, string> = { accesso: "Accesso", uscita: "Uscita", password_cambiata: "Password cambiata", authenticator_attivato: "Authenticator collegato", approvazione: "Richiesta approvata", rifiuto: "Richiesta rifiutata", modifica_utente: "Utente modificato", reimpostazione: "Reimpostazione", eliminazione: "Utente eliminato", accesso_negato: "Accesso negato" };
+const NOMI_EVENTO: Record<string, string> = { accesso: "Accesso", uscita: "Uscita", password_cambiata: "Password cambiata", authenticator_attivato: "Authenticator collegato", approvazione: "Richiesta approvata", rifiuto: "Richiesta rifiutata", modifica_utente: "Utente modificato", reimpostazione: "Reimpostazione", eliminazione: "Utente eliminato", invito: "Invito creato", accesso_negato: "Accesso negato" };
 
 function Kpi({ titolo, valore, nota, evidenzia }: { titolo: string; valore: number | string; nota?: string; evidenzia?: boolean }) {
   return <div className={`rounded-lg border-[0.8px] p-4 ${evidenzia ? "border-primary bg-primary/5" : "border-bordo-scheda"}`}>
@@ -25,9 +26,20 @@ function Kpi({ titolo, valore, nota, evidenzia }: { titolo: string; valore: numb
 function SceltaSezioni({ valore, onChange }: { valore: string[]; onChange: (v: string[]) => void }) {
   const tutte = valore.includes("tutte");
   const cambia = (id: string, on: boolean) => onChange(on ? [...valore.filter((x) => x !== "tutte"), id] : valore.filter((x) => x !== id));
-  return <div className="space-y-2">
-    <label className="flex items-center gap-2 text-sm font-semibold"><input type="checkbox" checked={tutte} onChange={(e) => onChange(e.target.checked ? ["tutte"] : [])} />Tutte le sezioni (anche quelle future)</label>
-    {!tutte && <div className="grid gap-1 sm:grid-cols-2">{SEZIONI.map((s) => <label key={s.id} className="flex items-center gap-2 text-sm"><input type="checkbox" checked={valore.includes(s.id)} onChange={(e) => cambia(s.id, e.target.checked)} />{s.nome}</label>)}</div>}
+  const lps = SEZIONI.filter((s) => !s.id.startsWith("app_"));
+  const tutteLps = lps.every((s) => valore.includes(s.id));
+  return <div className="space-y-3">
+    <label className="flex items-center gap-2 text-sm font-semibold"><input type="checkbox" checked={tutte} onChange={(e) => onChange(e.target.checked ? ["tutte"] : [])} />Tutte le app e sezioni (anche quelle future)</label>
+    {!tutte && <>
+      <div><p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">App di OBO Hub</p>
+        <label className="mt-1 flex items-center gap-2 text-sm"><input type="checkbox" checked={valore.includes("app_mappa")} onChange={(e) => cambia("app_mappa", e.target.checked)} />Mappa carichi ufficio tecnico</label>
+        <label className="mt-1 flex items-center gap-2 text-sm"><input type="checkbox" checked={tutteLps} onChange={(e) => onChange(e.target.checked ? [...new Set([...valore, ...lps.map((x) => x.id)])] : valore.filter((x) => x.startsWith("app_")))} />Progettazione LPS (tutte le sezioni)</label>
+      </div>
+      <div><p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Progettazione LPS · singole sezioni</p>
+        <div className="mt-1 grid gap-1 sm:grid-cols-2">{lps.map((s) => <label key={s.id} className="flex items-center gap-2 text-sm"><input type="checkbox" checked={valore.includes(s.id)} onChange={(e) => cambia(s.id, e.target.checked)} />{s.nome}</label>)}</div>
+      </div>
+      <p className="text-xs text-muted-foreground">L'Amministrazione la vede solo chi ha ruolo Amministratore (scheda Utenti).</p>
+    </>}
   </div>;
 }
 
@@ -135,7 +147,7 @@ export function AdminPage() {
       </section>
 
       <Tabs defaultValue={inAttesa.length ? "richieste" : "utenti"} className="mt-8">
-        <TabsList className="h-auto flex-wrap"><TabsTrigger value="richieste">Richieste{inAttesa.length ? ` (${inAttesa.length})` : ""}</TabsTrigger><TabsTrigger value="utenti">Utenti ({profili.length})</TabsTrigger><TabsTrigger value="progetti">Progetti salvati</TabsTrigger><TabsTrigger value="registro">Registro accessi</TabsTrigger><TabsTrigger value="impostazioni">Impostazioni</TabsTrigger></TabsList>
+        <TabsList className="h-auto flex-wrap"><TabsTrigger value="richieste">Richieste{inAttesa.length ? ` (${inAttesa.length})` : ""}</TabsTrigger><TabsTrigger value="utenti">Utenti ({profili.length})</TabsTrigger><TabsTrigger value="invita">Invita</TabsTrigger><TabsTrigger value="progetti">Progetti salvati</TabsTrigger><TabsTrigger value="registro">Registro accessi</TabsTrigger><TabsTrigger value="impostazioni">Impostazioni</TabsTrigger></TabsList>
 
         <TabsContent value="richieste" className="mt-4 space-y-4">
           {!inAttesa.length && <p className="text-sm text-muted-foreground">Nessuna richiesta in attesa.</p>}
@@ -179,6 +191,11 @@ export function AdminPage() {
             <div className="mt-3"><SceltaSezioni valore={modifica.sezioni} onChange={(v) => setModifica({ ...modifica, sezioni: v })} /></div>
             <div className="mt-3 flex gap-2"><Button disabled={busy} onClick={() => void azione(async () => { await gestione("aggiorna", { utente: modifica.utente, sezioni: modifica.sezioni }); setModifica(null); }, "Sezioni aggiornate.")}><Check />Salva</Button><Button variant="outline" onClick={() => setModifica(null)}><X />Annulla</Button></div>
           </div>}
+        </TabsContent>
+
+        <TabsContent value="invita" className="mt-4">
+          <InvitaUtenti profili={profili} persone={persone} password={impostazioni["password_iniziale"] ?? ""} predefinite={predefinite} onFatto={carica}
+            scelta={(v, f) => <SceltaSezioni valore={v} onChange={f} />} />
         </TabsContent>
 
         <TabsContent value="progetti" className="mt-4"><ProgettiAdmin profili={profili} /></TabsContent>
