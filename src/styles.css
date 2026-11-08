@@ -199,3 +199,8 @@ html { -webkit-tap-highlight-color: transparent; }
   body { padding-bottom: env(safe-area-inset-bottom); }
   header nav, header button, header a { -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
 }
+
+/* Menu a tendina leggibili anche nel tema scuro (le opzioni native ereditano colori e sfondo) */
+select { background-color: var(--card); color: var(--foreground); }
+select option, select optgroup { background-color: var(--card); color: var(--foreground); }
+select option:disabled { color: var(--muted-foreground); }
