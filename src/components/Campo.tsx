@@ -1,9 +1,11 @@
 import type { ReactNode } from "react";
+import { AiutoNorma } from "@/components/AiutoNorma";
 
+/** Campo con etichetta; se per l'etichetta esiste un aiuto della norma compare il "?" accanto. */
 export function Campo({ etichetta, children }: { etichetta: string; children: ReactNode }) {
   return (
     <label className="block">
-      <span className="mb-1 block text-sm font-medium text-foreground">{etichetta}</span>
+      <span className="mb-1 block text-sm font-medium text-foreground">{etichetta}<AiutoNorma chiave={etichetta} /></span>
       {children}
     </label>
   );
