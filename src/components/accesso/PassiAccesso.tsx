@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { KeyRound, LogOut, ShieldCheck, Smartphone } from "lucide-react";
+import { ClipboardPaste, KeyRound, LogOut, ShieldCheck, Smartphone } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Campo, inputCls } from "@/components/Campo";
 import { SaettaFigura } from "@/components/Saetta";
@@ -43,9 +43,22 @@ export function CambiaPassword() {
   </Riquadro>;
 }
 
+
+/** Campo del codice a 6 cifre: suggerimento automatico di iPhone/iPad (one-time-code), pulsante Incolla e invio automatico. */
+function CampoCodice({ codice, setCodice, onCompleto, autoFocus }: { codice: string; setCodice: (v: string) => void; onCompleto: (v: string) => void; autoFocus?: boolean }) {
+  const imposta = (v: string) => { const c = v.replace(/\D/g, "").slice(0, 6); setCodice(c); if (c.length === 6) onCompleto(c); };
+  const incolla = async () => { try { imposta(await navigator.clipboard.readText()); } catch { /* permesso negato */ } };
+  return <Campo etichetta="Codice a 6 cifre">
+    <span className="flex gap-2">
+      <input autoFocus={autoFocus} className={`${inputCls} text-center font-mono text-2xl tracking-[0.4em]`} inputMode="numeric" autoComplete="one-time-code" name="one-time-code" pattern="\d{6}" maxLength={6} required value={codice} onChange={(e) => imposta(e.target.value)} />
+      {typeof navigator !== "undefined" && navigator.clipboard?.readText && <Button type="button" variant="outline" className="h-auto" onClick={() => void incolla()}><ClipboardPaste />Incolla</Button>}
+    </span>
+  </Campo>;
+}
+
 /** Collegamento dell'app Microsoft Authenticator (TOTP) tramite QR code. */
 export function AttivaAuthenticator() {
-  const [qr, setQr] = useState(""), [segreto, setSegreto] = useState(""), [fattore, setFattore] = useState(""), [codice, setCodice] = useState(""), [msg, setMsg] = useState(""), [busy, setBusy] = useState(false);
+  const [qr, setQr] = useState(""), [uri, setUri] = useState(""), [segreto, setSegreto] = useState(""), [fattore, setFattore] = useState(""), [codice, setCodice] = useState(""), [msg, setMsg] = useState(""), [busy, setBusy] = useState(false);
   useEffect(() => {
     let ok = true;
     void (async () => {
@@ -55,13 +68,14 @@ export function AttivaAuthenticator() {
       const { data, error } = await supabase.auth.mfa.enroll({ factorType: "totp", friendlyName: `Authenticator ${new Date().toLocaleDateString("it-IT")}`, issuer: "OBO Hub" });
       if (!ok) return;
       if (error || !data) { setMsg(`Impossibile preparare il QR code: ${error?.message ?? ""}`); return; }
-      setQr(data.totp.qr_code); setSegreto(data.totp.secret); setFattore(data.id);
+      setQr(data.totp.qr_code); setUri(data.totp.uri); setSegreto(data.totp.secret); setFattore(data.id);
     })();
     return () => { ok = false; };
   }, []);
-  async function verifica() {
+  async function verifica(c = codice) {
+    if (busy) return;
     setBusy(true); setMsg("");
-    const { error } = await supabase.auth.mfa.challengeAndVerify({ factorId: fattore, code: codice.replace(/\s/g, "") });
+    const { error } = await supabase.auth.mfa.challengeAndVerify({ factorId: fattore, code: c.replace(/\s/g, "") });
     if (error) { setMsg("Codice non valido: controlla l'ora del telefono e riprova con il codice nuovo."); setBusy(false); return; }
     await db().rpc("registra_accesso", { evento: "authenticator_attivato" });
     await aggiornaAccesso();
@@ -74,9 +88,10 @@ export function AttivaAuthenticator() {
       <li>Inquadra il codice QR qui sotto e inserisci il codice a 6 cifre che compare.</li>
     </ol>
     {qr ? <img src={qr} alt="Codice QR per Microsoft Authenticator" className="mx-auto size-52 rounded-lg border bg-white p-2" /> : <div className="mx-auto size-52 animate-pulse rounded-lg bg-muted" />}
+    {uri && <Button asChild variant="outline" className="w-full"><a href={uri}><Smartphone />Sei su questo telefono? Apri nell'app Authenticator</a></Button>}
     {segreto && <p className="text-center text-xs text-muted-foreground">Se non puoi inquadrare il QR, inserisci a mano la chiave: <span className="select-all break-all font-mono">{segreto}</span></p>}
     <form className="space-y-4" onSubmit={(e) => { e.preventDefault(); void verifica(); }}>
-      <Campo etichetta="Codice a 6 cifre"><input className={`${inputCls} text-center font-mono text-2xl tracking-[0.4em]`} inputMode="numeric" autoComplete="one-time-code" pattern="\d{6}" maxLength={6} required value={codice} onChange={(e) => setCodice(e.target.value.replace(/\D/g, ""))} /></Campo>
+      <CampoCodice codice={codice} setCodice={setCodice} onCompleto={(c) => { if (fattore) void verifica(c); }} />
       <Button className="w-full" disabled={busy || !fattore || codice.length !== 6}>Conferma</Button>
     </form>
     {msg && <p role="alert" className="text-sm text-[#b3261e]">{msg}</p>}
@@ -87,20 +102,21 @@ export function AttivaAuthenticator() {
 /** Codice dell'Authenticator a ogni accesso. */
 export function VerificaAuthenticator() {
   const [codice, setCodice] = useState(""), [msg, setMsg] = useState(""), [busy, setBusy] = useState(false);
-  async function verifica() {
+  async function verifica(c = codice) {
+    if (busy) return;
     setBusy(true); setMsg("");
     const { data: f } = await supabase.auth.mfa.listFactors();
     const totp = f?.totp.find((x) => x.status === "verified");
     if (!totp) { setMsg("Nessun Authenticator collegato: chiedi all'amministratore di reimpostarlo."); setBusy(false); return; }
-    const { error } = await supabase.auth.mfa.challengeAndVerify({ factorId: totp.id, code: codice });
+    const { error } = await supabase.auth.mfa.challengeAndVerify({ factorId: totp.id, code: c });
     if (error) { setMsg("Codice non valido o scaduto: usa il codice attuale dell'app."); setCodice(""); setBusy(false); return; }
     await aggiornaAccesso();
     setBusy(false);
   }
   return <Riquadro titolo="Codice Authenticator" icona={ShieldCheck}>
-    <p className="text-sm">Apri <strong>Microsoft Authenticator</strong> e inserisci il codice a 6 cifre di <em>Progettazione LPS</em>.</p>
+    <p className="text-sm">Apri <strong>Microsoft Authenticator</strong>, tocca il codice di <em>OBO Hub</em> per copiarlo e torna qui: premi <strong>Incolla</strong> (oppure scegli il codice suggerito sopra la tastiera). Si entra da soli appena ci sono le 6 cifre.</p>
     <form className="space-y-4" onSubmit={(e) => { e.preventDefault(); void verifica(); }}>
-      <Campo etichetta="Codice a 6 cifre"><input autoFocus className={`${inputCls} text-center font-mono text-2xl tracking-[0.4em]`} inputMode="numeric" autoComplete="one-time-code" pattern="\d{6}" maxLength={6} required value={codice} onChange={(e) => setCodice(e.target.value.replace(/\D/g, ""))} /></Campo>
+      <CampoCodice autoFocus codice={codice} setCodice={setCodice} onCompleto={(c) => void verifica(c)} />
       <Button className="w-full" disabled={busy || codice.length !== 6}>Entra</Button>
     </form>
     {msg && <p role="alert" className="text-sm text-[#b3261e]">{msg}</p>}
