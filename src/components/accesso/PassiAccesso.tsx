@@ -51,7 +51,7 @@ function CampoCodice({ codice, setCodice, onCompleto, autoFocus }: { codice: str
   return <Campo etichetta="Codice a 6 cifre">
     <span className="flex gap-2">
       <input autoFocus={autoFocus} className={`${inputCls} text-center font-mono text-2xl tracking-[0.4em]`} inputMode="numeric" autoComplete="one-time-code" name="one-time-code" pattern="\d{6}" maxLength={6} required value={codice} onChange={(e) => imposta(e.target.value)} />
-      {typeof navigator !== "undefined" && navigator.clipboard?.readText && <Button type="button" variant="outline" className="h-auto" onClick={() => void incolla()}><ClipboardPaste />Incolla</Button>}
+      {typeof navigator !== "undefined" && "clipboard" in navigator && <Button type="button" variant="outline" className="h-auto" onClick={() => void incolla()}><ClipboardPaste />Incolla</Button>}
     </span>
   </Campo>;
 }
