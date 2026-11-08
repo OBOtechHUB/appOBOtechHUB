@@ -20,8 +20,9 @@ async function utenteId(): Promise<string> {
 
 export async function elencaProgetti({ data }: { data: { pagina?: number } }) {
   const { pagina } = z.object({ pagina: z.number().int().nonnegative().default(0) }).parse(data);
-  await utenteId();
-  const { data: righe, error, count } = await supabase.from("progetti").select("id,codice,nome,comune,data_creazione,data_modifica", { count: "exact" }).order("data_modifica", { ascending: false }).range(pagina * 20, pagina * 20 + 19);
+  const utente = await utenteId();
+  // solo i propri progetti (l'amministratore vede quelli degli altri nella sezione Admin)
+  const { data: righe, error, count } = await supabase.from("progetti").select("id,codice,nome,comune,data_creazione,data_modifica", { count: "exact" }).eq("utente", utente).order("data_modifica", { ascending: false }).range(pagina * 20, pagina * 20 + 19);
   if (error) throw new Error("Impossibile leggere i progetti.");
   return { righe: righe ?? [], count: count ?? 0 };
 }

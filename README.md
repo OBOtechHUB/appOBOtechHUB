@@ -29,6 +29,7 @@ bun run test
 ## Controllo degli accessi (amministratore, richieste, Authenticator)
 1. Supabase → Authentication → Users → **Add user**: email dell'amministratore e password (≥ 6 caratteri), "Auto confirm".
 2. Supabase → SQL Editor: incolla `supabase/accessi.sql` e premi **Run** (crea tabelle, regole e primo amministratore).
+   Poi incolla ed esegui anche `supabase/admin-progetti.sql`: l'amministratore legge tutti i progetti (senza poterli modificare) e i progetti eliminati dagli utenti finiscono in un archivio.
 3. Supabase → Authentication → Sign In / Providers → Email: **disattiva "Allow new users to sign up"** (gli account li crea solo l'amministratore).
 4. Supabase → Edge Functions → **Deploy a new function** → "Via editor":
    - `richiesta-accesso`: incolla `supabase/functions/richiesta-accesso/index.ts`; in *Details* disattiva **Verify JWT** (è pubblica).

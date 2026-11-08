@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Campo, inputCls } from "@/components/Campo";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { SEZIONI, db, gestione, useAccesso, type Profilo } from "@/lib/accesso";
+import { ProgettiAdmin } from "@/components/accesso/ProgettiAdmin";
 
 interface Richiesta { id: string; email: string; nome: string; azienda: string; motivo: string; stato: "in_attesa" | "approvata" | "rifiutata"; sezioni: string[]; creata_il: string; gestita_il: string | null }
 interface Evento { id: number; utente: string | null; email: string | null; evento: string; quando: string; dettagli: Record<string, unknown> }
@@ -131,7 +132,7 @@ export function AdminPage() {
       </section>
 
       <Tabs defaultValue={inAttesa.length ? "richieste" : "utenti"} className="mt-8">
-        <TabsList className="h-auto flex-wrap"><TabsTrigger value="richieste">Richieste{inAttesa.length ? ` (${inAttesa.length})` : ""}</TabsTrigger><TabsTrigger value="utenti">Utenti ({profili.length})</TabsTrigger><TabsTrigger value="registro">Registro accessi</TabsTrigger><TabsTrigger value="impostazioni">Impostazioni</TabsTrigger></TabsList>
+        <TabsList className="h-auto flex-wrap"><TabsTrigger value="richieste">Richieste{inAttesa.length ? ` (${inAttesa.length})` : ""}</TabsTrigger><TabsTrigger value="utenti">Utenti ({profili.length})</TabsTrigger><TabsTrigger value="progetti">Progetti salvati</TabsTrigger><TabsTrigger value="registro">Registro accessi</TabsTrigger><TabsTrigger value="impostazioni">Impostazioni</TabsTrigger></TabsList>
 
         <TabsContent value="richieste" className="mt-4 space-y-4">
           {!inAttesa.length && <p className="text-sm text-muted-foreground">Nessuna richiesta in attesa.</p>}
@@ -156,22 +157,25 @@ export function AdminPage() {
               <td className="p-2"><select aria-label="Ruolo" className="rounded border px-2 py-1" disabled={busy || me} value={p.ruolo} onChange={(e) => void azione(() => gestione("aggiorna", { utente: p.utente, ruolo: e.target.value }), "Ruolo aggiornato.")}><option value="utente">Utente</option><option value="admin">Amministratore</option></select></td>
               <td className="p-2"><Button size="sm" variant={p.stato === "attivo" ? "outline" : "default"} disabled={busy || me} onClick={() => void azione(() => gestione("aggiorna", { utente: p.utente, stato: p.stato === "attivo" ? "sospeso" : "attivo" }), p.stato === "attivo" ? "Utente sospeso." : "Utente riattivato.")}>{p.stato === "attivo" ? "Attivo · sospendi" : "Sospeso · riattiva"}</Button></td>
               <td className="max-w-[260px] p-2 text-xs">{p.ruolo === "admin" || p.sezioni.includes("tutte") ? "Tutte" : p.sezioni.map((s) => SEZIONI.find((x) => x.id === s)?.nome ?? s).join(", ") || "Nessuna"}
-                {p.ruolo !== "admin" && <Button size="sm" variant="link" className="h-auto p-0 text-xs" onClick={() => setModifica({ utente: p.utente, sezioni: p.sezioni })}>Modifica</Button>}</td>
+                {p.ruolo !== "admin" && <Button size="sm" variant="outline" className="mt-1 h-7 text-xs" onClick={() => setModifica({ utente: p.utente, sezioni: p.sezioni })}>Cambia sezioni</Button>}</td>
               <td className="p-2">{conAuth.has(p.utente) ? <span className="inline-flex items-center gap-1 text-[#1d7a45]"><ShieldCheck className="size-4" />Collegato</span> : <span className="inline-flex items-center gap-1 text-muted-foreground"><ShieldX className="size-4" />No</span>}</td>
               <td className="p-2 text-xs">{data(p.ultimo_accesso)}</td>
               <td className="p-2"><div className="flex flex-wrap gap-1">
                 <Button size="sm" variant="outline" disabled={busy} title="Rimette la password iniziale comune e chiede di cambiarla" onClick={() => { if (window.confirm(`Reimpostare la password di ${p.email} alla password iniziale comune?`)) void azione(() => gestione("reimposta", { utente: p.utente }), "Password reimpostata: comunica la password iniziale."); }}><KeyRound />Password</Button>
                 <Button size="sm" variant="outline" disabled={busy} title="Password iniziale e nuovo collegamento dell'Authenticator (telefono cambiato)" onClick={() => { if (window.confirm(`Reimpostare password e Authenticator di ${p.email}?`)) void azione(() => gestione("reimposta", { utente: p.utente, authenticator: true }), "Password e Authenticator reimpostati."); }}><ShieldX />Authenticator</Button>
-                {!me && <Button size="sm" variant="ghost" disabled={busy} aria-label="Elimina utente" onClick={() => { if (window.confirm(`Eliminare definitivamente l'account ${p.email}? I suoi progetti saranno cancellati.`)) void azione(() => gestione("elimina", { utente: p.utente }), "Utente eliminato."); }}><Trash2 /></Button>}
+                {!me && <Button size="sm" variant="ghost" disabled={busy} aria-label="Elimina utente" onClick={() => { if (window.confirm(`Eliminare definitivamente l'account ${p.email}? I suoi progetti restano salvati e visibili nella scheda Progetti salvati.`)) void azione(() => gestione("elimina", { utente: p.utente }), "Utente eliminato."); }}><Trash2 /></Button>}
               </div></td>
             </tr>; })}</tbody>
           </table></div>
           {modifica && <div className="mt-4 rounded-lg border-[0.8px] border-primary p-4">
             <p className="font-semibold">Sezioni di {profili.find((x) => x.utente === modifica.utente)?.email}</p>
+            <p className="mt-1 text-xs text-muted-foreground">Puoi cambiarle quando vuoi: valgono dal prossimo caricamento della pagina dell'utente. I suoi progetti e dati salvati non vengono modificati né cancellati.</p>
             <div className="mt-3"><SceltaSezioni valore={modifica.sezioni} onChange={(v) => setModifica({ ...modifica, sezioni: v })} /></div>
             <div className="mt-3 flex gap-2"><Button disabled={busy} onClick={() => void azione(async () => { await gestione("aggiorna", { utente: modifica.utente, sezioni: modifica.sezioni }); setModifica(null); }, "Sezioni aggiornate.")}><Check />Salva</Button><Button variant="outline" onClick={() => setModifica(null)}><X />Annulla</Button></div>
           </div>}
         </TabsContent>
+
+        <TabsContent value="progetti" className="mt-4"><ProgettiAdmin profili={profili} /></TabsContent>
 
         <TabsContent value="registro" className="mt-4">
           <input aria-label="Filtra registro" className={`${inputCls} max-w-sm`} placeholder="Filtra per email o evento" value={filtro} onChange={(e) => setFiltro(e.target.value)} />
