@@ -151,8 +151,6 @@ export function AppHeader() {
             <IconaBarra etichetta="OBO Hub" icona={LayoutGrid} titolo="Torna a OBO Hub (tutte le app)" onClick={() => window.location.assign(URL_HUB)} />
             <IconaBarra etichetta={lingua === "en" ? "IT" : "EN"} icona={Languages} titolo={lingua === "en" ? "Passa all'italiano" : "Switch to English"} onClick={() => impostaLingua(lingua === "en" ? "it" : "en")} nascondiMobile />
             <IconaBarra etichetta={NOMI_TEMA[tema]} icona={iconaTema} titolo="Aspetto: automatico, chiaro o scuro" onClick={cambiaTema} nascondiMobile />
-            <IconaBarra etichetta="A−" icona={ZoomOut} titolo="Testo più piccolo" onClick={() => cambiaZoom(-1)} />
-            <IconaBarra etichetta="A+" icona={ZoomIn} titolo="Testo più grande" onClick={() => cambiaZoom(1)} />
             {abilitato ? <>
               {visibile("/assistente") && <IconaBarra to="/assistente" etichetta="Assistente" icona={Compass} badge={mancanti.length || undefined} titolo={prossimo ? `Prossimo passo: ${prossimo.titolo}` : "Progetto completo"} nascondiMobile />}
               {visibile("/prodotti") && <IconaBarra to="/prodotti" etichetta="Prodotti" icona={Package} nascondiMobile />}
