@@ -37,7 +37,7 @@ describe("rischio – CEI EN IEC 62305-2:2024", () => {
   });
 
   it("l'LPS riduce il rischio e la protezione minima rispetta RT", () => {
-    const d = { ...base, categoria: "elevata", rfId: "alto", rf: 1e-1 };
+    const d = { ...base, categoria: "elevata", rfId: "alto", rf: 1e-1, rp: 0.2 }; // con rp = 1 nemmeno il livello I basterebbe
     const senza = calcolaR1(d, { lps: "nessuno", spd: "nessuno" }).R1;
     const con = calcolaR1(d, { lps: "III", spd: "III" }).R1;
     expect(con).toBeLessThan(senza);
