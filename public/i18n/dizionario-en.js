@@ -666,5 +666,11 @@ window.OBO_EN = {
 "Totale (I1 + I2)": "Total (I1 + I2)",
 "Parametro": "Parameter",
 "All'aperto": "Outdoors",
-"Diametro (mm)": "Diameter (mm)"
+"Diametro (mm)": "Diameter (mm)",
+"Cosa cambia": "What's new",
+"Novità dell'app": "What's new in the app",
+"Tutte le novità": "All updates",
+"Ho capito": "Got it",
+"…e altro": "…and more",
+"Novità": "What's new"
 };

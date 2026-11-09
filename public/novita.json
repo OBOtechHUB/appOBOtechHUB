@@ -1,0 +1,88 @@
+{
+  "nota": "Registro degli aggiornamenti di Progettazione LPS. Una voce per aggiornamento, la più recente per prima (app: lps). Viene mostrato nella barra \"Aggiorna app\", nel riquadro Novità e nella pagina Novità di OBO Hub.",
+  "aggiornamenti": [
+    {
+      "id": "2026-11-09-lps-5", "data": "2026-11-09", "app": "lps",
+      "titolo": "Nuova pagina \"Norma 62305: calcoli e tabelle\"",
+      "titolo_en": "New page \"IEC 62305: calculations and tables\"",
+      "voci": [
+        "Parametri del fulmine per livello di protezione e raggio della sfera rotolante",
+        "Verifica delle sezioni minime di captatori, calate, dispersori e collegamenti equipotenziali, con le tabelle dei materiali",
+        "Sezione minima dello schermo dei cavi entranti",
+        "Tensioni di contatto e di passo, requisiti per strutture con rischio di esplosione",
+        "Schermatura magnetica, livello di protezione effettivo degli SPD e tensione indotta",
+        "Impianti fotovoltaici sul tetto: corrente nei conduttori CC e SPD lato continua",
+        "Analisi del rischio: linee divise in tratti con posa o ambiente diversi"
+      ],
+      "voci_en": [
+        "Lightning parameters per protection level and rolling sphere radius",
+        "Minimum size check for air terminals, down conductors, earth electrodes and bonding conductors, with material tables",
+        "Minimum shield cross-section of incoming cables",
+        "Touch and step voltages, requirements for structures with explosion risk",
+        "Magnetic shielding, effective SPD protection level and induced voltage",
+        "Rooftop PV systems: current in DC conductors and DC side SPDs",
+        "Risk assessment: lines split into sections with different installation or environment"
+      ]
+    },
+    {
+      "id": "2026-11-09-lps-4", "data": "2026-11-09", "app": "lps",
+      "titolo": "Analisi del rischio: SPD per zona e danni all'ambiente circostante",
+      "titolo_en": "Risk assessment: per-zone SPDs and damage to the surroundings",
+      "voci": [
+        "Ogni zona può avere SPD propri; la tabella mostra l'SPD minimo di ogni zona",
+        "Proposta ottimizzata: LPS più basso con gli SPD giusti per ogni zona, applicabile con un clic",
+        "Perdita esterna LE (Allegato E): esplosione, fumi tossici, inquinamento e ambiente circostante"
+      ],
+      "voci_en": [
+        "Each zone may have its own SPDs; the table shows the minimum SPD of each zone",
+        "Optimised proposal: lowest LPS with the right SPDs per zone, applied with one click",
+        "External loss LE (Annex E): explosion, toxic fumes, pollution and surroundings"
+      ]
+    },
+    {
+      "id": "2026-11-09-lps-3", "data": "2026-11-09", "app": "lps",
+      "titolo": "Analisi del rischio con più zone (edizione 2024)",
+      "titolo_en": "Multi-zone risk assessment (2024 edition)",
+      "voci": [
+        "Zone di rischio da aggiungere, duplicare ed eliminare, ognuna con i propri parametri e confrontata da sola con RT",
+        "Persone esposte sul tetto, struttura adiacente, schermature e cablaggio interno, sistema di allerta temporali",
+        "Schemi disegnati: aree di raccolta, zone, ripartizione della corrente sulle calate, grafico di l1",
+        "Calate: kc della Tab. 13 e km per vetroresina; impianto di terra: pulsante \"Calcola l1\""
+      ],
+      "voci_en": [
+        "Risk zones to add, duplicate and delete, each with its own parameters and compared with RT on its own",
+        "People exposed on the roof, adjacent structure, shielding and internal wiring, thunderstorm warning system",
+        "Drawn diagrams: collection areas, zones, current sharing on down conductors, l1 chart",
+        "Down conductors: kc from Table 13 and km for fibreglass; earthing: \"Calculate l1\" button"
+      ]
+    },
+    {
+      "id": "2026-11-09-lps-2", "data": "2026-11-09", "app": "lps",
+      "titolo": "Aiuti \"?\" aggiornati alla CEI EN IEC 62305:2024",
+      "titolo_en": "\"?\" help updated to IEC 62305:2024",
+      "voci": [
+        "Ogni scelta ha una spiegazione e il riferimento all'articolo della norma",
+        "Verifiche: a vista ogni anno, completa ogni 3 anni, ogni anno per sistemi critici"
+      ],
+      "voci_en": [
+        "Every choice has an explanation and the reference to the clause of the standard",
+        "Inspections: visual every year, complete every 3 years, every year for critical systems"
+      ]
+    },
+    {
+      "id": "2026-11-09-lps-1", "data": "2026-11-09", "app": "lps",
+      "titolo": "Amministrazione e visitatori",
+      "titolo_en": "Administration and visitors",
+      "voci": [
+        "Registro accessi con nomi delle persone, grafico per settimana lavorativa (con numero), mese, due mesi, semestre e anno, esportazione CSV",
+        "Conteggio degli utenti con Microsoft Authenticator corretto",
+        "I visitatori di OBO Hub usano anche Progettazione LPS, senza salvare progetti nel cloud"
+      ],
+      "voci_en": [
+        "Access log with people's names, chart per working week (with number), month, two months, half-year and year, CSV export",
+        "Count of users with Microsoft Authenticator fixed",
+        "OBO Hub visitors can also use LPS design, without saving projects to the cloud"
+      ]
+    }
+  ]
+}
