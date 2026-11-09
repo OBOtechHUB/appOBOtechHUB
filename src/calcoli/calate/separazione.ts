@@ -3,17 +3,17 @@
  *   s = ki · kc / km · l
  * ki dipende dall'LPL, km dal materiale isolante, kc dalla ripartizione della corrente tra le calate,
  * l è la lunghezza lungo l'LPS dal punto considerato al più vicino collegamento equipotenziale.
- * Tutti i coefficienti sono modificabili: i valori qui sono quelli tipici della norma e vanno
- * confermati con l'edizione 2024 in uso.
+ * Valori della CEI EN IEC 62305-3:2024: ki Tab. 11, km Tab. 12, kc Tab. 13 e Allegato B,
+ * distanza tra le calate Tab. 5.
  */
 import distanze from "@/dati/calate/distanzaCalate.json";
 
 export type Livello = "I" | "II" | "III" | "IV";
-export type Materiale = "aria" | "solido";
+export type Materiale = "aria" | "solido" | "frp";
 
 export const KI: Record<Livello, number> = { I: 0.08, II: 0.06, III: 0.04, IV: 0.04 };
-export const KM: Record<Materiale, number> = { aria: 1, solido: 0.5 };
-export const NOMI_MATERIALE: Record<Materiale, string> = { aria: "Aria", solido: "Materiale solido (muratura, calcestruzzo, legno)" };
+export const KM: Record<Materiale, number> = { aria: 1, solido: 0.5, frp: 0.7 };
+export const NOMI_MATERIALE: Record<Materiale, string> = { aria: "Aria", solido: "Calcestruzzo, mattoni, legno", frp: "Distanziatore isolante FRP, PE o PVC (lungo almeno 0,5 m)" };
 
 /** Distanza tipica tra le calate (m) per LPL. */
 export function passoCalate(lpl: Livello): number {
@@ -26,10 +26,11 @@ export function numeroCalate(perimetro: number, lpl: Livello): number {
   return Math.max(2, Math.ceil(perimetro / passoCalate(lpl) - 1e-9));
 }
 
-/** kc semplificato: 1 calata → 1; 2–3 calate → 0,66; 4 o più calate → 0,44. */
+/** kc semplificato (Tab. 13): 1 calata (solo LPS isolato) → 1; 2 calate → 0,66; 3 o più → 0,44.
+ *  Vale per dispersori di tipo B e di tipo A con resistenze simili (entro un fattore 2), altrimenti kc = 1. */
 export function kcSemplificato(n: number): number {
   if (n <= 1) return 1;
-  if (n < 4) return 0.66;
+  if (n === 2) return 0.66;
   return 0.44;
 }
 

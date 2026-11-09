@@ -1,8 +1,10 @@
 /**
- * Verifiche periodiche dell'LPS (CEI EN IEC 62305-3, allegato E – manutenzione e ispezione).
+ * Verifiche periodiche dell'LPS (CEI EN IEC 62305-3:2024, art. 7 e D.7.2.2).
  * Logica pura: checklist, intervalli tra le verifiche, scadenze e riepilogo degli esiti.
- * Gli intervalli sono quelli tipici della tabella dell'allegato E e restano modificabili:
- * vanno confermati con l'edizione della norma in uso e con eventuali prescrizioni locali.
+ * L'edizione 2024 non lega più gli intervalli alla classe dell'LPS: esame a vista ogni anno e
+ * verifica completa (con prove elettriche) ogni 3 anni; ogni anno per strutture a rischio di esplosione,
+ * con impianti sensibili, uffici, commerciali o con molte persone; condizioni severe: a vista ogni 6 mesi.
+ * Valori modificabili per prescrizioni locali o del proprietario.
  */
 import { z } from "zod";
 
@@ -11,13 +13,9 @@ export type TipoVerifica = "visiva" | "completa" | "straordinaria";
 export type Esito = "C" | "NC" | "NA" | "";
 
 export interface Intervalli { visiva: number; completa: number; critica: number }
-/** Anni tra le verifiche: visiva, completa, completa per sistemi critici. */
-export const INTERVALLI_TIPICI: Record<Livello, Intervalli> = {
-  I: { visiva: 1, completa: 2, critica: 1 },
-  II: { visiva: 1, completa: 2, critica: 1 },
-  III: { visiva: 2, completa: 4, critica: 1 },
-  IV: { visiva: 2, completa: 4, critica: 1 },
-};
+/** Anni tra le verifiche (D.7.2.2): a vista, completa, completa per sistemi critici. Uguali per tutte le classi. */
+const INTERVALLI_2024: Intervalli = { visiva: 1, completa: 3, critica: 1 };
+export const INTERVALLI_TIPICI: Record<Livello, Intervalli> = { I: INTERVALLI_2024, II: INTERVALLI_2024, III: INTERVALLI_2024, IV: INTERVALLI_2024 };
 
 export interface VoceChecklist { id: string; sezione: string; testo: string; soloCompleta?: boolean }
 export const CHECKLIST: VoceChecklist[] = [

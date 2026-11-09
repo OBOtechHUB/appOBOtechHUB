@@ -53,7 +53,7 @@ export function SpdPage() {
       <p className="mt-2 max-w-3xl text-white/90">Requisiti degli SPD per la linea di alimentazione (Iimp, Uc, Up) e scelta dei prodotti OBO adatti dal catalogo (CEI EN IEC 62305-4, CEI EN 61643-12).</p>
     </div></section>
     <main className="mx-auto max-w-5xl px-4 py-8">
-      <p className="rounded-lg border-l-4 border-primary bg-muted p-3 text-sm">Metodo semplificato: 50 % della corrente di fulmine dell'LPL nell'impianto di terra, divisa tra i servizi entranti e i conduttori della linea. Valori tipici <strong>da verificare con l'edizione 2024</strong> e con lo schema reale dell'impianto.</p>
+      <p className="rounded-lg border-l-4 border-primary bg-muted p-3 text-sm">Regola n. 1 della CEI EN IEC 62305-4:2024 (Allegato C): 50 % della corrente di fulmine dell'LPL nell'impianto di terra, divisa tra i servizi entranti e i conduttori della linea (CEI EN IEC 62305-1:2024, E.2). Con una linea e 4 conduttori si ottengono 12,5 / 18,75 / 25 kA (10/350) per LPL III-IV / II / I, come in Tab. B.7 della 62305-2. Da confrontare con lo schema reale dell'impianto.</p>
 
       <section className="mt-8" aria-label="Dati della rete">
         <h2 className="text-[1.7rem] font-medium">1 · Rete e apparecchi</h2>

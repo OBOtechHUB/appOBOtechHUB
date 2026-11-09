@@ -75,7 +75,7 @@ export function VerifichePage() {
             {s.pianoVerifiche.intervalli && <Button size="sm" variant="link" className="justify-start p-0" onClick={() => piano({ intervalli: null })}>Ripristina valori tipici</Button>}
           </div>
         </div>
-        <p className="mt-2 text-xs text-muted-foreground">Sistema critico: strutture con rischio di esplosione o servizi essenziali (verifica completa più frequente). Valori tipici dell'allegato E, da confermare con l'edizione della norma e le prescrizioni locali.</p>
+        <p className="mt-2 text-xs text-muted-foreground">Sistema critico: strutture a rischio di esplosione, con impianti sensibili, uffici, edifici commerciali o con molte persone (verifica completa ogni anno). Edizione 2024 (D.7.2.2): a vista ogni anno, completa ogni 3 anni, uguale per tutte le classi; in condizioni severe a vista ogni 6 mesi. Modificabili per prescrizioni locali.</p>
         <div className="mt-4 grid gap-4 sm:grid-cols-2">
           {([["Prossima verifica visiva", scadenze.visiva], ["Prossima verifica completa", scadenze.completa]] as const).map(([t, data]) =>
             <div key={t} className={`rounded-lg border-[0.8px] p-4 ${scaduta(data, oggi()) ? "border-[#b3261e]" : "border-bordo-scheda"}`}>

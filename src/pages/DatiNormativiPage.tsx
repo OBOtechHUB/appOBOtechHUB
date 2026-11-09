@@ -63,7 +63,7 @@ export function DatiNormativiPage() {
     </section>
     <section className="mt-6 border-t pt-5">
       <h2 className="font-display text-xl font-semibold">Parametri di captazione</h2>
-      <p className="mt-2 text-xs text-muted-foreground">Raggio della sfera rotolante e lato massimo della maglia per livello di protezione (CEI EN IEC 62305-3:2024 – da verificare).</p>
+      <p className="mt-2 text-xs text-muted-foreground">Raggio della sfera rotolante e lato massimo della maglia per livello di protezione (CEI EN IEC 62305-3:2024, Tab. 2; CEI EN IEC 62305-1:2024, Tab. 4). Il lato della maglia può crescere al massimo del 25 % se il perimetro della maglia non aumenta.</p>
       <div className="mt-3 overflow-x-auto"><table className="w-full max-w-md text-sm"><thead><tr className="border-b text-left"><th className="p-2">LPL</th><th className="p-2">Raggio sfera (m)</th><th className="p-2">Lato maglia (m)</th></tr></thead><tbody>
         {(["I", "II", "III", "IV"] as const).map((l) => <tr key={l} className="border-b"><td className="p-2 font-semibold">LPL {l}</td><td className="p-2 font-mono">{parametriLPL[l].raggio}</td><td className="p-2 font-mono">{parametriLPL[l].latoMaglia}</td></tr>)}
       </tbody></table></div>
@@ -73,6 +73,6 @@ export function DatiNormativiPage() {
         </label>
         <Button variant="outline" onClick={salvaParametri}><Check />Salva parametri</Button>
       </div>
-      <p className="mt-2 text-xs text-muted-foreground">Oltre questa pendenza il metodo della maglia non si applica ({parametriLPL.pendenzaMassimaMaglia.riferimentoNorma}). Lascia vuoto per nessun limite. Valore personale, non verificato: richiede validazione.</p>
+      <p className="mt-2 text-xs text-muted-foreground">La norma 2024 non pone limiti di pendenza al metodo della maglia ({parametriLPL.pendenzaMassimaMaglia.riferimentoNorma}): lascia vuoto. Un valore inserito qui è una scelta personale, più restrittiva della norma.</p>
     </section></main>;
 }

@@ -34,7 +34,7 @@ export function CalatePage() {
   const n = dalModello.calate || nNorma;
   const passo = n > 0 ? perimetroUsato / n : 0;
   const ki = sep.ki ?? KI[lpl];
-  const km = { aria: KM.aria, solido: sep.kmSolido ?? KM.solido };
+  const km = { aria: KM.aria, solido: sep.kmSolido ?? KM.solido, frp: KM.frp };
   let kc = kcSemplificato(n), erroreKc = "";
   if (sep.modoKc === "dettagliato") { try { kc = kcDettagliato(n, passo, altezza); } catch (e) { erroreKc = e instanceof Error ? e.message : ""; } }
   const sTetto = altezza > 0 ? distanzaSeparazione(ki, kc, km.aria, altezza) : NaN;
@@ -55,7 +55,7 @@ export function CalatePage() {
       <p className="mt-2 max-w-3xl text-white/90">Numero e passo delle calate, coefficiente kc e distanza di separazione s = ki · kc / km · l, con la verifica dei punti critici (CEI EN IEC 62305-3).</p>
     </div></section>
     <main className="mx-auto max-w-5xl px-4 py-8">
-      <p className="rounded-lg border-l-4 border-primary bg-muted p-3 text-sm">I coefficienti ki, km, kc e le distanze tra le calate sono i valori tipici della norma: modificabili, <strong>da verificare con l'edizione 2024</strong>.</p>
+      <p className="rounded-lg border-l-4 border-primary bg-muted p-3 text-sm">Valori della CEI EN IEC 62305-3:2024: ki (Tab. 11), km (Tab. 12, anche distanziatori FRP 0,7), kc (Tab. 13: 2 calate 0,66, 3 o più 0,44; Allegato B per il metodo dettagliato) e distanze tra le calate (Tab. 5).</p>
 
       <section className="mt-8" aria-label="Calate">
         <h2 className="text-[1.7rem] font-medium">1 · Calate · LPL {lpl}</h2>
@@ -95,7 +95,7 @@ export function CalatePage() {
           <tbody>{esiti.map((e) => <tr key={e.id} className="border-b">
             <td className="p-2"><input aria-label="Descrizione" className={`${inputCls} py-1.5`} value={e.descrizione} maxLength={200} onChange={(ev) => punto(e.id, { descrizione: ev.target.value })} /></td>
             <td className="p-2"><input aria-label="l" className={`${inputCls} w-24 py-1.5`} type="number" min={0} step={0.5} value={e.l} onChange={(ev) => punto(e.id, { l: Number(ev.target.value) })} /></td>
-            <td className="p-2"><select aria-label="Materiale" className={`${inputCls} py-1.5`} value={e.materiale} onChange={(ev) => punto(e.id, { materiale: ev.target.value as Materiale })}>{(Object.keys(NOMI_MATERIALE) as Materiale[]).map((m) => <option key={m} value={m}>{m === "aria" ? "Aria" : "Solido"}</option>)}</select></td>
+            <td className="p-2"><select aria-label="Materiale" className={`${inputCls} py-1.5`} value={e.materiale} onChange={(ev) => punto(e.id, { materiale: ev.target.value as Materiale })}>{(Object.keys(NOMI_MATERIALE) as Materiale[]).map((m) => <option key={m} value={m}>{m === "aria" ? "Aria" : m === "frp" ? "Distanziatore FRP (0,7)" : "Solido (0,5)"}</option>)}</select></td>
             <td className="p-2"><input aria-label="d" className={`${inputCls} w-24 py-1.5`} type="number" min={0} step={0.05} value={e.d} onChange={(ev) => punto(e.id, { d: Number(ev.target.value) })} /></td>
             <td className="p-2 text-right font-mono">{f(e.s, 3)}</td>
             <td className="p-2"><span className={`rounded-full px-3 py-0.5 text-xs font-semibold ${e.conforme ? "bg-[#e3f4ea] text-[#1d7a45]" : "bg-[#fdecea] text-[#b3261e]"}`}>{e.conforme ? "d ≥ s" : "d < s"}</span></td>

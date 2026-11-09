@@ -5,7 +5,7 @@ import { RiferimentoParticolare } from "@/components/particolari/RiferimentoPart
 import { Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Campo, inputCls } from "@/components/Campo";
-import { proponiTerra, verificaTerra, type PropostaTerra, type TipoTerra } from "@/calcoli/terra/proponiTerra";
+import { l1Norma, proponiTerra, verificaTerra, type PropostaTerra, type TipoTerra } from "@/calcoli/terra/proponiTerra";
 import { aggiornaEsteso, type StatoEsteso } from "@/lib/statoProgetto";
 import { accettaTerra, piediCalate, rimuoviTerra, terraDefault, type ConfigurazioneTerra } from "@/lib/impiantoTerra";
 import { scarica } from "@/lib/esportazioni";
@@ -16,6 +16,7 @@ export function ImpiantoTerra({ s, onAnteprima }: { s: StatoEsteso; onAnteprima:
   const [preview, setPreview] = useState<Anteprima | null>(null);
   const [errore, setErrore] = useState("");
   const [excel, setExcel] = useState<Blob | null>(null);
+  const [rho, setRho] = useState("");
   const calate = piediCalate(s);
   const corrente = preview?.stato === s ? preview : null;
   const verifica = corrente ? verificaTerra(corrente.proposta, corrente.config.l1) : null;
@@ -51,7 +52,11 @@ export function ImpiantoTerra({ s, onAnteprima }: { s: StatoEsteso; onAnteprima:
       {config.tipo === "fondazione" && <Campo etichetta="Lato maglia fondazione (m)"><input className={inputCls} type="number" min="0.1" step="1" value={config.latoMagliaFondazione} onChange={(e) => cambia({ latoMagliaFondazione: Number(e.target.value) })} /></Campo>}
       <Campo etichetta="Lunghezza minima l1 (m)"><input className={inputCls} type="number" min="0" step="0.1" placeholder="Facoltativa" value={config.l1 ?? ""} onChange={(e) => cambia({ l1: e.target.value === "" ? null : Number(e.target.value) })} /></Campo>
     </div>
-    <p className="mt-2 text-xs text-muted-foreground">l1 da CEI EN IEC 62305-3, in funzione di resistività del terreno e LPL; se vuoto la verifica resta “dato norma mancante”.</p>
+    <div className="mt-2 flex flex-wrap items-end gap-2 text-sm">
+      <Campo etichetta="Resistività ρ (Ω·m)"><input className={inputCls} type="number" min="0" step="10" value={rho} placeholder="es. 200" onChange={(e) => setRho(e.target.value)} /></Campo>
+      <Button variant="outline" disabled={rho === ""} onClick={() => { try { cambia({ l1: Math.round(l1Norma(s.lpl, Number(rho)) * 10) / 10 }); } catch { /* valore non valido */ } }}>Calcola l1 (LPL {s.lpl})</Button>
+    </div>
+    <p className="mt-2 text-xs text-muted-foreground">l1 dalla Fig. 5 della CEI EN IEC 62305-3:2024 (classi III-IV: 5 m; classi I e II crescono con la resistività). Tipo A: ogni picchetto ≥ 0,5·l1 (+ 0,5 m se il terreno gela o si secca); tipo B: raggio equivalente re ≥ l1. Il requisito si può ignorare se la resistenza di un dispersore di tipo A è inferiore a 10 Ω. Se l1 è vuoto la verifica resta “dato norma mancante”.</p>
     {config.tipo === "B" && <label className="mt-3 flex items-center gap-2 text-sm"><input type="checkbox" checked={config.picchettiSuAnello} onChange={(e) => cambia({ picchettiSuAnello: e.target.checked })} />Picchetto su ogni calata</label>}
     {!calate.length && <p role="alert" className="mt-4 border-l-4 border-accent pl-3 text-sm">Prima accetta o disegna le calate</p>}
     <div className="mt-4 flex flex-wrap gap-2"><Button disabled={!calate.length || !s.modello.corpi.length} onClick={proponi}>Proponi impianto di terra</Button>{s.terra && <Button variant="outline" onClick={() => { if (!window.confirm("Rimuovere l'impianto di terra?")) return; aggiornaEsteso(rimuoviTerra(s)); setPreview(null); onAnteprima(null); }}>Rimuovi impianto di terra</Button>}</div>

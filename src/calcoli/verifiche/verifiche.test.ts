@@ -9,9 +9,10 @@ describe("verifiche periodiche", () => {
     expect(aggiungiAnni("2026-11-07", 2)).toBe("2028-11-07");
   });
 
-  it("scadenze per LPL III: visiva 2 anni, completa 4 anni (1 se critico)", () => {
+  it("scadenze edizione 2024: a vista ogni anno, completa ogni 3 anni (1 se critico), per tutte le classi", () => {
     const lista = [v("2024-05-10", "completa"), v("2025-06-01", "visiva")];
-    expect(prossimeScadenze(lista, INTERVALLI_TIPICI.III)).toEqual({ visiva: "2027-06-01", completa: "2028-05-10" });
+    expect(prossimeScadenze(lista, INTERVALLI_TIPICI.III)).toEqual({ visiva: "2026-06-01", completa: "2027-05-10" });
+    expect(INTERVALLI_TIPICI.I).toEqual(INTERVALLI_TIPICI.IV);
     expect(prossimeScadenze(lista, INTERVALLI_TIPICI.III, true).completa).toBe("2025-05-10");
     expect(prossimeScadenze([], INTERVALLI_TIPICI.I)).toEqual({ visiva: null, completa: null });
   });
