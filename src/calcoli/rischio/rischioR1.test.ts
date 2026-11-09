@@ -76,7 +76,8 @@ describe("rischio – CEI EN IEC 62305-2:2024", () => {
   });
 
   it("progetti salvati con l'edizione precedente: LF senza categoria e linea 'schermata'", () => {
-    const vecchio = { ...base, categoria: undefined, rfId: undefined, LF: 1e-1, hz: 5, linee: [{ ...base.linee[0]!, schermata: true }] };
+    const { categoria: _c, rfId: _r, ...senzaNuovi } = base; void _c; void _r;
+    const vecchio: DatiRischio = { ...senzaNuovi, LF: 1e-1, hz: 5, linee: [{ ...base.linee[0]!, schermata: true }] };
     const e = calcolaR1(vecchio, { lps: "nessuno", spd: "nessuno" });
     expect(Number.isFinite(e.R1)).toBe(true);
     expect(e.componenti.RZ).toBe(0);
