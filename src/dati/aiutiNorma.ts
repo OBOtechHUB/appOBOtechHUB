@@ -191,6 +191,67 @@ export const AIUTI: Record<string, Aiuto> = {
     en: "Beyond about 10 m of cable from the entrance SPD, equipment protection may not be enough (voltage oscillation): add a type 2 SPD in the sub-board.",
     rif: "CEI EN IEC 62305-4:2024, Allegato C; CEI EN 61643-12", daVerificare: true,
   },
+  // ----- Aggiunte: altri punti di scelta -----
+  "Lunghezza (m)": {
+    it: "Lunghezza della linea dalla struttura al primo nodo (cabina, armadio, derivazione). Se non si conosce si usa 1000 m, valore cautelativo indicato dalla norma per la somma delle linee di energia e per le linee di telecomunicazione.",
+    en: "Line length from the structure to the first node (substation, cabinet, branch). If unknown use 1000 m, the conservative value given by the standard for power lines combined and for telecom lines.",
+    rif: `${RISCHIO}, 8.2 e A.4`,
+  },
+  "Altezza h (m)": {
+    it: "Per il kc dettagliato: distanza verticale tra gli anelli che collegano le calate (o altezza della struttura se non ci sono anelli intermedi). La formula vale per strutture con almeno 4 calate e h, c tra 3 e 20 m.",
+    en: "For the detailed kc: vertical distance between the rings interconnecting the down conductors (or structure height without intermediate rings). The formula applies to structures with at least 4 down conductors and h, c between 3 and 20 m.",
+    rif: `${LPS}, Allegato B, Fig. B.2 e B.3`,
+  },
+  "km materiale solido (tipico 0.5)": {
+    it: "Calcestruzzo, mattoni o legno tra conduttore e parte metallica: 0,5. Per altri isolanti il valore lo dà il produttore; distanziatori in FRP, PE o PVC lunghi almeno 0,5 m: 0,7.",
+    en: "Concrete, bricks or wood between conductor and metal part: 0.5. For other insulators the manufacturer gives the value; FRP, PE or PVC spacers at least 0.5 m long: 0.7.",
+    rif: `${LPS}, Tab. 12`,
+  },
+  "Distanza dal muro (m)": {
+    it: "Il dispersore ad anello va posato preferibilmente a circa 1 m dai muri perimetrali, così lavora meglio e si riducono le tensioni di passo vicino all'edificio.",
+    en: "The ring electrode should preferably be laid about 1 m from the outer walls, so it works better and step voltages near the building are reduced.",
+    rif: `${LPS}, 5.4.3`,
+  },
+  "Lunghezza picchetto (m)": {
+    it: "Per il dispersore di tipo A ogni picchetto verticale deve essere lungo almeno 0,5·l1; dove il terreno gela o si secca si aggiungono 0,5 m, perché la parte superiore non conta.",
+    en: "For a type A electrode each vertical rod must be at least 0.5·l1 long; where soil freezes or dries out add 0.5 m, as the top part does not count.",
+    rif: `${LPS}, 5.4.2.2 e 5.4.3`,
+  },
+  "Lato maglia fondazione (m)": {
+    it: "Lato della maglia del dispersore di fondazione. Con maglie fitte (dell'ordine di 1 m) la corrente nelle linee collegate in punti diversi è trascurabile; più la maglia è fitta, migliore l'equipotenzialità.",
+    en: "Mesh size of the foundation electrode. With dense meshes (about 1 m) the current in lines bonded at different points is negligible; the denser the mesh, the better the equipotentiality.",
+    rif: `${LPS}, 5.4.2.3; CEI EN IEC 62305-1:2024, E.2.5`, daVerificare: true,
+  },
+  "Profondità di posa (m)": {
+    it: "Profondità del conduttore interrato o della testa del picchetto: almeno 0,5 m, per stabilizzare la resistenza rispetto a gelo e siccità.",
+    en: "Depth of the buried conductor or rod top: at least 0.5 m, to stabilise resistance against frost and drought.",
+    rif: `${LPS}, 5.4.3`,
+  },
+  "Resistenza di terra misurata (Ω)": {
+    it: "Se supera 10 Ω bisogna controllare che i dispersori rispettino la lunghezza minima l1 della Fig. 5 (in terreno roccioso il limite dei 10 Ω non si applica). Una variazione forte rispetto alle misure precedenti va indagata.",
+    en: "Above 10 Ω check that the electrodes meet the minimum length l1 of Fig. 5 (in rocky soil the 10 Ω limit does not apply). A large change from previous measurements must be investigated.",
+    rif: `${LPS}, D.7 e Fig. 5`,
+  },
+  "Continuità: valore massimo (Ω)": {
+    it: "Per le calate naturali nei ferri d'armatura la resistenza complessiva tra captazione e barra equipotenziale non deve superare 0,2 Ω, misurata con strumento a quattro morsetti e circa 10 A.",
+    en: "For natural down conductors in reinforcement, the overall resistance between air-termination and equipotential bar must not exceed 0.2 Ω, measured with a four-wire instrument and about 10 A.",
+    rif: `${LPS}, 5.3.5 e D.5.3.5.2`,
+  },
+  "Alimentazione": {
+    it: "Monofase o trifase cambia il numero di conduttori che si dividono la corrente di fulmine (es. 3 fasi + N = 4): più conduttori, meno corrente per polo dell'SPD.",
+    en: "Single or three phase changes the number of conductors sharing the lightning current (e.g. 3 phases + N = 4): more conductors, less current per SPD pole.",
+    rif: "CEI EN IEC 62305-1:2024, E.2.3",
+  },
+  "Apparecchi sensibili da proteggere": {
+    it: "Apparecchi lontani dal quadro o con bassa tensione di tenuta richiedono un SPD di tipo 3 vicino (entro pochi metri), coordinato con quelli a monte.",
+    en: "Equipment far from the board or with low withstand voltage needs a type 3 SPD close by (within a few metres), coordinated with the upstream ones.",
+    rif: "CEI EN IEC 62305-4:2024, Allegato C", daVerificare: true,
+  },
+  "Coefficiente di utilizzo η (0–1)": {
+    it: "Più dispersori vicini si disturbano a vicenda: la resistenza totale è più alta del semplice parallelo. η tiene conto di questo effetto; picchetti distanti almeno il doppio della loro lunghezza hanno η vicino a 1.",
+    en: "Electrodes close together interfere with each other: the total resistance is higher than a simple parallel. η accounts for this; rods spaced at least twice their length have η close to 1.",
+    rif: "Metodo di calcolo dell'app (non fissato dalla CEI EN IEC 62305); si veda CEI EN 50522", daVerificare: true,
+  },
   // ----- Verifiche -----
   "Visiva ogni (anni)": {
     it: "Dal 2024 l'intervallo non dipende più dalla classe dell'LPS: esame a vista ogni anno; in condizioni climatiche severe ogni 6 mesi. Se non si fa l'esame a vista annuale, la verifica completa va fatta ogni 2 anni.",
