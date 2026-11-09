@@ -236,6 +236,27 @@ export const AIUTI: Record<string, Aiuto> = {
     en: "Typical share of exposed people injured by a direct flash (roof, terrace, rooftop car park): 10⁻² to 10⁻¹; use the highest value without a specific study.",
     rif: `${RISCHIO}, Tab. C.2`,
   },
+  "SPD della zona (PSPD, PEB)": {
+    it: "Ogni zona può avere un sistema di SPD coordinati diverso: ad esempio SPD di livello I solo per la sala server e nessuno per il magazzino. Se lasci \"Come la protezione scelta\" la zona usa il livello indicato nei risultati. La tabella dei risultati mostra per ogni zona il livello più basso che basta per R ≤ RT e F ≤ FT.",
+    en: "Each zone may have a different coordinated SPD system: for example class I SPDs only for the server room and none for the warehouse. With \"Same as chosen protection\" the zone uses the level set in the results. The results table shows for each zone the lowest level that gives R ≤ RT and F ≤ FT.",
+    rif: `${RISCHIO}, 8.5, Tab. B.7 e B.13`,
+  },
+  "Scenario (LF1E, LO1E · LF2E, LO2E)": {
+    it: "Quando il danno alla struttura può uscire all'esterno (esplosione, calore, fumi tossici, inquinamento di suolo o acqua, materiale radioattivo) si aggiungono le perdite esterne LE. I valori sono quelli proposti dalla norma come massimi: si possono ridurre con uno studio sulla quantità e pericolosità della sostanza. LO1E conta solo dove i guasti degli impianti mettono in pericolo la vita o c'è rischio di esplosione, LO2E solo con rischio di esplosione.",
+    en: "When damage to the structure can spread outside (explosion, heat, toxic fumes, soil or water pollution, radioactive material) external losses LE are added. Values are the maximum ones proposed by the standard and may be reduced by a study of quantity and hazard of the substance. LO1E applies only where failure of internal systems endangers life or there is explosion risk, LO2E only with explosion risk.",
+    rif: `${RISCHIO}, C.2 (C.1, C.2), Allegato E, Tab. E.1, E.3 e E.4`,
+  },
+  "Estensione del danno (Tab. E.3)": {
+    it: "Per le vite umane la norma distingue tra danno contenuto dentro la recinzione del sito e danno che si diffonde fuori: fuori dalla recinzione i valori di LF1E e LO1E sono più alti. Con un sistema di allerta temporali i valori dentro la recinzione si possono ridurre (nota g della Tab. E.3): l'app non applica questa riduzione, in modo cautelativo.",
+    en: "For human life the standard distinguishes between damage contained within the site fence and damage spreading outside: outside the fence LF1E and LO1E are higher. With a thunderstorm warning system the values inside the fence may be reduced (note g of Table E.3): the app does not apply this reduction, conservatively.",
+    rif: `${RISCHIO}, Tab. E.3`,
+    daVerificare: true,
+  },
+  "Ambiente circostante (PPE = tE/8760)": {
+    it: "Frazione dell'anno in cui ci sono persone nel luogo pericoloso intorno alla struttura. Se non si conosce si usa 1, perché possono esserci abitazioni con presenza continua. Con ambienti misti si prende il valore più alto. Vale solo per le vite umane (L1).",
+    en: "Fraction of the year with people in the hazardous area around the structure. If unknown use 1, since there may be dwellings with permanent presence. For mixed surroundings take the highest value. Applies only to human life (L1).",
+    rif: `${RISCHIO}, E.2 (E.3) e Tab. E.2`,
+  },
   // ----- Aggiunte: altri punti di scelta -----
   "Lunghezza (m)": {
     it: "Lunghezza della linea dalla struttura al primo nodo (cabina, armadio, derivazione). Se non si conosce si usa 1000 m, valore cautelativo indicato dalla norma per la somma delle linee di energia e per le linee di telecomunicazione.",

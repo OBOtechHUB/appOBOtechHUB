@@ -8,8 +8,8 @@ import { aggiornaEsteso, useEsteso } from "@/lib/statoProgetto";
 import { aggiornaComputo, aggiornaDati, useComputo, useDatiEdificio } from "@/lib/progettoStore";
 import fattori from "@/dati/rischio/fattorePosizione.json";
 import {
-  AMBIENTE_LINEA, CABLAGGIO, CATEGORIE, CONNESSIONI, MISURE_CONTATTO, PAVIMENTO, POSA_LINEA, PROTEZIONE_INCENDIO, RISCHIO_INCENDIO, RT_R1, SCHERMATURE, TIPO_LINEA, TIPO_STRUTTURA,
-  calcolaZone, protezioneMinimaZone, spdMinimoZone, zonaUnica,
+  AMBIENTE_LINEA, AMBIENTI_CIRCOSTANTI, CABLAGGIO, SCENARI_AMBIENTE, CATEGORIE, CONNESSIONI, MISURE_CONTATTO, PAVIMENTO, POSA_LINEA, PROTEZIONE_INCENDIO, RISCHIO_INCENDIO, RT_R1, SCHERMATURE, TIPO_LINEA, TIPO_STRUTTURA,
+  calcolaZone, protezioneMinimaZone, protezionePerZona, spdMinimoZona, spdMinimoZone, zonaUnica,
   type ClasseLps, type DatiRischio, type Linea, type Opzione, type Schermatura, type Struttura, type Zona,
 } from "@/calcoli/rischio/rischioR1";
 
@@ -61,13 +61,15 @@ export function RischioPage() {
   const con = useMemo(() => calcolaZone(st, stato.zone, prot), [chiave, prot]); // eslint-disable-line react-hooks/exhaustive-deps
   const minima = useMemo(() => protezioneMinimaZone(st, stato.zone), [chiave]); // eslint-disable-line react-hooks/exhaustive-deps
   const spdF = useMemo(() => spdMinimoZone(st, stato.zone, prot.lps), [chiave, prot.lps]); // eslint-disable-line react-hooks/exhaustive-deps
+  const perZona = useMemo(() => protezionePerZona(st, stato.zone), [chiave]); // eslint-disable-line react-hooks/exhaustive-deps
+  const spdZona = useMemo(() => Object.fromEntries(stato.zone.map((z) => [z.id, spdMinimoZona(st, z, prot.lps)])), [chiave, prot.lps]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const zona = (id: string, p: Partial<Zona>) => salva({ zone: stato.zone.map((z) => (z.id === id ? { ...z, ...p } : z)) });
   const linea = (i: number, p: Partial<Linea>) => salva({ linee: stato.linee.map((x, k) => (k === i ? { ...x, ...p } : x)) });
   const za = stato.zone.find((z) => z.id === aperta) ?? stato.zone[0]!;
 
   function usaLivello() {
-    const riepilogoZone = (e: typeof senza) => e.zone.map((z) => `${z.zona.nome}: R = ${sci(z.R)}, F = ${sci(z.F)}`).join("; ");
+    const riepilogoZone = (e: typeof senza) => e.zone.map((z) => `${z.zona.nome}: R = ${sci(z.R)}, F = ${sci(z.F)}, SPD ${z.spd === "nessuno" ? "nessuno" : z.spd}`).join("; ");
     if (!minima || minima.protezione.lps === "nessuno") {
       aggiornaComputo({ risultati: { ...c.risultati, rischio: { esito: `R ≤ RT in tutte le zone senza protezione (${riepilogoZone(senza)})`, lpl: (d.lplProgetto ?? "IV") } } });
       setMsg("Esito salvato: per il rischio R la protezione non è necessaria.");
@@ -86,7 +88,7 @@ export function RischioPage() {
       <p className="mt-2 max-w-3xl text-white/90">Rischio R (vite umane L1 + danni materiali L2) e frequenza del danno agli impianti interni F, per una o più zone della struttura, con il livello di protezione minimo (CEI EN IEC 62305-2:2024).</p>
     </div></section>
     <main className="mx-auto max-w-5xl px-4 py-8">
-      <p className="rounded-lg border-l-4 border-primary bg-muted p-3 text-sm">Metodo dell'edizione 2024 con i valori tipici degli Allegati A, B e C. Il numero di eventi è comune a tutta la struttura; probabilità e perdite si scelgono per ogni zona e ogni zona va confrontata da sola con RT e FT. Non è considerata la perdita all'esterno della struttura LE (Allegato E).</p>
+      <p className="rounded-lg border-l-4 border-primary bg-muted p-3 text-sm">Metodo dell'edizione 2024 con i valori tipici degli Allegati A, B, C ed E. Il numero di eventi è comune a tutta la struttura; probabilità, perdite e SPD si scelgono per ogni zona e ogni zona va confrontata da sola con RT e FT. Se il danno può coinvolgere l'ambiente circostante, la zona aggiunge le perdite esterne LE.</p>
 
       <section className="mt-8" aria-label="Struttura">
         <h2 className="text-[1.7rem] font-medium">1 · Struttura</h2>
@@ -150,6 +152,7 @@ export function RischioPage() {
             <Campo etichetta="Lato maglia schermo esterno wm1 (m, KS1)"><input className={inputCls} type="number" min={0} step={0.5} placeholder="nessuno" value={za.wm1 ?? ""} onChange={(e) => zona(za.id, { wm1: e.target.value === "" ? null : Math.max(0, Number(e.target.value)) })} /></Campo>
             <Campo etichetta="Lato maglia schermi interni wm2 (m, KS2)"><input className={inputCls} type="number" min={0} step={0.5} placeholder="nessuno" value={za.wm2 ?? ""} onChange={(e) => zona(za.id, { wm2: e.target.value === "" ? null : Math.max(0, Number(e.target.value)) })} /></Campo>
             <Campo etichetta="Apparecchiature esposte (ore/anno, Pe)"><input className={inputCls} type="number" min={0} max={8760} step={10} value={za.oreApparecchi ?? 8760} onChange={(e) => zona(za.id, { oreApparecchi: Math.min(8760, Math.max(0, Number(e.target.value))) })} /></Campo>
+            <Campo etichetta="SPD della zona (PSPD, PEB)"><select className={inputCls} value={za.spd ?? ""} onChange={(e) => zona(za.id, { spd: e.target.value === "" ? null : e.target.value as ClasseLps })}><option value="">Come la protezione scelta nei risultati</option>{CLASSI.map((x) => <option key={x} value={x}>{x === "nessuno" ? "Nessun SPD" : `SPD di livello ${x}`}</option>)}</select></Campo>
             {za.esposti && <Campo etichetta="Perdita per fulmine diretto su persone esposte (LD)"><select className={inputCls} value={za.LD ?? 0.1} onChange={(e) => zona(za.id, { LD: Number(e.target.value) })}>{[0.1, 0.05, 0.01].map((v) => <option key={v} value={v}>{v}</option>)}</select></Campo>}
           </div>
           <div className="mt-3 grid gap-2 text-sm sm:grid-cols-2">
@@ -158,6 +161,12 @@ export function RischioPage() {
             <label className="flex items-center gap-2"><input type="checkbox" checked={za.impiantiCritici} onChange={(e) => zona(za.id, { impiantiCritici: e.target.checked })} />Guasti degli impianti interni mettono in pericolo la vita (RC, RM, RW, RZ)</label>
             <label className="flex items-center gap-2"><input type="checkbox" checked={za.serviziCritici} onChange={(e) => zona(za.id, { serviziCritici: e.target.checked })} />Impianti interni critici per il servizio (FT = 0,1)</label>
           </div>
+          <label className="mt-3 flex items-center gap-2 text-sm"><input type="checkbox" checked={!!za.ambiente} onChange={(e) => zona(za.id, { ambiente: e.target.checked ? { scenario: "fumi", fuoriSito: false, tE: 1 } : null })} />Il danno può coinvolgere l'ambiente circostante o le strutture vicine: esplosione, fumi tossici, inquinamento (LE, Allegato E)</label>
+          {za.ambiente && <div className="mt-2 grid gap-4 sm:grid-cols-3">
+            <SceltaId etichetta="Scenario (LF1E, LO1E · LF2E, LO2E)" opzioni={SCENARI_AMBIENTE.map((x) => { const v = za.ambiente!.fuoriSito ? x.esterno : x.interno; return { id: x.id, nome: x.nome, extra: `${v.LF1E}/${v.LO1E} · ${x.LF2E}/${x.LO2E}` }; })} id={za.ambiente.scenario} onChange={(id) => zona(za.id, { ambiente: { ...za.ambiente!, scenario: id } })} />
+            <Campo etichetta="Estensione del danno (Tab. E.3)"><select className={inputCls} value={za.ambiente.fuoriSito ? "fuori" : "dentro"} onChange={(e) => zona(za.id, { ambiente: { ...za.ambiente!, fuoriSito: e.target.value === "fuori" } })}><option value="dentro">Contenuto dentro la recinzione del sito</option><option value="fuori">Si diffonde fuori dalla recinzione del sito</option></select></Campo>
+            <Scelta etichetta="Ambiente circostante (PPE = tE/8760)" opzioni={AMBIENTI_CIRCOSTANTI} valore={za.ambiente.tE} onChange={(v) => zona(za.id, { ambiente: { ...za.ambiente!, tE: v } })} />
+          </div>}
           {stato.linee.length > 0 && <div className="mt-3 text-sm"><p className="font-medium">Linee che alimentano gli impianti della zona</p>
             <div className="mt-1 flex flex-wrap gap-3">{stato.linee.map((l, i) => <label key={i} className="flex items-center gap-2"><input type="checkbox" checked={za.linee == null || za.linee.includes(i)} onChange={(e) => { const tutte = stato.linee.map((_, k) => k); const att = za.linee ?? tutte; const nuove = e.target.checked ? [...new Set([...att, i])].sort() : att.filter((x) => x !== i); zona(za.id, { linee: nuove.length === tutte.length ? null : nuove }); }} />{l.nome}</label>)}</div></div>}
           {stato.zone.length > 1 && <Button variant="ghost" className="mt-3 text-[#b3261e]" onClick={() => { const resto = stato.zone.filter((z) => z.id !== za.id); salva({ zone: resto }); setAperta(resto[0]!.id); }}><Trash2 />Elimina zona</Button>}
@@ -175,18 +184,19 @@ export function RischioPage() {
             <Campo etichetta="SPD coordinati (PEB, PSPD)"><select className={inputCls} value={prot.spd} onChange={(e) => setProt({ ...prot, spd: e.target.value as ClasseLps })}>{CLASSI.map((x) => <option key={x} value={x}>{nomeClasse(x)}</option>)}</select></Campo>
           </div>
           <div className="mt-4 overflow-x-auto"><table className="w-full min-w-[640px] text-sm">
-            <thead><tr className="border-b text-left"><th className="p-2">Zona</th><th className="p-2">R senza protezione</th><th className="p-2">R con la protezione scelta</th><th className="p-2">F con la protezione scelta</th></tr></thead>
+            <thead><tr className="border-b text-left"><th className="p-2">Zona</th><th className="p-2">R senza protezione</th><th className="p-2">R con la protezione scelta</th><th className="p-2">F con la protezione scelta</th><th className="p-2">SPD minimo della zona</th></tr></thead>
             <tbody>{con.zone.map((z, i) => { const s0 = senza.zone[i]!; return <tr key={z.zona.id} className="border-b">
               <td className="p-2 font-medium">{z.zona.nome}</td>
               <td className={`p-2 font-mono ${s0.conforme ? "text-[#1d7a45]" : "text-[#b3261e]"}`}>{sci(s0.R)}</td>
               <td className={`p-2 font-mono ${z.conforme ? "text-[#1d7a45]" : "text-[#b3261e]"}`}>{sci(z.R)} {z.conforme ? "≤" : ">"} RT</td>
               <td className={`p-2 font-mono ${z.frequenzaConforme ? "text-[#1d7a45]" : "text-[#b3261e]"}`}>{sci(z.F)} {z.frequenzaConforme ? "≤" : ">"} {z.FT.toLocaleString("it-IT")}</td>
+              <td className="p-2">{(() => { const m = spdZona[z.zona.id]; return m === null || m === undefined ? <span className="text-[#b3261e]">non basta il livello I</span> : <>{m === "nessuno" ? "nessuno" : `livello ${m}`}{z.zona.spd ? <span className="text-muted-foreground"> · scelti {z.spd === "nessuno" ? "nessuno" : z.spd}</span> : null}</>; })()}</td>
             </tr>; })}</tbody>
           </table></div>
         </div>
         {(() => { const e = con.zone.find((z) => z.zona.id === za.id) ?? con.zone[0]!; const max = Math.max(...Object.values(e.componenti), RT_R1); return <div className="mt-4 rounded-lg border-[0.8px] border-bordo-scheda p-4">
           <p className="font-semibold">Componenti della zona "{e.zona.nome}" con la protezione scelta</p>
-          <p className="text-sm">RL1 (vite umane) = {sci(e.RL1)} · RL2 (danni materiali) = {sci(e.RL2)}</p>
+          <p className="text-sm">RL1 (vite umane) = {sci(e.RL1)} · RL2 (danni materiali) = {sci(e.RL2)}{e.RE1 + e.RE2 > 0 && <> · di cui ambiente circostante RE = {sci(e.RE1 + e.RE2)}</>}</p>
           <div className="mt-3 space-y-1.5">{Object.entries(e.componenti).filter(([, v]) => v > 0).map(([k, v]) => <Barra key={k} nome={k} valore={v} max={max} />)}<Barra nome="RT" valore={RT_R1} max={max} /></div>
           <p className="mt-2 text-xs text-muted-foreground">FC {sci(e.frequenze.FC)} · FM {sci(e.frequenze.FM)} · FW {sci(e.frequenze.FW)} · FZ {sci(e.frequenze.FZ)}</p>
         </div>; })()}
@@ -195,6 +205,10 @@ export function RischioPage() {
             ? <p className="text-lg">Protezione minima per tutte le zone: <strong>{minima.protezione.lps === "nessuno" ? "non necessaria" : `LPS e SPD di livello ${minima.protezione.lps}`}</strong>{minima.protezione.lps !== "nessuno" && <> · R max = {sci(minima.esito.Rmax)}</>}</p>
             : <p className="text-lg text-[#b3261e]">Nemmeno LPS e SPD di livello I bastano in tutte le zone: servono misure aggiuntive nella zona peggiore (antincendio, misure contro le tensioni di contatto, schermature).</p>}
           <p className="mt-1 text-sm">Frequenza del danno (con l'LPS scelto sopra): {spdF === null ? <strong className="text-[#b3261e]">nemmeno SPD di livello I bastano: servono schermature, interfacce di separazione o cablaggi migliori</strong> : spdF === "nessuno" ? <strong>F ≤ FT anche senza SPD</strong> : <strong>servono SPD coordinati di livello {spdF}</strong>}.</p>
+          {perZona && stato.zone.length > 1 && <div className="mt-3 text-sm">
+            <p>Con SPD diversi per zona: <strong>{perZona.lps === "nessuno" ? "nessun LPS" : `LPS di livello ${perZona.lps}`}</strong> e {stato.zone.map((z) => `${z.nome}: ${perZona.spd[z.id] === "nessuno" ? "nessun SPD" : `SPD ${perZona.spd[z.id]}`}`).join(" · ")} (R ≤ RT e F ≤ FT in tutte le zone).</p>
+            <Button variant="outline" className="mt-2" onClick={() => { salva({ zone: stato.zone.map((z) => ({ ...z, spd: perZona.spd[z.id] ?? null })) }); setProt({ ...prot, lps: perZona.lps }); setMsg("SPD per zona applicati: li vedi in ogni zona e nella tabella."); }}>Applica gli SPD per zona</Button>
+          </div>}
           <div className="mt-3 flex flex-wrap items-center gap-3"><Button onClick={usaLivello} disabled={!minima}><Save strokeWidth={1.5} />{minima && minima.protezione.lps !== "nessuno" ? `Usa LPL ${minima.protezione.lps} nel progetto` : "Salva l'esito nel progetto"}</Button>{msg && <span className="text-sm">{msg}</span>}</div>
         </div>
       </section>

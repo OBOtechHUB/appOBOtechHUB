@@ -15,7 +15,9 @@
  * per L2 solo con rischio di esplosione. RAD per le zone con persone esposte (tetto, terrazza).
  * Numero di eventi comune a tutta la struttura (Allegato A, compresa la struttura adiacente NDJ);
  * probabilità (Allegato B: TWS, PMS con KS1–KS3, CLD/CLI Tab. B.9, Pe) e perdite (Allegato C) per ogni zona.
- * Il confronto con RT e FT si fa zona per zona; non è considerata la perdita esterna LE (Allegato E).
+ * Il confronto con RT e FT si fa zona per zona. Ogni zona può avere SPD propri (o seguire quelli scelti
+ * per la struttura) e, se il danno può coinvolgere l'ambiente circostante, le componenti aggiuntive
+ * dell'Allegato E (Tab. E.1, perdite LE delle Tab. E.2–E.4), sommate al rischio della zona.
  */
 import { areaRaccolta } from "./areaRaccolta";
 
@@ -109,6 +111,27 @@ export const CABLAGGIO: Opzione[] = [
   o("schermati", "Cavi schermati o in condotti metallici collegati a entrambe le estremità", 1e-4),
 ];
 
+/** Scenari di danno all'ambiente circostante (Tab. E.3 per L1, dentro o fuori la recinzione del sito; Tab. E.4 per L2). */
+export interface ScenarioAmbiente { id: string; nome: string; interno: { LF1E: number; LO1E: number }; esterno: { LF1E: number; LO1E: number }; LF2E: number; LO2E: number }
+export const SCENARI_AMBIENTE: ScenarioAmbiente[] = [
+  { id: "esplosione", nome: "Esplosione e sovrappressione", interno: { LF1E: 0.25, LO1E: 0.025 }, esterno: { LF1E: 0.5, LO1E: 0.05 }, LF2E: 0.5, LO2E: 0.05 },
+  { id: "termico", nome: "Flusso termico", interno: { LF1E: 0.05, LO1E: 0.005 }, esterno: { LF1E: 0.1, LO1E: 0.01 }, LF2E: 0.1, LO2E: 0.01 },
+  { id: "fumi", nome: "Fumi tossici", interno: { LF1E: 0.1, LO1E: 0.01 }, esterno: { LF1E: 1, LO1E: 0.1 }, LF2E: 0.5, LO2E: 0.05 },
+  { id: "suolo", nome: "Inquinamento del suolo", interno: { LF1E: 0.1, LO1E: 0.01 }, esterno: { LF1E: 0.5, LO1E: 0.05 }, LF2E: 0.2, LO2E: 0.02 },
+  { id: "acqua", nome: "Inquinamento dell'acqua (falda, acque dolci, mare)", interno: { LF1E: 0.25, LO1E: 0.025 }, esterno: { LF1E: 2.5, LO1E: 0.25 }, LF2E: 0.5, LO2E: 0.05 },
+  { id: "radioattivo", nome: "Materiale radioattivo (non sorgenti sigillate)", interno: { LF1E: 0.5, LO1E: 0.05 }, esterno: { LF1E: 5, LO1E: 0.5 }, LF2E: 1, LO2E: 0.1 },
+];
+/** Tempo di presenza delle persone nell'ambiente circostante tE/8760 (Tab. E.2); 1 se non noto. */
+export const AMBIENTI_CIRCOSTANTI: Opzione[] = [
+  o("non-noto", "Non noto (aree residenziali possibili)", 1), o("lavoro", "Sito di lavoro", 0.25), o("turni", "Sito di lavoro su più turni", 1),
+  o("pubblico", "Strutture aperte al pubblico", 0.5), o("attivita", "Zone di attività non aperte al pubblico", 0.75), o("abitazioni", "Abitazioni", 1),
+  o("strade", "Strade", 1), o("ferrovie", "Ferrovie", 0.25), o("vie-acqua", "Vie d'acqua interne", 0.1), o("pedonali", "Vie pedonali", 0.75),
+  o("terreni", "Terreni aperti, aree frequentate molto raramente", 0.25), o("poco", "Aree poco frequentate (giardini, vigneti, scali)", 0.25),
+  o("spesso", "Aree frequentate spesso (parcheggi, parchi, campi sportivi)", 0.5), o("sporadica", "Casi particolari, frequenza sporadica", 0.1),
+];
+/** Danno che può coinvolgere l'ambiente circostante (Allegato E). */
+export interface Ambiente { scenario: string; fuoriSito: boolean; tE: number }
+
 /** Struttura adiacente all'altra estremità della linea (A.2.5). */
 export interface Adiacente { L: number; W: number; H: number; CDJ: number }
 
@@ -136,6 +159,10 @@ export interface Zona {
   ks3?: number;
   /** ore all'anno con apparecchiature esposte (Pe = ore/8760) */
   oreApparecchi?: number;
+  /** SPD propri della zona; null o assente = quelli scelti per la struttura */
+  spd?: ClasseLps | null;
+  /** danno che può coinvolgere l'ambiente circostante (Allegato E); null = nessuno */
+  ambiente?: Ambiente | null;
 }
 
 /** Dati comuni della struttura. */
@@ -206,7 +233,11 @@ export const categoriaDi = (d: DatiRischio): Categoria =>
 
 export interface EsitoZona {
   zona: Zona;
-  componenti: Componenti & { RAD: number };
+  componenti: Componenti & { RAD: number; RE: number };
+  /** parte del rischio dovuta all'ambiente circostante (Allegato E), già compresa in RL1, RL2 e R */
+  RE1: number; RE2: number;
+  /** SPD usati per la zona */
+  spd: ClasseLps;
   RL1: number; RL2: number; R: number; conforme: boolean;
   frequenze: Frequenze; F: number; FT: number; frequenzaConforme: boolean;
 }
@@ -216,6 +247,8 @@ export interface EsitoStruttura {
   /** rischio della zona peggiore */
   Rmax: number; conforme: boolean; frequenzaConforme: boolean;
 }
+
+const ORDINE: ClasseLps[] = ["nessuno", "IV", "III", "II", "I"];
 
 const pms = (z: Zona): number => {
   const ks1 = z.wm1 != null && z.wm1 > 0 ? Math.min(1, 0.12 * z.wm1) : 1;
@@ -234,7 +267,7 @@ export function calcolaZone(st: Struttura, zone: Zona[], p: Protezione): EsitoSt
   const ND = NSG * AD * st.CD * 1e-6;
   const NM = (1 / k) * NSG * AM * 1e-6;
   const rI = 2000 / Math.pow(Uw, 1.8);
-  const plps = PLPS[p.lps], peb = PEB[p.spd], pspd = PSPD[p.spd];
+  const plps = PLPS[p.lps];
   const PS = p.lps === "nessuno" ? (st.PS ?? 1) : 1;
   const conL2 = st.danniMateriali !== false;
 
@@ -259,6 +292,13 @@ export function calcolaZone(st: Struttura, zone: Zona[], p: Protezione): EsitoSt
     const LO1 = z.impiantiCritici ? cat.LO : 0, LO2 = conL2 && esplosione ? cat.LO : 0;
     const LD = z.LD ?? 1e-1;
     const servite = linee.filter((_, i) => z.linee == null || z.linee.includes(i));
+    const spd: ClasseLps = z.spd ?? p.spd;
+    const peb = PEB[spd], pspd = PSPD[spd];
+    const amb = z.ambiente ? SCENARI_AMBIENTE.find((x) => x.id === z.ambiente!.scenario) : undefined;
+    const PPE = z.ambiente ? Math.min(1, Math.max(0, z.ambiente.tE)) : 0;
+    const l1e = amb ? (z.ambiente!.fuoriSito ? amb.esterno : amb.interno) : { LF1E: 0, LO1E: 0 };
+    const LF1E = l1e.LF1E, LO1E = z.impiantiCritici || esplosione ? l1e.LO1E : 0;
+    const LF2E = amb && conL2 ? amb.LF2E : 0, LO2E = amb && conL2 && esplosione ? amb.LO2E : 0;
 
     const PAT = plps * z.misureContatto * z.rt * PTWS;
     const PAD = PTWS * z.misureContatto * plps;
@@ -271,6 +311,9 @@ export function calcolaZone(st: Struttura, zone: Zona[], p: Protezione): EsitoSt
     const RB1 = ND * PB * PP * LF1, RB2 = ND * PB * LF2;
     const RC1 = ND * PC * PP * Pe * LO1, RC2 = ND * PC * Pe * LO2;
     const RM1 = NM * PM * PP * Pe * LO1, RM2 = NM * PM * Pe * LO2;
+    // Allegato E, Tab. E.1: L1 con PPE = tE/8760, L2 senza
+    let RE1 = ND * PB * PPE * LF1E + (ND * PC + NM * PM) * PPE * Pe * LO1E;
+    let RE2 = ND * PB * LF2E + (ND * PC + NM * PM) * Pe * LO2E;
     let RU = 0, RV1 = 0, RV2 = 0, RW1 = 0, RW2 = 0, RZ1 = 0, RZ2 = 0, FW = 0, FZ = 0;
     for (const l of servite) {
       const n = l.NL + l.NDJ;
@@ -283,16 +326,18 @@ export function calcolaZone(st: Struttura, zone: Zona[], p: Protezione): EsitoSt
       RW1 += n * PW * PP * Pe * LO1; RW2 += n * PW * Pe * LO2;
       RZ1 += l.NI * PZ * PP * Pe * LO1; RZ2 += l.NI * PZ * Pe * LO2;
       FW += n * PW * Pe; FZ += l.NI * PZ * Pe;
+      RE1 += n * PV * PPE * LF1E + (n * PW + l.NI * PZ) * PPE * Pe * LO1E;
+      RE2 += n * PV * LF2E + (n * PW + l.NI * PZ) * Pe * LO2E;
     }
-    const RL1 = RA + RAD + RB1 + RC1 + RM1 + RU + RV1 + RW1 + RZ1;
-    const RL2 = RB2 + RC2 + RM2 + RV2 + RW2 + RZ2;
+    const RL1 = RA + RAD + RB1 + RC1 + RM1 + RU + RV1 + RW1 + RZ1 + RE1;
+    const RL2 = RB2 + RC2 + RM2 + RV2 + RW2 + RZ2 + RE2;
     const R = RL1 + RL2;
     const frequenze = { FC: ND * PC * Pe, FM: NM * PM * Pe, FW, FZ };
     const F = frequenze.FC + frequenze.FM + frequenze.FW + frequenze.FZ;
     const FT = z.serviziCritici ? FT_CRITICI : FT_NON_CRITICI;
     return {
-      zona: z, componenti: { RA, RAD, RB: RB1 + RB2, RC: RC1 + RC2, RM: RM1 + RM2, RU, RV: RV1 + RV2, RW: RW1 + RW2, RZ: RZ1 + RZ2 },
-      RL1, RL2, R, conforme: R <= RT, frequenze, F, FT, frequenzaConforme: F <= FT,
+      zona: z, componenti: { RA, RAD, RB: RB1 + RB2, RC: RC1 + RC2, RM: RM1 + RM2, RU, RV: RV1 + RV2, RW: RW1 + RW2, RZ: RZ1 + RZ2, RE: RE1 + RE2 },
+      RE1, RE2, spd, RL1, RL2, R, conforme: R <= RT, frequenze, F, FT, frequenzaConforme: F <= FT,
     };
   });
   return {
@@ -317,6 +362,32 @@ export function spdMinimoZone(st: Struttura, zone: Zona[], lps: ClasseLps): Clas
   return null;
 }
 
+/**
+ * Protezione ottimizzata per zona: l'LPS più basso con cui ogni zona raggiunge R ≤ RT e F ≤ FT
+ * con i propri SPD, e per ogni zona il livello di SPD più basso che basta (le zone sono indipendenti
+ * a parità di LPS). null se nemmeno con LPS e SPD di livello I tutte le zone sono a posto.
+ */
+export function protezionePerZona(st: Struttura, zone: Zona[]): { lps: ClasseLps; spd: Record<string, ClasseLps>; esito: EsitoStruttura } | null {
+  for (const lps of ORDINE) {
+    const spd: Record<string, ClasseLps> = {};
+    const ok = zone.every((z) => {
+      const l = spdMinimoZona(st, z, lps);
+      if (l) spd[z.id] = l;
+      return l !== null;
+    });
+    if (ok) return { lps, spd, esito: calcolaZone(st, zone.map((z) => ({ ...z, spd: spd[z.id]! })), { lps, spd: "nessuno" }) };
+  }
+  return null;
+}
+/** SPD più basso perché la zona abbia R ≤ RT e F ≤ FT con l'LPS dato (ignora gli SPD già scelti per la zona). */
+export function spdMinimoZona(st: Struttura, z: Zona, lps: ClasseLps): ClasseLps | null {
+  for (const l of ORDINE) {
+    const e = calcolaZone(st, [{ ...z, spd: l }], { lps, spd: l }).zone[0]!;
+    if (e.conforme && e.frequenzaConforme) return l;
+  }
+  return null;
+}
+
 /** Struttura a zona unica dai dati semplici (compatibilità con la prima versione). */
 export function zonaUnica(d: DatiRischio): { st: Struttura; zona: Zona } {
   const rfId = d.rfId ?? RISCHIO_INCENDIO.find((x) => x.valore === d.rf && !x.id.startsWith("esplosione-"))?.id ?? "ordinario";
@@ -329,11 +400,9 @@ export function calcolaR1(d: DatiRischio, p: Protezione): EsitoRischio {
   const { st, zona } = zonaUnica(d);
   const e = calcolaZone(st, [zona], p);
   const z = e.zone[0]!;
-  const { RAD: _rad, ...componenti } = z.componenti; void _rad;
+  const { RAD: _rad, RE: _re, ...componenti } = z.componenti; void _rad; void _re;
   return { NSG: e.NSG, ND: e.ND, NM: e.NM, NL: e.NL, NI: e.NI, AD: e.AD, AM: e.AM, componenti, RL1: z.RL1, RL2: z.RL2, R1: z.R, conforme: z.conforme, frequenze: z.frequenze, F: z.F, FT: z.FT, frequenzaConforme: z.frequenzaConforme };
 }
-
-const ORDINE: ClasseLps[] = ["nessuno", "IV", "III", "II", "I"];
 
 /**
  * Protezione minima per il rischio R: prima senza nulla, poi LPS + SPD dello stesso livello dal IV al I.

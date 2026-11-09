@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { calcolaZone, protezioneMinimaZone, zonaUnica, type Zona, calcolaR1, protezioneMinima, areaVicinanze, probabilitaPLD, spdMinimoFrequenza, RT_R1, type DatiRischio } from "./rischioR1";
+import { calcolaZone, protezioneMinimaZone, protezionePerZona, spdMinimoZona, zonaUnica, PSPD, type Zona, calcolaR1, protezioneMinima, areaVicinanze, probabilitaPLD, spdMinimoFrequenza, RT_R1, type DatiRischio } from "./rischioR1";
 
 const base: DatiRischio = {
   L: 40, W: 20, H: 12, NG: 4, CD: 1, k: 2, Uw: 2.5,
@@ -105,5 +105,35 @@ describe("rischio – CEI EN IEC 62305-2:2024", () => {
     expect(ks.zone[0]!.frequenze.FM).toBeCloseTo(ks.NM * 1e-4, 12); // PMS = KS3²
     const tws = calcolaZone({ ...st, PTWS: 0.1 }, [zona], { lps: "nessuno", spd: "nessuno" });
     expect(tws.zone[0]!.componenti.RA).toBeCloseTo(calcolaZone(st, [zona], { lps: "nessuno", spd: "nessuno" }).zone[0]!.componenti.RA * 0.1, 15);
+  });
+
+  it("perdita esterna LE (Allegato E, Tab. E.1): componenti aggiuntive sommate alla zona", () => {
+    const { st, zona } = zonaUnica(base);
+    const senza = calcolaZone(st, [zona], { lps: "nessuno", spd: "nessuno" }).zone[0]!;
+    expect(senza.RE1).toBe(0);
+    const amb = { ...zona, ambiente: { scenario: "fumi", fuoriSito: true, tE: 0.5 } };
+    const e = calcolaZone(st, [amb], { lps: "nessuno", spd: "nessuno" });
+    const z = e.zone[0]!;
+    const PB = 1 * 1 * 1 * 1e-2; // PS·PLPS·rp·rf
+    // RB1E = ND·PB·PPE·LF1E, RV1E = NL·PV·PPE·LF1E (nessun impianto critico: niente C, M, W, Z)
+    const PV = 1 * 1 * 1 * 1 * 1 * 1e-2; // PEB·PLD·PTWS·CLD·rp·rf
+    expect(z.RE1).toBeCloseTo(e.ND * PB * 0.5 * 1 + e.NL * PV * 0.5 * 1, 14);
+    // RB2E = ND·PB·LF2E, RV2E = NL·PV·LF2E
+    expect(z.RE2).toBeCloseTo((e.ND * PB + e.NL * PV) * 0.5, 14);
+    expect(z.R).toBeCloseTo(senza.R + z.RE1 + z.RE2, 14);
+  });
+
+  it("SPD propri della zona e protezione ottimizzata per zona", () => {
+    const { st, zona } = zonaUnica(base);
+    const critica: Zona = { ...zona, id: "c", nome: "Sala server", impiantiCritici: true, serviziCritici: true };
+    const tranquilla: Zona = { ...zona, id: "t", nome: "Magazzino", esterna: false, rfId: "nessuno", linee: [] };
+    const e = calcolaZone(st, [{ ...critica, spd: "I" }, tranquilla], { lps: "III", spd: "nessuno" });
+    expect(e.zone[0]!.spd).toBe("I");
+    expect(e.zone[1]!.spd).toBe("nessuno");
+    expect(PSPD[e.zone[0]!.spd]).toBe(0.01);
+    const o = protezionePerZona(st, [critica, tranquilla]);
+    expect(o).not.toBeNull();
+    expect(o!.spd["t"]).toBe(spdMinimoZona(st, tranquilla, o!.lps));
+    expect(o!.esito.zone.every((z) => z.conforme && z.frequenzaConforme)).toBe(true);
   });
 });
