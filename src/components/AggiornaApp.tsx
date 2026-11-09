@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { RefreshCw, Sparkles } from "lucide-react";
 
 const ATTUALE = import.meta.env["VITE_VERSIONE"] as string | undefined;
-const CHIAVE = "obo-novita-lps";
+const CHIAVE = "obo-novita2-lps";
 let ultima = "";
 
 /** Voce del registro novita.json (public/novita.json; quelle con app "tutte" stanno nel registro di OBO Hub). */
@@ -19,10 +19,13 @@ async function caricaNovita(): Promise<Novita[]> {
   return [...proprie.filter((a) => a.app === "lps"), ...comuni.filter((a) => a.app === "tutte")]
     .sort((a, b) => (a.data < b.data ? 1 : a.data > b.data ? -1 : a.id < b.id ? 1 : -1));
 }
-/** Voci più recenti dell'ultima vista; al primo avvio segna tutto come visto e non mostra nulla. */
+/** Voci più recenti dell'ultima vista; al primo avvio solo quelle delle ultime 2 settimane. */
 export function nonViste(lista: Novita[], vista: string | null): { voci: Novita[]; primaVolta: boolean } {
   if (!lista.length) return { voci: [], primaVolta: false };
-  if (!vista) return { voci: [], primaVolta: true };
+  if (!vista) { // primo avvio con il registro: solo le novità delle ultime 2 settimane
+    const limite = new Date(Date.now() - 14 * 864e5).toISOString().slice(0, 10);
+    return { voci: lista.filter((a) => a.data >= limite), primaVolta: true };
+  }
   const i = lista.findIndex((a) => a.id === vista);
   return { voci: i < 0 ? [] : lista.slice(0, i), primaVolta: false };
 }
@@ -47,7 +50,7 @@ export function AggiornaApp() {
     void caricaNovita().then((l) => {
       if (!attivo) return;
       const { voci, primaVolta } = nonViste(l, leggi(CHIAVE));
-      if (primaVolta && l[0]) scrivi(CHIAVE, l[0].id);
+      if (primaVolta && !voci.length && l[0]) scrivi(CHIAVE, l[0].id);
       setDaVedere(voci);
     });
     if (!ATTUALE) return () => { attivo = false; }; // in sviluppo locale non c'è versione
@@ -61,7 +64,7 @@ export function AggiornaApp() {
           ultima = versione;
           const l = await caricaNovita();
           const vista = leggi(CHIAVE);
-          setVociNuova(vista ? nonViste(l, vista).voci : l.slice(0, 3));
+          setVociNuova(nonViste(l, vista).voci);
           setNuova(true);
         }
       } catch { /* offline: riprova più tardi */ }
