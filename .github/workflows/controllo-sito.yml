@@ -1,4 +1,6 @@
 name: Controllo del sito pubblicato
+# Controllo di sola lettura: apre le pagine pubbliche in un browser e chiede al database quali funzioni esistono.
+# Non accede con nessun utente e non modifica dati.
 on:
   push:
     paths: [".github/workflows/controllo-sito.yml"]
@@ -7,31 +9,50 @@ jobs:
   controllo:
     runs-on: ubuntu-latest
     steps:
-      - name: Risposte del server
+      - name: File pubblicati
         run: |
-          for u in /appOBOtechHUB/ /appobotechhub/ /appOBOtechHUB/admin /lps/ /lps/admin /appOBOtechHUB/version.json; do
-            echo "== $u"; curl -s -o /dev/null -w "%{http_code} -> %{redirect_url}\n" "https://obotechhub.github.io$u"
+          B=https://obotechhub.github.io
+          for u in / /config.js /manifest.webmanifest /version.json /aggiorna.js /install.js /sw.js /icona-192.png /icona-512.png /icona-maskable-512.png /apple-touch-icon.png /favicon-32.png \
+                   /mappa-carichi/ /mappa-carichi/i18n-en.js /mappa-carichi/manifest.webmanifest /mappa-carichi/sw.js /mappa-carichi/install.js /mappa-carichi/icon-192.png /mappa-carichi/icon-512.png /mappa-carichi/apple-touch-icon.png \
+                   /torrette/ /torrette/app.js /torrette/dati.js \
+                   /appOBOtechHUB/ /appOBOtechHUB/version.json /appOBOtechHUB/manifest.webmanifest /appOBOtechHUB/sw.js /appOBOtechHUB/i18n/dizionario-en.js /lps/ ; do
+            printf "%-45s %s\n" "$u" "$(curl -s -o /dev/null -w '%{http_code}' $B$u)"
           done
-          echo "== index.html"; curl -s https://obotechhub.github.io/appOBOtechHUB/ | head -c 3000; echo
-      - name: Apertura nel browser
+      - name: Funzioni del database (solo esistenza)
+        run: |
+          U=$(curl -s https://obotechhub.github.io/config.js | grep -o 'https://[a-z0-9]*\.supabase\.co' | head -1)
+          K=$(curl -s https://obotechhub.github.io/config.js | grep -o 'sb_publishable_[A-Za-z0-9_-]*' | head -1)
+          for f in app_login_visitatore app_visitatore_valido app_offerte app_login_hub app_state admin_con_authenticator admin_abilitato registra_accesso mappa_persone mappa_password_visitatori; do
+            r=$(curl -s -w ' [%{http_code}]' -X POST "$U/rest/v1/rpc/$f" -H "apikey: $K" -H "Content-Type: application/json" -d '{"p":{"token":"controllo"}}' | cut -c1-140)
+            echo "$f -> $r"
+          done
+          for f in gestione-accessi richiesta-accesso; do
+            echo "funzione $f -> $(curl -s -o /dev/null -w '%{http_code}' -X POST "$U/functions/v1/$f" -H "apikey: $K" -H 'Content-Type: application/json' -d '{}')"
+          done
+      - name: Pagine nel browser
         run: |
           npm i -s playwright@1.47.2 >/dev/null 2>&1 && npx -y playwright@1.47.2 install chromium >/dev/null 2>&1
           cat > p.js <<'JS'
           const { chromium } = require('playwright');
+          const B = 'https://obotechhub.github.io';
+          const pagine = ['/', '/?visitatore', '/torrette/', '/mappa-carichi/', '/mappa-carichi/?visitatore', '/appOBOtechHUB/', '/appOBOtechHUB/admin', '/appOBOtechHUB/rischio', '/appOBOtechHUB/edificio-3d', '/appOBOtechHUB/prodotti', '/lps/admin', '/pagina-che-non-esiste'];
           (async () => {
             const b = await chromium.launch();
-            for (const u of ['https://obotechhub.github.io/appOBOtechHUB/', 'https://obotechhub.github.io/appOBOtechHUB/admin', 'https://obotechhub.github.io/lps/']) {
-              const p = await b.newPage();
-              p.on('console', m => console.log('  console.' + m.type(), m.text().slice(0, 400)));
-              p.on('pageerror', e => console.log('  ERRORE', e.message.slice(0, 600)));
-              p.on('requestfailed', r => console.log('  FALLITA', r.url(), r.failure()?.errorText));
-              p.on('response', r => { if (r.status() >= 400) console.log('  HTTP', r.status(), r.url()); });
-              console.log('== ' + u);
-              await p.goto(u, { waitUntil: 'networkidle' }).catch(e => console.log('  goto', e.message));
-              await p.waitForTimeout(3000);
-              console.log('  URL finale:', p.url());
-              console.log('  testo:', (await p.evaluate(() => document.body.innerText)).slice(0, 300).replace(/\n/g, ' | '));
-              await p.close();
+            for (const vista of [{ width: 1280, height: 900 }, { width: 390, height: 844, isMobile: true, hasTouch: true }]) {
+              console.log(`\n##### ${vista.width}px`);
+              for (const u of pagine) {
+                const c = await b.newContext({ viewport: { width: vista.width, height: vista.height }, isMobile: !!vista.isMobile, hasTouch: !!vista.hasTouch });
+                const p = await c.newPage(); const note = [];
+                p.on('console', m => { if (m.type() === 'error' || m.type() === 'warning') note.push(`console.${m.type()}: ${m.text().slice(0, 300)}`); });
+                p.on('pageerror', e => note.push('ERRORE JS: ' + e.message.slice(0, 400)));
+                p.on('response', r => { if (r.status() >= 400 && !/favicon|\/rpc\/|functions\/v1/.test(r.url())) note.push(`HTTP ${r.status()} ${r.url()}`); });
+                await p.goto(B + u, { waitUntil: 'networkidle', timeout: 45000 }).catch(e => note.push('goto ' + e.message));
+                await p.waitForTimeout(2500);
+                const info = await p.evaluate(() => ({ t: document.body.innerText.replace(/\s+/g, ' ').slice(0, 160), largo: document.documentElement.scrollWidth - innerWidth })).catch(() => ({ t: '?', largo: 0 }));
+                console.log(`== ${u}\n   finale: ${p.url().replace(B, '')}\n   testo: ${info.t}${info.largo > 2 ? `\n   ATTENZIONE: pagina più larga dello schermo di ${info.largo}px` : ''}`);
+                for (const n of [...new Set(note)]) console.log('   ' + n);
+                await c.close();
+              }
             }
             await b.close();
           })();
