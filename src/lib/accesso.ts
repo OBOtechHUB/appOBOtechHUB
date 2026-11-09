@@ -99,7 +99,7 @@ export async function aggiornaAccesso(): Promise<void> {
   if (aal?.nextLevel === "aal2" && aal.currentLevel !== "aal2") { imposta({ stato: "verifica-authenticator", profilo, email }); return; }
   if (aal?.currentLevel !== "aal2") { imposta({ stato: "attiva-authenticator", profilo, email }); return; }
   if (profilo.deve_cambiare_password) { imposta({ stato: "cambia-password", profilo, email }); return; }
-  if (registrato !== sessione.user.id) { registrato = sessione.user.id; void db().rpc("registra_accesso", { evento: "accesso" }); }
+  if (registrato !== sessione.user.id) { registrato = sessione.user.id; db().rpc("registra_accesso", { evento: "accesso", dettagli: { app: "lps" } }).then(() => {}, () => {}); // .then: senza, la chiamata non parte }
   imposta({ stato: "abilitato", profilo, email });
 }
 

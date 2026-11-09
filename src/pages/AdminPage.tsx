@@ -70,7 +70,8 @@ export function AdminPage() {
   const [richieste, setRichieste] = useState<Richiesta[]>([]);
   const [eventi, setEventi] = useState<Evento[]>([]);
   const [impostazioni, setImpostazioni] = useState<Record<string, string>>({});
-  const [conAuth, setConAuth] = useState<Set<string>>(new Set());
+  const [conAuth, setConAuth] = useState<Set<string> | null>(null); // null = dato non disponibile
+  const [erroreRegistro, setErroreRegistro] = useState("");
   const [persone, setPersone] = useState<PersonaMappa[]>([]);
   const [sezioniRichiesta, setSezioniRichiesta] = useState<Record<string, string[]>>({});
   const [modifica, setModifica] = useState<{ utente: string; sezioni: string[] } | null>(null);
@@ -90,9 +91,14 @@ export function AdminPage() {
     setProfili((p.data ?? []) as Profilo[]);
     setRichieste((r.data ?? []) as Richiesta[]);
     setEventi((e.data ?? []) as Evento[]);
+    setErroreRegistro(e.error ? e.error.message : "");
     setImpostazioni(Object.fromEntries(((i.data ?? []) as { chiave: string; valore: string }[]).map((x) => [x.chiave, x.valore])));
     try { const m = await db().rpc("mappa_persone"); setPersone((m.data ?? []) as PersonaMappa[]); } catch { /* script della Mappa non ancora eseguito */ }
-    try { const f = await gestione("fattori"); setConAuth(new Set((f["conAuthenticator"] as string[] | undefined) ?? [])); } catch { /* funzione non ancora pubblicata */ }
+    // chi ha Authenticator: prima dal database (statistiche-admin.sql), poi dalla funzione gestione-accessi; se nessuna risponde il dato resta "non disponibile"
+    let ids: string[] | null = null;
+    try { const a = await db().rpc("admin_con_authenticator"); if (!a.error) ids = ((a.data ?? []) as unknown[]).map((x) => typeof x === "string" ? x : String((x as Record<string, unknown>)["admin_con_authenticator"] ?? "")); } catch { /* script non ancora eseguito */ }
+    if (!ids) { try { const f = await gestione("fattori"); const l = f["conAuthenticator"]; if (Array.isArray(l)) ids = l as string[]; } catch { /* funzione non pubblicata */ } }
+    setConAuth(ids ? new Set(ids) : null);
   }, []);
   useEffect(() => { void carica(); }, [carica]);
 
@@ -128,6 +134,7 @@ export function AdminPage() {
     </div></section>
     <main className="mx-auto max-w-6xl px-4 py-8">
       {msg && <p role="status" className="mb-4 rounded-lg border-l-4 border-primary bg-muted p-3 text-sm">{msg}</p>}
+      {erroreRegistro && <p className="mb-4 rounded-lg border-l-4 border-[#b3261e] bg-[#fdecea] p-3 text-sm">Il registro accessi non si legge ({erroreRegistro}): i conteggi degli accessi restano a 0. Esegui supabase/statistiche-admin.sql.</p>}
       {!impostazioni["password_iniziale"] && <p className="mb-4 rounded-lg border-l-4 border-[#b3261e] bg-[#fdecea] p-3 text-sm">Imposta la <strong>password iniziale comune</strong> nella scheda Impostazioni prima di approvare le richieste.</p>}
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-6">
@@ -136,7 +143,7 @@ export function AdminPage() {
         <Kpi titolo="Accessi oggi" valore={accessi.filter((e) => e.quando.slice(0, 10) === oggi).length} />
         <Kpi titolo="Accessi 30 giorni" valore={accessi.length} />
         <Kpi titolo="Utenti attivi 30 gg" valore={attivi30} />
-        <Kpi titolo="Senza Authenticator" valore={profili.filter((p) => !conAuth.has(p.utente)).length} nota="non hanno ancora completato il primo accesso" />
+        <Kpi titolo="Senza Authenticator" valore={conAuth ? profili.filter((p) => !conAuth.has(p.utente)).length : "?"} nota={conAuth ? "non hanno ancora completato il primo accesso" : "dato non disponibile: esegui supabase/statistiche-admin.sql"} />
       </div>
 
       <section className="mt-6 grid gap-6 lg:grid-cols-[2fr_1fr]">
@@ -177,7 +184,7 @@ export function AdminPage() {
               <td className="p-2"><MappaUtente p={p} persone={persone} abilitata={p.ruolo === "admin" || p.sezioni.includes("tutte") || p.sezioni.includes("app_mappa")}
                 onCambio={(m) => { setMsg(m); void carica(); }}
                 onNuovaPersona={async (nome) => { const { error } = await db().rpc("mappa_aggiungi_persona", { nome }); if (error) throw new Error(error.message); }} /></td>
-              <td className="p-2">{conAuth.has(p.utente) ? <span className="inline-flex items-center gap-1 text-[#1d7a45]"><ShieldCheck className="size-4" />Collegato</span> : <span className="inline-flex items-center gap-1 text-muted-foreground"><ShieldX className="size-4" />No</span>}</td>
+              <td className="p-2">{!conAuth ? <span className="text-muted-foreground">?</span> : conAuth.has(p.utente) ? <span className="inline-flex items-center gap-1 text-[#1d7a45]"><ShieldCheck className="size-4" />Collegato</span> : <span className="inline-flex items-center gap-1 text-muted-foreground"><ShieldX className="size-4" />No</span>}</td>
               <td className="p-2 text-xs">{data(p.ultimo_accesso)}</td>
               <td className="p-2"><div className="flex flex-wrap gap-1">
                 <Button size="sm" variant="outline" disabled={busy} title="Rimette la password iniziale comune e chiede di cambiarla" onClick={() => { if (window.confirm(`Reimpostare la password di ${p.email} alla password iniziale comune?`)) void azione(() => gestione("reimposta", { utente: p.utente }), "Password reimpostata: comunica la password iniziale."); }}><KeyRound />Password</Button>
