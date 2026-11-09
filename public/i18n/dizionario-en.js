@@ -1,6 +1,8 @@
 /* Progettazione LPS · dizionario inglese. Chiave = testo italiano mostrato nella pagina, valore = traduzione.
    "{}" indica una parte variabile (numeri, nomi): compare nello stesso ordine nella traduzione. */
 window.OBO_EN = {
+  "Esci (visitatore)": "Sign out (visitor)",
+  "Visitatore · {} · niente salvataggi nel cloud": "Visitor · {} · nothing saved to the cloud",
 "· {} varianti": "· {} variants",
 "→ Scansiona codice QR).": "→ Scan QR code).",
 "(in basso su iPhone, in alto a destra su iPad).": "(at the bottom on iPhone, top right on iPad).",
@@ -287,7 +289,7 @@ window.OBO_EN = {
 "Valori non validi: densità, AD e CD devono essere numeri ≥ 0": "Invalid values: density, AD and CD must be numbers ≥ 0", "Valutare il rischio": "Assessing the risk", "Valutazione del rischio R1–R4 (parte 2).": "Risk assessment R1–R4 (part 2).",
 "Vantaggi": "Benefits", "Variante da definire: {}": "Variant to be defined: {}", "Verifica completa": "Full inspection", "Verifica completa (sistema critico)": "Full inspection (critical system)", "Verifica del progetto aperto": "Check of the open project",
 "Verifica in corso": "Checking", "Verifica visiva": "Visual inspection", "Verifica {} del {}": "{} inspection of {}", "Verificatore": "Inspector", "Verifiche e dossier": "Inspections and dossier", "Visitatore": "Visitor", "Visitatore (sola lettura)": "Visitor (read-only)",
-"Visitatori della Mappa carichi (sola consultazione)": "Workload map visitors (read-only)", "Visiva": "Visual", "Visiva ogni (anni)": "Visual every (years)", "Vista dall’alto": "Top view", "Vuoi usare lo strumento?": "Want to use the tool?",
+"Visitatori di OBO Hub (sola consultazione)": "OBO Hub visitors (read-only)", "Visiva": "Visual", "Visiva ogni (anni)": "Visual every (years)", "Vista dall’alto": "Top view", "Vuoi usare lo strumento?": "Want to use the tool?",
 "a destra nella barra degli indirizzi, oppure menu": "on the right of the address bar, or menu", "azienda non indicata": "company not specified", "da fare": "to do", "da verificare con l'edizione 2024": "to be checked against the 2024 edition",
 "deve cambiare la password": "must change password", "e con lo schema reale dell'impianto.": "and with the actual system layout.", "e conferma con": "and confirm with", "e conferma.": "and confirm.", "e inserisci il codice a 6 cifre di": "and enter the 6-digit code for",
 "eventi/anno": "events/year", "file non indicato": "file not specified", "fino a 3000": "up to 3000", "fulmini/km²·anno": "flashes/km²·year", "giunto di sezionamento": "test joint", "in alto a destra.": "top right.", "in arrivo": "coming soon",

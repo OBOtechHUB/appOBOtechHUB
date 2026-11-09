@@ -13,7 +13,7 @@ import { salvaAttivo, useStatoSalvataggio } from "@/components/ProjectSync";
 import { SaettaFigura } from "@/components/Saetta";
 import { RicercaGlobale } from "@/components/RicercaGlobale";
 import { useAvanzamentoProgetto } from "@/lib/avanzamentoProgetto";
-import { SEZIONE_PAGINA, URL_HUB, puoVedere, useAccesso } from "@/lib/accesso";
+import { SEZIONE_PAGINA, URL_HUB, esciVisitatore, puoVedere, useAccesso } from "@/lib/accesso";
 import { impostaAttivo, useAttivo } from "@/lib/statoProgetto";
 import { useAzioneInstalla } from "@/components/InstallaApp";
 
@@ -52,6 +52,7 @@ export function AppHeader() {
   const accesso = useAccesso();
   const abilitato = accesso.stato === "abilitato";
   const admin = abilitato && accesso.profilo?.ruolo === "admin";
+  const visitatore = abilitato && !!accesso.profilo?.visitatore;
   const visibile = (to: string) => { const sez = SEZIONE_PAGINA[to]; return abilitato ? !sez || puoVedere(accesso, sez) : ["/", "/auth", "/richiesta-accesso", "/guida", "/contatti", "/termini", "/privacy"].includes(to); };
 
   useEffect(() => { setAperto(false); }, [percorso]);
@@ -63,6 +64,7 @@ export function AppHeader() {
   }, [aperto]);
 
   async function esci() {
+    if (visitatore) { esciVisitatore(); window.location.assign(URL_HUB + "?visitatore"); return; }
     try { await salvaAttivo(); } catch {
       if (!window.confirm("Il progetto aperto non è stato salvato. Uscire lo stesso?")) return;
     }
@@ -75,7 +77,9 @@ export function AppHeader() {
   const sezioni: { titolo: string; voci: Voce[] }[] = [
     {
       titolo: "Il mio progetto",
-      voci: user
+      voci: visitatore
+        ? [{ etichetta: "Esci (visitatore)", azione: () => void esci(), icona: LogOut }]
+        : user
         ? [
             { etichetta: "I miei progetti", to: "/progetti", icona: FolderOpen },
             { etichetta: "Profilo", to: "/profilo", icona: User },
@@ -144,7 +148,7 @@ export function AppHeader() {
             <SaettaFigura className="h-10 w-8 shrink-0 sm:h-12 sm:w-10" />
             <span className="hidden min-w-0 sm:block">
               <span className="block whitespace-nowrap text-lg font-bold leading-tight sm:text-xl">Progettazione <span className="text-primary">LPS</span></span>
-              <span className="block max-w-[46vw] truncate text-[11px] text-muted-foreground sm:max-w-[320px] sm:text-xs">{!abilitato ? "CEI EN IEC 62305:2024 · smart planning" : attivo ? `${attivo.codice ? attivo.codice + " · " : ""}${attivo.nome} · ${statoSalvataggio || "salvato"}` : "Lavoro locale · nessun progetto aperto"}</span>
+              <span className="block max-w-[46vw] truncate text-[11px] text-muted-foreground sm:max-w-[320px] sm:text-xs">{!abilitato ? "CEI EN IEC 62305:2024 · smart planning" : visitatore ? `Visitatore · ${accesso.profilo?.nome ?? ""} · niente salvataggi nel cloud` : attivo ? `${attivo.codice ? attivo.codice + " · " : ""}${attivo.nome} · ${statoSalvataggio || "salvato"}` : "Lavoro locale · nessun progetto aperto"}</span>
             </span>
           </Link>
           <nav aria-label="Accessi rapidi" className="ml-auto flex items-stretch">
@@ -155,9 +159,9 @@ export function AppHeader() {
               {visibile("/assistente") && <IconaBarra to="/assistente" etichetta="Assistente" icona={Compass} badge={mancanti.length || undefined} titolo={prossimo ? `Prossimo passo: ${prossimo.titolo}` : "Progetto completo"} nascondiMobile />}
               {visibile("/prodotti") && <IconaBarra to="/prodotti" etichetta="Prodotti" icona={Package} nascondiMobile />}
               <IconaBarra etichetta="Cerca" icona={Search} onClick={() => setRicerca(true)} nascondiMobile />
-              {visibile("/progetti") && <IconaBarra to="/progetti" etichetta="Progetti" icona={ClipboardList} />}
+              {visibile("/progetti") && !visitatore && <IconaBarra to="/progetti" etichetta="Progetti" icona={ClipboardList} />}
               {admin && <IconaBarra to="/admin" etichetta="Admin" icona={ShieldCheck} nascondiMobile />}
-              <IconaBarra to="/profilo" etichetta="Profilo" icona={User} nascondiMobile />
+              {!visitatore && <IconaBarra to="/profilo" etichetta="Profilo" icona={User} nascondiMobile />}
             </> : <>
               <IconaBarra to="/richiesta-accesso" etichetta="Richiedi" icona={UserPlus} nascondiMobile />
               {accesso.stato === "anonimo" && <IconaBarra to="/auth" etichetta="Accedi" icona={LogIn} />}

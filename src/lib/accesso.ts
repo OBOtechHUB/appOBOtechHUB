@@ -56,7 +56,7 @@ export function percorsoApp(pathname: string): string {
   return (p.replace(/\/+$/, "") || "/");
 }
 
-export interface Profilo { utente: string; email: string; nome: string; azienda: string; ruolo: "utente" | "admin"; stato: "attivo" | "sospeso"; sezioni: string[]; deve_cambiare_password: boolean; ultimo_accesso: string | null; mappa_ruolo?: "admin" | "guest" | "visitor"; mappa_persona?: string }
+export interface Profilo { utente: string; email: string; nome: string; azienda: string; ruolo: "utente" | "admin"; stato: "attivo" | "sospeso"; sezioni: string[]; deve_cambiare_password: boolean; ultimo_accesso: string | null; mappa_ruolo?: "admin" | "guest" | "visitor"; mappa_persona?: string; visitatore?: boolean }
 export type StatoAccesso = "caricamento" | "anonimo" | "non-approvato" | "sospeso" | "cambia-password" | "attiva-authenticator" | "verifica-authenticator" | "abilitato";
 export interface Accesso { stato: StatoAccesso; profilo: Profilo | null; email: string | null }
 
@@ -65,11 +65,31 @@ const ascoltatori = new Set<() => void>();
 const imposta = (a: Accesso) => { accesso = a; ascoltatori.forEach((f) => f()); };
 let registrato = "";
 
+/** Accesso visitatori di OBO Hub: sessione salvata dal Hub (stessa chiave in tutte le app). */
+export const CHIAVE_VISITATORE = "obo-visitatore";
+export function leggiVisitatore(): { token: string; name: string } | null {
+  try { const v = JSON.parse(localStorage.getItem(CHIAVE_VISITATORE) || "null"); return v && typeof v.token === "string" ? { token: v.token, name: String(v.name || "Visitatore") } : null; } catch { return null; }
+}
+export function esciVisitatore() { try { localStorage.removeItem(CHIAVE_VISITATORE); } catch { /* niente */ } }
+
 /** Ricalcola lo stato di accesso (da chiamare all'avvio e a ogni cambio di sessione). */
 export async function aggiornaAccesso(): Promise<void> {
   const { data: s } = await supabase.auth.getSession();
   const sessione = s.session;
-  if (!sessione) { registrato = ""; imposta({ stato: "anonimo", profilo: null, email: null }); return; }
+  if (!sessione) {
+    registrato = "";
+    // visitatore di OBO Hub (nome + password visitatori, senza account): vede tutto tranne Admin, senza salvare nel cloud
+    const v = leggiVisitatore();
+    if (v) {
+      const { data } = await db().rpc("app_visitatore_valido", { p: { token: v.token } });
+      if ((data as { ok?: boolean } | null)?.ok) {
+        imposta({ stato: "abilitato", email: null, profilo: { utente: "", email: "", nome: v.name, azienda: "", ruolo: "utente", stato: "attivo", sezioni: ["tutte"], deve_cambiare_password: false, ultimo_accesso: null, visitatore: true } });
+        return;
+      }
+      esciVisitatore();
+    }
+    imposta({ stato: "anonimo", profilo: null, email: null }); return;
+  }
   const email = sessione.user.email ?? null;
   const { data: profilo } = await db().from("accessi_profili").select("*").eq("utente", sessione.user.id).maybeSingle<Profilo>();
   if (!profilo) { imposta({ stato: "non-approvato", profilo: null, email }); return; }
