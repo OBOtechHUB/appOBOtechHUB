@@ -1,6 +1,14 @@
 /* Progettazione LPS · dizionario inglese. Chiave = testo italiano mostrato nella pagina, valore = traduzione.
    "{}" indica una parte variabile (numeri, nomi): compare nello stesso ordine nella traduzione. */
 window.OBO_EN = {
+  "uffici": "offices",
+  "archivio REI 120": "archive 120 min",
+  "rf e rp propri": "own rf and rp",
+  "ZS1 esterno": "ZS1 outside",
+  "RAT: tensioni di contatto e di passo vicino alle calate": "RAT: touch and step voltages near down conductors",
+  "linea entrante → zone che alimenta": "incoming line → zones it feeds",
+  "adiacente": "adjacent",
+  "RB RC RM RU RV": "RB RC RM RU RV",
   "Distanza di separazione e ripartizione della corrente (kc)": "Separation distance and current sharing (kc)",
   "anello di terra / fondazione": "earth ring / foundation",
   "impianto metallico": "metal installation",
