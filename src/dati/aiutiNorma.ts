@@ -191,6 +191,51 @@ export const AIUTI: Record<string, Aiuto> = {
     en: "Beyond about 10 m of cable from the entrance SPD, equipment protection may not be enough (voltage oscillation): add a type 2 SPD in the sub-board.",
     rif: "CEI EN IEC 62305-4:2024, Allegato C; CEI EN 61643-12", daVerificare: true,
   },
+  "Sistema di allerta temporali (PTWS)": {
+    it: "Probabilità che un sistema di allerta temporali (TWS, CEI EN IEC 62793) non rilevi il temporale. 1 = nessun TWS. Riduce i rischi solo se l'allerta porta davvero a evacuare le aree esposte o a scollegare le linee; il valore viene dalla scheda del produttore.",
+    en: "Probability that a thunderstorm warning system (TWS, IEC 62793) misses the storm. 1 = no TWS. It only reduces risk if the warning actually leads to evacuating exposed areas or disconnecting lines; the value comes from the manufacturer's data sheet.",
+    rif: `${RISCHIO}, B.1 e B.2`,
+  },
+  "Tipo di linea e collegamento (CLD, CLI)": {
+    it: "Come arriva la linea e come è collegato lo schermo all'ingresso. Schermo collegato alla barra delle apparecchiature: le sovratensioni indotte vicino alla linea non contano (CLI = 0). Cavo di protezione, interfacce di separazione o fibra ottica: la linea non porta sovratensioni (CLD = CLI = 0).",
+    en: "How the line arrives and how its shield is bonded at entry. Shield bonded to the equipment bar: surges induced near the line do not count (CLI = 0). Protective cable, isolating interfaces or optical fibre: the line carries no surges (CLD = CLI = 0).",
+    rif: `${RISCHIO}, Tab. B.9`,
+  },
+  "Posizione struttura adiacente (CDJ)": {
+    it: "Se la linea collega un'altra struttura (es. un capannone vicino), i fulmini su quella struttura arrivano lungo la linea: si aggiungono gli eventi NDJ, con la sua area di raccolta e la sua posizione.",
+    en: "If the line connects another structure (e.g. a nearby shed), flashes to that structure travel along the line: events NDJ are added, with its collection area and location.",
+    rif: `${RISCHIO}, A.2.5`,
+  },
+  "Nome della zona": {
+    it: "Le zone si separano dove cambiano le caratteristiche: pavimento, compartimenti antincendio (es. REI 120), schermature, impianti interni, misure di protezione o perdite. Ogni zona si confronta da sola con RT; con una zona sola si rischia di proteggere tutto per colpa di una parte.",
+    en: "Zones are split where characteristics change: floor type, fire compartments (e.g. 120 min), shielding, internal systems, protection measures or losses. Each zone is compared with RT on its own; a single zone may force protecting everything because of one part.",
+    rif: `${RISCHIO}, 8.3 e 8.5`,
+  },
+  "Cablaggio interno (KS3)": {
+    it: "Le spire formate dai cavi interni raccolgono la sovratensione indotta da fulmini vicini: più la spira è grande, più è alto il rischio. Cavi nello stesso condotto o schermati riducono molto la probabilità di guasto PM.",
+    en: "Loops formed by internal cables pick up surges induced by nearby flashes: the bigger the loop, the higher the risk. Cables in the same conduit or shielded strongly reduce the failure probability PM.",
+    rif: `${RISCHIO}, B.6 e Tab. B.10`,
+  },
+  "Lato maglia schermo esterno wm1 (m, KS1)": {
+    it: "Lato della maglia dello schermo al confine LPZ 0/1: LPS a maglia, ferri d'armatura o colonne metalliche. KS1 = 0,12 · wm1 (massimo 1). Lascia vuoto se non c'è uno schermo efficace: un LPS normale non scherma in modo significativo.",
+    en: "Mesh size of the shield at the LPZ 0/1 boundary: meshed LPS, reinforcement or metal columns. KS1 = 0.12 · wm1 (max 1). Leave empty if there is no effective shield: an ordinary LPS does not shield significantly.",
+    rif: `${RISCHIO}, B.6 (B.8)`,
+  },
+  "Lato maglia schermi interni wm2 (m, KS2)": {
+    it: "Lato della maglia degli schermi interni (confine LPZ 1/2, es. locale schermato). KS2 = 0,12 · wm2; con schermi continui di almeno 0,1 mm vale 10⁻⁴. Con una rete equipotenziale magliata KS1 e KS2 si possono dimezzare.",
+    en: "Mesh size of internal shields (LPZ 1/2 boundary, e.g. a shielded room). KS2 = 0.12 · wm2; with continuous shields at least 0.1 mm thick it is 10⁻⁴. With a meshed bonding network KS1 and KS2 may be halved.",
+    rif: `${RISCHIO}, B.6 (B.9)`,
+  },
+  "Apparecchiature esposte (ore/anno, Pe)": {
+    it: "Ore all'anno in cui le apparecchiature sono in funzione o esposte a un evento dannoso. Se non si conosce: 8760. Nelle zone esplosive conta anche il tempo di presenza dell'atmosfera esplosiva.",
+    en: "Hours per year when equipment is operating or exposed to a damaging event. If unknown: 8760. In explosive zones the presence time of the explosive atmosphere also counts.",
+    rif: `${RISCHIO}, B.12`,
+  },
+  "Perdita per fulmine diretto su persone esposte (LD)": {
+    it: "Quota tipica di persone ferite da un fulmine diretto tra quelle esposte (tetto, terrazza, parcheggio in copertura): da 10⁻² a 10⁻¹, si usa il valore più alto se non c'è uno studio.",
+    en: "Typical share of exposed people injured by a direct flash (roof, terrace, rooftop car park): 10⁻² to 10⁻¹; use the highest value without a specific study.",
+    rif: `${RISCHIO}, Tab. C.2`,
+  },
   // ----- Aggiunte: altri punti di scelta -----
   "Lunghezza (m)": {
     it: "Lunghezza della linea dalla struttura al primo nodo (cabina, armadio, derivazione). Se non si conosce si usa 1000 m, valore cautelativo indicato dalla norma per la somma delle linee di energia e per le linee di telecomunicazione.",

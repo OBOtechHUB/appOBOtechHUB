@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { calcolaR1, protezioneMinima, areaVicinanze, probabilitaPLD, spdMinimoFrequenza, RT_R1, type DatiRischio } from "./rischioR1";
+import { calcolaZone, protezioneMinimaZone, zonaUnica, type Zona, calcolaR1, protezioneMinima, areaVicinanze, probabilitaPLD, spdMinimoFrequenza, RT_R1, type DatiRischio } from "./rischioR1";
 
 const base: DatiRischio = {
   L: 40, W: 20, H: 12, NG: 4, CD: 1, k: 2, Uw: 2.5,
@@ -81,5 +81,29 @@ describe("rischio – CEI EN IEC 62305-2:2024", () => {
     const e = calcolaR1(vecchio, { lps: "nessuno", spd: "nessuno" });
     expect(Number.isFinite(e.R1)).toBe(true);
     expect(e.componenti.RZ).toBe(0);
+  });
+
+  it("più zone: N comuni, rischio valutato zona per zona (8.5)", () => {
+    const { st, zona } = zonaUnica(base);
+    const tetto: Zona = { ...zona, id: "z2", nome: "Terrazza", esterna: false, esposti: true, oreAnno: 500, rfId: "nessuno", linee: [] };
+    const e = calcolaZone(st, [zona, tetto], { lps: "nessuno", spd: "nessuno" });
+    expect(e.zone).toHaveLength(2);
+    expect(e.zone[1]!.componenti.RAD).toBeCloseTo(e.ND * 1 * (500 / 8760) * 0.1, 12);
+    expect(e.zone[1]!.componenti.RU).toBe(0); // nessuna linea nella zona
+    expect(e.zone[1]!.componenti.RB).toBe(0); // rf = 0
+    expect(e.Rmax).toBe(Math.max(e.zone[0]!.R, e.zone[1]!.R));
+    const m = protezioneMinimaZone(st, [zona, tetto]);
+    if (m) expect(m.esito.zone.every((z) => z.R <= RT_R1)).toBe(true);
+  });
+
+  it("struttura adiacente NDJ, cablaggio interno KS3 e TWS", () => {
+    const { st, zona } = zonaUnica(base);
+    const conAdiacente = { ...st, linee: [{ ...st.linee[0]!, adiacente: { L: 10, W: 10, H: 5, CDJ: 1 } }] };
+    const e = calcolaZone(conAdiacente, [zona], { lps: "nessuno", spd: "nessuno" });
+    expect(e.NDJ).toBeGreaterThan(0);
+    const ks = calcolaZone(st, [{ ...zona, impiantiCritici: true, ks3: 0.01 }], { lps: "nessuno", spd: "nessuno" });
+    expect(ks.zone[0]!.frequenze.FM).toBeCloseTo(ks.NM * 1e-4, 12); // PMS = KS3²
+    const tws = calcolaZone({ ...st, PTWS: 0.1 }, [zona], { lps: "nessuno", spd: "nessuno" });
+    expect(tws.zone[0]!.componenti.RA).toBeCloseTo(calcolaZone(st, [zona], { lps: "nessuno", spd: "nessuno" }).zone[0]!.componenti.RA * 0.1, 15);
   });
 });
