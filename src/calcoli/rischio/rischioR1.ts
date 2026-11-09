@@ -135,7 +135,11 @@ export interface Ambiente { scenario: string; fuoriSito: boolean; tE: number }
 /** Struttura adiacente all'altra estremità della linea (A.2.5). */
 export interface Adiacente { L: number; W: number; H: number; CDJ: number }
 
-export interface Linea { nome: string; lunghezza: number; posa: number; ambiente: number; tipo: number; schermata: boolean; schermatura?: Schermatura; connessione?: string; adiacente?: Adiacente | null }
+/** Sezione SL di una linea con posa, ambiente e tipo propri (8.4). */
+export interface SezioneLinea { lunghezza: number; posa: number; ambiente: number; tipo: number }
+export interface Linea { nome: string; lunghezza: number; posa: number; ambiente: number; tipo: number; schermata: boolean; schermatura?: Schermatura; connessione?: string; adiacente?: Adiacente | null;
+  /** linea suddivisa in sezioni SL (8.4): se presenti sostituiscono lunghezza, posa, ambiente e tipo */
+  sezioni?: SezioneLinea[] | null }
 
 /** Zona di rischio ZS (8.3): caratteristiche omogenee. */
 export interface Zona {
@@ -272,9 +276,10 @@ export function calcolaZone(st: Struttura, zone: Zona[], p: Protezione): EsitoSt
   const conL2 = st.danniMateriali !== false;
 
   const linee = st.linee.map((l) => {
-    const C = l.posa * l.ambiente * l.tipo;
-    const NL = NSG * 40 * l.lunghezza * C * 1e-6;
-    const NI = (1 / k) * NSG * 2 * rI * l.lunghezza * C * 1e-6;
+    const tratti: SezioneLinea[] = l.sezioni && l.sezioni.length ? l.sezioni : [l];
+    const LC = tratti.reduce((a, t) => a + t.lunghezza * t.posa * t.ambiente * t.tipo, 0);
+    const NL = NSG * 40 * LC * 1e-6;
+    const NI = (1 / k) * NSG * 2 * rI * LC * 1e-6;
     const NDJ = l.adiacente ? NSG * areaRaccolta(l.adiacente.L, l.adiacente.W, l.adiacente.H) * l.adiacente.CDJ * l.tipo * 1e-6 : 0;
     const conn = CONNESSIONI.find((c) => c.id === l.connessione) ?? (l.schermata ? CONNESSIONI.find((c) => c.id === "sch-coll")! : CONNESSIONI[0]!);
     const sch: Schermatura = conn.schermoCollegato ? (l.schermatura && l.schermatura !== "no" ? l.schermatura : "1-5") : "no";

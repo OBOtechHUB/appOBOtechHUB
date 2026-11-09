@@ -13,6 +13,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as ComputoMaterialiRouteImport } from './routes/computo-materiali'
+import { Route as NormaRouteImport } from './routes/norma'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as RichiestaAccessoRouteImport } from './routes/richiesta-accesso'
 import { Route as RischioRouteImport } from './routes/rischio'
@@ -54,6 +55,11 @@ const AuthRoute = AuthRouteImport.update({
 const ComputoMaterialiRoute = ComputoMaterialiRouteImport.update({
   id: '/computo-materiali',
   path: '/computo-materiali',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const NormaRoute = NormaRouteImport.update({
+  id: '/norma',
+  path: '/norma',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AdminRoute = AdminRouteImport.update({
@@ -176,6 +182,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/computo-materiali': typeof ComputoMaterialiRoute
+  '/norma': typeof NormaRoute
   '/admin': typeof AdminRoute
   '/richiesta-accesso': typeof RichiestaAccessoRoute
   '/rischio': typeof RischioRoute
@@ -204,6 +211,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/computo-materiali': typeof ComputoMaterialiRoute
+  '/norma': typeof NormaRoute
   '/admin': typeof AdminRoute
   '/richiesta-accesso': typeof RichiestaAccessoRoute
   '/rischio': typeof RischioRoute
@@ -234,6 +242,7 @@ export interface FileRoutesById {
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/auth': typeof AuthRoute
   '/computo-materiali': typeof ComputoMaterialiRoute
+  '/norma': typeof NormaRoute
   '/admin': typeof AdminRoute
   '/richiesta-accesso': typeof RichiestaAccessoRoute
   '/rischio': typeof RischioRoute
@@ -264,6 +273,7 @@ export interface FileRouteTypes {
     | '/'
     | '/auth'
     | '/computo-materiali'
+    | '/norma'
     | '/admin'
     | '/richiesta-accesso'
     | '/rischio'
@@ -292,6 +302,7 @@ export interface FileRouteTypes {
     | '/'
     | '/auth'
     | '/computo-materiali'
+    | '/norma'
     | '/admin'
     | '/richiesta-accesso'
     | '/rischio'
@@ -321,6 +332,7 @@ export interface FileRouteTypes {
     | '/_authenticated'
     | '/auth'
     | '/computo-materiali'
+    | '/norma'
     | '/admin'
     | '/richiesta-accesso'
     | '/rischio'
@@ -351,6 +363,7 @@ export interface RootRouteChildren {
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AuthRoute: typeof AuthRoute
   ComputoMaterialiRoute: typeof ComputoMaterialiRoute
+  NormaRoute: typeof NormaRoute
   AdminRoute: typeof AdminRoute
   RichiestaAccessoRoute: typeof RichiestaAccessoRoute
   RischioRoute: typeof RischioRoute
@@ -402,6 +415,13 @@ declare module '@tanstack/react-router' {
       path: '/computo-materiali'
       fullPath: '/computo-materiali'
       preLoaderRoute: typeof ComputoMaterialiRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/norma': {
+      id: '/norma'
+      path: '/norma'
+      fullPath: '/norma'
+      preLoaderRoute: typeof NormaRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/admin': {
@@ -586,6 +606,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AuthRoute: AuthRoute,
   ComputoMaterialiRoute: ComputoMaterialiRoute,
+  NormaRoute: NormaRoute,
   AdminRoute: AdminRoute,
   RichiestaAccessoRoute: RichiestaAccessoRoute,
   RischioRoute: RischioRoute,

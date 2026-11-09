@@ -136,4 +136,16 @@ describe("rischio – CEI EN IEC 62305-2:2024", () => {
     expect(o!.spd["t"]).toBe(spdMinimoZona(st, tranquilla, o!.lps));
     expect(o!.esito.zone.every((z) => z.conforme && z.frequenzaConforme)).toBe(true);
   });
+
+  it("linea divisa in sezioni SL (8.4): N sommati sulle sezioni", () => {
+    const { st, zona } = zonaUnica(base);
+    const unica = calcolaZone(st, [zona], { lps: "nessuno", spd: "nessuno" });
+    const l0 = st.linee[0]!;
+    const divisa = { ...st, linee: [{ ...l0, sezioni: [{ lunghezza: 600, posa: 0.3, ambiente: 0.5, tipo: 1 }, { lunghezza: 400, posa: 1, ambiente: 1, tipo: 1 }] }] };
+    const e = calcolaZone(divisa, [zona], { lps: "nessuno", spd: "nessuno" });
+    expect(e.NL).toBeCloseTo(8 * 40 * (600 * 0.15 + 400) * 1e-6, 12);
+    expect(e.NL).toBeGreaterThan(unica.NL);
+    const uguale = { ...st, linee: [{ ...l0, sezioni: [{ lunghezza: 1000, posa: 0.3, ambiente: 0.5, tipo: 1 }] }] };
+    expect(calcolaZone(uguale, [zona], { lps: "nessuno", spd: "nessuno" }).NL).toBeCloseTo(unica.NL, 15);
+  });
 });

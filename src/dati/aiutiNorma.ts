@@ -8,6 +8,8 @@ export interface Aiuto { it: string; en: string; rif: string; daVerificare?: boo
 
 const RISCHIO = "CEI EN IEC 62305-2:2024";
 const LPS = "CEI EN IEC 62305-3:2024";
+const P1 = "CEI EN IEC 62305-1:2024";
+const P4 = "CEI EN IEC 62305-4:2024";
 
 export const AIUTI: Record<string, Aiuto> = {
   // ----- Dati edificio -----
@@ -256,6 +258,47 @@ export const AIUTI: Record<string, Aiuto> = {
     it: "Frazione dell'anno in cui ci sono persone nel luogo pericoloso intorno alla struttura. Se non si conosce si usa 1, perché possono esserci abitazioni con presenza continua. Con ambienti misti si prende il valore più alto. Vale solo per le vite umane (L1).",
     en: "Fraction of the year with people in the hazardous area around the structure. If unknown use 1, since there may be dwellings with permanent presence. For mixed surroundings take the highest value. Applies only to human life (L1).",
     rif: `${RISCHIO}, E.2 (E.3) e Tab. E.2`,
+  },
+  "Linea divisa in sezioni con posa o ambiente diversi (SL)": {
+    it: "Una linea può cambiare lungo il percorso: un tratto aereo in campagna e uno interrato in città. Ogni sezione ha la propria lunghezza, posa (CI), ambiente (CE) e tipo (CT); gli eventi NL e NI sono la somma delle sezioni. Se in una sezione ci sono più valori possibili si usa quello che dà il rischio più alto.",
+    en: "A line may change along its route: an overhead rural section and a buried urban one. Each section has its own length, installation (CI), environment (CE) and type (CT); events NL and NI are summed over the sections. Where a section has several possible values use the one giving the highest risk.",
+    rif: `${RISCHIO}, 8.4`,
+  },
+  "Livello di protezione (LPL)": {
+    it: "Il livello fissa le correnti di fulmine massime (per dimensionare conduttori, schermi, SPD e distanze) e minime (per il raggio della sfera rotolante). Al livello I le correnti massime sono superate al più nell'1 % dei casi; ai livelli II e III–IV i valori sono il 75 % e il 50 % di quelli del livello I.",
+    en: "The level sets the maximum lightning currents (to size conductors, shields, SPDs and distances) and the minimum ones (for the rolling sphere radius). For level I the maximum currents are exceeded in at most 1 % of cases; levels II and III–IV use 75 % and 50 % of the level I values.",
+    rif: `${P1}, 8.2, Tab. 3 e 4`,
+  },
+  "Uso del conduttore": {
+    it: "Le sezioni minime cambiano con l'uso: captatori, aste e calate (Tab. 7), dispersori (Tab. 8, più robusti per la corrosione), collegamenti equipotenziali tra barre o verso terra (Tab. 9, portano gran parte della corrente) e verso corpi metallici interni (Tab. 10, correnti minori). I componenti devono anche rispettare la serie CEI EN IEC 62561.",
+    en: "Minimum cross-sections depend on use: air terminals, rods and down conductors (Table 7), earth electrodes (Table 8, stronger against corrosion), bonding conductors between bars or to earth (Table 9, carrying much of the current) and to internal metal parts (Table 10, smaller currents). Components must also comply with the IEC 62561 series.",
+    rif: `${LPS}, 5.6, Tab. 7–10`,
+  },
+  "Corrente sullo schermo IF (kA)": {
+    it: "Parte della corrente di fulmine che scorre sullo schermo del cavo entrante: si ricava dalla ripartizione tra le linee (CEI EN IEC 62305-1, Allegato E; con una linea a 4 conduttori circa metà della corrente va nei servizi). Se lo schermo è troppo sottile tra schermo e conduttori nascono scariche e servono SPD.",
+    en: "Share of the lightning current flowing on the shield of the incoming cable: it comes from the current sharing between services (IEC 62305-1, Annex E). If the shield is too thin, sparking occurs between shield and conductors and SPDs are needed.",
+    rif: `${LPS}, Allegato A`,
+    daVerificare: true,
+  },
+  "Lato maglia dello schermo wm (m)": {
+    it: "Lato delle maglie dello schermo esterno della LPZ 1: ferri d'armatura collegati, facciate metalliche, LPS a maglia. Maglie più piccole danno più attenuazione (SF) e un volume sicuro più ampio. Con maglie di 10 m o più lo schermo non attenua.",
+    en: "Mesh width of the LPZ 1 outer shield: bonded reinforcement, metal facades, meshed LPS. Smaller meshes give more attenuation (SF) and a larger safe volume. With 10 m meshes or more the shield gives no attenuation.",
+    rif: `${P4}, Allegato A, Tab. A.4`,
+  },
+  "Coefficiente di riflessione kr": {
+    it: "Tiene conto della sovratensione che si propaga tra SPD e apparecchiatura: 1 con l'SPD all'ingresso dell'apparecchiatura, fino a 2 con circuiti lunghi o aperti. Se non si conosce si usa 2.",
+    en: "Accounts for the surge travelling between SPD and equipment: 1 with the SPD at the equipment input, up to 2 with long or open circuits. Use 2 when unknown.",
+    rif: `${P4}, C.2.3.2 e C.2.3.4`,
+  },
+  "Distanza conduttori attivi–PE w (m)": {
+    it: "Larghezza della spira formata dal circuito tra SPD e apparecchiatura (distanza tra conduttori attivi e PE). Posare i cavi vicini, o intrecciati, riduce molto la tensione indotta.",
+    en: "Width of the loop formed by the circuit between SPD and equipment (distance between live and PE conductors). Laying cables close together, or twisted, strongly reduces the induced voltage.",
+    rif: `${P4}, Allegato H`,
+  },
+  "Conduttori CC ed equipotenziali n'": {
+    it: "Numero di conduttori in corrente continua e di conduttori equipotenziali tra campo fotovoltaico e quadro, tra cui si divide la corrente di fulmine quando la distanza di separazione non è rispettata.",
+    en: "Number of DC conductors and bonding conductors between PV array and switchboard, sharing the lightning current when the separation distance is not kept.",
+    rif: `${P4}, Allegato F (F.1)`,
   },
   // ----- Aggiunte: altri punti di scelta -----
   "Lunghezza (m)": {

@@ -4,6 +4,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import {
   ArrowDownToLine, ShieldCheck, Box, Boxes, Cpu, ShieldAlert, Building2, Package, ClipboardCheck, Compass, Gauge, ChevronLeft, ClipboardList, Download, FileText, FolderOpen, Info, LogIn, LogOut,
   Languages, LayoutGrid, ZoomIn, ZoomOut, Mail, Moon, Sun, SunMoon, Menu, Ruler, Search, Smartphone, Shield, SlidersHorizontal, User, UserPlus, Wrench, X,
+  BookOpen,
 } from "lucide-react";
 import { useAuth } from "@/lib/auth";
 import { NOMI_TEMA, cambiaZoom, impostaTema, useTema, useZoom, type Tema } from "@/lib/tema";
@@ -100,6 +101,7 @@ export function AppHeader() {
         { etichetta: "Dati edificio", to: "/dati-edificio", icona: Building2 },
         { etichetta: "Dati normativi", to: "/dati-normativi", icona: SlidersHorizontal },
         { etichetta: "Analisi del rischio", to: "/rischio", icona: ShieldAlert },
+        { etichetta: "Norma 62305: calcoli e tabelle", to: "/norma", icona: BookOpen },
         { etichetta: "Edificio 3D", to: "/edificio-3d", icona: Box },
         { etichetta: "Calate e distanza di separazione", to: "/calate", icona: ArrowDownToLine },
         { etichetta: "Scelta SPD", to: "/spd", icona: Cpu },

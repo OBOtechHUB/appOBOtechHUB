@@ -10,7 +10,7 @@ import fattori from "@/dati/rischio/fattorePosizione.json";
 import {
   AMBIENTE_LINEA, AMBIENTI_CIRCOSTANTI, CABLAGGIO, SCENARI_AMBIENTE, CATEGORIE, CONNESSIONI, MISURE_CONTATTO, PAVIMENTO, POSA_LINEA, PROTEZIONE_INCENDIO, RISCHIO_INCENDIO, RT_R1, SCHERMATURE, TIPO_LINEA, TIPO_STRUTTURA,
   calcolaZone, protezioneMinimaZone, protezionePerZona, spdMinimoZona, spdMinimoZone, zonaUnica,
-  type ClasseLps, type DatiRischio, type Linea, type Opzione, type Schermatura, type Struttura, type Zona,
+  type ClasseLps, type DatiRischio, type Linea, type SezioneLinea, type Opzione, type Schermatura, type Struttura, type Zona,
 } from "@/calcoli/rischio/rischioR1";
 
 const sci = (v: number) => (v === 0 ? "0" : v.toExponential(2).replace(".", ",").replace("e", " · 10^"));
@@ -115,7 +115,7 @@ export function RischioPage() {
         <div className="mt-4 space-y-4">{stato.linee.map((l, i) => <div key={i} className="rounded-lg border-[0.8px] border-bordo-scheda p-3">
           <div className="grid items-end gap-3 sm:grid-cols-4">
             <Campo etichetta="Nome"><input className={inputCls} value={l.nome} maxLength={60} onChange={(e) => linea(i, { nome: e.target.value })} /></Campo>
-            <Campo etichetta="Lunghezza (m)"><input className={inputCls} type="number" min={0} max={2000} step={50} value={l.lunghezza} onChange={(e) => linea(i, { lunghezza: Math.min(2000, Math.max(0, Number(e.target.value))) })} /></Campo>
+            <Campo etichetta="Lunghezza (m)"><input className={inputCls} type="number" min={0} max={2000} step={50} disabled={!!l.sezioni?.length} value={l.lunghezza} onChange={(e) => linea(i, { lunghezza: Math.min(2000, Math.max(0, Number(e.target.value))) })} /></Campo>
             <Scelta etichetta="Posa (CI)" opzioni={POSA_LINEA} valore={l.posa} onChange={(v) => linea(i, { posa: v })} />
             <Scelta etichetta="Ambiente (CE)" opzioni={AMBIENTE_LINEA} valore={l.ambiente} onChange={(v) => linea(i, { ambiente: v })} />
             <Scelta etichetta="Tipo (CT)" opzioni={TIPO_LINEA} valore={l.tipo} onChange={(v) => linea(i, { tipo: v })} />
@@ -123,6 +123,18 @@ export function RischioPage() {
             {(l.connessione === "sch-coll") && <Campo etichetta="Schermatura (PLD)"><select className={inputCls} value={l.schermatura ?? "1-5"} onChange={(e) => linea(i, { schermatura: e.target.value as Schermatura })}>{SCHERMATURE.filter((x) => x.id !== "no").map((x) => <option key={x.id} value={x.id}>{x.nome}</option>)}</select></Campo>}
             <div className="flex justify-end"><Button size="icon" variant="ghost" aria-label="Elimina linea" onClick={() => salva({ linee: stato.linee.filter((_, k) => k !== i), zone: stato.zone.map((z) => ({ ...z, linee: z.linee ? z.linee.filter((x) => x !== i).map((x) => (x > i ? x - 1 : x)) : null })) })}><Trash2 /></Button></div>
           </div>
+          <label className="mt-3 flex items-center gap-2 text-sm"><input type="checkbox" checked={!!l.sezioni?.length} onChange={(e) => linea(i, { sezioni: e.target.checked ? [{ lunghezza: l.lunghezza, posa: l.posa, ambiente: l.ambiente, tipo: l.tipo }] : null })} />Linea divisa in sezioni con posa o ambiente diversi (SL)</label>
+          {!!l.sezioni?.length && <div className="mt-2 space-y-2">
+            {l.sezioni.map((t, k) => { const set = (q: Partial<SezioneLinea>) => { const sezioni = l.sezioni!.map((x, j) => (j === k ? { ...x, ...q } : x)); linea(i, { sezioni, lunghezza: sezioni.reduce((a, x) => a + x.lunghezza, 0) }); }; return <div key={k} className="grid items-end gap-3 rounded-md bg-muted/50 p-2 sm:grid-cols-5">
+              <Campo etichetta={`Sezione ${k + 1}: lunghezza (m)`}><input className={inputCls} type="number" min={0} step={50} value={t.lunghezza} onChange={(e) => set({ lunghezza: Math.max(0, Number(e.target.value)) })} /></Campo>
+              <Scelta etichetta="Posa (CI)" opzioni={POSA_LINEA} valore={t.posa} onChange={(v) => set({ posa: v })} />
+              <Scelta etichetta="Ambiente (CE)" opzioni={AMBIENTE_LINEA} valore={t.ambiente} onChange={(v) => set({ ambiente: v })} />
+              <Scelta etichetta="Tipo (CT)" opzioni={TIPO_LINEA} valore={t.tipo} onChange={(v) => set({ tipo: v })} />
+              <div className="flex justify-end">{l.sezioni!.length > 1 && <Button size="icon" variant="ghost" aria-label="Elimina sezione" onClick={() => { const sezioni = l.sezioni!.filter((_, j) => j !== k); linea(i, { sezioni, lunghezza: sezioni.reduce((a, x) => a + x.lunghezza, 0) }); }}><Trash2 /></Button>}</div>
+            </div>; })}
+            <Button variant="outline" size="sm" onClick={() => { const sezioni = [...l.sezioni!, { lunghezza: 200, posa: l.posa, ambiente: l.ambiente, tipo: l.tipo }]; linea(i, { sezioni, lunghezza: sezioni.reduce((a, x) => a + x.lunghezza, 0) }); }}><Plus />Aggiungi sezione</Button>
+            <p className="text-xs text-muted-foreground">Lunghezza totale {l.lunghezza} m. In ogni sezione si sceglie il valore che dà il rischio più alto.</p>
+          </div>}
           <label className="mt-3 flex items-center gap-2 text-sm"><input type="checkbox" checked={!!l.adiacente} onChange={(e) => linea(i, { adiacente: e.target.checked ? { L: 10, W: 10, H: 6, CDJ: 1 } : null })} />Struttura adiacente all'altra estremità della linea (NDJ)</label>
           {l.adiacente && <div className="mt-2 grid gap-3 sm:grid-cols-4">
             {(["L", "W", "H"] as const).map((k) => <Campo key={k} etichetta={`${k} struttura adiacente (m)`}><input className={inputCls} type="number" min={0} step={1} value={l.adiacente![k]} onChange={(e) => linea(i, { adiacente: { ...l.adiacente!, [k]: Math.max(0, Number(e.target.value)) } })} /></Campo>)}
