@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Check, Eye, EyeOff, KeyRound, RefreshCw, Save, ShieldCheck, ShieldX, Trash2, UserCheck, UserX, X } from "lucide-react";
+import { Check, Download, Eye, EyeOff, KeyRound, RefreshCw, Save, ShieldCheck, ShieldX, Trash2, UserCheck, UserX, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Campo, inputCls } from "@/components/Campo";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -13,7 +13,6 @@ interface Richiesta { id: string; email: string; nome: string; azienda: string; 
 interface Evento { id: number; utente: string | null; email: string | null; evento: string; quando: string; dettagli: Record<string, unknown> }
 
 const data = (d: string | null) => (d ? new Date(d).toLocaleString("it-IT", { dateStyle: "short", timeStyle: "short" }) : "—");
-const giorno = (d: Date) => d.toISOString().slice(0, 10);
 const NOMI_EVENTO: Record<string, string> = { accesso: "Accesso", uscita: "Uscita", password_cambiata: "Password cambiata", authenticator_attivato: "Authenticator collegato", approvazione: "Richiesta approvata", rifiuto: "Richiesta rifiutata", modifica_utente: "Utente modificato", reimpostazione: "Reimpostazione", eliminazione: "Utente eliminato", invito: "Invito creato", accesso_negato: "Accesso negato" };
 
 function Kpi({ titolo, valore, nota, evidenzia }: { titolo: string; valore: number | string; nota?: string; evidenzia?: boolean }) {
@@ -45,22 +44,51 @@ function SceltaSezioni({ valore, onChange }: { valore: string[]; onChange: (v: s
 }
 
 /** Grafico a barre degli accessi per giorno (ultimi 30 giorni). */
-function GraficoAccessi({ eventi }: { eventi: Evento[] }) {
-  const giorni = useMemo(() => {
-    const oggi = new Date(); const out: { g: string; n: number }[] = [];
-    for (let i = 29; i >= 0; i--) { const d = new Date(oggi); d.setDate(d.getDate() - i); out.push({ g: giorno(d), n: 0 }); }
-    for (const e of eventi) if (e.evento === "accesso") { const x = out.find((o) => o.g === e.quando.slice(0, 10)); if (x) x.n++; }
-    return out;
-  }, [eventi]);
-  const max = Math.max(1, ...giorni.map((g) => g.n));
+// ---------- statistiche accessi: periodo scelto, barre con i numeri, persone attive, CSV ----------
+type Periodo = "settimana" | "mese" | "2mesi" | "semestre" | "anno";
+const PERIODI: { id: Periodo; nome: string }[] = [
+  { id: "settimana", nome: "Settimana lavorativa" }, { id: "mese", nome: "Mese" }, { id: "2mesi", nome: "Due mesi" }, { id: "semestre", nome: "Semestre" }, { id: "anno", nome: "Anno" },
+];
+const chiaveGiorno = (d: Date) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`; // data locale, non UTC
+const MESI = ["gen", "feb", "mar", "apr", "mag", "giu", "lug", "ago", "set", "ott", "nov", "dic"];
+const GIORNI = ["dom", "lun", "mar", "mer", "gio", "ven", "sab"];
+
+/** Inizio del periodo e barre (per giorno, settimana o mese). */
+function barrePeriodo(periodo: Periodo): { inizio: Date; barre: { da: Date; a: Date; etichetta: string; titolo: string }[] } {
+  const oggi = new Date(); oggi.setHours(0, 0, 0, 0);
+  const piu = (d: Date, n: number) => { const x = new Date(d); x.setDate(x.getDate() + n); return x; };
+  const barre: { da: Date; a: Date; etichetta: string; titolo: string }[] = [];
+  const perGiorno = (da: Date, n: number, soloFeriali: boolean) => {
+    for (let i = 0; i < n; i++) { const d = piu(da, i); if (soloFeriali && (d.getDay() === 0 || d.getDay() === 6)) continue;
+      barre.push({ da: d, a: piu(d, 1), etichetta: n <= 7 ? `${GIORNI[d.getDay()]} ${d.getDate()}` : String(d.getDate()), titolo: d.toLocaleDateString("it-IT", { weekday: "long", day: "numeric", month: "long" }) }); }
+  };
+  if (periodo === "settimana") { const lun = piu(oggi, -((oggi.getDay() + 6) % 7)); perGiorno(lun, 5, true); return { inizio: lun, barre }; }
+  if (periodo === "mese" || periodo === "2mesi") { const n = periodo === "mese" ? 30 : 60; const da = piu(oggi, -(n - 1)); perGiorno(da, n, false); return { inizio: da, barre }; }
+  if (periodo === "semestre") { // per settimana (lunedì)
+    const lun = piu(oggi, -((oggi.getDay() + 6) % 7)); const da = piu(lun, -25 * 7);
+    for (let i = 0; i < 26; i++) { const d = piu(da, i * 7); barre.push({ da: d, a: piu(d, 7), etichetta: `${d.getDate()} ${MESI[d.getMonth()]}`, titolo: `settimana dal ${d.toLocaleDateString("it-IT")}` }); }
+    return { inizio: da, barre };
+  }
+  const da = new Date(oggi.getFullYear(), oggi.getMonth() - 11, 1); // anno: per mese
+  for (let i = 0; i < 12; i++) { const d = new Date(da.getFullYear(), da.getMonth() + i, 1); barre.push({ da: d, a: new Date(d.getFullYear(), d.getMonth() + 1, 1), etichetta: MESI[d.getMonth()]!, titolo: d.toLocaleDateString("it-IT", { month: "long", year: "numeric" }) }); }
+  return { inizio: da, barre };
+}
+
+function GraficoAccessi({ accessi, periodo }: { accessi: Evento[]; periodo: Periodo }) {
+  const { barre } = useMemo(() => barrePeriodo(periodo), [periodo]);
+  const valori = useMemo(() => barre.map((b) => accessi.filter((e) => { const t = new Date(e.quando); return t >= b.da && t < b.a; }).length), [barre, accessi]);
+  const max = Math.max(1, ...valori);
+  const tutti = barre.length <= 31; // con tante barre il numero si scrive solo dove c'è almeno un accesso
   return <div>
-    <div className="flex h-40 items-end gap-[3px]" role="img" aria-label="Accessi per giorno negli ultimi 30 giorni">
-      {giorni.map((g) => <div key={g.g} className="group relative flex flex-1 flex-col items-center justify-end">
-        <div className="w-full rounded-t bg-primary transition-colors group-hover:bg-[#d98a00]" style={{ height: `${(g.n / max) * 100}%`, minHeight: g.n ? 3 : 0 }} />
-        <span className="pointer-events-none absolute -top-6 hidden whitespace-nowrap rounded bg-[#212529] px-1.5 py-0.5 text-[10px] text-white group-hover:block">{new Date(g.g).toLocaleDateString("it-IT", { day: "2-digit", month: "2-digit" })}: {g.n}</span>
-      </div>)}
+    <div className="flex h-44 items-end gap-[3px]" role="img" aria-label="Accessi nel periodo">
+      {barre.map((b, i) => { const n = valori[i] ?? 0; return <div key={i} title={`${b.titolo}: ${n} accessi`} className="relative flex h-full flex-1 flex-col items-center justify-end">
+        {(tutti || n > 0) && <span className={`mb-0.5 font-mono leading-none ${barre.length > 31 ? "text-[9px]" : "text-[11px]"} ${n ? "text-foreground" : "text-muted-foreground"}`}>{n}</span>}
+        <div className="w-full rounded-t bg-primary" style={{ height: `${(n / max) * 82}%`, minHeight: n ? 3 : 1, opacity: n ? 1 : 0.25 }} />
+      </div>; })}
     </div>
-    <div className="mt-1 flex justify-between text-[10px] text-muted-foreground"><span>{new Date(giorni[0]!.g).toLocaleDateString("it-IT")}</span><span>oggi</span></div>
+    <div className="mt-1 flex gap-[3px] text-[10px] text-muted-foreground">
+      {barre.map((b, i) => <span key={i} className="flex-1 truncate text-center">{barre.length <= 31 || i % 7 === 0 ? b.etichetta : ""}</span>)}
+    </div>
   </div>;
 }
 
@@ -81,11 +109,20 @@ export function AdminPage() {
   const [busy, setBusy] = useState(false);
 
   const carica = useCallback(async () => {
-    const trenta = new Date(Date.now() - 30 * 864e5).toISOString();
+    const anno = new Date(Date.now() - 370 * 864e5).toISOString();
+    const leggiRegistro = async () => { // a pagine: il server ne dà al massimo 1000 per volta
+      const tutti: Evento[] = []; let errore: { message: string } | null = null;
+      for (let da = 0; da < 50000; da += 1000) {
+        const r = await db().from("registro_accessi").select("*").gte("quando", anno).order("quando", { ascending: false }).range(da, da + 999);
+        if (r.error) { errore = r.error; break; }
+        tutti.push(...((r.data ?? []) as Evento[])); if ((r.data ?? []).length < 1000) break;
+      }
+      return { data: tutti, error: errore };
+    };
     const [p, r, e, i] = await Promise.all([
       db().from("accessi_profili").select("*").order("creato_il", { ascending: false }),
       db().from("richieste_accesso").select("*").order("creata_il", { ascending: false }).limit(500),
-      db().from("registro_accessi").select("*").gte("quando", trenta).order("quando", { ascending: false }).limit(3000),
+      leggiRegistro(),
       db().from("impostazioni_admin").select("*"),
     ]);
     setProfili((p.data ?? []) as Profilo[]);
@@ -104,14 +141,31 @@ export function AdminPage() {
 
   const predefinite = (impostazioni["sezioni_predefinite"] ?? "").split(",").map((x) => x.trim()).filter(Boolean);
   const inAttesa = richieste.filter((r) => r.stato === "in_attesa");
-  const oggi = giorno(new Date());
-  const accessi = eventi.filter((e) => e.evento === "accesso");
-  const attivi30 = new Set(accessi.map((e) => e.utente)).size;
+  const [periodo, setPeriodo] = useState<Periodo>("mese");
+  const nomePeriodo = PERIODI.find((x) => x.id === periodo)!.nome.toLowerCase();
+  const accessiTutti = eventi.filter((e) => e.evento === "accesso");
+  const inizioPeriodo = useMemo(() => barrePeriodo(periodo).inizio, [periodo]);
+  const accessi = accessiTutti.filter((e) => new Date(e.quando) >= inizioPeriodo);
+  const nomePersona = useCallback((utente: string | null, email: string | null) => {
+    const p = profili.find((x) => x.utente === utente);
+    return (p?.nome || p?.mappa_persona || "").trim() || (email ?? "").split("@")[0]!.split(/[._-]/).filter(Boolean).reverse().map((x) => x.charAt(0).toUpperCase() + x.slice(1)).join(" ") || "—";
+  }, [profili]);
   const perUtente = useMemo(() => {
-    const m = new Map<string, number>();
-    for (const e of accessi) m.set(e.email ?? "—", (m.get(e.email ?? "—") ?? 0) + 1);
-    return [...m.entries()].sort((a, b) => b[1] - a[1]).slice(0, 8);
-  }, [accessi]);
+    const m = new Map<string, { nome: string; n: number; ultimo: string }>();
+    for (const e of accessi) { const k = e.utente ?? e.email ?? "—"; const x = m.get(k) ?? { nome: nomePersona(e.utente, e.email), n: 0, ultimo: e.quando }; x.n++; if (e.quando > x.ultimo) x.ultimo = e.quando; m.set(k, x); }
+    return [...m.values()].sort((a, b) => b.n - a.n);
+  }, [accessi, nomePersona]);
+  function esportaCsv() {
+    const c = (v: unknown) => `"${String(v ?? "").replace(/"/g, '""')}"`;
+    const righe = [["Data", "Ora", "Giorno", "Persona", "Email", "App"].map(c).join(";")];
+    for (const e of [...accessi].reverse()) { const d = new Date(e.quando); const app = (e.dettagli as Record<string, unknown> | null)?.["app"];
+      righe.push([d.toLocaleDateString("it-IT"), d.toLocaleTimeString("it-IT", { hour: "2-digit", minute: "2-digit" }), GIORNI[d.getDay()], nomePersona(e.utente, e.email), e.email, app === "obo-hub" ? "OBO Hub" : app === "lps" ? "Progettazione LPS" : app ?? ""].map(c).join(";")); }
+    righe.push("", [c("Persona"), c(`Accessi (${nomePeriodo})`), c("Ultimo accesso")].join(";"));
+    for (const p of perUtente) righe.push([p.nome, p.n, data(p.ultimo)].map(c).join(";"));
+    const blob = new Blob(["\ufeff" + righe.join("\r\n")], { type: "text/csv;charset=utf-8" });
+    const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = `accessi-obo-hub-${periodo}-${chiaveGiorno(new Date())}.csv`;
+    document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+  }
 
   async function azione(fn: () => Promise<unknown>, ok: string) {
     setBusy(true); setMsg("");
@@ -140,17 +194,27 @@ export function AdminPage() {
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-6">
         <Kpi titolo="Richieste in attesa" valore={inAttesa.length} evidenzia={inAttesa.length > 0} />
         <Kpi titolo="Utenti attivi" valore={profili.filter((p) => p.stato === "attivo").length} nota={`${profili.filter((p) => p.ruolo === "admin").length} amministratori`} />
-        <Kpi titolo="Accessi oggi" valore={accessi.filter((e) => e.quando.slice(0, 10) === oggi).length} />
-        <Kpi titolo="Accessi 30 giorni" valore={accessi.length} />
-        <Kpi titolo="Utenti attivi 30 gg" valore={attivi30} />
+        <Kpi titolo="Accessi oggi" valore={accessiTutti.filter((e) => chiaveGiorno(new Date(e.quando)) === chiaveGiorno(new Date())).length} />
+        <Kpi titolo="Accessi nel periodo" valore={accessi.length} nota={nomePeriodo} />
+        <Kpi titolo="Persone attive nel periodo" valore={perUtente.length} nota={nomePeriodo} />
         <Kpi titolo="Senza Authenticator" valore={conAuth ? profili.filter((p) => !conAuth.has(p.utente)).length : "?"} nota={conAuth ? "non hanno ancora completato il primo accesso" : "dato non disponibile: esegui supabase/statistiche-admin.sql"} />
       </div>
 
       <section className="mt-6 grid gap-6 lg:grid-cols-[2fr_1fr]">
-        <div className="rounded-lg border-[0.8px] border-bordo-scheda p-4"><h2 className="font-semibold">Accessi per giorno</h2><div className="mt-6"><GraficoAccessi eventi={eventi} /></div></div>
-        <div className="rounded-lg border-[0.8px] border-bordo-scheda p-4"><h2 className="font-semibold">Utenti più attivi (30 gg)</h2>
-          <ul className="mt-3 space-y-2">{perUtente.map(([email, n]) => <li key={email} className="text-sm"><div className="flex justify-between gap-2"><span className="truncate">{email}</span><span className="font-mono">{n}</span></div><div className="mt-0.5 h-1.5 rounded-full bg-muted"><div className="h-full rounded-full bg-primary" style={{ width: `${(n / (perUtente[0]?.[1] ?? 1)) * 100}%` }} /></div></li>)}</ul>
-          {!perUtente.length && <p className="mt-3 text-sm text-muted-foreground">Nessun accesso registrato.</p>}
+        <div className="rounded-lg border-[0.8px] border-bordo-scheda p-4">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <h2 className="font-semibold">Accessi · {nomePeriodo} <span className="font-normal text-muted-foreground">({accessi.length})</span></h2>
+            <Button variant="outline" size="sm" disabled={!accessi.length} onClick={esportaCsv}><Download strokeWidth={1.5} />Esporta CSV</Button>
+          </div>
+          <div className="mt-3 flex flex-wrap gap-1" role="group" aria-label="Periodo">
+            {PERIODI.map((x) => <button key={x.id} type="button" onClick={() => setPeriodo(x.id)} aria-pressed={periodo === x.id}
+              className={`rounded-full border-[0.8px] px-3 py-1 text-sm ${periodo === x.id ? "border-primary bg-primary text-primary-foreground" : "border-bordo-scheda hover:border-primary"}`}>{x.nome}</button>)}
+          </div>
+          <div className="mt-5"><GraficoAccessi accessi={accessiTutti} periodo={periodo} /></div>
+        </div>
+        <div className="rounded-lg border-[0.8px] border-bordo-scheda p-4"><h2 className="font-semibold">Persone attive · {nomePeriodo}</h2>
+          <ul className="mt-3 space-y-2">{perUtente.map((p) => <li key={p.nome + p.ultimo} className="text-sm"><div className="flex justify-between gap-2"><span className="truncate">{p.nome}</span><span className="font-mono">{p.n}</span></div><div className="mt-0.5 h-1.5 rounded-full bg-muted"><div className="h-full rounded-full bg-primary" style={{ width: `${(p.n / (perUtente[0]?.n ?? 1)) * 100}%` }} /></div><p className="mt-0.5 text-xs text-muted-foreground">ultimo accesso {data(p.ultimo)}</p></li>)}</ul>
+          {!perUtente.length && <p className="mt-3 text-sm text-muted-foreground">Nessun accesso nel periodo.</p>}
         </div>
       </section>
 
