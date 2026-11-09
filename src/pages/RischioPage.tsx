@@ -40,8 +40,8 @@ const zonaNuova = (nome: string, esterna = false): Zona => ({ id: nuovoId(), nom
 function leggiStato(raw: Record<string, unknown> | null): StatoRischio {
   if (raw && raw["versione"] === 2) return raw as unknown as StatoRischio;
   if (raw && Array.isArray(raw["linee"])) { // prima versione a zona unica
-    const vecchio = raw as unknown as DatiRischio;
-    const { st, zona } = zonaUnica({ L: 1, W: 1, H: 1, NG: 1, CD: 1, LF: 5e-2, rt: 1e-2, rp: 1, rf: 1e-2, misureContatto: 1, impiantiCritici: false, frazionePresenza: 1, ...vecchio });
+    const base: DatiRischio = { L: 1, W: 1, H: 1, NG: 1, CD: 1, LF: 5e-2, rt: 1e-2, rp: 1, rf: 1e-2, misureContatto: 1, impiantiCritici: false, frazionePresenza: 1, linee: [] };
+    const { st, zona } = zonaUnica(Object.assign(base, raw as Partial<DatiRischio>));
     return { versione: 2, k: st.k ?? 2, Uw: st.Uw ?? 2.5, PS: st.PS ?? 1, PTWS: 1, danniMateriali: st.danniMateriali !== false, linee: st.linee, zone: [zona] };
   }
   return { versione: 2, k: 2, Uw: 2.5, PS: 1, PTWS: 1, danniMateriali: true, linee: [lineaNuova("Energia"), lineaNuova("Telecomunicazioni")], zone: [zonaNuova("Struttura", true)] };
