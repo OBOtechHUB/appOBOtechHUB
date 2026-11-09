@@ -3,6 +3,7 @@ import { Link } from "@tanstack/react-router";
 import { Plus, Save, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Campo, inputCls } from "@/components/Campo";
+import { SchemaKc } from "@/components/schemi/SchemiLps";
 import { aggiornaEsteso, useEsteso } from "@/lib/statoProgetto";
 import { aggiornaComputo, useComputo, useDatiEdificio } from "@/lib/progettoStore";
 import {
@@ -85,6 +86,7 @@ export function CalatePage() {
           <p className="text-lg">kc = <strong>{f(kc, 3)}</strong> · s (in aria, l = h = {f(altezza, 1)} m) = <strong>{f(sTetto, 3)} m</strong></p>
           <p className="mt-1 text-xs text-muted-foreground">{sep.modoKc === "dettagliato" ? `kc = 1/(2n) + 0,1 + 0,2·(c/h)^(1/3) con n = ${n}, c = ${f(passo, 1)} m, h = ${f(altezza, 1)} m` : `kc semplificato per ${n} calate`}{erroreKc && ` · ${erroreKc}`}</p>
         </div>
+        <div className="mt-4"><SchemaKc n={n} c={passo} h={altezza} kc={kc} /></div>
       </section>
 
       <section className="mt-10" aria-label="Punti critici">

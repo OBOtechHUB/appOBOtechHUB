@@ -9,6 +9,7 @@ import { l1Norma, proponiTerra, verificaTerra, type PropostaTerra, type TipoTerr
 import { aggiornaEsteso, type StatoEsteso } from "@/lib/statoProgetto";
 import { accettaTerra, piediCalate, rimuoviTerra, terraDefault, type ConfigurazioneTerra } from "@/lib/impiantoTerra";
 import { scarica } from "@/lib/esportazioni";
+import { GraficoL1 } from "@/components/schemi/SchemiLps";
 
 type Anteprima = { proposta: PropostaTerra; config: ConfigurazioneTerra; stato: StatoEsteso };
 export function ImpiantoTerra({ s, onAnteprima }: { s: StatoEsteso; onAnteprima: (p: PropostaTerra | null) => void }) {
@@ -56,6 +57,7 @@ export function ImpiantoTerra({ s, onAnteprima }: { s: StatoEsteso; onAnteprima:
       <Campo etichetta="Resistività ρ (Ω·m)"><input className={inputCls} type="number" min="0" step="10" value={rho} placeholder="es. 200" onChange={(e) => setRho(e.target.value)} /></Campo>
       <Button variant="outline" disabled={rho === ""} onClick={() => { try { cambia({ l1: Math.round(l1Norma(s.lpl, Number(rho)) * 10) / 10 }); } catch { /* valore non valido */ } }}>Calcola l1 (LPL {s.lpl})</Button>
     </div>
+    <div className="mt-3"><GraficoL1 rho={rho === "" ? null : Number(rho)} lpl={s.lpl} /></div>
     <p className="mt-2 text-xs text-muted-foreground">l1 dalla Fig. 5 della CEI EN IEC 62305-3:2024 (classi III-IV: 5 m; classi I e II crescono con la resistività). Tipo A: ogni picchetto ≥ 0,5·l1 (+ 0,5 m se il terreno gela o si secca); tipo B: raggio equivalente re ≥ l1. Il requisito si può ignorare se la resistenza di un dispersore di tipo A è inferiore a 10 Ω. Se l1 è vuoto la verifica resta “dato norma mancante”.</p>
     {config.tipo === "B" && <label className="mt-3 flex items-center gap-2 text-sm"><input type="checkbox" checked={config.picchettiSuAnello} onChange={(e) => cambia({ picchettiSuAnello: e.target.checked })} />Picchetto su ogni calata</label>}
     {!calate.length && <p role="alert" className="mt-4 border-l-4 border-accent pl-3 text-sm">Prima accetta o disegna le calate</p>}
