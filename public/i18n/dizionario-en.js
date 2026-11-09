@@ -1,6 +1,7 @@
 /* Progettazione LPS · dizionario inglese. Chiave = testo italiano mostrato nella pagina, valore = traduzione.
    "{}" indica una parte variabile (numeri, nomi): compare nello stesso ordine nella traduzione. */
 window.OBO_EN = {
+  "Settimana lavorativa {}": "Working week {}", "Accessi · settimana lavorativa {} ({} – {})": "Sign-ins · working week {} ({} – {})", "Persone attive · settimana lavorativa {} ({} – {})": "Active people · working week {} ({} – {})", "settimana lavorativa {} ({} – {})": "working week {} ({} – {})",
   "Settimana lavorativa": "Working week", "Mese": "Month", "Due mesi": "Two months", "Semestre": "Six months", "Anno": "Year",
   "Esporta CSV": "Export CSV", "Accessi nel periodo": "Sign-ins in period", "Persone attive nel periodo": "Active people in period",
   "Accessi · {}": "Sign-ins · {}", "Persone attive · {}": "Active people · {}", "ultimo accesso {}": "last sign-in {}", "Nessun accesso nel periodo.": "No sign-ins in this period.",

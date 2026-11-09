@@ -50,6 +50,8 @@ const PERIODI: { id: Periodo; nome: string }[] = [
   { id: "settimana", nome: "Settimana lavorativa" }, { id: "mese", nome: "Mese" }, { id: "2mesi", nome: "Due mesi" }, { id: "semestre", nome: "Semestre" }, { id: "anno", nome: "Anno" },
 ];
 const chiaveGiorno = (d: Date) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`; // data locale, non UTC
+/** Numero della settimana ISO (la settimana inizia il lunedì; la prima è quella con il primo giovedì dell'anno). */
+const numeroSettimana = (d: Date) => { const x = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate())); const g = x.getUTCDay() || 7; x.setUTCDate(x.getUTCDate() + 4 - g); const inizio = new Date(Date.UTC(x.getUTCFullYear(), 0, 1)); return Math.ceil(((x.getTime() - inizio.getTime()) / 864e5 + 1) / 7); };
 const MESI = ["gen", "feb", "mar", "apr", "mag", "giu", "lug", "ago", "set", "ott", "nov", "dic"];
 const GIORNI = ["dom", "lun", "mar", "mer", "gio", "ven", "sab"];
 
@@ -66,7 +68,7 @@ function barrePeriodo(periodo: Periodo): { inizio: Date; barre: { da: Date; a: D
   if (periodo === "mese" || periodo === "2mesi") { const n = periodo === "mese" ? 30 : 60; const da = piu(oggi, -(n - 1)); perGiorno(da, n, false); return { inizio: da, barre }; }
   if (periodo === "semestre") { // per settimana (lunedì)
     const lun = piu(oggi, -((oggi.getDay() + 6) % 7)); const da = piu(lun, -25 * 7);
-    for (let i = 0; i < 26; i++) { const d = piu(da, i * 7); barre.push({ da: d, a: piu(d, 7), etichetta: `${d.getDate()} ${MESI[d.getMonth()]}`, titolo: `settimana dal ${d.toLocaleDateString("it-IT")}` }); }
+    for (let i = 0; i < 26; i++) { const d = piu(da, i * 7); barre.push({ da: d, a: piu(d, 7), etichetta: `S${numeroSettimana(d)}`, titolo: `settimana ${numeroSettimana(d)} (dal ${d.toLocaleDateString("it-IT")})` }); }
     return { inizio: da, barre };
   }
   const da = new Date(oggi.getFullYear(), oggi.getMonth() - 11, 1); // anno: per mese
@@ -87,7 +89,7 @@ function GraficoAccessi({ accessi, periodo }: { accessi: Evento[]; periodo: Peri
       </div>; })}
     </div>
     <div className="mt-1 flex gap-[3px] text-[10px] text-muted-foreground">
-      {barre.map((b, i) => <span key={i} className="flex-1 truncate text-center">{barre.length <= 31 || i % 7 === 0 ? b.etichetta : ""}</span>)}
+      {barre.map((b, i) => <span key={i} className="flex-1 truncate text-center">{barre.length <= 31 ? (barre.length === 26 && i % 2 ? "" : b.etichetta) : i % 7 === 0 ? b.etichetta : ""}</span>)}
     </div>
   </div>;
 }
@@ -142,7 +144,8 @@ export function AdminPage() {
   const predefinite = (impostazioni["sezioni_predefinite"] ?? "").split(",").map((x) => x.trim()).filter(Boolean);
   const inAttesa = richieste.filter((r) => r.stato === "in_attesa");
   const [periodo, setPeriodo] = useState<Periodo>("mese");
-  const nomePeriodo = PERIODI.find((x) => x.id === periodo)!.nome.toLowerCase();
+  const settimanaOra = numeroSettimana(new Date());
+  const nomePeriodo = periodo === "settimana" ? (() => { const { barre } = barrePeriodo("settimana"); const f = (d: Date) => `${d.getDate()} ${MESI[d.getMonth()]}`; return `settimana lavorativa ${settimanaOra} (${f(barre[0]!.da)} – ${f(barre[barre.length - 1]!.da)})`; })() : PERIODI.find((x) => x.id === periodo)!.nome.toLowerCase();
   const accessiTutti = eventi.filter((e) => e.evento === "accesso");
   const inizioPeriodo = useMemo(() => barrePeriodo(periodo).inizio, [periodo]);
   const accessi = accessiTutti.filter((e) => new Date(e.quando) >= inizioPeriodo);
@@ -157,13 +160,13 @@ export function AdminPage() {
   }, [accessi, nomePersona]);
   function esportaCsv() {
     const c = (v: unknown) => `"${String(v ?? "").replace(/"/g, '""')}"`;
-    const righe = [["Data", "Ora", "Giorno", "Persona", "Email", "App"].map(c).join(";")];
+    const righe = [["Data", "Ora", "Giorno", "Settimana", "Persona", "Email", "App"].map(c).join(";")];
     for (const e of [...accessi].reverse()) { const d = new Date(e.quando); const app = (e.dettagli as Record<string, unknown> | null)?.["app"];
-      righe.push([d.toLocaleDateString("it-IT"), d.toLocaleTimeString("it-IT", { hour: "2-digit", minute: "2-digit" }), GIORNI[d.getDay()], nomePersona(e.utente, e.email), e.email, app === "obo-hub" ? "OBO Hub" : app === "lps" ? "Progettazione LPS" : app ?? ""].map(c).join(";")); }
+      righe.push([d.toLocaleDateString("it-IT"), d.toLocaleTimeString("it-IT", { hour: "2-digit", minute: "2-digit" }), GIORNI[d.getDay()], numeroSettimana(d), nomePersona(e.utente, e.email), e.email, app === "obo-hub" ? "OBO Hub" : app === "lps" ? "Progettazione LPS" : app ?? ""].map(c).join(";")); }
     righe.push("", [c("Persona"), c(`Accessi (${nomePeriodo})`), c("Ultimo accesso")].join(";"));
     for (const p of perUtente) righe.push([p.nome, p.n, data(p.ultimo)].map(c).join(";"));
     const blob = new Blob(["\ufeff" + righe.join("\r\n")], { type: "text/csv;charset=utf-8" });
-    const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = `accessi-obo-hub-${periodo}-${chiaveGiorno(new Date())}.csv`;
+    const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = `accessi-obo-hub-${periodo === "settimana" ? `settimana-${settimanaOra}` : periodo}-${chiaveGiorno(new Date())}.csv`;
     document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 1000);
   }
 
@@ -208,7 +211,7 @@ export function AdminPage() {
           </div>
           <div className="mt-3 flex flex-wrap gap-1" role="group" aria-label="Periodo">
             {PERIODI.map((x) => <button key={x.id} type="button" onClick={() => setPeriodo(x.id)} aria-pressed={periodo === x.id}
-              className={`rounded-full border-[0.8px] px-3 py-1 text-sm ${periodo === x.id ? "border-primary bg-primary text-primary-foreground" : "border-bordo-scheda hover:border-primary"}`}>{x.nome}</button>)}
+              className={`rounded-full border-[0.8px] px-3 py-1 text-sm ${periodo === x.id ? "border-primary bg-primary text-primary-foreground" : "border-bordo-scheda hover:border-primary"}`}>{x.id === "settimana" ? `${x.nome} ${settimanaOra}` : x.nome}</button>)}
           </div>
           <div className="mt-5"><GraficoAccessi accessi={accessiTutti} periodo={periodo} /></div>
         </div>
