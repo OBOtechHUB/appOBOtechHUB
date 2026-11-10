@@ -2,6 +2,21 @@
   "nota": "Registro degli aggiornamenti di Progettazione LPS. Una voce per aggiornamento, la più recente per prima (app: lps). Viene mostrato nella barra \"Aggiorna app\", nel riquadro Novità e nella pagina Novità di OBO Hub.",
   "aggiornamenti": [
     {
+      "id": "2026-11-10-lps-3",
+      "data": "2026-11-10",
+      "app": "lps",
+      "titolo": "Piè di pagina comune e apertura dei progetti dalla ricerca",
+      "voci": [
+        "In fondo alla pagina: OBO Hub, Novità, Privacy e Condizioni d'uso, uguali in tutte le app",
+        "I progetti salvati si aprono anche dalla ricerca della pagina iniziale di OBO Hub"
+      ],
+      "titolo_en": "Common footer and opening projects from search",
+      "voci_en": [
+        "At the bottom of the page: OBO Hub, What's new, Privacy and Terms of use, the same in every app",
+        "Saved projects can also be opened from the search on the OBO Hub home page"
+      ]
+    },
+    {
       "id": "2026-11-10-lps-2",
       "data": "2026-11-10",
       "app": "lps",
