@@ -126,23 +126,6 @@
         "Every choice has an explanation and the reference to the clause of the standard",
         "Inspections: visual every year, complete every 3 years, every year for critical systems"
       ]
-    },
-    {
-      "id": "2026-11-09-lps-1",
-      "data": "2026-11-09",
-      "app": "lps",
-      "titolo": "Amministrazione e visitatori",
-      "titolo_en": "Administration and visitors",
-      "voci": [
-        "Registro accessi con nomi delle persone, grafico per settimana lavorativa (con numero), mese, due mesi, semestre e anno, esportazione CSV",
-        "Conteggio degli utenti con Microsoft Authenticator corretto",
-        "I visitatori di OBO Hub usano anche Progettazione LPS, senza salvare progetti nel cloud"
-      ],
-      "voci_en": [
-        "Access log with people's names, chart per working week (with number), month, two months, half-year and year, CSV export",
-        "Count of users with Microsoft Authenticator fixed",
-        "OBO Hub visitors can also use LPS design, without saving projects to the cloud"
-      ]
     }
   ]
 }
