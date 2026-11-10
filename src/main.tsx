@@ -6,7 +6,9 @@ import "./styles.css";
 import { avviaInstallazione } from "./lib/installazione";
 import { avviaTema } from "./lib/tema";
 import { avviaLingua } from "./lib/lingua";
+import { avviaRegistroErrori } from "./lib/registro";
 
+avviaRegistroErrori();
 avviaInstallazione();
 avviaTema();
 avviaLingua();

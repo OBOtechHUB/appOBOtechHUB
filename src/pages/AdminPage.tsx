@@ -8,6 +8,9 @@ import { ProgettiAdmin } from "@/components/accesso/ProgettiAdmin";
 import { MappaUtente, type PersonaMappa } from "@/components/accesso/MappaUtente";
 import { InvitaUtenti } from "@/components/accesso/InvitaUtenti";
 import { VisitatoriMappa } from "@/components/accesso/VisitatoriMappa";
+import { ErroriAdmin } from "@/components/accesso/ErroriAdmin";
+import { UsoAdmin } from "@/components/accesso/UsoAdmin";
+import { CopiaSicurezza, giorniDallaCopia } from "@/components/accesso/CopiaSicurezza";
 
 interface Richiesta { id: string; email: string; nome: string; azienda: string; motivo: string; stato: "in_attesa" | "approvata" | "rifiutata"; sezioni: string[]; creata_il: string; gestita_il: string | null }
 interface Evento { id: number; utente: string | null; email: string | null; evento: string; quando: string; dettagli: Record<string, unknown> }
@@ -179,7 +182,7 @@ export function AdminPage() {
   async function salvaImpostazioni() {
     if (impostazioni["password_iniziale"] && impostazioni["password_iniziale"].length < 6) { setMsg("La password iniziale deve avere almeno 6 caratteri."); return; }
     await azione(async () => {
-      const righe = Object.entries(impostazioni).filter(([chiave]) => chiave !== "manutenzione").map(([chiave, valore]) => ({ chiave, valore })); // la manutenzione si gestisce da OBO Hub → Manutenzione app
+      const righe = Object.entries(impostazioni).filter(([chiave]) => !["manutenzione", "ultima_copia_sicurezza", "cartella_copie"].includes(chiave)).map(([chiave, valore]) => ({ chiave, valore })); // la manutenzione si gestisce da OBO Hub → Manutenzione app
       const { error } = await db().from("impostazioni_admin").upsert(righe);
       if (error) throw new Error(error.message);
     }, "Impostazioni salvate.");
@@ -194,6 +197,7 @@ export function AdminPage() {
     <main className="mx-auto max-w-6xl px-4 py-8">
       {msg && <p role="status" className="mb-4 rounded-lg border-l-4 border-primary bg-muted p-3 text-sm">{msg}</p>}
       {erroreRegistro && <p className="mb-4 rounded-lg border-l-4 border-[#b3261e] bg-[#fdecea] p-3 text-sm">Il registro accessi non si legge ({erroreRegistro}): i conteggi degli accessi restano a 0. Esegui supabase/statistiche-admin.sql.</p>}
+      {(() => { const g = giorniDallaCopia(impostazioni["ultima_copia_sicurezza"]); return g === null || g > 7 ? <p className="mb-4 rounded-lg border-l-4 border-[#b3261e] bg-[#fdecea] p-3 text-sm">{g === null ? "Non è ancora stata fatta una copia di sicurezza dei dati." : `L'ultima copia di sicurezza è di ${g} giorni fa.`} Scaricala dalla scheda <strong>Copia di sicurezza</strong> e salvala nella cartella SharePoint.</p> : null; })()}
       {!impostazioni["password_iniziale"] && <p className="mb-4 rounded-lg border-l-4 border-[#b3261e] bg-[#fdecea] p-3 text-sm">Imposta la <strong>password iniziale comune</strong> nella scheda Impostazioni prima di approvare le richieste.</p>}
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-6">
@@ -224,7 +228,7 @@ export function AdminPage() {
       </section>
 
       <Tabs defaultValue={inAttesa.length ? "richieste" : "utenti"} className="mt-8">
-        <TabsList className="h-auto flex-wrap"><TabsTrigger value="richieste">Richieste{inAttesa.length ? ` (${inAttesa.length})` : ""}</TabsTrigger><TabsTrigger value="utenti">Utenti ({profili.length})</TabsTrigger><TabsTrigger value="invita">Invita</TabsTrigger><TabsTrigger value="progetti">Progetti salvati</TabsTrigger><TabsTrigger value="registro">Registro accessi</TabsTrigger><TabsTrigger value="impostazioni">Impostazioni</TabsTrigger></TabsList>
+        <TabsList className="h-auto flex-wrap"><TabsTrigger value="richieste">Richieste{inAttesa.length ? ` (${inAttesa.length})` : ""}</TabsTrigger><TabsTrigger value="utenti">Utenti ({profili.length})</TabsTrigger><TabsTrigger value="invita">Invita</TabsTrigger><TabsTrigger value="progetti">Progetti salvati</TabsTrigger><TabsTrigger value="registro">Registro accessi</TabsTrigger><TabsTrigger value="uso">Uso delle app</TabsTrigger><TabsTrigger value="errori">Errori</TabsTrigger><TabsTrigger value="copia">Copia di sicurezza</TabsTrigger><TabsTrigger value="impostazioni">Impostazioni</TabsTrigger></TabsList>
 
         <TabsContent value="richieste" className="mt-4 space-y-4">
           {!inAttesa.length && <p className="text-sm text-muted-foreground">Nessuna richiesta in attesa.</p>}
@@ -283,6 +287,10 @@ export function AdminPage() {
             <tbody>{eventiFiltrati.map((e) => <tr key={e.id} className="border-b"><td className="whitespace-nowrap p-2 font-mono text-xs">{data(e.quando)}</td><td className="p-2">{e.email ?? "—"}</td><td className="p-2">{NOMI_EVENTO[e.evento] ?? e.evento}</td><td className="p-2 text-xs text-muted-foreground">{Object.keys(e.dettagli ?? {}).length ? JSON.stringify(e.dettagli) : ""}</td></tr>)}</tbody></table></div>
           <p className="mt-2 text-xs text-muted-foreground">Ultimi 30 giorni, al massimo 300 righe mostrate.</p>
         </TabsContent>
+
+        <TabsContent value="uso" className="mt-4"><UsoAdmin /></TabsContent>
+        <TabsContent value="errori" className="mt-4"><ErroriAdmin nomePersona={nomePersona} /></TabsContent>
+        <TabsContent value="copia" className="mt-4"><CopiaSicurezza ultima={impostazioni["ultima_copia_sicurezza"]} cartella={impostazioni["cartella_copie"]} onFatto={() => void carica()} /></TabsContent>
 
         <TabsContent value="impostazioni" className="mt-4 max-w-2xl space-y-5">
           <Campo etichetta="Email che riceve le richieste di accesso"><input className={inputCls} type="email" value={impostazioni["email_admin"] ?? ""} onChange={(e) => setImpostazioni({ ...impostazioni, email_admin: e.target.value })} /></Campo>

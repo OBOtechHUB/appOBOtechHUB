@@ -1,4 +1,5 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { segnalaErrore } from "@/lib/registro";
 import {
   Outlet,
   Link,
@@ -49,6 +50,7 @@ function NotFoundComponent() {
 
 function ErrorComponent({ error, reset }: ErrorComponentProps) {
   console.error(error);
+  segnalaErrore(error instanceof Error ? error.message : String(error), error instanceof Error ? error.stack ?? "" : "");
   const router = useRouter();
 
   return (

@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { PUBBLICHE, SEZIONE_PAGINA, percorsoApp, prendiRitorno, puoVedere, salvaRitorno, useAccesso } from "@/lib/accesso";
 import { PanoramicaPage } from "@/pages/PanoramicaPage";
 import { primaInManutenzione, urlManutenzione, useManutenzione } from "@/lib/manutenzione";
+import { registraUso } from "@/lib/registro";
 import { AccessoNonDisponibile, AttivaAuthenticator, CambiaPassword, VerificaAuthenticator } from "./PassiAccesso";
 
 /** Decide cosa mostrare: panoramica pubblica, passi di accesso, pagina richiesta o "sezione non abilitata". */
@@ -23,6 +24,9 @@ export function ControlloAccesso() {
     ? primaInManutenzione(man?.sezioni, ["app:lps", sezPagina && sezPagina !== "admin" ? `lps:${sezPagina}` : undefined]) : null;
   const adminPassa = !!inManutenzione && (man?.admin || a.profilo?.ruolo === "admin");
   useEffect(() => { if (inManutenzione && !adminPassa) window.location.replace(urlManutenzione(inManutenzione)); }, [inManutenzione, adminPassa]);
+  useEffect(() => { if (a.stato === "abilitato") registraUso("", !a.profilo?.visitatore); }, [a.stato, a.profilo?.visitatore]); // apertura dell'app
+  // statistiche d'uso: la sezione della pagina (o "home"), solo per chi è entrato; gli admin non contano
+  useEffect(() => { if (a.stato === "abilitato" && p !== "/admin") registraUso(sezPagina && sezPagina !== "admin" ? sezPagina : p === "/" ? "home" : p.slice(1).split("/")[0] ?? "", !a.profilo?.visitatore); }, [a.stato, p, sezPagina, a.profilo?.visitatore]);
   if (a.stato === "caricamento") return <main className="flex min-h-[50vh] items-center justify-center text-sm text-muted-foreground" role="status">Caricamento…</main>;
   if (a.stato === "anonimo") return p !== "/" && pubblica ? <Outlet /> : <PanoramicaPage />;
   if (legale) return <Outlet />;
