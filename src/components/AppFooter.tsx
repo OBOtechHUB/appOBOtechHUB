@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
-import { Link } from "@tanstack/react-router";
 import { ArrowUp } from "lucide-react";
+import { URL_HUB } from "@/lib/accesso";
 
 /** Fascia ardesia in fondo alla pagina + pulsante tondo "torna su". */
 export function AppFooter() {
@@ -19,9 +19,10 @@ export function AppFooter() {
           <p className="text-base">Calcoli di supporto – da validare da tecnico abilitato</p>
           <p className="mt-1 text-sm text-white/70">Riferimento normativo: CEI EN IEC 62305:2024</p>
           <nav className="mt-6 flex flex-wrap gap-x-3 gap-y-2 text-sm text-white/85" aria-label="Collegamenti legali">
-            <Link to="/contatti" className="hover:text-white">Contatti</Link><span aria-hidden="true">|</span>
-            <Link to="/termini" className="hover:text-white">Termini d'uso</Link><span aria-hidden="true">|</span>
-            <Link to="/privacy" className="hover:text-white">Privacy</Link>
+            <a href={URL_HUB} className="hover:text-white">OBO Hub</a><span aria-hidden="true">|</span>
+            <a href={`${URL_HUB}novita.html`} className="hover:text-white">Novità</a><span aria-hidden="true">|</span>
+            <a href={`${URL_HUB}privacy.html`} className="hover:text-white">Privacy</a><span aria-hidden="true">|</span>
+            <a href={`${URL_HUB}condizioni.html`} className="hover:text-white">Condizioni d'uso</a>
           </nav>
         </div>
       </footer>
