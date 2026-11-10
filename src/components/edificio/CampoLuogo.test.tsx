@@ -12,7 +12,7 @@ afterEach(() => vi.unstubAllGlobals());
 
 describe("campo Comune o indirizzo", () => {
   it("cerca, propone l'elenco e salva comune e coordinate", async () => {
-    const fetchFinto = vi.fn(async () => new Response(JSON.stringify([{ display_name: "Via Roma 1, Bergamo, Italia", lat: "45.6983", lon: "9.6773", address: { city: "Bergamo" } }]), { status: 200 }));
+    const fetchFinto = vi.fn(async (_url: string) => new Response(JSON.stringify([{ display_name: "Via Roma 1, Bergamo, Italia", lat: "45.6983", lon: "9.6773", address: { city: "Bergamo" } }]), { status: 200 }));
     vi.stubGlobal("fetch", fetchFinto);
     const visto = vi.fn();
     render(<Prova visto={visto} />);
