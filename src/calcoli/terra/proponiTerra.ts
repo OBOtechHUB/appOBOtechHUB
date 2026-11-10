@@ -349,14 +349,14 @@ function sub(a: Punto2, b: Punto2): [number, number] { return [a[0] - b[0], a[1]
 /**
  * Lunghezza minima l1 del dispersore (CEI EN IEC 62305-3:2024, Fig. 5), lettura del grafico:
  * classi III-IV 5 m indipendente da ρ; classe I 5 m fino a 500 Ω·m poi lineare fino a 80 m a 3000 Ω·m;
- * classe II 5 m fino a circa 800 Ω·m poi lineare fino a circa 48 m a 3000 Ω·m.
+ * classe II 5 m fino a circa 800 Ω·m poi lineare fino a 50 m a 3000 Ω·m (il grafico si legge tra 48 e 50 m: valore prudente).
  * Oltre 3000 Ω·m la norma consiglia il dispersore di tipo B. Il requisito si può ignorare se R < 10 Ω (tipo A).
  */
 export function l1Norma(lpl: "I" | "II" | "III" | "IV", rho: number): number {
   if (!Number.isFinite(rho) || rho < 0) throw new Error("Resistività non valida");
   const r = Math.min(rho, 3000);
   if (lpl === "I") return r <= 500 ? 5 : 5 + (r - 500) * (75 / 2500);
-  if (lpl === "II") return r <= 800 ? 5 : 5 + (r - 800) * (43 / 2200);
+  if (lpl === "II") return r <= 800 ? 5 : 5 + (r - 800) * (45 / 2200);
   return 5;
 }
 

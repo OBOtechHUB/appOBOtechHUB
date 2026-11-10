@@ -65,7 +65,7 @@ export function GraficoL1({ rho, lpl }: { rho: number | null; lpl: "I" | "II" | 
       <polyline points={curva("I")} fill="none" className="stroke-primary" strokeWidth={lpl === "I" ? 3 : 1.5} />
       <polyline points={curva("II")} fill="none" className="stroke-accent" strokeWidth={lpl === "II" ? 3 : 1.5} />
       <polyline points={curva("III")} fill="none" stroke="currentColor" strokeWidth={lpl === "III" || lpl === "IV" ? 3 : 1.5} />
-      <text x="474" y={Y(80) + 4} style={t}>I</text><text x="474" y={Y(48) + 4} style={t}>II</text><text x="474" y={Y(5) + 4} style={t}>III–IV</text>
+      <text x="474" y={Y(80) + 4} style={t}>I</text><text x="474" y={Y(50) + 4} style={t}>II</text><text x="474" y={Y(5) + 4} style={t}>III–IV</text>
       {punto && <g><circle cx={punto.x} cy={punto.y} r="5" className="fill-primary" /><text x={punto.x + 8} y={punto.y - 8} style={t}>l1 = {punto.l.toLocaleString("it-IT", { maximumFractionDigits: 1 })} m</text></g>}
     </svg>
     <p className="mt-1 text-xs text-muted-foreground">Tipo A: picchetti verticali almeno 0,5·l1, orizzontali almeno l1. Tipo B: raggio equivalente re ≥ l1, altrimenti dispersori aggiuntivi lr = l1 − re (orizzontali) o lv = (l1 − re)/2 (verticali).</p>

@@ -4,7 +4,7 @@ import { useDatiEdificio } from "@/lib/progettoStore";
 import {
   DIMENSIONI_DISPERSORI, LPL, NOMI_CONFIGURAZIONI, NOMI_MATERIALI, PARAMETRI_FULMINE, Q_INDOTTA, RESISTIVITA_SCHERMI, SEZIONI_CAPTATORI_CALATE, SEZIONI_EQUIPOTENZIALI, SPESSORI_LASTRE, USO_MATERIALI,
   cadutaCollegamenti, campoFulmineDiretto, campoFulmineVicino, correnteConduttoriCC, correnteMaxSchermoRame, distanzaImpatto, fattoreSchermatura, ksSchermo, livelloEffettivo,
-  lunghezzaCavoSuolo, raggioSfera, requisitiEsplosione, sezioneMinima, sezioneMinimaSchermo, sezioneTondo, spdFotovoltaico, tensioneIndotta, verificaContattoPasso, verificaSpdDettagliata,
+  lunghezzaCavoSuolo, raggioSfera, requisitiEsplosione, sezioneMinima, sezioneMinimaSchermo, sezioneTondo, spdFotovoltaico, spdFotovoltaicoCommutazione, tensioneIndotta, verificaContattoPasso, verificaSpdDettagliata,
   type Configurazione, type Lpl, type Materiale, type UsoConduttore, type ZonaAtex,
 } from "@/calcoli/norma/strumenti";
 
@@ -127,7 +127,7 @@ export function NormaPage() {
           <p className="mt-1 text-xs text-muted-foreground">Le aste da 176 mm² (Ø 15 mm) si possono ridurre a Ø 9,5 mm × 1 m dove vento e sollecitazioni non sono critiche. I conduttori cordati in Francia non sono ammessi come calate.</p></details>
         <details className="mt-2"><summary className="cursor-pointer text-sm font-medium">Dispersori (Tab. 8)</summary>
           <div className="mt-2"><Tabella testa={["Materiale", "Configurazione", "Ø asta (mm)", "Conduttore (mm²)", "Piastra (mm)"]} righe={DIMENSIONI_DISPERSORI.map((x) => [NOMI_MATERIALI[x.materiale], NOMI_CONFIGURAZIONI[x.configurazione], x.diametro ?? "—", x.sezione ?? "—", x.piastra ?? "—"])} /></div>
-          <p className="mt-1 text-xs text-muted-foreground">Acciaio nudo solo nel calcestruzzo (copriferro ≥ 50 mm). Rame interrato non a contatto con acciaio di pali o tubazioni. Griglie equipotenziali: maglia 250–500 mm, conduttore Ø 4 mm.</p></details>
+          <p className="mt-1 text-xs text-muted-foreground">Acciaio nudo solo nel calcestruzzo (copriferro ≥ 50 mm). Rame interrato non a contatto con acciaio di pali o tubazioni. Griglie equipotenziali: maglia 250–500 mm, conduttore Ø 4 mm. Ammesso anche il profilato in acciaio zincato da 290 mm², spessore 3 mm.</p></details>
         <details className="mt-2"><summary className="cursor-pointer text-sm font-medium">Collegamenti equipotenziali (Tab. 9 e 10)</summary>
           <div className="mt-2"><Tabella testa={["Materiale", "Tra barre o verso i dispersori (mm²)", "Verso corpi metallici interni (mm²)"]} righe={Object.entries(SEZIONI_EQUIPOTENZIALI).map(([m, v]) => [m[0]!.toUpperCase() + m.slice(1), v.traBarre, v.corpiInterni])} /></div></details>
         <details className="mt-2"><summary className="cursor-pointer text-sm font-medium">Lastre e tubazioni come captatori naturali (Tab. 3)</summary>
@@ -235,6 +235,7 @@ export function NormaPage() {
         </div>
         <p className="mt-3 text-sm">Senza distanza di separazione, corrente in ogni conduttore CC: Idc = ILPL · kc / (2 · n') = {p.primoPositivo.I} · {kcFV} / (2 · {nCC}) = <strong>{f(correnteConduttoriCC(lpl, kcFV, nCC), 2)} kA</strong></p>
         <Tabella testa={["SPD limitatori lato CC (Tab. F.1)", "Iimp 10/350 (kA)", "In 8/20 (kA)"]} righe={[["Per polo verso terra (I1 = I2)", fv.singolo.Iimp, fv.singolo.In], ["Totale (I1 + I2)", fv.totale.Iimp, fv.totale.In]]} />
+        <div className="mt-3"><Tabella testa={["SPD a commutazione lato CC (Tab. F.2)", "Iimp 10/350 (kA)"]} righe={[["Per polo verso terra (I1 = I2)", spdFotovoltaicoCommutazione(lpl, calFV).singolo], ["Totale (I1 + I2)", spdFotovoltaicoCommutazione(lpl, calFV).totale]]} /></div>
         <ul className="mt-3 list-disc space-y-1 pl-5 text-sm">
           <li>Distanza di separazione s rispettata: SPD di classe II sul lato CC (In ≥ 5 kA 8/20 con LPL III) per moduli e inverter.</li>
           <li>Distanza non rispettata: SPD di classe I sul lato CC, collegamento equipotenziale tra LPS e telaio e, consigliato, cablaggio CC schermato o in canale metallico collegato alle due estremità.</li>

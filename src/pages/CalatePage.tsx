@@ -37,7 +37,8 @@ export function CalatePage() {
   const ki = sep.ki ?? KI[lpl];
   const km = { aria: KM.aria, solido: sep.kmSolido ?? KM.solido, frp: KM.frp };
   let kc = kcSemplificato(n), erroreKc = "";
-  if (sep.modoKc === "dettagliato") { try { kc = kcDettagliato(n, passo, altezza); } catch (e) { erroreKc = e instanceof Error ? e.message : ""; } }
+  if (sep.kcUno) kc = 1;
+  else if (sep.modoKc === "dettagliato") { try { kc = kcDettagliato(n, passo, altezza); } catch (e) { erroreKc = e instanceof Error ? e.message : ""; } }
   const sTetto = altezza > 0 ? distanzaSeparazione(ki, kc, km.aria, altezza) : NaN;
   const esiti = verificaPunti(sep.punti, ki, kc, km);
   const [msg, setMsg] = useState("");
@@ -85,7 +86,8 @@ export function CalatePage() {
         <div className="mt-4 rounded-lg border-l-4 border-primary bg-muted p-4" role="status">
           <p className="text-lg">kc = <strong>{f(kc, 3)}</strong> · s (in aria, l = h = {f(altezza, 1)} m) = <strong>{f(sTetto, 3)} m</strong></p>
           <p className="mt-1 text-xs text-muted-foreground">{sep.modoKc === "dettagliato" ? `kc = 1/(2n) + 0,1 + 0,2·(c/h)^(1/3) con n = ${n}, c = ${f(passo, 1)} m, h = ${f(altezza, 1)} m` : `kc semplificato per ${n} calate`}{erroreKc && ` · ${erroreKc}`}</p>
-          {sep.modoKc === "dettagliato" && !erroreKc && !kcDettagliatoNelCampo(n, passo, altezza) && <p className="mt-1 text-xs font-medium text-[#b3261e]">Formula valida per almeno 4 calate e per c e h tra 3 e 20 m: fuori da questo campo usa il kc semplificato.</p>}
+          <label className="mt-2 flex items-center gap-2 text-sm"><input type="checkbox" checked={!!sep.kcUno} onChange={(e) => aggiorna({ kcUno: e.target.checked })} />Dispersore di tipo A con resistenze di terra molto diverse tra i picchetti (oltre il doppio): kc = 1</label>
+          {!sep.kcUno && sep.modoKc === "dettagliato" && !erroreKc && !kcDettagliatoNelCampo(n, passo, altezza) && <p className="mt-1 text-xs font-medium text-[#b3261e]">Formula valida per almeno 4 calate e per c e h tra 3 e 20 m: fuori da questo campo usa il kc semplificato.</p>}
         </div>
         <div className="mt-4"><SchemaKc n={n} c={passo} h={altezza} kc={kc} /></div>
       </section>

@@ -7,6 +7,10 @@ import { categorie, type Articolo, type ConfigurazioneComputo, type ModificaRiga
 export type DatiEdificio = {
   nomeProgetto: string;
   comune: string;
+  /** indirizzo o luogo scelto dalla ricerca e sue coordinate (WGS84) */
+  indirizzo?: string | undefined;
+  lat?: number | null | undefined;
+  lon?: number | null | undefined;
   L: number;
   W: number;
   H: number;
@@ -105,7 +109,7 @@ export function useComputo() {
   }, () => computo, () => computoIniziale);
 }
 
-export const edificioSchema = z.object({ nomeProgetto: z.string().max(200), comune: z.string().max(200), L: numero, W: numero, H: numero, copertura: z.string(), materiale: z.string(), impiantiTetto: z.boolean(), posizioneId: z.string(), densita: numero, lplProgetto: z.enum(["I", "II", "III", "IV"]).nullable().default(null) });
+export const edificioSchema = z.object({ nomeProgetto: z.string().max(200), comune: z.string().max(200), indirizzo: z.string().max(400).optional(), lat: z.number().finite().min(-90).max(90).nullable().optional(), lon: z.number().finite().min(-180).max(180).nullable().optional(), L: numero, W: numero, H: numero, copertura: z.string(), materiale: z.string(), impiantiTetto: z.boolean(), posizioneId: z.string(), densita: numero, lplProgetto: z.enum(["I", "II", "III", "IV"]).nullable().default(null) });
 export function leggiStatoBase() { return { edificio: stato, computo }; }
 export function sostituisciStatoBase(d: DatiEdificio, c: DatiComputo) {
   stato = edificioSchema.parse(d); computo = computoSchema.parse(c) as DatiComputo;

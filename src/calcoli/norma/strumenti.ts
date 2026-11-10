@@ -69,7 +69,7 @@ export const DIMENSIONI_DISPERSORI: { materiale: Materiale; configurazione: Conf
 
 /** Spessore minimo delle lastre e tubazioni usate come captatori naturali in mm (62305-3, Tab. 3): t contro la perforazione, t' altrimenti. */
 export const SPESSORI_LASTRE: { materiale: Materiale; t: number | null; t1: number }[] = [
-  { materiale: "piombo", t: null, t1: 2 }, { materiale: "acciaio-zincato", t: 4, t1: 0.5 }, { materiale: "titanio", t: 4, t1: 0.5 },
+  { materiale: "piombo", t: null, t1: 2 }, { materiale: "acciaio-zincato", t: 4, t1: 0.5 }, { materiale: "acciaio-inox", t: 4, t1: 0.5 }, { materiale: "titanio", t: 4, t1: 0.5 },
   { materiale: "rame", t: 5, t1: 0.5 }, { materiale: "alluminio", t: 7, t1: 0.65 }, { materiale: "zinco", t: null, t1: 0.7 },
 ];
 
@@ -242,4 +242,10 @@ export function spdFotovoltaico(lpl: Lpl, calate: number): { singolo: { Iimp: nu
   };
   const r = t[lpl === "IV" ? "III" : lpl][calate >= 4 ? 1 : 0]!;
   return { singolo: { In: r[0], Iimp: r[1] }, totale: { In: r[2], Iimp: r[3] } };
+}
+/** Valori semplificati per SPD a commutazione sul lato CC (Tab. F.2): Iimp 10/350 in kA per I1 = I2 e per I1 + I2 = Itot. */
+export function spdFotovoltaicoCommutazione(lpl: Lpl, calate: number): { singolo: number; totale: number } {
+  const t: Record<"I" | "II" | "III", [number, number, number, number]> = { I: [25, 50, 12.5, 25], II: [18.5, 37.5, 9, 18], III: [12.5, 25, 6.25, 12.5] };
+  const r = t[lpl === "IV" ? "III" : lpl];
+  return calate >= 4 ? { singolo: r[2], totale: r[3] } : { singolo: r[0], totale: r[1] };
 }

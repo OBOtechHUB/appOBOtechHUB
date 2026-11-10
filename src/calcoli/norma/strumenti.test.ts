@@ -2,7 +2,7 @@ import { describe, it, expect } from "vitest";
 import {
   PARAMETRI_FULMINE, raggioSfera, sezioneMinima, sezioneMinimaSchermo, lunghezzaCavoSuolo, correnteMaxSchermoRame, verificaContattoPasso, requisitiEsplosione,
   campoFulmineDiretto, fattoreSchermatura, distanzaImpatto, campoFulmineVicino, cadutaCollegamenti, livelloEffettivo, verificaSpdDettagliata,
-  tensioneIndotta, ksSchermo, correnteConduttoriCC, spdFotovoltaico,
+  tensioneIndotta, ksSchermo, correnteConduttoriCC, spdFotovoltaico, spdFotovoltaicoCommutazione,
 } from "./strumenti";
 
 describe("strumenti CEI EN IEC 62305:2024", () => {
@@ -71,5 +71,7 @@ describe("strumenti CEI EN IEC 62305:2024", () => {
     expect(correnteConduttoriCC("I", 0.44, 4)).toBeCloseTo(11, 9);
     expect(spdFotovoltaico("II", 4).singolo).toEqual({ In: 7.5, Iimp: 3.75 });
     expect(spdFotovoltaico("IV", 2).totale).toEqual({ In: 17, Iimp: 10 });
+    expect(spdFotovoltaicoCommutazione("II", 3)).toEqual({ singolo: 18.5, totale: 37.5 });
+    expect(spdFotovoltaicoCommutazione("IV", 4)).toEqual({ singolo: 6.25, totale: 12.5 });
   });
 });

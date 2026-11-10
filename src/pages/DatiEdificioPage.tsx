@@ -1,3 +1,4 @@
+import { CampoLuogo } from "@/components/edificio/CampoLuogo";
 import { Link, useNavigate } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
 import { aggiornaEsteso } from "@/lib/statoProgetto";
@@ -40,9 +41,7 @@ export function DatiEdificioPage() {
             <Campo etichetta="Nome progetto">
               <input className={inputCls} value={d.nomeProgetto} onChange={(e) => aggiornaDati({ nomeProgetto: e.target.value })} />
             </Campo>
-            <Campo etichetta="Comune">
-              <input className={inputCls} value={d.comune} onChange={(e) => aggiornaDati({ comune: e.target.value })} />
-            </Campo>
+            <CampoLuogo valore={{ comune: d.comune, indirizzo: d.indirizzo, lat: d.lat, lon: d.lon }} onChange={(v) => aggiornaDati({ comune: v.comune, indirizzo: v.indirizzo, lat: v.lat ?? null, lon: v.lon ?? null })} />
           </section>
           <section className="grid grid-cols-3 gap-3">
             {(["L", "W", "H"] as const).map((k) => (

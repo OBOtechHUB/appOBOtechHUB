@@ -15,6 +15,8 @@ export type Esito = "C" | "NC" | "NA" | "";
 export interface Intervalli { visiva: number; completa: number; critica: number }
 /** Anni tra le verifiche (D.7.2.2): a vista, completa, completa per sistemi critici. Uguali per tutte le classi. */
 const INTERVALLI_2024: Intervalli = { visiva: 1, completa: 3, critica: 1 };
+/** Condizioni ambientali severe (D.7.2.2): a vista ogni 6 mesi, completa ogni anno. */
+export const INTERVALLI_SEVERI: Intervalli = { visiva: 0.5, completa: 1, critica: 1 };
 export const INTERVALLI_TIPICI: Record<Livello, Intervalli> = { I: INTERVALLI_2024, II: INTERVALLI_2024, III: INTERVALLI_2024, IV: INTERVALLI_2024 };
 
 export interface VoceChecklist { id: string; sezione: string; testo: string; soloCompleta?: boolean }
@@ -69,8 +71,11 @@ export function riepilogo(v: Verifica): Riepilogo {
 /** Somma anni a una data ISO (AAAA-MM-GG), restando sull'ultimo giorno del mese se serve. */
 export function aggiungiAnni(dataIso: string, anni: number): string {
   const [a, m, g] = dataIso.split("-").map(Number) as [number, number, number];
-  const ultimo = new Date(Date.UTC(a + anni, m, 0)).getUTCDate();
-  return `${a + anni}-${String(m).padStart(2, "0")}-${String(Math.min(g, ultimo)).padStart(2, "0")}`;
+  // anche frazioni di anno (0,5 = 6 mesi), contate in mesi
+  const mesi = (m - 1) + Math.round(anni * 12);
+  const anno = a + Math.floor(mesi / 12), mese = (mesi % 12) + 1;
+  const ultimo = new Date(Date.UTC(anno, mese, 0)).getUTCDate();
+  return `${anno}-${String(mese).padStart(2, "0")}-${String(Math.min(g, ultimo)).padStart(2, "0")}`;
 }
 
 export interface Scadenze { visiva: string | null; completa: string | null }

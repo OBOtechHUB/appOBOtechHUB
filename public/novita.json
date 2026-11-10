@@ -2,6 +2,31 @@
   "nota": "Registro degli aggiornamenti di Progettazione LPS. Una voce per aggiornamento, la più recente per prima (app: lps). Viene mostrato nella barra \"Aggiorna app\", nel riquadro Novità e nella pagina Novità di OBO Hub.",
   "aggiornamenti": [
     {
+      "id": "2026-11-10-lps-2",
+      "data": "2026-11-10",
+      "app": "lps",
+      "titolo": "Comune e indirizzo con ricerca, posizione e Google Maps",
+      "titolo_en": "Municipality and address with search, location and Google Maps",
+      "voci": [
+        "Dati edificio: scrivi l'indirizzo o il comune e scegli dall'elenco, oppure premi \"La mia posizione\"",
+        "Vista satellitare di Google Maps dell'edificio e collegamenti \"Apri in Google Maps\" e \"Apri in Google Earth\"",
+        "Coordinate salvate nel progetto e riportate nella relazione; la mappa dell'Edificio 3D si apre già sul posto",
+        "Verifiche: spunta \"Condizioni ambientali severe\" (a vista ogni 6 mesi, completa ogni anno)",
+        "Calate: opzione kc = 1 per dispersori di tipo A con resistenze molto diverse",
+        "Fotovoltaico: aggiunti i valori per SPD a commutazione (Tab. F.2)",
+        "SPD: avviso quando si sceglie la categoria di tenuta III o IV"
+      ],
+      "voci_en": [
+        "Building data: type the address or municipality and pick from the list, or press \"My location\"",
+        "Google Maps satellite view of the building and \"Open in Google Maps\" / \"Open in Google Earth\" links",
+        "Coordinates saved in the project and shown in the report; the 3D Building map opens on the site",
+        "Inspections: \"Severe environmental conditions\" tick (visual every 6 months, complete every year)",
+        "Down conductors: kc = 1 option for type A earthing with very different resistances",
+        "Photovoltaics: values for switching SPDs added (Table F.2)",
+        "SPD: warning when withstand category III or IV is chosen"
+      ]
+    },
+    {
       "id": "2026-11-10-lps-1",
       "data": "2026-11-10",
       "app": "lps",
