@@ -8,7 +8,7 @@
       "titolo": "Comune e indirizzo con ricerca, posizione e Google Maps",
       "titolo_en": "Municipality and address with search, location and Google Maps",
       "voci": [
-        "Dati edificio: scrivi l'indirizzo o il comune e scegli dall'elenco, oppure premi \"La mia posizione\"",
+        "Dati edificio: scrivi l'indirizzo o il comune e scegli dall'elenco (suggerimenti gratuiti da Photon, dati OpenStreetMap), oppure premi \"La mia posizione\"",
         "Vista satellitare di Google Maps dell'edificio e collegamenti \"Apri in Google Maps\" e \"Apri in Google Earth\"",
         "Coordinate salvate nel progetto e riportate nella relazione; la mappa dell'Edificio 3D si apre già sul posto",
         "Verifiche: spunta \"Condizioni ambientali severe\" (a vista ogni 6 mesi, completa ogni anno)",
@@ -17,7 +17,7 @@
         "SPD: avviso quando si sceglie la categoria di tenuta III o IV"
       ],
       "voci_en": [
-        "Building data: type the address or municipality and pick from the list, or press \"My location\"",
+        "Building data: type the address or municipality and pick from the list (free suggestions from Photon, OpenStreetMap data), or press \"My location\"",
         "Google Maps satellite view of the building and \"Open in Google Maps\" / \"Open in Google Earth\" links",
         "Coordinates saved in the project and shown in the report; the 3D Building map opens on the site",
         "Inspections: \"Severe environmental conditions\" tick (visual every 6 months, complete every year)",

@@ -68,7 +68,7 @@ export function CampoLuogo({ valore, onChange }: { valore: ValoreLuogo; onChange
         </ul>}
       </div>
     </Campo>
-    <p role="status" className="mt-1 text-xs text-muted-foreground">{msg || (cerco ? "Ricerca…" : `Scrivi almeno 3 lettere e scegli dall'elenco, oppure usa la posizione del dispositivo. Ricerca: ${fornitoreGeo()}.`)}</p>
+    <p role="status" className="mt-1 text-xs text-muted-foreground">{msg || (cerco ? "Ricerca…" : `Scrivi almeno 3 lettere e scegli dall'elenco, oppure usa la posizione del dispositivo. Ricerca: ${fornitoreGeo()}.`)}{fornitoreGeo() !== "Google Maps" && <> Dati © <a className="underline" href="https://www.openstreetmap.org/copyright" target="_blank" rel="noreferrer">contributori OpenStreetMap</a>.</>}</p>
     {haPosizione && <div className="mt-3 rounded-lg border-[0.8px] border-bordo-scheda p-3">
       <div className="flex flex-wrap items-center justify-between gap-2 text-sm">
         <p><strong>{valore.comune || "Comune non indicato"}</strong> · <span className="font-mono">{valore.lat!.toFixed(5)}, {valore.lon!.toFixed(5)}</span></p>

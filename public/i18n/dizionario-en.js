@@ -697,5 +697,7 @@ window.OBO_EN = {
 "Condizioni ambientali severe": "Severe environmental conditions",
 "Dispersore di tipo A con resistenze di terra molto diverse tra i picchetti (oltre il doppio): kc = 1": "Type A earthing with very different earth resistances between rods (more than double): kc = 1",
 "La regola n. 1 si riferisce agli apparecchi di categoria II (2,5 kV): usa III o IV solo se a valle non ci sono apparecchi di categoria I o II.": "Rule no. 1 refers to category II equipment (2.5 kV): use III or IV only if no category I or II equipment is downstream.",
-"SPD a commutazione lato CC (Tab. F.2)": "DC side switching SPDs (Table F.2)"
+"SPD a commutazione lato CC (Tab. F.2)": "DC side switching SPDs (Table F.2)",
+" Dati © ": " Data © ",
+"contributori OpenStreetMap": "OpenStreetMap contributors"
 };

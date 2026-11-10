@@ -12,14 +12,14 @@ afterEach(() => vi.unstubAllGlobals());
 
 describe("campo Comune o indirizzo", () => {
   it("cerca, propone l'elenco e salva comune e coordinate", async () => {
-    const fetchFinto = vi.fn(async (_url: string) => new Response(JSON.stringify([{ display_name: "Via Roma 1, Bergamo, Italia", lat: "45.6983", lon: "9.6773", address: { city: "Bergamo" } }]), { status: 200 }));
+    const fetchFinto = vi.fn(async (_url: string) => new Response(JSON.stringify({ features: [{ geometry: { coordinates: [9.6773, 45.6983] }, properties: { street: "Via Roma", housenumber: "1", city: "Bergamo", country: "Italia" } }] }), { status: 200 }));
     vi.stubGlobal("fetch", fetchFinto);
     const visto = vi.fn();
     render(<Prova visto={visto} />);
     fireEvent.change(screen.getByRole("combobox"), { target: { value: "via roma 1 bergamo" } });
     expect(visto).toHaveBeenLastCalledWith({ comune: "via roma 1 bergamo", indirizzo: undefined, lat: null, lon: null }); // a mano vale come comune
     const voce = await waitFor(() => screen.getByRole("option"), { timeout: 3000 });
-    expect(String(fetchFinto.mock.calls[0]![0])).toContain("nominatim.openstreetmap.org/search");
+    expect(String(fetchFinto.mock.calls[0]![0])).toContain("photon.komoot.io/api");
     fireEvent.click(voce.querySelector("button")!);
     expect(visto).toHaveBeenLastCalledWith({ comune: "Bergamo", indirizzo: "Via Roma 1, Bergamo, Italia", lat: 45.6983, lon: 9.6773 });
     await waitFor(() => expect(screen.getByText("Apri in Google Maps")).toBeInTheDocument());
@@ -28,7 +28,7 @@ describe("campo Comune o indirizzo", () => {
   });
 
   it("senza risultati avvisa e lascia scrivere il comune a mano", async () => {
-    vi.stubGlobal("fetch", vi.fn(async () => new Response("[]", { status: 200 })));
+    vi.stubGlobal("fetch", vi.fn(async () => new Response(JSON.stringify({ features: [] }), { status: 200 })));
     render(<Prova visto={() => undefined} />);
     fireEvent.change(screen.getByRole("combobox"), { target: { value: "xyzxyz" } });
     await waitFor(() => expect(screen.getByText(/Nessun luogo trovato/)).toBeInTheDocument(), { timeout: 3000 });

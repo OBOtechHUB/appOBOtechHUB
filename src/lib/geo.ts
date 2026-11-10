@@ -1,12 +1,28 @@
 /**
  * Ricerca di indirizzi e comuni e posizione sulla mappa.
- * - Con la chiave VITE_GOOGLE_MAPS_KEY usa Google Maps (Geocoding API); senza chiave usa OpenStreetMap (Nominatim).
+ * - Con la chiave VITE_GOOGLE_MAPS_KEY usa Google Maps (Geocoding API).
+ * - Senza chiave i suggerimenti mentre si scrive arrivano da Photon (gratuito, dati OpenStreetMap, pensato per la ricerca
+ *   durante la digitazione). Nominatim non va usato per i suggerimenti (regole d'uso OSMF): resta solo per la ricerca
+ *   dalla posizione del dispositivo, una richiesta alla volta.
  * - I collegamenti e l'anteprima satellitare di Google Maps e Google Earth non richiedono chiavi.
  */
 export interface Luogo { etichetta: string; comune: string; lat: number; lon: number }
 
 const CHIAVE_GOOGLE = (import.meta.env["VITE_GOOGLE_MAPS_KEY"] as string | undefined) || "";
-export const fornitoreGeo = (): "Google Maps" | "OpenStreetMap" => (CHIAVE_GOOGLE ? "Google Maps" : "OpenStreetMap");
+export const fornitoreGeo = (): "Google Maps" | "Photon (OpenStreetMap)" => (CHIAVE_GOOGLE ? "Google Maps" : "Photon (OpenStreetMap)");
+
+interface VocePhoton { geometry?: { coordinates?: [number, number] }; properties?: Record<string, string | undefined> }
+/** Converte una voce di Photon (GeoJSON, coordinate [lon, lat]). */
+export function daPhoton(v: VocePhoton): Luogo | null {
+  const [lon, lat] = v.geometry?.coordinates ?? [NaN, NaN];
+  if (!Number.isFinite(lat) || !Number.isFinite(lon)) return null;
+  const p = v.properties ?? {};
+  const comune = p["city"] ?? p["town"] ?? p["village"] ?? p["district"] ?? p["county"] ?? "";
+  const via = [p["street"], p["housenumber"]].filter(Boolean).join(" ");
+  const nome = p["name"] && p["name"] !== p["street"] ? p["name"] : "";
+  const parti = [nome, via, [p["postcode"], comune].filter(Boolean).join(" "), p["state"], p["country"]].filter((x, i, a) => x && a.indexOf(x) === i);
+  return { etichetta: parti.join(", ") || `${lat.toFixed(5)}, ${lon.toFixed(5)}`, comune, lat, lon };
+}
 
 interface VoceOsm { display_name?: string; lat?: string; lon?: string; address?: Record<string, string> }
 /** Converte una voce di Nominatim; il comune è city, town, village o municipality. */
@@ -42,9 +58,12 @@ export async function cercaLuoghi(testo: string, segnale?: AbortSignal): Promise
     if (j.status && j.status !== "OK" && j.status !== "ZERO_RESULTS") throw new Error("Ricerca non disponibile");
     return (j.results ?? []).map(daGoogle).filter((x): x is Luogo => x !== null).slice(0, 5);
   }
-  const r = await fetch(`https://nominatim.openstreetmap.org/search?format=jsonv2&addressdetails=1&limit=5&accept-language=${lingua()}&q=${encodeURIComponent(q)}`, opz);
+  // Photon: suggerimenti durante la digitazione, risultati vicini all'Italia per primi
+  const lang = lingua() === "en" ? "en" : "default";
+  const r = await fetch(`https://photon.komoot.io/api/?q=${encodeURIComponent(q)}&limit=5&lang=${lang}&lat=42.5&lon=12.5`, opz);
   if (!r.ok) throw new Error("Ricerca non disponibile");
-  return ((await r.json()) as VoceOsm[]).map(daOsm).filter((x): x is Luogo => x !== null);
+  const j = (await r.json()) as { features?: VocePhoton[] };
+  return (j.features ?? []).map(daPhoton).filter((x): x is Luogo => x !== null);
 }
 
 /** Indirizzo e comune da una coordinata (es. la posizione del dispositivo). */
