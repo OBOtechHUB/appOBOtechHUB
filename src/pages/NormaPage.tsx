@@ -63,7 +63,7 @@ export function NormaPage() {
   const dir = campoFulmineDiretto(I0, wm, Math.max(0.01, Math.min(Ls, Ws) / 2), Hs / 2, rete);
   const dirParete = campoFulmineDiretto(I0, wm, Math.max(wm, 0.01), Hs / 2, rete);
   const SF25 = fattoreSchermatura(mats, wm, rc, "25kHz", rete), SF1 = fattoreSchermatura(mats, wm, rc, "1MHz", rete);
-  const sa = distanzaImpatto(raggioSfera(I0 / 1000), Hs, Math.max(Ls, Ws));
+  const sa = distanzaImpatto(raggioSfera(I0 / 1000), Hs, Math.min(Ls, Ws)); // caso peggiore: distanza minima
   const vicPos = campoFulmineVicino(I0, sa, SF25, wm), vicSucc = campoFulmineVicino(p.successivo.I * 1000, sa, SF1, wm);
   // spd
   const [Up, setUp] = useState(1.5), [Ispd, setIspd] = useState(5), [lungh, setLungh] = useState(0.5), [tipoSpd, setTipoSpd] = useState<"limitatore" | "commutazione">("limitatore"), [UwS, setUwS] = useState(2.5), [Ui, setUi] = useState(0), [kr, setKr] = useState(2);

@@ -89,6 +89,7 @@ export function RischioPage() {
     </div></section>
     <main className="mx-auto max-w-5xl px-4 py-8">
       <p className="rounded-lg border-l-4 border-primary bg-muted p-3 text-sm">Metodo dell'edizione 2024 con i valori tipici degli Allegati A, B, C ed E. Il numero di eventi è comune a tutta la struttura; probabilità, perdite e SPD si scelgono per ogni zona e ogni zona va confrontata da sola con RT e FT. Se il danno può coinvolgere l'ambiente circostante, la zona aggiunge le perdite esterne LE.</p>
+      <p className="mt-2 text-xs text-muted-foreground">Condizioni della norma applicate dal calcolo: senza LPS gli SPD non riducono il rischio per fulmine sulla struttura (RC) e le misure contro contatto e passo non contano; nelle zone con rischio di esplosione la protezione antincendio non riduce il rischio (rp = 1) e i guasti degli impianti contano sempre per le vite umane.</p>
 
       <section className="mt-8" aria-label="Struttura">
         <h2 className="text-[1.7rem] font-medium">1 · Struttura</h2>

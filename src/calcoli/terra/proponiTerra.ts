@@ -362,14 +362,17 @@ export function l1Norma(lpl: "I" | "II" | "III" | "IV", rho: number): number {
 
 /**
  * Verifica con la lunghezza minima l1 (dal grafico della norma, in funzione di resistività e LPL).
- * Tipo A: ogni picchetto verticale ≥ 0,5·l1. Tipo B / fondazione: raggio equivalente re ≥ l1.
+ * Tipo A: almeno 2 dispersori, ogni picchetto verticale ≥ 0,5·l1 + 0,5 m (la parte alta non lavora con gelo o terreno secco, 5.4.3).
+ * Tipo B / fondazione: raggio equivalente re ≥ l1.
  */
 export function verificaTerra(p: PropostaTerra, l1: number | null): { esito: "adeguata" | "non adeguata" | "dato norma mancante"; dettaglio: string } {
   if (l1 == null) return { esito: "dato norma mancante", dettaglio: "Lunghezza minima l1 non impostata (Dati normativi)" };
   if (p.riepilogo.tipo === "A") {
     const min = Math.min(...p.picchetti.map((q) => q.lunghezza));
-    const ok = min >= 0.5 * l1 - 1e-9;
-    return { esito: ok ? "adeguata" : "non adeguata", dettaglio: `Picchetto più corto ${min.toFixed(2)} m, richiesto ≥ 0,5·l1 = ${(0.5 * l1).toFixed(2)} m` };
+    const richiesto = 0.5 * l1 + 0.5;
+    if (p.picchetti.length < 2) return { esito: "non adeguata", dettaglio: "Il dispersore di tipo A richiede almeno 2 elementi" };
+    const ok = min >= richiesto - 1e-9;
+    return { esito: ok ? "adeguata" : "non adeguata", dettaglio: `Picchetto più corto ${min.toFixed(2)} m, richiesto ≥ 0,5·l1 + 0,5 = ${richiesto.toFixed(2)} m` };
   }
   const re = p.riepilogo.raggioEquivalente;
   const ok = re >= l1 - 1e-9;

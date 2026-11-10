@@ -98,8 +98,8 @@ export const CONNESSIONI: Connessione[] = [
   { id: "sch-int-nc", nome: "Schermata interrata, schermo non collegato alla barra delle apparecchiature", CLD: 1, CLI: 0.3 },
   { id: "sch-aer-nc", nome: "Schermata aerea, schermo non collegato alla barra delle apparecchiature", CLD: 1, CLI: 0.1 },
   { id: "sch-coll", nome: "Schermata, schermo collegato alla barra delle apparecchiature", CLD: 1, CLI: 0, schermoCollegato: true },
-  { id: "cavo-protezione", nome: "Cavo di protezione o condotto per la protezione dei cavi contro il fulmine", CLD: 0, CLI: 0 },
-  { id: "interfaccia", nome: "Interfacce di separazione (CEI EN IEC 62305-4)", CLD: 0, CLI: 0 },
+  { id: "cavo-protezione", nome: "Cavo di protezione o condotto per la protezione dei cavi contro il fulmine (impianto interno schermato)", CLD: 0, CLI: 0 },
+  { id: "interfaccia", nome: "Interfacce di separazione protette da SPD o con tenuta provata (CEI EN IEC 62305-4)", CLD: 0, CLI: 0 },
   { id: "nessuna", nome: "Nessuna linea metallica (fibra ottica)", CLD: 0, CLI: 0 },
 ];
 /** KS3 (Tab. B.10): cablaggio interno. */
@@ -282,7 +282,7 @@ export function calcolaZone(st: Struttura, zone: Zona[], p: Protezione): EsitoSt
     const NI = (1 / k) * NSG * 2 * rI * LC * 1e-6;
     const NDJ = l.adiacente ? NSG * areaRaccolta(l.adiacente.L, l.adiacente.W, l.adiacente.H) * l.adiacente.CDJ * l.tipo * 1e-6 : 0;
     const conn = CONNESSIONI.find((c) => c.id === l.connessione) ?? (l.schermata ? CONNESSIONI.find((c) => c.id === "sch-coll")! : CONNESSIONI[0]!);
-    const sch: Schermatura = conn.schermoCollegato ? (l.schermatura && l.schermatura !== "no" ? l.schermatura : "1-5") : "no";
+    const sch: Schermatura = conn.schermoCollegato ? (l.schermatura && l.schermatura !== "no" ? l.schermatura : "5-20") : "no";
     return { NL, NI, NDJ, CLD: conn.CLD, CLI: conn.CLI, PLD: probabilitaPLD(sch, Uw) };
   });
   const NL = linee.reduce((a, l) => a + l.NL, 0), NI = linee.reduce((a, l) => a + l.NI, 0), NDJ = linee.reduce((a, l) => a + l.NDJ, 0);
@@ -294,7 +294,7 @@ export function calcolaZone(st: Struttura, zone: Zona[], p: Protezione): EsitoSt
     const PP = Math.min(1, Math.max(0, z.oreAnno / 8760));
     const Pe = Math.min(1, Math.max(0, (z.oreApparecchi ?? 8760) / 8760));
     const LF1 = cat.LF, LF2 = conL2 ? cat.LF : 0;
-    const LO1 = z.impiantiCritici ? cat.LO : 0, LO2 = conL2 && esplosione ? cat.LO : 0;
+    const LO1 = z.impiantiCritici || esplosione ? cat.LO : 0, LO2 = conL2 && esplosione ? cat.LO : 0;
     const LD = z.LD ?? 1e-1;
     const servite = linee.filter((_, i) => z.linee == null || z.linee.includes(i));
     const spd: ClasseLps = z.spd ?? p.spd;
@@ -305,10 +305,17 @@ export function calcolaZone(st: Struttura, zone: Zona[], p: Protezione): EsitoSt
     const LF1E = l1e.LF1E, LO1E = z.impiantiCritici || esplosione ? l1e.LO1E : 0;
     const LF2E = amb && conL2 ? amb.LF2E : 0, LO2E = amb && conL2 && esplosione ? amb.LO2E : 0;
 
-    const PAT = plps * z.misureContatto * z.rt * PTWS;
-    const PAD = PTWS * z.misureContatto * plps;
-    const PB = PS * plps * z.rp * rf;
-    const PC = 1 - servite.reduce((a, l) => a * (1 - pspd * l.CLD), 1);
+    // Senza LPS (nemmeno naturale) le misure contro contatto e passo non riducono PAT (B.2, Nota 2)
+    // e gli SPD coordinati non riducono PC (B.5, Nota 1).
+    const conLps = p.lps !== "nessuno";
+    const pam = conLps ? z.misureContatto : 1;
+    const pspdC = conLps ? pspd : 1;
+    // Nelle zone con rischio di esplosione rp = 1 (B.4, sotto la Tab. B.5)
+    const rp = esplosione ? 1 : z.rp;
+    const PAT = plps * pam * z.rt * PTWS;
+    const PAD = PTWS * pam * plps;
+    const PB = PS * plps * rp * rf;
+    const PC = 1 - servite.reduce((a, l) => a * (1 - pspdC * l.CLD), 1);
     const PM = pspd * pms(z);
 
     const RA = z.esterna ? ND * PAT * PP * LT : 0;
@@ -323,7 +330,7 @@ export function calcolaZone(st: Struttura, zone: Zona[], p: Protezione): EsitoSt
     for (const l of servite) {
       const n = l.NL + l.NDJ;
       const PU = z.misureContatto * peb * l.PLD * PTWS * l.CLD * z.rt;
-      const PV = peb * l.PLD * PTWS * l.CLD * z.rp * rf;
+      const PV = peb * l.PLD * PTWS * l.CLD * rp * rf;
       const PW = pspd * PTWS * l.PLD * l.CLD;
       const PZ = pspd * PTWS * l.CLI;
       RU += n * PU * PP * LT;

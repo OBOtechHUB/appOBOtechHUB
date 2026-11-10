@@ -2,7 +2,34 @@
   "nota": "Registro degli aggiornamenti di Progettazione LPS. Una voce per aggiornamento, la più recente per prima (app: lps). Viene mostrato nella barra \"Aggiorna app\", nel riquadro Novità e nella pagina Novità di OBO Hub.",
   "aggiornamenti": [
     {
-      "id": "2026-11-09-lps-5", "data": "2026-11-09", "app": "lps",
+      "id": "2026-11-10-lps-1",
+      "data": "2026-11-10",
+      "app": "lps",
+      "titolo": "Controllo indipendente con la norma: correzioni",
+      "titolo_en": "Independent check against the standard: corrections",
+      "voci": [
+        "Tutti i valori di tabella e le formule sono stati riletti sulla CEI EN IEC 62305:2024: circa 500 confermati",
+        "Rischio: senza LPS gli SPD non riducono più il rischio per fulmine sulla struttura e le misure contro il contatto non contano",
+        "Rischio: nelle zone con rischio di esplosione la protezione antincendio non riduce il rischio e i guasti degli impianti contano sempre",
+        "Rischio: schermo della linea senza resistenza indicata calcolato con il valore più prudente",
+        "SPD: nei sistemi TT e TN-C-S la corrente si divide sui conduttori che entrano davvero (4 in trifase): Iimp per polo più alta di prima",
+        "Terra: i picchetti del tipo A devono essere almeno 2 e lunghi 0,5·l1 + 0,5 m",
+        "Calate: avviso quando la formula dettagliata di kc è usata fuori dal suo campo di validità"
+      ],
+      "voci_en": [
+        "All table values and formulas re-read against IEC 62305:2024: about 500 confirmed",
+        "Risk: without an LPS, SPDs no longer reduce the risk from flashes to the structure and touch-voltage measures do not count",
+        "Risk: in zones with explosion risk fire protection does not reduce the risk and failures of internal systems always count",
+        "Risk: line shield without stated resistance calculated with the most cautious value",
+        "SPD: in TT and TN-C-S systems the current is shared by the conductors actually entering (4 for three-phase): higher Iimp per pole than before",
+        "Earthing: type A rods must be at least 2 and 0.5·l1 + 0.5 m long",
+        "Down conductors: warning when the detailed kc formula is used outside its validity range"
+      ]
+    },
+    {
+      "id": "2026-11-09-lps-5",
+      "data": "2026-11-09",
+      "app": "lps",
       "titolo": "Nuova pagina \"Norma 62305: calcoli e tabelle\"",
       "titolo_en": "New page \"IEC 62305: calculations and tables\"",
       "voci": [
@@ -25,7 +52,9 @@
       ]
     },
     {
-      "id": "2026-11-09-lps-4", "data": "2026-11-09", "app": "lps",
+      "id": "2026-11-09-lps-4",
+      "data": "2026-11-09",
+      "app": "lps",
       "titolo": "Analisi del rischio: SPD per zona e danni all'ambiente circostante",
       "titolo_en": "Risk assessment: per-zone SPDs and damage to the surroundings",
       "voci": [
@@ -40,7 +69,9 @@
       ]
     },
     {
-      "id": "2026-11-09-lps-3", "data": "2026-11-09", "app": "lps",
+      "id": "2026-11-09-lps-3",
+      "data": "2026-11-09",
+      "app": "lps",
       "titolo": "Analisi del rischio con più zone (edizione 2024)",
       "titolo_en": "Multi-zone risk assessment (2024 edition)",
       "voci": [
@@ -57,7 +88,9 @@
       ]
     },
     {
-      "id": "2026-11-09-lps-2", "data": "2026-11-09", "app": "lps",
+      "id": "2026-11-09-lps-2",
+      "data": "2026-11-09",
+      "app": "lps",
       "titolo": "Aiuti \"?\" aggiornati alla CEI EN IEC 62305:2024",
       "titolo_en": "\"?\" help updated to IEC 62305:2024",
       "voci": [
@@ -70,7 +103,9 @@
       ]
     },
     {
-      "id": "2026-11-09-lps-1", "data": "2026-11-09", "app": "lps",
+      "id": "2026-11-09-lps-1",
+      "data": "2026-11-09",
+      "app": "lps",
       "titolo": "Amministrazione e visitatori",
       "titolo_en": "Administration and visitors",
       "voci": [

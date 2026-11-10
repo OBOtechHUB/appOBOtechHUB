@@ -148,4 +148,25 @@ describe("rischio – CEI EN IEC 62305-2:2024", () => {
     const uguale = { ...st, linee: [{ ...l0, sezioni: [{ lunghezza: 1000, posa: 0.3, ambiente: 0.5, tipo: 1 }] }] };
     expect(calcolaZone(uguale, [zona], { lps: "nessuno", spd: "nessuno" }).NL).toBeCloseTo(unica.NL, 15);
   });
+
+  it("condizioni della norma: SPD e misure di contatto valgono solo con LPS, rp = 1 e LO1 con rischio di esplosione", () => {
+    const { st, zona } = zonaUnica(base);
+    const critica: Zona = { ...zona, impiantiCritici: true, misureContatto: 1e-2 };
+    // B.5 Nota 1: senza LPS gli SPD non riducono PC (RC invariato); con LPS sì
+    const senza = calcolaZone(st, [critica], { lps: "nessuno", spd: "nessuno" }).zone[0]!;
+    const soloSpd = calcolaZone(st, [critica], { lps: "nessuno", spd: "I" }).zone[0]!;
+    expect(soloSpd.componenti.RC).toBeCloseTo(senza.componenti.RC, 15);
+    expect(soloSpd.componenti.RM).toBeLessThan(senza.componenti.RM);
+    const conLps = calcolaZone(st, [critica], { lps: "IV", spd: "I" }).zone[0]!;
+    expect(conLps.componenti.RC).toBeLessThan(senza.componenti.RC);
+    // B.2 Nota 2: senza LPS le misure contro il contatto non riducono RA
+    expect(senza.componenti.RA).toBeCloseTo(calcolaZone(st, [{ ...critica, misureContatto: 1 }], { lps: "nessuno", spd: "nessuno" }).zone[0]!.componenti.RA, 15);
+    // rp = 1 nelle zone con rischio di esplosione, anche se è stata scelta una protezione antincendio
+    const esp: Zona = { ...zona, rfId: "esplosione", rp: 0.2 };
+    const espSenzaRp: Zona = { ...esp, rp: 1 };
+    const a = calcolaZone(st, [esp], { lps: "nessuno", spd: "nessuno" }).zone[0]!;
+    expect(a.componenti.RB).toBeCloseTo(calcolaZone(st, [espSenzaRp], { lps: "nessuno", spd: "nessuno" }).zone[0]!.componenti.RB, 15);
+    expect(a.componenti.RC).toBeGreaterThan(0); // LO1 si applica anche senza la spunta "impianti critici"
+  });
 });
+

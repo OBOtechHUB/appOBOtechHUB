@@ -45,6 +45,11 @@ export function kcDettagliato(n: number, c: number, h: number): number {
   return Math.min(1, Math.max(1 / n, k));
 }
 
+/** La formula dettagliata è un'approssimazione valida per n ≥ 4 e per c e h tra 3 m e 20 m (Fig. B.2). */
+export function kcDettagliatoNelCampo(n: number, c: number, h: number): boolean {
+  return n >= 4 && c >= 3 && c <= 20 && h >= 3 && h <= 20;
+}
+
 export function distanzaSeparazione(ki: number, kc: number, km: number, l: number): number {
   if (![ki, kc, km, l].every((v) => Number.isFinite(v) && v >= 0) || km === 0) throw new Error("Coefficienti non validi.");
   return (ki * kc / km) * l;

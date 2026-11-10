@@ -672,5 +672,10 @@ window.OBO_EN = {
 "Tutte le novità": "All updates",
 "Ho capito": "Got it",
 "…e altro": "…and more",
-"Novità": "What's new"
+"Novità": "What's new",
+"Condizioni della norma applicate dal calcolo: senza LPS gli SPD non riducono il rischio per fulmine sulla struttura (RC) e le misure contro contatto e passo non contano; nelle zone con rischio di esplosione la protezione antincendio non riduce il rischio (rp = 1) e i guasti degli impianti contano sempre per le vite umane.": "Conditions of the standard applied by the calculation: without an LPS, SPDs do not reduce the risk from flashes to the structure (RC) and touch and step measures do not count; in zones with explosion risk fire protection does not reduce the risk (rp = 1) and failures of internal systems always count for human life.",
+"Formula valida per almeno 4 calate e per c e h tra 3 e 20 m: fuori da questo campo usa il kc semplificato.": "Formula valid for at least 4 down conductors and for c and h between 3 and 20 m: outside this range use the simplified kc.",
+"Cavo di protezione o condotto per la protezione dei cavi contro il fulmine (impianto interno schermato)": "Lightning protection cable or cable duct (shielded internal system)",
+"Interfacce di separazione protette da SPD o con tenuta provata (CEI EN IEC 62305-4)": "Isolating interfaces protected by SPDs or with proven withstand (IEC 62305-4)",
+"Il dispersore di tipo A richiede almeno 2 elementi": "Type A earthing requires at least 2 electrodes"
 };
