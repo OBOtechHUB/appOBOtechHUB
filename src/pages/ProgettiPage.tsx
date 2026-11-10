@@ -1,4 +1,4 @@
-import { useRef,useState } from "react";
+import { useEffect,useRef,useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { useQueryClient,useSuspenseQuery } from "@tanstack/react-query";
 import { Plus,FolderOpen,Copy,Trash2,Download,Upload } from "lucide-react";
@@ -18,6 +18,8 @@ export function ProgettiPage(){
   async function azione(fn:()=>Promise<void>){setBusy(true);setErrore("");try{await fn();}catch(e){setErrore(e instanceof Error?e.message:"Operazione non riuscita.");}finally{setBusy(false);}}
   async function aggiorna(p=pagina){setLista(await elenca({data:{pagina:p}}));setPagina(p);void qc.invalidateQueries({queryKey:["progetti"]});}
   async function apri(id:string){await salvaAttivo();const p=await leggi({data:{id}});caricaSnapshot(p.dati);impostaAttivo({id:p.id,codice:p.codice,nome:p.nome,proprietario:p.utente,salvato:JSON.stringify(snapshot())});await navigate({to:"/strumenti"});}
+  // ?apri=<id> (dalla ricerca di OBO Hub): apre subito il progetto
+  useEffect(()=>{const id=new URLSearchParams(window.location.search).get("apri");if(id&&/^[0-9a-f-]{36}$/i.test(id)){window.history.replaceState(null,"",window.location.pathname);void azione(()=>apri(id));}},[]);// eslint-disable-line react-hooks/exhaustive-deps
   return <main className="mx-auto max-w-5xl px-4 py-8"><h1 className="font-display text-2xl font-bold">I miei progetti</h1>
     <div className="mt-5 grid items-end gap-3 sm:grid-cols-[1fr_2fr_auto]"><Campo etichetta="Numero progetto CRM"><input className={inputCls} maxLength={100} placeholder="Es. P-2026-0142" value={codice} onChange={(e)=>setCodice(e.target.value.trim())}/></Campo><Campo etichetta="Nome progetto"><input className={inputCls} maxLength={200} value={nome} onChange={(e)=>setNome(e.target.value)}/></Campo><Button disabled={busy||!nome.trim()} onClick={()=>azione(async()=>{const vuoto=snapshotVuoto();vuoto.edificio={...vuoto.edificio,nomeProgetto:nome};const p=await crea({data:{codice,nome,comune:"",dati:vuoto}});await apri(p.id);})}><Plus/>Nuovo progetto</Button></div>
     <p className="mt-2 rounded-md border-l-4 border-primary bg-muted px-3 py-2 text-sm"><strong>Attenzione:</strong> indica l'ID progetto identico a quello del CRM (stesse lettere, numeri e trattini), così il progetto si ritrova e si collega senza errori.</p>
