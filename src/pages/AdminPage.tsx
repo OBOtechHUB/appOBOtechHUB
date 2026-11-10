@@ -148,7 +148,9 @@ export function AdminPage() {
   const [periodo, setPeriodo] = useState<Periodo>("mese");
   const settimanaOra = numeroSettimana(new Date());
   const nomePeriodo = periodo === "settimana" ? (() => { const { barre } = barrePeriodo("settimana"); const f = (d: Date) => `${d.getDate()} ${MESI[d.getMonth()]}`; return `settimana lavorativa ${settimanaOra} (${f(barre[0]!.da)} – ${f(barre[barre.length - 1]!.da)})`; })() : PERIODI.find((x) => x.id === periodo)!.nome.toLowerCase();
-  const accessiTutti = eventi.filter((e) => e.evento === "accesso");
+  // nei conteggi solo gli utenti: gli accessi degli amministratori non contano (restano nel registro completo)
+  const admin = useMemo(() => { const ids = new Set<string>(), mail = new Set<string>(); for (const p of profili) if (p.ruolo === "admin") { ids.add(p.utente); if (p.email) mail.add(p.email.toLowerCase()); } return { ids, mail }; }, [profili]);
+  const accessiTutti = eventi.filter((e) => e.evento === "accesso" && !(e.utente && admin.ids.has(e.utente)) && !(e.email && admin.mail.has(e.email.toLowerCase())));
   const inizioPeriodo = useMemo(() => barrePeriodo(periodo).inizio, [periodo]);
   const accessi = accessiTutti.filter((e) => new Date(e.quando) >= inizioPeriodo);
   const nomePersona = useCallback((utente: string | null, email: string | null) => {
@@ -198,7 +200,7 @@ export function AdminPage() {
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-6">
         <Kpi titolo="Richieste in attesa" valore={inAttesa.length} evidenzia={inAttesa.length > 0} />
-        <Kpi titolo="Utenti attivi" valore={profili.filter((p) => p.stato === "attivo").length} nota={`${profili.filter((p) => p.ruolo === "admin").length} amministratori`} />
+        <Kpi titolo="Utenti attivi" valore={profili.filter((p) => p.stato === "attivo" && p.ruolo !== "admin").length} nota={`più ${profili.filter((p) => p.ruolo === "admin").length} amministratori`} />
         <Kpi titolo="Accessi oggi" valore={accessiTutti.filter((e) => chiaveGiorno(new Date(e.quando)) === chiaveGiorno(new Date())).length} />
         <Kpi titolo="Accessi nel periodo" valore={accessi.length} nota={nomePeriodo} />
         <Kpi titolo="Persone attive nel periodo" valore={perUtente.length} nota={nomePeriodo} />
@@ -208,7 +210,7 @@ export function AdminPage() {
       <section className="mt-6 grid gap-6 lg:grid-cols-[2fr_1fr]">
         <div className="rounded-lg border-[0.8px] border-bordo-scheda p-4">
           <div className="flex flex-wrap items-center justify-between gap-2">
-            <h2 className="font-semibold">Accessi · {nomePeriodo} <span className="font-normal text-muted-foreground">({accessi.length})</span></h2>
+            <h2 className="font-semibold">Accessi degli utenti · {nomePeriodo} <span className="font-normal text-muted-foreground">({accessi.length}, amministratori esclusi)</span></h2>
             <Button variant="outline" size="sm" disabled={!accessi.length} onClick={esportaCsv}><Download strokeWidth={1.5} />Esporta CSV</Button>
           </div>
           <div className="mt-3 flex flex-wrap gap-1" role="group" aria-label="Periodo">

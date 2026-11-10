@@ -3,7 +3,7 @@ import { Copy, ExternalLink, Save, Wrench } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { inputCls } from "@/components/Campo";
 import { db, URL_HUB } from "@/lib/accesso";
-import { APP_HUB, SEZIONI_LPS, leggiManutenzione, leggiMappa, type MappaManutenzione } from "@/lib/manutenzione";
+import { APP_HUB, SEZIONI_LPS, leggiManutenzione, leggiMappa, type MappaManutenzione, type VoceManutenzione } from "@/lib/manutenzione";
 
 const SQL = `CREATE OR REPLACE FUNCTION public.stato_manutenzione() RETURNS jsonb
 LANGUAGE sql STABLE SECURITY DEFINER SET search_path = public AS $$
@@ -30,7 +30,7 @@ export function ManutenzioneAdmin({ valore, onSalvato }: { valore: string | unde
     if (on) m[v.id] = { nome: v.nome, nome_en: v.nome_en, fino: "", nota: "" }; else delete m[v.id];
     setMappa(m);
   };
-  const campo = (id: string, k: "fino" | "nota", x: string) => setMappa({ ...mappa, [id]: { ...mappa[id], [k]: x } });
+  const campo = (id: string, k: "fino" | "nota", x: string) => setMappa({ ...mappa, [id]: { ...(mappa[id] as VoceManutenzione), [k]: x } });
 
   async function salva() {
     setBusy(true); setMsg("");
