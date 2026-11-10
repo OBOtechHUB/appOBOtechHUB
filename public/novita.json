@@ -8,7 +8,7 @@
       "titolo": "Controllo indipendente con la norma: correzioni",
       "titolo_en": "Independent check against the standard: corrections",
       "voci": [
-        "Tutti i valori di tabella e le formule sono stati riletti sulla CEI EN IEC 62305:2024: circa 500 confermati",
+        "Tutti i valori di tabella e le formule sono stati riletti sulla CEI EN IEC 62305:2024: oltre 400 confermati",
         "Rischio: senza LPS gli SPD non riducono più il rischio per fulmine sulla struttura e le misure contro il contatto non contano",
         "Rischio: nelle zone con rischio di esplosione la protezione antincendio non riduce il rischio e i guasti degli impianti contano sempre",
         "Rischio: schermo della linea senza resistenza indicata calcolato con il valore più prudente",
@@ -17,7 +17,7 @@
         "Calate: avviso quando la formula dettagliata di kc è usata fuori dal suo campo di validità"
       ],
       "voci_en": [
-        "All table values and formulas re-read against IEC 62305:2024: about 500 confirmed",
+        "All table values and formulas re-read against IEC 62305:2024: more than 400 confirmed",
         "Risk: without an LPS, SPDs no longer reduce the risk from flashes to the structure and touch-voltage measures do not count",
         "Risk: in zones with explosion risk fire protection does not reduce the risk and failures of internal systems always count",
         "Risk: line shield without stated resistance calculated with the most cautious value",
