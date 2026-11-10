@@ -8,6 +8,8 @@ import { ProgettiAdmin } from "@/components/accesso/ProgettiAdmin";
 import { MappaUtente, type PersonaMappa } from "@/components/accesso/MappaUtente";
 import { InvitaUtenti } from "@/components/accesso/InvitaUtenti";
 import { VisitatoriMappa } from "@/components/accesso/VisitatoriMappa";
+import { ManutenzioneAdmin } from "@/components/accesso/ManutenzioneAdmin";
+import { leggiMappa } from "@/lib/manutenzione";
 
 interface Richiesta { id: string; email: string; nome: string; azienda: string; motivo: string; stato: "in_attesa" | "approvata" | "rifiutata"; sezioni: string[]; creata_il: string; gestita_il: string | null }
 interface Evento { id: number; utente: string | null; email: string | null; evento: string; quando: string; dettagli: Record<string, unknown> }
@@ -177,7 +179,7 @@ export function AdminPage() {
   async function salvaImpostazioni() {
     if (impostazioni["password_iniziale"] && impostazioni["password_iniziale"].length < 6) { setMsg("La password iniziale deve avere almeno 6 caratteri."); return; }
     await azione(async () => {
-      const righe = Object.entries(impostazioni).map(([chiave, valore]) => ({ chiave, valore }));
+      const righe = Object.entries(impostazioni).filter(([chiave]) => chiave !== "manutenzione").map(([chiave, valore]) => ({ chiave, valore })); // la manutenzione si salva dalla sua scheda
       const { error } = await db().from("impostazioni_admin").upsert(righe);
       if (error) throw new Error(error.message);
     }, "Impostazioni salvate.");
@@ -222,7 +224,7 @@ export function AdminPage() {
       </section>
 
       <Tabs defaultValue={inAttesa.length ? "richieste" : "utenti"} className="mt-8">
-        <TabsList className="h-auto flex-wrap"><TabsTrigger value="richieste">Richieste{inAttesa.length ? ` (${inAttesa.length})` : ""}</TabsTrigger><TabsTrigger value="utenti">Utenti ({profili.length})</TabsTrigger><TabsTrigger value="invita">Invita</TabsTrigger><TabsTrigger value="progetti">Progetti salvati</TabsTrigger><TabsTrigger value="registro">Registro accessi</TabsTrigger><TabsTrigger value="impostazioni">Impostazioni</TabsTrigger></TabsList>
+        <TabsList className="h-auto flex-wrap"><TabsTrigger value="richieste">Richieste{inAttesa.length ? ` (${inAttesa.length})` : ""}</TabsTrigger><TabsTrigger value="utenti">Utenti ({profili.length})</TabsTrigger><TabsTrigger value="invita">Invita</TabsTrigger><TabsTrigger value="progetti">Progetti salvati</TabsTrigger><TabsTrigger value="registro">Registro accessi</TabsTrigger><TabsTrigger value="manutenzione">Manutenzione{Object.keys(leggiMappa(impostazioni["manutenzione"])).length ? ` (${Object.keys(leggiMappa(impostazioni["manutenzione"])).length})` : ""}</TabsTrigger><TabsTrigger value="impostazioni">Impostazioni</TabsTrigger></TabsList>
 
         <TabsContent value="richieste" className="mt-4 space-y-4">
           {!inAttesa.length && <p className="text-sm text-muted-foreground">Nessuna richiesta in attesa.</p>}
@@ -280,6 +282,10 @@ export function AdminPage() {
           <div className="mt-3 overflow-x-auto"><table className="w-full min-w-[620px] text-sm"><thead><tr className="border-b text-left"><th className="p-2">Quando</th><th className="p-2">Utente</th><th className="p-2">Evento</th><th className="p-2">Dettagli</th></tr></thead>
             <tbody>{eventiFiltrati.map((e) => <tr key={e.id} className="border-b"><td className="whitespace-nowrap p-2 font-mono text-xs">{data(e.quando)}</td><td className="p-2">{e.email ?? "—"}</td><td className="p-2">{NOMI_EVENTO[e.evento] ?? e.evento}</td><td className="p-2 text-xs text-muted-foreground">{Object.keys(e.dettagli ?? {}).length ? JSON.stringify(e.dettagli) : ""}</td></tr>)}</tbody></table></div>
           <p className="mt-2 text-xs text-muted-foreground">Ultimi 30 giorni, al massimo 300 righe mostrate.</p>
+        </TabsContent>
+
+        <TabsContent value="manutenzione" className="mt-4">
+          <ManutenzioneAdmin valore={impostazioni["manutenzione"]} onSalvato={() => void carica()} />
         </TabsContent>
 
         <TabsContent value="impostazioni" className="mt-4 max-w-2xl space-y-5">
