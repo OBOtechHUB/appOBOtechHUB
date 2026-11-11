@@ -20,7 +20,7 @@ const EN: Record<string, string> = {
   prodotti: "OBO products", modelli3d: "3D product models", cad: "CAD downloads",
 };
 /** Sezioni di Progettazione LPS (id "lps:<sezione>", le stesse dei permessi). */
-export const SEZIONI_LPS = SEZIONI.filter((s) => s.id !== "app_mappa").map((s) => ({ id: `lps:${s.id}`, nome: s.nome, nome_en: EN[s.id] ?? s.nome }));
+export const SEZIONI_LPS = SEZIONI.filter((s) => !s.id.startsWith("app_")).map((s) => ({ id: `lps:${s.id}`, nome: s.nome, nome_en: EN[s.id] ?? s.nome }));
 
 /** La prima voce in manutenzione tra quelle indicate (es. tutta l'app, poi la sezione della pagina). */
 export function primaInManutenzione(m: MappaManutenzione | undefined, ids: (string | undefined)[]): string | null {
