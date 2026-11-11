@@ -1,5 +1,8 @@
 import { useEffect, useMemo, useState } from "react";
+import { Download } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { db, SEZIONI } from "@/lib/accesso";
+import { dataOra, oggiFile, scaricaCsv } from "@/lib/csv";
 
 interface Riga { giorno: string; app: string; sezione: string; aperture: number; persone: number; visitatori: number }
 const NOMI_APP: Record<string, string> = { hub: "OBO Hub", lps: "Progettazione LPS", mappa: "Mappa carichi ufficio tecnico", prodotti: "Prodotti OBO", torrette: "Configuratore torrette" };
@@ -32,7 +35,7 @@ function Barre({ voci, nome }: { voci: { k: string; aperture: number; giorni: nu
 }
 
 /** Admin → Uso delle app: quali app e sezioni si usano davvero (amministratori esclusi). */
-export function UsoAdmin() {
+export function UsoAdmin({ nomePersona }: { nomePersona: (utente: string | null, email: string | null) => string }) {
   const [giorni, setGiorni] = useState(30);
   const [righe, setRighe] = useState<Riga[] | null>(null);
   const [problema, setProblema] = useState("");
@@ -53,11 +56,22 @@ export function UsoAdmin() {
     return out;
   }, [righe, giorni]);
   const maxG = Math.max(1, ...perGiorno.map((x) => x.n));
+  const [scaricando, setScaricando] = useState(false);
+  async function scarica() {
+    setScaricando(true);
+    const { data, error } = await db().rpc("registro_uso_completo");
+    setScaricando(false);
+    if (error) { setProblema(error.message); return; }
+    const l = (data ?? []) as { quando: string; app: string; sezione: string; utente: string | null; visitatore: string | null }[];
+    scaricaCsv(`registro-uso-obo-hub-${oggiFile()}.csv`, ["Quando", "App", "Sezione", "Persona", "Visitatore"],
+      l.map((r) => [dataOra(r.quando), NOMI_APP[r.app] ?? r.app, r.sezione ? NOMI_SEZ[`${r.app}:${r.sezione}`] ?? r.sezione : "(apertura app)", r.utente ? nomePersona(r.utente, null) : "", r.visitatore ?? ""]));
+  }
 
   if (problema) return <p className="rounded-lg border-l-4 border-[#b3261e] bg-[#fdecea] p-3 text-sm text-[#5c1410]">Le statistiche d'uso non si leggono ({problema}). Esegui <code>supabase/pro.sql</code> nell'editor SQL di Supabase.</p>;
   return <div className="space-y-5">
     <div className="flex flex-wrap items-center gap-2">
       <p className="mr-auto text-sm text-muted-foreground">Aperture di app e sezioni da parte di utenti e visitatori (una per persona ogni 30 minuti). <strong>Gli amministratori non contano.</strong></p>
+      <Button variant="outline" size="sm" disabled={scaricando} onClick={() => void scarica()}><Download strokeWidth={1.5} />{scaricando ? "Preparo…" : "Scarica registro completo (CSV)"}</Button>
       <div className="flex flex-wrap gap-1" role="group" aria-label="Periodo">{PERIODI.map((p) => <button key={p.g} type="button" aria-pressed={giorni === p.g} onClick={() => setGiorni(p.g)}
         className={`rounded-full border-[0.8px] px-3 py-1 text-sm ${giorni === p.g ? "border-primary bg-primary text-primary-foreground" : "border-bordo-scheda hover:border-primary"}`}>{p.n}</button>)}</div>
     </div>

@@ -11,6 +11,7 @@ import { VisitatoriMappa } from "@/components/accesso/VisitatoriMappa";
 import { ErroriAdmin } from "@/components/accesso/ErroriAdmin";
 import { UsoAdmin } from "@/components/accesso/UsoAdmin";
 import { CopiaSicurezza, giorniDallaCopia } from "@/components/accesso/CopiaSicurezza";
+import { oggiFile, scaricaCsv } from "@/lib/csv";
 
 interface Richiesta { id: string; email: string; nome: string; azienda: string; motivo: string; stato: "in_attesa" | "approvata" | "rifiutata"; sezioni: string[]; creata_il: string; gestita_il: string | null }
 interface Evento { id: number; utente: string | null; email: string | null; evento: string; quando: string; dettagli: Record<string, unknown> }
@@ -86,13 +87,13 @@ function GraficoAccessi({ accessi, periodo }: { accessi: Evento[]; periodo: Peri
   const tutti = barre.length <= 31; // con tante barre il numero si scrive solo dove c'è almeno un accesso
   return <div>
     <div className="flex h-44 items-end gap-[3px]" role="img" aria-label="Accessi nel periodo">
-      {barre.map((b, i) => { const n = valori[i] ?? 0; return <div key={i} title={`${b.titolo}: ${n} accessi`} className="relative flex h-full flex-1 flex-col items-center justify-end">
-        {(tutti || n > 0) && <span className={`mb-0.5 font-mono leading-none ${barre.length > 31 ? "text-[9px]" : "text-[11px]"} ${n ? "text-foreground" : "text-muted-foreground"}`}>{n}</span>}
+      {barre.map((b, i) => { const n = valori[i] ?? 0; return <div key={i} title={`${b.titolo}: ${n} accessi`} className="relative flex h-full min-w-0 flex-1 flex-col items-center justify-end">
+        {(tutti || n > 0) && <span className={`mb-0.5 max-w-full overflow-hidden font-mono leading-none ${barre.length > 12 ? "text-[9px]" : "text-[11px]"} ${n ? "text-foreground" : "hidden text-muted-foreground sm:inline"}`}>{n}</span>}
         <div className="w-full rounded-t bg-primary" style={{ height: `${(n / max) * 82}%`, minHeight: n ? 3 : 1, opacity: n ? 1 : 0.25 }} />
       </div>; })}
     </div>
-    <div className="mt-1 flex gap-[3px] text-[10px] text-muted-foreground">
-      {barre.map((b, i) => <span key={i} className="flex-1 truncate text-center">{barre.length <= 31 ? (barre.length === 26 && i % 2 ? "" : b.etichetta) : i % 7 === 0 ? b.etichetta : ""}</span>)}
+    <div className="mt-1 flex gap-[3px] overflow-hidden text-[10px] text-muted-foreground">
+      {barre.map((b, i) => <span key={i} className="min-w-0 flex-1 truncate text-center">{barre.length <= 31 ? (barre.length === 26 && i % 2 ? "" : b.etichetta) : i % 7 === 0 ? b.etichetta : ""}</span>)}
     </div>
   </div>;
 }
@@ -164,7 +165,8 @@ export function AdminPage() {
   const nomePeriodo = periodo === "settimana" ? (() => { const { barre } = barrePeriodo("settimana"); const f = (d: Date) => `${d.getDate()} ${MESI[d.getMonth()]}`; return `settimana lavorativa ${settimanaOra} (${f(barre[0]!.da)} – ${f(barre[barre.length - 1]!.da)})`; })() : PERIODI.find((x) => x.id === periodo)!.nome.toLowerCase();
   // nei conteggi solo gli utenti: gli accessi degli amministratori non contano (restano nel registro completo)
   const admin = useMemo(() => { const ids = new Set<string>(), mail = new Set<string>(); for (const p of profili) if (p.ruolo === "admin") { ids.add(p.utente); if (p.email) mail.add(p.email.toLowerCase()); } return { ids, mail }; }, [profili]);
-  const accessiTutti = eventi.filter((e) => e.evento === "accesso" && !(e.utente && admin.ids.has(e.utente)) && !(e.email && admin.mail.has(e.email.toLowerCase())));
+  const [conAdmin, setConAdmin] = useState(false); // "Includi amministratori": per vedere anche i propri accessi
+  const accessiTutti = eventi.filter((e) => e.evento === "accesso" && (conAdmin || (!(e.utente && admin.ids.has(e.utente)) && !(e.email && admin.mail.has(e.email.toLowerCase())))));
   const inizioPeriodo = useMemo(() => barrePeriodo(periodo).inizio, [periodo]);
   const accessi = accessiTutti.filter((e) => new Date(e.quando) >= inizioPeriodo);
   const nomePersona = useCallback((utente: string | null, email: string | null) => {
@@ -186,6 +188,20 @@ export function AdminPage() {
     const blob = new Blob(["\ufeff" + righe.join("\r\n")], { type: "text/csv;charset=utf-8" });
     const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = `accessi-obo-hub-${periodo === "settimana" ? `settimana-${settimanaOra}` : periodo}-${chiaveGiorno(new Date())}.csv`;
     document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+  }
+
+  // registro accessi completo (tutte le righe dall'inizio, amministratori compresi), a blocchi di 1000
+  const [scaricando, setScaricando] = useState(false);
+  async function scaricaRegistro() {
+    setScaricando(true);
+    try {
+      const tutte: Evento[] = [];
+      for (let da = 0; ; da += 1000) { const r = await db().from("registro_accessi").select("*").order("quando", { ascending: true }).range(da, da + 999); if (r.error) throw new Error(r.error.message); const l = (r.data ?? []) as Evento[]; tutte.push(...l); if (l.length < 1000) break; }
+      scaricaCsv(`registro-accessi-obo-hub-completo-${oggiFile()}.csv`, ["Data", "Ora", "Persona", "Email", "Evento", "Amministratore", "Dettagli"],
+        tutte.map((e) => { const d = new Date(e.quando); return [d.toLocaleDateString("it-IT"), d.toLocaleTimeString("it-IT"), nomePersona(e.utente, e.email), e.email, NOMI_EVENTO[e.evento] ?? e.evento, (e.utente && admin.ids.has(e.utente)) || (e.email && admin.mail.has(e.email.toLowerCase())) ? "sì" : "", Object.keys(e.dettagli ?? {}).length ? JSON.stringify(e.dettagli) : ""]; }));
+      setMsg(`Registro accessi scaricato: ${tutte.length} righe.`);
+    } catch (e) { setMsg("Download non riuscito: " + (e instanceof Error ? e.message : String(e))); }
+    finally { setScaricando(false); }
   }
 
   async function azione(fn: () => Promise<unknown>, ok: string) {
@@ -225,8 +241,11 @@ export function AdminPage() {
       <section className="mt-6 grid gap-6 lg:grid-cols-[2fr_1fr]">
         <div className="rounded-lg border-[0.8px] border-bordo-scheda p-4">
           <div className="flex flex-wrap items-center justify-between gap-2">
-            <h2 className="font-semibold">Accessi degli utenti · {nomePeriodo} <span className="font-normal text-muted-foreground">({accessi.length}, amministratori esclusi)</span></h2>
-            <Button variant="outline" size="sm" disabled={!accessi.length} onClick={esportaCsv}><Download strokeWidth={1.5} />Esporta CSV</Button>
+            <h2 className="font-semibold">{conAdmin ? "Accessi" : "Accessi degli utenti"} · {nomePeriodo} <span className="font-normal text-muted-foreground">({accessi.length}{conAdmin ? ", amministratori compresi" : ", amministratori esclusi"})</span></h2>
+            <span className="flex flex-wrap items-center gap-3">
+              <label className="flex cursor-pointer items-center gap-2 text-sm"><input type="checkbox" className="size-4 accent-primary" checked={conAdmin} onChange={(e) => setConAdmin(e.target.checked)} />Includi amministratori</label>
+              <Button variant="outline" size="sm" disabled={!accessi.length} onClick={esportaCsv}><Download strokeWidth={1.5} />Esporta CSV</Button>
+            </span>
           </div>
           <div className="mt-3 flex flex-wrap gap-1" role="group" aria-label="Periodo">
             {PERIODI.map((x) => <button key={x.id} type="button" onClick={() => setPeriodo(x.id)} aria-pressed={periodo === x.id}
@@ -295,13 +314,16 @@ export function AdminPage() {
         <TabsContent value="progetti" className="mt-4"><ProgettiAdmin profili={profili} /></TabsContent>
 
         <TabsContent value="registro" className="mt-4">
-          <input aria-label="Filtra registro" className={`${inputCls} max-w-sm`} placeholder="Filtra per email o evento" value={filtro} onChange={(e) => setFiltro(e.target.value)} />
+          <div className="flex flex-wrap items-center gap-2">
+            <input aria-label="Filtra registro" className={`${inputCls} max-w-sm`} placeholder="Filtra per email o evento" value={filtro} onChange={(e) => setFiltro(e.target.value)} />
+            <Button variant="outline" size="sm" className="ml-auto" disabled={scaricando} onClick={() => void scaricaRegistro()}><Download strokeWidth={1.5} />{scaricando ? "Preparo…" : "Scarica registro completo (CSV)"}</Button>
+          </div>
           <div className="mt-3 overflow-x-auto"><table className="w-full min-w-[620px] text-sm"><thead><tr className="border-b text-left"><th className="p-2">Quando</th><th className="p-2">Utente</th><th className="p-2">Evento</th><th className="p-2">Dettagli</th></tr></thead>
             <tbody>{eventiFiltrati.map((e) => <tr key={e.id} className="border-b"><td className="whitespace-nowrap p-2 font-mono text-xs">{data(e.quando)}</td><td className="p-2">{e.email ?? "—"}</td><td className="p-2">{NOMI_EVENTO[e.evento] ?? e.evento}</td><td className="p-2 text-xs text-muted-foreground">{Object.keys(e.dettagli ?? {}).length ? JSON.stringify(e.dettagli) : ""}</td></tr>)}</tbody></table></div>
-          <p className="mt-2 text-xs text-muted-foreground">Ultimi 30 giorni, al massimo 300 righe mostrate.</p>
+          <p className="mt-2 text-xs text-muted-foreground">Qui l'ultimo anno, al massimo 300 righe. Il registro non si cancella mai: "Scarica registro completo" contiene tutte le righe dall'inizio, amministratori compresi.</p>
         </TabsContent>
 
-        <TabsContent value="uso" className="mt-4"><UsoAdmin /></TabsContent>
+        <TabsContent value="uso" className="mt-4"><UsoAdmin nomePersona={nomePersona} /></TabsContent>
         <TabsContent value="errori" className="mt-4"><ErroriAdmin nomePersona={nomePersona} /></TabsContent>
         <TabsContent value="copia" className="mt-4"><CopiaSicurezza ultima={impostazioni["ultima_copia_sicurezza"]} cartella={impostazioni["cartella_copie"]} onFatto={() => void carica()} /></TabsContent>
 

@@ -1,4 +1,4 @@
-import { useEffect, useState, type ComponentType } from "react";
+import { useEffect, useRef, useState, type ComponentType } from "react";
 import { Link, useNavigate, useRouter, useRouterState } from "@tanstack/react-router";
 import { useQueryClient } from "@tanstack/react-query";
 import {
@@ -17,6 +17,7 @@ import { useAvanzamentoProgetto } from "@/lib/avanzamentoProgetto";
 import { SEZIONE_PAGINA, URL_HUB, esciVisitatore, puoVedere, useAccesso } from "@/lib/accesso";
 import { impostaAttivo, useAttivo } from "@/lib/statoProgetto";
 import { useAzioneInstalla } from "@/components/InstallaApp";
+import { Button } from "@/components/ui/button";
 
 type Icona = ComponentType<{ className?: string; strokeWidth?: number }>;
 type Voce = { etichetta: string; to: string; icona: Icona } | { etichetta: string; azione: () => void; icona: Icona };
@@ -30,6 +31,29 @@ function IconaBarra({ etichetta, icona: I, to, onClick, badge, titolo, nascondiM
   </>;
   if (to) return <Link to={to as "/"} title={titolo ?? etichetta} className={cls} activeProps={{ className: "text-primary" }}>{corpo}</Link>;
   return <button type="button" title={titolo ?? etichetta} aria-expanded={espanso} aria-controls={espanso !== undefined ? "menu-principale" : undefined} onClick={onClick} className={cls}>{corpo}</button>;
+}
+
+/** Testo più piccolo / più grande, sempre in alto (stessa impostazione "obo-zoom" di tutte le app di OBO Hub). */
+function ControlloTesto({ zoom }: { zoom: number }) {
+  const [aperto, setAperto] = useState(false);
+  const rif = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (!aperto) return;
+    const chiudi = (e: MouseEvent | KeyboardEvent) => { if (e instanceof KeyboardEvent ? e.key === "Escape" : !rif.current?.contains(e.target as Node)) setAperto(false); };
+    document.addEventListener("mousedown", chiudi); document.addEventListener("keydown", chiudi);
+    return () => { document.removeEventListener("mousedown", chiudi); document.removeEventListener("keydown", chiudi); };
+  }, [aperto]);
+  return <div ref={rif} className="relative flex">
+    <button type="button" title="Dimensione del testo" aria-expanded={aperto} aria-haspopup="true" onClick={() => setAperto((v) => !v)}
+      className="relative flex min-w-[52px] flex-col items-center justify-center gap-0.5 px-1.5 text-[11px] font-semibold text-foreground hover:text-primary sm:min-w-[72px] sm:px-2 sm:text-sm">
+      <span className="flex h-6 items-end font-semibold leading-none sm:h-7" aria-hidden="true"><span className="text-[13px] sm:text-[15px]">A</span><span className="text-[20px] sm:text-[23px]">A</span></span><span>Testo</span>
+    </button>
+    {aperto && <div role="group" aria-label="Dimensione del testo" className="absolute right-0 top-full z-50 mt-1 flex items-center gap-1 rounded-full border-[0.8px] border-bordo-scheda bg-card p-1 shadow-lg">
+      <Button variant="ghost" size="icon" className="rounded-full" aria-label="Testo più piccolo" disabled={zoom <= 0.85} onClick={() => cambiaZoom(-1)}><ZoomOut strokeWidth={1.5} /></Button>
+      <span className="min-w-12 text-center font-mono text-sm" aria-live="polite">{Math.round(zoom * 100)}%</span>
+      <Button variant="ghost" size="icon" className="rounded-full" aria-label="Testo più grande" disabled={zoom >= 1.45} onClick={() => cambiaZoom(1)}><ZoomIn strokeWidth={1.5} /></Button>
+    </div>}
+  </div>;
 }
 
 /** Barra superiore bianca (Saetta, nome, stato del progetto · icone con etichetta) con filo di avanzamento e menu laterale a sezioni. */
@@ -155,6 +179,7 @@ export function AppHeader() {
           </Link>
           <nav aria-label="Accessi rapidi" className="ml-auto flex items-stretch">
             <IconaBarra etichetta="OBO Hub" icona={LayoutGrid} titolo="Torna a OBO Hub (tutte le app)" onClick={() => window.location.assign(URL_HUB)} />
+            <ControlloTesto zoom={zoom} />
             <IconaBarra etichetta={lingua === "en" ? "IT" : "EN"} icona={Languages} titolo={lingua === "en" ? "Passa all'italiano" : "Switch to English"} onClick={() => impostaLingua(lingua === "en" ? "it" : "en")} nascondiMobile />
             <IconaBarra etichetta={NOMI_TEMA[tema]} icona={iconaTema} titolo="Aspetto: automatico, chiaro o scuro" onClick={cambiaTema} nascondiMobile />
             {abilitato ? <>

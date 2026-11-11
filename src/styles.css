@@ -223,4 +223,7 @@ main {
   --text-5xl: calc(3rem * var(--obo-zoom, 1));
   --text-6xl: calc(3.75rem * var(--obo-zoom, 1));
 }
-html { touch-action: pan-x pan-y; }
+/* la pagina non scorre mai di lato: solo su e giù (le tabelle larghe scorrono dentro il loro riquadro) */
+html { touch-action: pan-y; }
+html, body { max-width: 100%; overflow-x: hidden; overscroll-behavior-x: none; }
+@supports (overflow: clip) { html, body { overflow-x: clip; } }
