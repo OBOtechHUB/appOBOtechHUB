@@ -6,7 +6,6 @@ import base from "@/dati/particolari/particolari.json";
 import { caricaCatalogoObo, cercaProdotti, type CatalogoObo } from "@/lib/catalogoObo";
 
 const PAGINE: { titolo: string; to: string; parole: string }[] = [
-  { titolo: "Assistente di progetto", to: "/assistente", parole: "passi guida prossimo" },
   { titolo: "Dati edificio", to: "/dati-edificio", parole: "dimensioni lpl densità fulmini comune" },
   { titolo: "Edificio 3D · captazione e terra", to: "/edificio-3d", parole: "sfera rotolante maglia aste proposta terra dispersore" },
   { titolo: "Calate e distanza di separazione", to: "/calate", parole: "calate kc ki km distanza sicurezza" },

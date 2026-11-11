@@ -2,7 +2,7 @@ import { useEffect, useRef, useState, type ComponentType } from "react";
 import { Link, useNavigate, useRouter, useRouterState } from "@tanstack/react-router";
 import { useQueryClient } from "@tanstack/react-query";
 import {
-  ArrowDownToLine, ShieldCheck, Box, Boxes, Cpu, ShieldAlert, Building2, Package, ClipboardCheck, Compass, Gauge, ChevronLeft, ClipboardList, Download, FileText, FolderOpen, Info, LogIn, LogOut,
+  ArrowDownToLine, ShieldCheck, Box, Boxes, Cpu, ShieldAlert, Building2, Package, ClipboardCheck, Gauge, ChevronLeft, ClipboardList, Download, FileText, FolderOpen, Info, LogIn, LogOut,
   Languages, LayoutGrid, ZoomIn, ZoomOut, Mail, Moon, Sun, SunMoon, Menu, Ruler, Search, Smartphone, Shield, SlidersHorizontal, User, UserPlus, Wrench, X,
 } from "lucide-react";
 import { useAuth } from "@/lib/auth";
@@ -70,7 +70,7 @@ export function AppHeader() {
   const cambiaTema = () => { const ordine: Tema[] = ["auto", "light", "dark"]; impostaTema(ordine[(ordine.indexOf(tema) + 1) % 3]!); };
   const iconaTema = tema === "dark" ? Moon : tema === "light" ? Sun : SunMoon;
   const [ricerca, setRicerca] = useState(false);
-  const { comp, prossimo, mancanti } = useAvanzamentoProgetto();
+  const { comp } = useAvanzamentoProgetto();
   const attivo = useAttivo();
   const statoSalvataggio = useStatoSalvataggio();
   const accesso = useAccesso();
@@ -119,7 +119,6 @@ export function AppHeader() {
       titolo: "Strumenti",
       voci: [
         { etichetta: "Cerca", azione: () => { setAperto(false); setRicerca(true); }, icona: Search },
-        { etichetta: "Assistente di progetto", to: "/assistente", icona: Compass },
         { etichetta: "Panoramica strumenti", to: "/strumenti", icona: Wrench },
         { etichetta: "Dati edificio", to: "/dati-edificio", icona: Building2 },
         { etichetta: "Dati normativi", to: "/dati-normativi", icona: SlidersHorizontal },
@@ -181,7 +180,6 @@ export function AppHeader() {
             <IconaBarra etichetta={lingua === "en" ? "IT" : "EN"} icona={Languages} titolo={lingua === "en" ? "Passa all'italiano" : "Switch to English"} onClick={() => impostaLingua(lingua === "en" ? "it" : "en")} nascondiMobile />
             <IconaBarra etichetta={NOMI_TEMA[tema]} icona={iconaTema} titolo="Aspetto: automatico, chiaro o scuro" onClick={cambiaTema} nascondiMobile />
             {abilitato ? <>
-              {visibile("/assistente") && <IconaBarra to="/assistente" etichetta="Assistente" icona={Compass} badge={mancanti.length || undefined} titolo={prossimo ? `Prossimo passo: ${prossimo.titolo}` : "Progetto completo"} nascondiMobile />}
               {visibile("/prodotti") && <IconaBarra to="/prodotti" etichetta="Prodotti" icona={Package} nascondiMobile />}
               <IconaBarra etichetta="Cerca" icona={Search} onClick={() => setRicerca(true)} nascondiMobile />
               {visibile("/progetti") && !visitatore && <IconaBarra to="/progetti" etichetta="Progetti" icona={ClipboardList} />}

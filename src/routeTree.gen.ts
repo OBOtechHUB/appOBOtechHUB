@@ -20,7 +20,6 @@ import { Route as SpdRouteImport } from './routes/spd'
 import { Route as CalateRouteImport } from './routes/calate'
 import { Route as ProdottiRouteImport } from './routes/prodotti'
 import { Route as Modelli3dRouteImport } from './routes/modelli-3d'
-import { Route as AssistenteRouteImport } from './routes/assistente'
 import { Route as VerificheRouteImport } from './routes/verifiche'
 import { Route as ResistenzaTerraRouteImport } from './routes/resistenza-terra'
 import { Route as ContattiRouteImport } from './routes/contatti'
@@ -89,11 +88,6 @@ const ProdottiRoute = ProdottiRouteImport.update({
 const Modelli3dRoute = Modelli3dRouteImport.update({
   id: '/modelli-3d',
   path: '/modelli-3d',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AssistenteRoute = AssistenteRouteImport.update({
-  id: '/assistente',
-  path: '/assistente',
   getParentRoute: () => rootRouteImport,
 } as any)
 const VerificheRoute = VerificheRouteImport.update({
@@ -183,7 +177,6 @@ export interface FileRoutesByFullPath {
   '/calate': typeof CalateRoute
   '/prodotti': typeof ProdottiRoute
   '/modelli-3d': typeof Modelli3dRoute
-  '/assistente': typeof AssistenteRoute
   '/verifiche': typeof VerificheRoute
   '/resistenza-terra': typeof ResistenzaTerraRoute
   '/contatti': typeof ContattiRoute
@@ -211,7 +204,6 @@ export interface FileRoutesByTo {
   '/calate': typeof CalateRoute
   '/prodotti': typeof ProdottiRoute
   '/modelli-3d': typeof Modelli3dRoute
-  '/assistente': typeof AssistenteRoute
   '/verifiche': typeof VerificheRoute
   '/resistenza-terra': typeof ResistenzaTerraRoute
   '/contatti': typeof ContattiRoute
@@ -241,7 +233,6 @@ export interface FileRoutesById {
   '/calate': typeof CalateRoute
   '/prodotti': typeof ProdottiRoute
   '/modelli-3d': typeof Modelli3dRoute
-  '/assistente': typeof AssistenteRoute
   '/verifiche': typeof VerificheRoute
   '/resistenza-terra': typeof ResistenzaTerraRoute
   '/contatti': typeof ContattiRoute
@@ -271,7 +262,6 @@ export interface FileRouteTypes {
     | '/calate'
     | '/prodotti'
     | '/modelli-3d'
-    | '/assistente'
     | '/verifiche'
     | '/resistenza-terra'
     | '/contatti'
@@ -299,7 +289,6 @@ export interface FileRouteTypes {
     | '/calate'
     | '/prodotti'
     | '/modelli-3d'
-    | '/assistente'
     | '/verifiche'
     | '/resistenza-terra'
     | '/contatti'
@@ -328,7 +317,6 @@ export interface FileRouteTypes {
     | '/calate'
     | '/prodotti'
     | '/modelli-3d'
-    | '/assistente'
     | '/verifiche'
     | '/resistenza-terra'
     | '/contatti'
@@ -358,7 +346,6 @@ export interface RootRouteChildren {
   CalateRoute: typeof CalateRoute
   ProdottiRoute: typeof ProdottiRoute
   Modelli3dRoute: typeof Modelli3dRoute
-  AssistenteRoute: typeof AssistenteRoute
   VerificheRoute: typeof VerificheRoute
   ResistenzaTerraRoute: typeof ResistenzaTerraRoute
   ContattiRoute: typeof ContattiRoute
@@ -451,13 +438,6 @@ declare module '@tanstack/react-router' {
       path: '/modelli-3d'
       fullPath: '/modelli-3d'
       preLoaderRoute: typeof Modelli3dRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/assistente': {
-      id: '/assistente'
-      path: '/assistente'
-      fullPath: '/assistente'
-      preLoaderRoute: typeof AssistenteRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/verifiche': {
@@ -593,7 +573,6 @@ const rootRouteChildren: RootRouteChildren = {
   CalateRoute: CalateRoute,
   ProdottiRoute: ProdottiRoute,
   Modelli3dRoute: Modelli3dRoute,
-  AssistenteRoute: AssistenteRoute,
   VerificheRoute: VerificheRoute,
   ResistenzaTerraRoute: ResistenzaTerraRoute,
   ContattiRoute: ContattiRoute,

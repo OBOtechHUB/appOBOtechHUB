@@ -1,5 +1,5 @@
 import { Link } from "@tanstack/react-router";
-import { ArrowDownToLine, ArrowRight, Box, Boxes, Check, ClipboardCheck, ClipboardList, Compass, Cpu, Download, Gauge, Package, Ruler, ShieldAlert } from "lucide-react";
+import { ArrowDownToLine, ArrowRight, Box, Boxes, Check, ClipboardCheck, ClipboardList, Cpu, Download, Gauge, Package, Ruler, ShieldAlert } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Saetta, SaettaFigura } from "@/components/Saetta";
 import { PulsanteInstalla } from "@/components/InstallaApp";
@@ -28,7 +28,6 @@ const STRUMENTI = [
   { titolo: "Prodotti OBO", testo: "Catalogo con dati tecnici, foto, disegni e file 3D.", icona: Package },
   { titolo: "Modelli 3D e CAD", testo: "STEP in 3D, DXF per ZWCAD/AutoCAD, LPS.lsp.", icona: Boxes },
   { titolo: "Verifiche e dossier", testo: "Piano delle verifiche, checklist e dossier PDF.", icona: ClipboardCheck },
-  { titolo: "Assistente di progetto", testo: "Tutti i passi in ordine, con il prossimo consigliato.", icona: Compass },
   { titolo: "App installabile", testo: "Su PC, iPhone, iPad e Android, anche senza rete.", icona: Download },
 ];
 

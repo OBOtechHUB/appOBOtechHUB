@@ -2,6 +2,21 @@
   "nota": "Registro degli aggiornamenti di Progettazione LPS. Una voce per aggiornamento, la più recente per prima (app: lps). Viene mostrato nella barra \"Aggiorna app\", nel riquadro Novità e nella pagina Novità di OBO Hub.",
   "aggiornamenti": [
     {
+      "id": "2026-11-11-lps-3",
+      "data": "2026-11-11",
+      "app": "lps",
+      "titolo": "Tolto l'Assistente di progetto",
+      "voci": [
+        "L'Assistente di progetto non c'è più: dalla home si parte dai dati dell'edificio",
+        "La barra di avanzamento del progetto sotto l'intestazione resta"
+      ],
+      "titolo_en": "Project assistant removed",
+      "voci_en": [
+        "The project assistant is gone: from the home page you start from the building data",
+        "The project progress bar under the header stays"
+      ]
+    },
+    {
       "id": "2026-11-11-lps-2",
       "data": "2026-11-11",
       "app": "lps",
