@@ -4,7 +4,7 @@ import { createClient } from "npm:@supabase/supabase-js@2.45.4";
 
 const CORS = { "Access-Control-Allow-Origin": "*", "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type", "Access-Control-Allow-Methods": "POST, OPTIONS" };
 const risposta = (corpo: unknown, status = 200) => new Response(JSON.stringify(corpo), { status, headers: { ...CORS, "Content-Type": "application/json" } });
-const SEZIONI = ["tutte", "assistente", "progetti", "edificio", "rischio", "captazione", "calate", "terra", "spd", "computo", "particolari", "verifiche", "prodotti", "modelli3d", "cad", "app_mappa", "app_prodotti"];
+const SEZIONI = ["tutte", "assistente", "progetti", "edificio", "rischio", "captazione", "calate", "terra", "spd", "computo", "particolari", "verifiche", "prodotti", "modelli3d", "cad", "app_mappa"];
 const sezioniValide = (v: unknown) => (Array.isArray(v) ? v.map(String).filter((s) => SEZIONI.includes(s)) : []);
 
 Deno.serve(async (req) => {
