@@ -2,6 +2,21 @@
   "nota": "Registro degli aggiornamenti di Progettazione LPS. Una voce per aggiornamento, la più recente per prima (app: lps). Viene mostrato nella barra \"Aggiorna app\", nel riquadro Novità e nella pagina Novità di OBO Hub.",
   "aggiornamenti": [
     {
+      "id": "2026-11-11-lps-5",
+      "data": "2026-11-11",
+      "app": "lps",
+      "titolo": "Tolte terra e verifiche",
+      "voci": [
+        "Non ci sono più le sezioni Resistenza di terra e Verifiche e dossier, né il riquadro Impianto di terra in Edificio 3D",
+        "Nei progetti salvati l'impianto di terra già accettato resta nel disegno, nel computo e nel CAD"
+      ],
+      "titolo_en": "Earthing and inspections removed",
+      "voci_en": [
+        "The Earthing resistance and Inspections and dossier sections and the Earthing system box in 3D building are gone",
+        "In saved projects an already accepted earthing system stays in the drawing, bill of materials and CAD"
+      ]
+    },
+    {
       "id": "2026-11-11-lps-4",
       "data": "2026-11-11",
       "app": "lps",

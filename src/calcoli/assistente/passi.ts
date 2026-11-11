@@ -24,7 +24,7 @@ export interface RiassuntoProgetto {
   verificaScaduta: boolean;
 }
 
-export type Destinazione = "/rischio" | "/calate" | "/spd" | "/dati-edificio" | "/edificio-3d" | "/resistenza-terra" | "/particolari" | "/computo-materiali" | "/download-cad" | "/verifiche";
+export type Destinazione = "/rischio" | "/calate" | "/spd" | "/dati-edificio" | "/edificio-3d" | "/particolari" | "/computo-materiali" | "/download-cad";
 
 export interface Passo {
   id: string;
@@ -71,24 +71,13 @@ export function passiAssistente(p: RiassuntoProgetto): Passo[] {
       to: "/calate", obbligatorio: true,
     },
     {
-      id: "terra", titolo: "Impianto di terra", descrizione: "Dispersore di tipo A, B o di fondazione.",
-      stato: p.terraAccettata ? "completo" : p.conduttoriTerra + p.picchetti > 0 ? "in corso" : "da fare",
-      motivo: p.terraAccettata ? `${p.conduttoriTerra} conduttori · ${p.picchetti} picchetti` : "Proponi e accetta l'impianto di terra in Edificio 3D.",
-      to: "/edificio-3d", obbligatorio: true,
-    },
-    {
-      id: "resistenza", titolo: "Resistenza di terra", descrizione: "Stima della resistenza del dispersore e resistività del terreno (Wenner).",
-      stato: "facoltativo", motivo: p.terraAccettata ? "Consigliato: stima la resistenza dell'impianto accettato." : "Disponibile dopo l'impianto di terra.",
-      to: "/resistenza-terra", obbligatorio: false,
-    },
-    {
       id: "spd", titolo: "Scelta SPD", descrizione: "Coordinamento degli SPD secondo CEI EN IEC 62305-4.",
       stato: p.spdScelti ? "completo" : "da fare", motivo: p.spdScelti ? "SPD scelti e salvati nel computo" : "Scegli gli SPD per la linea di alimentazione.", to: "/spd", obbligatorio: false,
     },
     {
       id: "particolari", titolo: "Particolari costruttivi", descrizione: "Abbinamento dei componenti ai particolari OBO, schede PDF e DWG.",
       stato: p.componentiPosizionati > 0 ? "completo" : "da fare",
-      motivo: p.componentiPosizionati > 0 ? `${p.componentiPosizionati} componenti posizionati` : "I componenti arrivano con le proposte di captazione e terra.",
+      motivo: p.componentiPosizionati > 0 ? `${p.componentiPosizionati} componenti posizionati` : "I componenti arrivano con la proposta di captazione.",
       to: "/particolari", obbligatorio: false,
     },
     {
@@ -101,12 +90,6 @@ export function passiAssistente(p: RiassuntoProgetto): Passo[] {
       id: "cad", titolo: "Disegno CAD", descrizione: "Esportazione per ZWCAD/AutoCAD con LPS.lsp.",
       stato: captazione ? "facoltativo" : "da fare", motivo: captazione ? "Scarica LPS.lsp e il file .lpsdati da Edificio 3D." : "Disponibile dopo la captazione.",
       to: "/download-cad", obbligatorio: false,
-    },
-    {
-      id: "verifiche", titolo: "Verifiche e dossier", descrizione: "Piano delle verifiche periodiche, registro e dossier tecnico PDF.",
-      stato: p.verifiche === 0 ? "da fare" : p.verificaScaduta ? "in corso" : "completo",
-      motivo: p.verifiche === 0 ? "Registra la prima verifica (iniziale) dell'impianto." : p.verificaScaduta ? "Una verifica è scaduta." : `${p.verifiche} verifiche registrate`,
-      to: "/verifiche", obbligatorio: false,
     },
   ];
 }

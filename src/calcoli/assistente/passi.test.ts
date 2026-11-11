@@ -29,8 +29,4 @@ describe("assistente di progetto", () => {
     expect(prossimoPasso(passi)?.id).toBe("rischio");
   });
 
-  it("verifica scaduta riporta il passo in corso", () => {
-    const passi = passiAssistente({ ...vuoto, verifiche: 2, verificaScaduta: true });
-    expect(passi.find((x) => x.id === "verifiche")?.stato).toBe("in corso");
-  });
 });

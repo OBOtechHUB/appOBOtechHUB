@@ -1,11 +1,11 @@
 import { Link } from "@tanstack/react-router";
-import { ArrowDownToLine, ArrowRight, Box, Boxes, Check, ClipboardCheck, ClipboardList, Cpu, Download, Gauge, Package, Ruler, ShieldAlert } from "lucide-react";
+import { ArrowDownToLine, ArrowRight, Box, Boxes, Check, ClipboardList, Cpu, Download, Package, Ruler, ShieldAlert } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { LogoLps, Messaggio } from "@/components/LogoLps";
 import { PulsanteInstalla } from "@/components/InstallaApp";
 
 const VANTAGGI = [
-  "Tutto il progetto dell'LPS in un unico strumento, dal rischio al dossier",
+  "Tutto il progetto dell'LPS in un unico strumento, dal rischio al computo",
   "Calcoli secondo CEI EN IEC 62305:2024, con i valori sempre visibili e modificabili",
   "Proposte automatiche di aste, maglia, calate e impianto di terra in 3D",
   "Computo materiali con codici OBO, schede tecniche e particolari costruttivi",
@@ -15,19 +15,17 @@ const VANTAGGI = [
 const PASSI = [
   { n: 1, titolo: "Descrivi l'edificio", testo: "Dimensioni, posizione e fulminazione; importa la geometria da DXF, IFC o dalla mappa." },
   { n: 2, titolo: "Valuta e progetta", testo: "Analisi del rischio, captazione con sfera rotolante e maglia, calate, terra e SPD." },
-  { n: 3, titolo: "Documenta", testo: "Computo, particolari, disegno CAD, relazione e dossier delle verifiche." },
+  { n: 3, titolo: "Documenta", testo: "Computo, particolari, disegno CAD e relazione." },
 ];
 const STRUMENTI = [
   { titolo: "Analisi del rischio", testo: "R1 con le sue componenti e livello di protezione minimo.", icona: ShieldAlert },
   { titolo: "Edificio 3D e captazione", testo: "Sfera rotolante, maglia e proposta automatica di aste e conduttori.", icona: Box },
   { titolo: "Calate e distanza di separazione", testo: "Numero di calate, kc e verifica dei punti critici.", icona: ArrowDownToLine },
-  { titolo: "Impianto e resistenza di terra", testo: "Dispersori tipo A, B e fondazione, stima della resistenza.", icona: Gauge },
   { titolo: "Scelta SPD", testo: "Iimp, Uc e Up con i prodotti OBO adatti.", icona: Cpu },
   { titolo: "Computo materiali", testo: "Quantità e codici OBO, Excel e relazione PDF.", icona: ClipboardList },
   { titolo: "Particolari costruttivi", testo: "Schede TBS, disegni 2D/3D e DWG.", icona: Ruler },
   { titolo: "Prodotti OBO", testo: "Catalogo con dati tecnici, foto, disegni e file 3D.", icona: Package },
   { titolo: "Modelli 3D e CAD", testo: "STEP in 3D, DXF per ZWCAD/AutoCAD, LPS.lsp.", icona: Boxes },
-  { titolo: "Verifiche e dossier", testo: "Piano delle verifiche, checklist e dossier PDF.", icona: ClipboardCheck },
   { titolo: "App installabile", testo: "Su PC, iPhone, iPad e Android, anche senza rete.", icona: Download },
 ];
 

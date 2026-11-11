@@ -2,9 +2,8 @@ import { useEffect, useRef, useState, type ComponentType } from "react";
 import { Link, useNavigate, useRouter, useRouterState } from "@tanstack/react-router";
 import { useQueryClient } from "@tanstack/react-query";
 import {
-  ArrowDownToLine, ShieldCheck, Box, Boxes, Cpu, ShieldAlert, Building2, Package, ClipboardCheck, Gauge, ChevronLeft, ClipboardList, Download, FileText, FolderOpen, Info, LogIn, LogOut,
-  Languages, LayoutGrid, ZoomIn, ZoomOut, Mail, Moon, Sun, SunMoon, Menu, Ruler, Search, Smartphone, Shield, SlidersHorizontal, User, UserPlus, Wrench, X,
-} from "lucide-react";
+  ArrowDownToLine, ShieldCheck, Box, Boxes, Cpu, ShieldAlert, Building2, Package, ChevronLeft, ClipboardList, Download, FileText, FolderOpen, Info, LogIn, LogOut,
+  Languages, LayoutGrid, ZoomIn, ZoomOut, Mail, Moon, Sun, SunMoon, Menu, Ruler, Search, Smartphone, Shield, SlidersHorizontal, User, UserPlus, Wrench, X } from "lucide-react";
 import { useAuth } from "@/lib/auth";
 import { NOMI_TEMA, cambiaZoom, impostaTema, useTema, useZoom, type Tema } from "@/lib/tema";
 import { impostaLingua, useLingua } from "@/lib/lingua";
@@ -126,10 +125,8 @@ export function AppHeader() {
         { etichetta: "Edificio 3D", to: "/edificio-3d", icona: Box },
         { etichetta: "Calate e distanza di separazione", to: "/calate", icona: ArrowDownToLine },
         { etichetta: "Scelta SPD", to: "/spd", icona: Cpu },
-        { etichetta: "Resistenza di terra", to: "/resistenza-terra", icona: Gauge },
         { etichetta: "Computo materiali", to: "/computo-materiali", icona: ClipboardList },
         { etichetta: "Particolari costruttivi", to: "/particolari", icona: Ruler },
-        { etichetta: "Verifiche e dossier", to: "/verifiche", icona: ClipboardCheck },
         { etichetta: "Prodotti OBO", to: "/prodotti", icona: Package },
         { etichetta: "Modelli 3D prodotti", to: "/modelli-3d", icona: Boxes },
         { etichetta: "Download CAD", to: "/download-cad", icona: Download },

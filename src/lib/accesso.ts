@@ -6,18 +6,16 @@ import { supabase } from "@/integrations/supabase/client";
 export const db = () => supabase as unknown as SupabaseClient;
 import { BASE } from "@/lib/base";
 
-export type Sezione = "progetti" | "edificio" | "rischio" | "captazione" | "calate" | "terra" | "spd" | "computo" | "particolari" | "verifiche" | "prodotti" | "modelli3d" | "cad" | "app_mappa";
+export type Sezione = "progetti" | "edificio" | "rischio" | "captazione" | "calate" | "spd" | "computo" | "particolari" | "prodotti" | "modelli3d" | "cad" | "app_mappa";
 export const SEZIONI: { id: Sezione; nome: string }[] = [
   { id: "progetti", nome: "Progetti salvati" },
   { id: "edificio", nome: "Dati edificio e normativi" },
   { id: "rischio", nome: "Analisi del rischio" },
   { id: "captazione", nome: "Edificio 3D e captazione" },
   { id: "calate", nome: "Calate e distanza di separazione" },
-  { id: "terra", nome: "Impianto e resistenza di terra" },
   { id: "spd", nome: "Scelta SPD" },
   { id: "computo", nome: "Computo materiali" },
   { id: "particolari", nome: "Particolari costruttivi" },
-  { id: "verifiche", nome: "Verifiche e dossier" },
   { id: "prodotti", nome: "Prodotti OBO" },
   { id: "modelli3d", nome: "Modelli 3D prodotti" },
   { id: "cad", nome: "Download CAD" },
@@ -43,8 +41,8 @@ export const PUBBLICHE = ["/", "/auth", "/reset-password", "/richiesta-accesso",
 /** Sezione richiesta da ogni pagina; le pagine non elencate sono libere per gli utenti abilitati. */
 export const SEZIONE_PAGINA: Record<string, Sezione | "admin"> = {
   "/progetti": "progetti", "/dati-edificio": "edificio", "/dati-normativi": "edificio",
-  "/rischio": "rischio", "/edificio-3d": "captazione", "/calate": "calate", "/resistenza-terra": "terra", "/spd": "spd",
-  "/computo-materiali": "computo", "/particolari": "particolari", "/verifiche": "verifiche", "/prodotti": "prodotti",
+  "/rischio": "rischio", "/edificio-3d": "captazione", "/calate": "calate", "/spd": "spd",
+  "/computo-materiali": "computo", "/particolari": "particolari", "/prodotti": "prodotti",
   "/modelli-3d": "modelli3d", "/download-cad": "cad", "/admin": "admin",
 };
 

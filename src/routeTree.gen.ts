@@ -20,8 +20,6 @@ import { Route as SpdRouteImport } from './routes/spd'
 import { Route as CalateRouteImport } from './routes/calate'
 import { Route as ProdottiRouteImport } from './routes/prodotti'
 import { Route as Modelli3dRouteImport } from './routes/modelli-3d'
-import { Route as VerificheRouteImport } from './routes/verifiche'
-import { Route as ResistenzaTerraRouteImport } from './routes/resistenza-terra'
 import { Route as ContattiRouteImport } from './routes/contatti'
 import { Route as DatiEdificioRouteImport } from './routes/dati-edificio'
 import { Route as DatiNormativiRouteImport } from './routes/dati-normativi'
@@ -88,16 +86,6 @@ const ProdottiRoute = ProdottiRouteImport.update({
 const Modelli3dRoute = Modelli3dRouteImport.update({
   id: '/modelli-3d',
   path: '/modelli-3d',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const VerificheRoute = VerificheRouteImport.update({
-  id: '/verifiche',
-  path: '/verifiche',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ResistenzaTerraRoute = ResistenzaTerraRouteImport.update({
-  id: '/resistenza-terra',
-  path: '/resistenza-terra',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ContattiRoute = ContattiRouteImport.update({
@@ -177,8 +165,6 @@ export interface FileRoutesByFullPath {
   '/calate': typeof CalateRoute
   '/prodotti': typeof ProdottiRoute
   '/modelli-3d': typeof Modelli3dRoute
-  '/verifiche': typeof VerificheRoute
-  '/resistenza-terra': typeof ResistenzaTerraRoute
   '/contatti': typeof ContattiRoute
   '/dati-edificio': typeof DatiEdificioRoute
   '/dati-normativi': typeof DatiNormativiRoute
@@ -204,8 +190,6 @@ export interface FileRoutesByTo {
   '/calate': typeof CalateRoute
   '/prodotti': typeof ProdottiRoute
   '/modelli-3d': typeof Modelli3dRoute
-  '/verifiche': typeof VerificheRoute
-  '/resistenza-terra': typeof ResistenzaTerraRoute
   '/contatti': typeof ContattiRoute
   '/dati-edificio': typeof DatiEdificioRoute
   '/dati-normativi': typeof DatiNormativiRoute
@@ -233,8 +217,6 @@ export interface FileRoutesById {
   '/calate': typeof CalateRoute
   '/prodotti': typeof ProdottiRoute
   '/modelli-3d': typeof Modelli3dRoute
-  '/verifiche': typeof VerificheRoute
-  '/resistenza-terra': typeof ResistenzaTerraRoute
   '/contatti': typeof ContattiRoute
   '/dati-edificio': typeof DatiEdificioRoute
   '/dati-normativi': typeof DatiNormativiRoute
@@ -262,8 +244,6 @@ export interface FileRouteTypes {
     | '/calate'
     | '/prodotti'
     | '/modelli-3d'
-    | '/verifiche'
-    | '/resistenza-terra'
     | '/contatti'
     | '/dati-edificio'
     | '/dati-normativi'
@@ -289,8 +269,6 @@ export interface FileRouteTypes {
     | '/calate'
     | '/prodotti'
     | '/modelli-3d'
-    | '/verifiche'
-    | '/resistenza-terra'
     | '/contatti'
     | '/dati-edificio'
     | '/dati-normativi'
@@ -317,8 +295,6 @@ export interface FileRouteTypes {
     | '/calate'
     | '/prodotti'
     | '/modelli-3d'
-    | '/verifiche'
-    | '/resistenza-terra'
     | '/contatti'
     | '/dati-edificio'
     | '/dati-normativi'
@@ -346,8 +322,6 @@ export interface RootRouteChildren {
   CalateRoute: typeof CalateRoute
   ProdottiRoute: typeof ProdottiRoute
   Modelli3dRoute: typeof Modelli3dRoute
-  VerificheRoute: typeof VerificheRoute
-  ResistenzaTerraRoute: typeof ResistenzaTerraRoute
   ContattiRoute: typeof ContattiRoute
   DatiEdificioRoute: typeof DatiEdificioRoute
   DatiNormativiRoute: typeof DatiNormativiRoute
@@ -438,20 +412,6 @@ declare module '@tanstack/react-router' {
       path: '/modelli-3d'
       fullPath: '/modelli-3d'
       preLoaderRoute: typeof Modelli3dRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/verifiche': {
-      id: '/verifiche'
-      path: '/verifiche'
-      fullPath: '/verifiche'
-      preLoaderRoute: typeof VerificheRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/resistenza-terra': {
-      id: '/resistenza-terra'
-      path: '/resistenza-terra'
-      fullPath: '/resistenza-terra'
-      preLoaderRoute: typeof ResistenzaTerraRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/contatti': {
@@ -573,8 +533,6 @@ const rootRouteChildren: RootRouteChildren = {
   CalateRoute: CalateRoute,
   ProdottiRoute: ProdottiRoute,
   Modelli3dRoute: Modelli3dRoute,
-  VerificheRoute: VerificheRoute,
-  ResistenzaTerraRoute: ResistenzaTerraRoute,
   ContattiRoute: ContattiRoute,
   DatiEdificioRoute: DatiEdificioRoute,
   DatiNormativiRoute: DatiNormativiRoute,

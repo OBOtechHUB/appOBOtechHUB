@@ -22,7 +22,6 @@ import type {InputSfera,RisultatoSfera} from "@/calcoli/captazione/sferaRotolant
 import {percorsoSfera,inviluppoInPunto} from "@/calcoli/captazione/sferaRotolante";
 import {verificaCombinata,type RisultatoMaglia,type RisultatoCombinato} from "@/calcoli/captazione/verificaMaglia";
 import {triangoliDaGeometria} from "@/calcoli/captazione/superfici3D";
-import {ImpiantoTerra} from "@/components/edificio/ImpiantoTerra";
 import {datiTerraCAD} from "@/lib/impiantoTerra";
 import type {PropostaTerra} from "@/calcoli/terra/proponiTerra";
 import {useSferaRotolante} from "@/hooks/useSferaRotolante";
@@ -47,7 +46,7 @@ export function Edificio3DPage(){const s=useEsteso(),d=useDatiEdificio(),c=useCo
   const [cad,setCAD]=useState<ReturnType<typeof generaCAD>|null>(null);
   const [proposta,setProposta]=useState<PropostaCaptazione|null>(null),[strategia,setStrategia]=useState<"mista"|"maglia"|"aste">("mista"),[quotaConduttore,setQuotaConduttore]=useState(0);
   const coperturaDefault:CoperturaPiana=(["guaina","ghiaia","carrabile"] as const).find((v)=>d.copertura.toLowerCase().startsWith(v))??"guaina";const mat=d.materiale.toLowerCase();const pareteDefault=mat.includes("acciaio")?"lamiera":"muratura";const [manto,setManto]=useState("tegole"),[parete,setParete]=useState(pareteDefault);const haFalde=s.modello.corpi.some((b)=>b.tipoTetto==="falde");const [xlsMsg,setXlsMsg]=useState("");const [coperturaProp,setCoperturaProp]=useState<CoperturaPiana>(coperturaDefault),[materialeCond,setMaterialeCond]=useState<"alluminio"|"acciaio">("alluminio");
-  const [propostaTerra,setPropostaTerra]=useState<PropostaTerra|null>(null);
+  const [propostaTerra]=useState<PropostaTerra|null>(null);
   const sfera=useSferaRotolante();
   const [mostraParticolari,setMostraParticolari]=useState(true),[schedaId,setSchedaId]=useState<string|null>(null);
   const posizioni=useMemo(()=>{
@@ -121,7 +120,7 @@ export function Edificio3DPage(){const s=useEsteso(),d=useDatiEdificio(),c=useCo
         {livelliCalcolati.some((l)=>esiti[l]!.combinata.areaPareteEsposta>0)&&<p role="note" className="mt-2 border-l-4 border-accent pl-2 text-xs">L’edificio supera il raggio della sfera: le parti di parete evidenziate possono essere colpite lateralmente (CEI EN IEC 62305-3).</p>}</div>}
       <div className="mt-5 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">{confronta&&LIVELLI.map((l)=>{const e=esiti[l];if(!e)return null;return <div key={l}><h3 className="font-semibold">LPL {l}</h3><ClientOnly><Suspense fallback={null}><Viewer modello={s.modello} aste={s.aste} conduttori={s.conduttori} alto misura={false} onPunto={()=>{}} risultato={e.risultato} combinata={e.combinata} maglia={e.maglia} mostraMaglie={mostraMaglie} mostraInviluppo={false} anima={false} centriSfera={[]} posizioneSfera={0} suggerite={[]} picchetti={s.picchetti}/></Suspense></ClientOnly></div>;})}</div>
       <div className="mt-4 divide-y">{s.aste.map((a)=><div key={a.id} className="flex justify-between py-2 text-sm"><span>Asta {a.x.toFixed(1)}, {a.y.toFixed(1)} · h {a.altezza} m</span><Button variant="ghost" size="icon" title="Elimina asta" onClick={()=>aggiornaCaptazione(s.aste.filter((v)=>v.id!==a.id),s.conduttori)}><Trash2/></Button></div>)}</div>
-    </section><ImpiantoTerra s={s} onAnteprima={setPropostaTerra}/>
+    </section>
     <section className="mt-8 border-t pt-5" aria-label="Particolari costruttivi nel progetto"><h2 className="font-display text-xl font-semibold">Particolari costruttivi nel progetto</h2><p className="mt-1 text-sm text-muted-foreground">Abbinati ai componenti tramite il codice OBO; in arancione quelli delle proposte non ancora accettate.</p><div className="mt-4"><ParticolariProgetto risultato={posizioni} onScheda={setSchedaId}/></div></section>
     {schedaAperta&&<SchedaParticolare particolare={schedaAperta} open={schedaId!==null} onOpenChange={(o)=>{if(!o)setSchedaId(null);}}/>}
     </main>;
