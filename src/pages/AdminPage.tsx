@@ -139,7 +139,7 @@ export function AdminPage() {
   const [erroreRegistro, setErroreRegistro] = useState("");
   const [persone, setPersone] = useState<PersonaMappa[]>([]);
   const [sezioniRichiesta, setSezioniRichiesta] = useState<Record<string, string[]>>({});
-  const [modifica, setModifica] = useState<{ utente: string; sezioni: string[] } | null>(null);
+  const [modifica, setModifica] = useState<{ utente: string; sezioni: string[]; errore?: string } | null>(null);
   const [filtro, setFiltro] = useState("");
   const [mostraPw, setMostraPw] = useState(false);
   const [msg, setMsg] = useState("");
@@ -220,6 +220,24 @@ export function AdminPage() {
       setMsg(`Registro accessi scaricato: ${tutte.length} righe.`);
     } catch (e) { setMsg("Download non riuscito: " + (e instanceof Error ? e.message : String(e))); }
     finally { setScaricando(false); }
+  }
+
+  // sezioni di un utente: scrittura diretta (l'admin può aggiornare accessi_profili per le regole del database), senza passare dalla funzione sul server
+  async function salvaSezioni() {
+    if (!modifica) return;
+    const valide = new Set(["tutte", ...SEZIONI.map((x) => x.id)]);
+    const sezioni = [...new Set(modifica.sezioni)].filter((x) => valide.has(x as never));
+    setBusy(true);
+    try {
+      const { data, error } = await db().from("accessi_profili").update({ sezioni }).eq("utente", modifica.utente).select("utente");
+      if (error) throw new Error(error.message);
+      if (!data?.length) throw new Error("Il database non ha accettato la modifica: controlla di essere entrato come amministratore con Authenticator.");
+      await db().rpc("registra_accesso", { evento: "modifica_utente", dettagli: { utente: modifica.utente, sezioni } }).then(() => undefined, () => undefined);
+      const chi = profili.find((x) => x.utente === modifica.utente);
+      setModifica(null); setMsg(`Sezioni di ${chi?.nome || chi?.email || "utente"} aggiornate.`); await carica();
+    } catch (e) {
+      setModifica({ ...modifica, errore: "Non salvato: " + (e instanceof Error ? e.message : String(e)) });
+    } finally { setBusy(false); }
   }
 
   async function azione(fn: () => Promise<unknown>, ok: string) {
@@ -316,11 +334,19 @@ export function AdminPage() {
               </div></td>
             </tr>; })}</tbody>
           </table></div>
-          {modifica && <div className="mt-4 rounded-lg border-[0.8px] border-primary p-4">
-            <p className="font-semibold">Sezioni di {profili.find((x) => x.utente === modifica.utente)?.email}</p>
-            <p className="mt-1 text-xs text-muted-foreground">Puoi cambiarle quando vuoi: valgono dal prossimo caricamento della pagina dell'utente. I suoi progetti e dati salvati non vengono modificati né cancellati.</p>
-            <div className="mt-3"><SceltaSezioni valore={modifica.sezioni} onChange={(v) => setModifica({ ...modifica, sezioni: v })} /></div>
-            <div className="mt-3 flex gap-2"><Button disabled={busy} onClick={() => void azione(async () => { await gestione("aggiorna", { utente: modifica.utente, sezioni: modifica.sezioni }); setModifica(null); }, "Sezioni aggiornate.")}><Check />Salva</Button><Button variant="outline" onClick={() => setModifica(null)}><X />Annulla</Button></div>
+          {modifica && <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" role="dialog" aria-modal="true" aria-labelledby="titolo-sezioni" onClick={(e) => { if (e.target === e.currentTarget && !busy) setModifica(null); }}>
+            <div className="flex max-h-[90vh] w-full max-w-2xl flex-col rounded-xl bg-card shadow-2xl">
+              <div className="border-b border-bordo-scheda p-4">
+                <p id="titolo-sezioni" className="text-lg font-semibold">App e sezioni di {(() => { const x = profili.find((y) => y.utente === modifica.utente); return x?.nome || x?.email; })()}</p>
+                <p className="mt-1 text-xs text-muted-foreground">Valgono dal prossimo caricamento della pagina dell'utente. I suoi progetti e dati salvati non vengono modificati né cancellati.</p>
+              </div>
+              <div className="overflow-y-auto p-4"><SceltaSezioni valore={modifica.sezioni} onChange={(v) => setModifica({ ...modifica, sezioni: v, errore: "" })} /></div>
+              <div className="flex flex-wrap items-center gap-2 border-t border-bordo-scheda p-4">
+                <Button disabled={busy} onClick={() => void salvaSezioni()}><Check />{busy ? "Salvo…" : "Salva"}</Button>
+                <Button variant="outline" disabled={busy} onClick={() => setModifica(null)}><X />Annulla</Button>
+                {modifica.errore && <p role="alert" className="w-full text-sm text-[#b3261e]">{modifica.errore}</p>}
+              </div>
+            </div>
           </div>}
         </TabsContent>
 
