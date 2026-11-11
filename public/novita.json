@@ -2,6 +2,21 @@
   "nota": "Registro degli aggiornamenti di Progettazione LPS. Una voce per aggiornamento, la più recente per prima (app: lps). Viene mostrato nella barra \"Aggiorna app\", nel riquadro Novità e nella pagina Novità di OBO Hub.",
   "aggiornamenti": [
     {
+      "id": "2026-11-11-lps-1",
+      "data": "2026-11-11",
+      "app": "lps",
+      "titolo": "Testo regolabile in alto e pagine ferme di lato",
+      "voci": [
+        "Nuovo pulsante \"Testo\" nella barra in alto: A− e A+ per rimpicciolire o ingrandire il testo",
+        "Su telefono e tablet le pagine non scorrono più di lato"
+      ],
+      "titolo_en": "Text size at the top and pages locked sideways",
+      "voci_en": [
+        "New \"Text\" button in the top bar: A− and A+ to shrink or enlarge the text",
+        "On phones and tablets pages no longer move sideways"
+      ]
+    },
+    {
       "id": "2026-11-10-lps-3",
       "data": "2026-11-10",
       "app": "lps",
