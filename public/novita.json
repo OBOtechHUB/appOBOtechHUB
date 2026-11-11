@@ -2,6 +2,19 @@
   "nota": "Registro degli aggiornamenti di Progettazione LPS. Una voce per aggiornamento, la più recente per prima (app: lps). Viene mostrato nella barra \"Aggiorna app\", nel riquadro Novità e nella pagina Novità di OBO Hub.",
   "aggiornamenti": [
     {
+      "id": "2026-11-11-lps-4",
+      "data": "2026-11-11",
+      "app": "lps",
+      "titolo": "Tolta Saetta",
+      "voci": [
+        "Il personaggio Saetta non c'è più: al suo posto un fulmine semplice, anche nell'icona dell'app"
+      ],
+      "titolo_en": "Saetta removed",
+      "voci_en": [
+        "The Saetta character is gone: a plain lightning bolt takes its place, also in the app icon"
+      ]
+    },
+    {
       "id": "2026-11-11-lps-3",
       "data": "2026-11-11",
       "app": "lps",

@@ -2,14 +2,14 @@ import { useEffect, useState } from "react";
 import { KeyRound, LogOut, ShieldCheck, Smartphone } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Campo, inputCls } from "@/components/Campo";
-import { SaettaFigura } from "@/components/Saetta";
+import { LogoLps } from "@/components/LogoLps";
 import { supabase } from "@/integrations/supabase/client";
 import { aggiornaAccesso, db, useAccesso } from "@/lib/accesso";
 
 function Riquadro({ titolo, icona: I, children }: { titolo: string; icona: typeof KeyRound; children: React.ReactNode }) {
   return <main className="mx-auto max-w-lg px-4 py-10">
     <div className="rounded-2xl border-[0.8px] border-bordo-scheda p-6 shadow-sm">
-      <div className="flex items-center gap-3"><SaettaFigura className="h-14 w-11" /><h1 className="flex items-center gap-2 text-2xl font-bold"><I className="size-6 text-primary" strokeWidth={1.5} />{titolo}</h1></div>
+      <div className="flex items-center gap-3"><LogoLps className="h-14 w-11" /><h1 className="flex items-center gap-2 text-2xl font-bold"><I className="size-6 text-primary" strokeWidth={1.5} />{titolo}</h1></div>
       <div className="mt-5 space-y-4">{children}</div>
     </div>
   </main>;

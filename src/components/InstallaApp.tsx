@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Download, Share, SquarePlus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { SaettaFigura } from "@/components/Saetta";
+import { LogoLps } from "@/components/LogoLps";
 import { piattaforma, useInstallazione } from "@/lib/installazione";
 
 /** Istruzioni per installare l'app quando il browser non lo propone da solo (iPhone, iPad, Safari, Firefox). */
@@ -12,7 +12,7 @@ function Istruzioni() {
     <li>Apri questa pagina con <strong>Safari</strong>.</li>
     <li>Tocca <strong>Condividi</strong> <Share className="inline size-4 align-text-bottom" /> (in basso su iPhone, in alto a destra su iPad).</li>
     <li>Scegli <strong>Aggiungi alla schermata Home</strong> <SquarePlus className="inline size-4 align-text-bottom" /> e conferma con <strong>Aggiungi</strong>.</li>
-    <li>Saetta compare tra le app: aprila da lì, si apre a tutto schermo.</li>
+    <li>Progettazione LPS compare tra le app: aprila da lì, si apre a tutto schermo.</li>
   </ol>;
   if (p === "mac-safari") return <ol className="list-decimal space-y-2 pl-5 text-sm">
     <li>In Safari apri il menu <strong>File</strong> (o il pulsante <strong>Condividi</strong>).</li>
@@ -33,7 +33,7 @@ export function InstallaAppDialogo({ aperto, onChiudi }: { aperto: boolean; onCh
   return <Dialog open={aperto} onOpenChange={(o) => { if (!o) onChiudi(); }}>
     <DialogContent aria-describedby={undefined} className="max-w-md">
       <DialogHeader><DialogTitle>Installa l'app LPS</DialogTitle></DialogHeader>
-      <div className="flex items-start gap-4"><SaettaFigura className="h-20 w-16 shrink-0" saluto /><Istruzioni /></div>
+      <div className="flex items-start gap-4"><LogoLps className="h-20 w-16 shrink-0" /><Istruzioni /></div>
       <p className="text-xs text-muted-foreground">L'app installata si aggiorna da sola e le pagine già aperte restano disponibili anche senza rete. I progetti si salvano su Supabase quando sei collegato.</p>
     </DialogContent>
   </Dialog>;

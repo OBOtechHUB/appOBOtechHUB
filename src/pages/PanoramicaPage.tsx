@@ -1,7 +1,7 @@
 import { Link } from "@tanstack/react-router";
 import { ArrowDownToLine, ArrowRight, Box, Boxes, Check, ClipboardCheck, ClipboardList, Cpu, Download, Gauge, Package, Ruler, ShieldAlert } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Saetta, SaettaFigura } from "@/components/Saetta";
+import { LogoLps, Messaggio } from "@/components/LogoLps";
 import { PulsanteInstalla } from "@/components/InstallaApp";
 
 const VANTAGGI = [
@@ -45,7 +45,7 @@ export function PanoramicaPage() {
             <Button asChild size="lg" variant="outline"><Link to="/richiesta-accesso">Richiedi l'accesso <ArrowRight strokeWidth={1.5} /></Link></Button>
           </div>
         </div>
-        <SaettaFigura className="mx-auto hidden h-64 w-52 md:block" saluto />
+        <LogoLps className="mx-auto hidden h-64 w-52 md:block" />
       </div>
     </section>
     <main className="mx-auto max-w-6xl px-4 py-12">
@@ -79,7 +79,7 @@ export function PanoramicaPage() {
       </section>
 
       <section className="mt-14 grid items-center gap-6 rounded-2xl bg-muted p-6 md:grid-cols-[1fr_auto]" aria-label="Accesso">
-        <Saetta saluto><strong>Vuoi usare lo strumento?</strong> L'accesso è riservato: invia la richiesta, l'amministratore la approva e ti comunica la password iniziale. Al primo accesso scegli la tua password e colleghi Microsoft Authenticator.</Saetta>
+        <Messaggio><strong>Vuoi usare lo strumento?</strong> L'accesso è riservato: invia la richiesta, l'amministratore la approva e ti comunica la password iniziale. Al primo accesso scegli la tua password e colleghi Microsoft Authenticator.</Messaggio>
         <div className="flex flex-wrap gap-3"><Button asChild size="lg"><Link to="/richiesta-accesso">Richiedi l'accesso</Link></Button><PulsanteInstalla /></div>
       </section>
     </main>

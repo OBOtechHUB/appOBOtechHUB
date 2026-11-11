@@ -5,10 +5,5 @@
   <rect width="512" height="512" rx="112" fill="#41525d"/>
   <g transform="translate(76 40) scale(3)">
     <path d="M70 4 L22 78 L52 78 L38 138 L98 54 L66 54 L84 4 Z" fill="url(#c)" stroke="#c97c00" stroke-width="3" stroke-linejoin="round"/>
-    <ellipse cx="57" cy="44" rx="5" ry="6.5" fill="#212529"/>
-    <ellipse cx="73" cy="44" rx="5" ry="6.5" fill="#212529"/>
-    <circle cx="58.6" cy="41.8" r="1.8" fill="#fff"/>
-    <circle cx="74.6" cy="41.8" r="1.8" fill="#fff"/>
-    <path d="M57 56 Q65 64 73 56" fill="none" stroke="#212529" stroke-width="3" stroke-linecap="round"/>
   </g>
 </svg>

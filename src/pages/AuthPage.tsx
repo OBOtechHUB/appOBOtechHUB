@@ -6,7 +6,7 @@ import { urlApp } from "@/lib/base";
 import { aggiornaAccesso, salvaRitorno } from "@/lib/accesso";
 import { Button } from "@/components/ui/button";
 import { Campo, inputCls } from "@/components/Campo";
-import { SaettaFigura } from "@/components/Saetta";
+import { LogoLps } from "@/components/LogoLps";
 
 /** Accesso con email e password (gli account li crea l'amministratore); poi nuova password e Authenticator. */
 export function AuthPage() {
@@ -30,7 +30,7 @@ export function AuthPage() {
   }
   return <main className="mx-auto max-w-md px-4 py-10">
     <div className="rounded-2xl border-[0.8px] border-bordo-scheda p-6 shadow-sm">
-      <div className="flex items-center gap-3"><SaettaFigura className="h-14 w-11" /><h1 className="text-2xl font-bold">{recupero ? "Recupero password" : "Accedi"}</h1></div>
+      <div className="flex items-center gap-3"><LogoLps className="h-14 w-11" /><h1 className="text-2xl font-bold">{recupero ? "Recupero password" : "Accedi"}</h1></div>
       <form className="mt-6 space-y-4" onSubmit={(e) => { e.preventDefault(); void invia(); }}>
         <Campo etichetta="Email"><input className={inputCls} required type="email" maxLength={254} autoComplete="username" value={email} onChange={(e) => setEmail(e.target.value)} /></Campo>
         {!recupero && <Campo etichetta="Password"><input className={inputCls} required type="password" minLength={6} autoComplete="current-password" value={password} onChange={(e) => setPassword(e.target.value)} /></Campo>}

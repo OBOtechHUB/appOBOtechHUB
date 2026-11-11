@@ -2,7 +2,6 @@ import { ArrowRight, ClipboardCheck, Gauge, Building2, ShieldAlert, Radio, Arrow
 import { ModuleCard } from "@/components/ModuleCard";
 import { Link } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
-import { Saetta } from "@/components/Saetta";
 import { PulsanteInstalla } from "@/components/InstallaApp";
 import { useComputo, useDatiEdificio } from "@/lib/progettoStore";
 import { applicaModifiche, generaComputo } from "@/calcoli/materiali/computo";
@@ -25,7 +24,7 @@ export function HomePage() {
   return (
     <>
     <section className="bg-ardesia text-white">
-      <div className="mx-auto grid max-w-5xl gap-8 px-4 py-12 md:grid-cols-[1fr_auto] md:items-end"><div>
+      <div className="mx-auto grid max-w-5xl gap-8 px-4 py-12 "><div>
         <h1 className="text-3xl font-bold leading-tight sm:text-4xl">Progettazione LPS – protezione contro i fulmini</h1>
         <p className="mt-3 max-w-2xl text-lg text-white/90">Dall’edificio al progetto: rischio, protezione esterna e documentazione tecnica secondo CEI EN IEC 62305:2024.</p>
         <div className="mt-6 flex flex-wrap gap-3">
@@ -34,7 +33,6 @@ export function HomePage() {
           <PulsanteInstalla />
         </div>
       </div>
-      <Saetta saluto chiaro><strong>Ciao, sono Saetta!</strong> Ti accompagno nel progetto dell'LPS, dall'edificio fino al dossier. Parti dai dati dell'edificio.</Saetta>
       </div>
     </section>
     <main className="mx-auto max-w-5xl px-4 py-10">

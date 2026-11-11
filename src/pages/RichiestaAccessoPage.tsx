@@ -3,7 +3,7 @@ import { Link } from "@tanstack/react-router";
 import { Send } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Campo, inputCls } from "@/components/Campo";
-import { Saetta } from "@/components/Saetta";
+import { Messaggio } from "@/components/LogoLps";
 import { supabase } from "@/integrations/supabase/client";
 import { urlApp } from "@/lib/base";
 
@@ -19,7 +19,7 @@ export function RichiestaAccessoPage() {
   }
   return <main className="mx-auto max-w-xl px-4 py-10">
     <h1 className="text-3xl font-bold">Richiedi l'accesso</h1>
-    {stato === "ok" ? <div className="mt-6"><Saetta saluto><strong>Richiesta inviata!</strong> L'amministratore riceve la tua richiesta via email. Quando la approva ti comunica la password iniziale: al primo accesso sceglierai la tua e collegherai Microsoft Authenticator.</Saetta><Button className="mt-4" variant="outline" asChild><Link to="/">Torna alla panoramica</Link></Button></div> :
+    {stato === "ok" ? <div className="mt-6"><Messaggio><strong>Richiesta inviata!</strong> L'amministratore riceve la tua richiesta via email. Quando la approva ti comunica la password iniziale: al primo accesso sceglierai la tua e collegherai Microsoft Authenticator.</Messaggio><Button className="mt-4" variant="outline" asChild><Link to="/">Torna alla panoramica</Link></Button></div> :
       <form className="mt-6 space-y-4" onSubmit={(e) => { e.preventDefault(); void invia(); }}>
         <Campo etichetta="Nome e cognome"><input className={inputCls} required maxLength={120} autoComplete="name" value={d.nome} onChange={(e) => setD({ ...d, nome: e.target.value })} /></Campo>
         <Campo etichetta="Email"><input className={inputCls} required type="email" maxLength={254} autoComplete="email" value={d.email} onChange={(e) => setD({ ...d, email: e.target.value })} /></Campo>

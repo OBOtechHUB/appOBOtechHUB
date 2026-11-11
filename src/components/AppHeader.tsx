@@ -10,7 +10,7 @@ import { NOMI_TEMA, cambiaZoom, impostaTema, useTema, useZoom, type Tema } from 
 import { impostaLingua, useLingua } from "@/lib/lingua";
 import { supabase } from "@/integrations/supabase/client";
 import { salvaAttivo, useStatoSalvataggio } from "@/components/ProjectSync";
-import { SaettaFigura } from "@/components/Saetta";
+import { LogoLps } from "@/components/LogoLps";
 import { RicercaGlobale } from "@/components/RicercaGlobale";
 import { useAvanzamentoProgetto } from "@/lib/avanzamentoProgetto";
 import { SEZIONE_PAGINA, URL_HUB, esciVisitatore, puoVedere, useAccesso } from "@/lib/accesso";
@@ -55,7 +55,7 @@ function ControlloTesto({ zoom }: { zoom: number }) {
   </div>;
 }
 
-/** Barra superiore bianca (Saetta, nome, stato del progetto · icone con etichetta) con filo di avanzamento e menu laterale a sezioni. */
+/** Barra superiore bianca (logo, nome, stato del progetto · icone con etichetta) con filo di avanzamento e menu laterale a sezioni. */
 export function AppHeader() {
   const { user } = useAuth();
   const qc = useQueryClient();
@@ -168,7 +168,7 @@ export function AppHeader() {
             <ChevronLeft className="size-7" strokeWidth={1.5} />
           </button>}
           <Link to="/" aria-label="Progettazione LPS – home" className="flex min-w-0 items-center gap-2">
-            <SaettaFigura className="h-10 w-8 shrink-0 sm:h-12 sm:w-10" />
+            <LogoLps className="h-10 w-8 shrink-0 sm:h-12 sm:w-10" />
             <span className="hidden min-w-0 sm:block">
               <span className="block whitespace-nowrap text-lg font-bold leading-tight sm:text-xl">Progettazione <span className="text-primary">LPS</span></span>
               <span className="block max-w-[46vw] truncate text-[11px] text-muted-foreground sm:max-w-[320px] sm:text-xs">{!abilitato ? "CEI EN IEC 62305:2024 · smart planning" : visitatore ? `Visitatore · ${accesso.profilo?.nome ?? ""} · niente salvataggi nel cloud` : attivo ? `${attivo.codice ? attivo.codice + " · " : ""}${attivo.nome} · ${statoSalvataggio || "salvato"}` : "Lavoro locale · nessun progetto aperto"}</span>
