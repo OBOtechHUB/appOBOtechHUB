@@ -6,7 +6,7 @@ import { inputCls } from "@/components/Campo";
 import { db } from "@/lib/accesso";
 
 interface Errore { id: number; quando: string; app: string; pagina: string; messaggio: string; dettagli: string; browser: string; versione: string; utente: string | null; volte: number; risolto: string | null }
-const NOMI_APP: Record<string, string> = { hub: "OBO Hub", lps: "Progettazione LPS", mappa: "Mappa carichi", prodotti: "Prodotti OBO", spd: "Conversione SPD", torrette: "Configuratore torrette" };
+const NOMI_APP: Record<string, string> = { hub: "OBO Hub", lps: "Progettazione LPS", mappa: "Mappa carichi", prodotti: "Prodotti OBO", torrette: "Configuratore torrette" };
 const data = (d: string) => new Date(d).toLocaleString("it-IT", { dateStyle: "short", timeStyle: "short" });
 /** Browser e sistema in parole semplici, dal testo del browser. */
 export function browserBreve(ua: string): string {

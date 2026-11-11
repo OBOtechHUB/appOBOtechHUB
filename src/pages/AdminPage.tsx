@@ -27,6 +27,24 @@ function Kpi({ titolo, valore, nota, evidenzia }: { titolo: string; valore: numb
   </div>;
 }
 
+/** App di OBO Hub che una persona può usare, come in OBO Hub (hub/config.js): etichette leggibili. */
+function AppUtente({ ruolo, sezioni }: { ruolo: string; sezioni: string[] }) {
+  const lps = SEZIONI.filter((s) => !s.id.startsWith("app_"));
+  const tutte = ruolo === "admin" || sezioni.includes("tutte");
+  const mieLps = lps.filter((s) => tutte || sezioni.includes(s.id));
+  const app: { nome: string; nota?: string }[] = [];
+  if (mieLps.length) app.push({ nome: "Progettazione LPS", nota: mieLps.length === lps.length ? "tutte le sezioni" : mieLps.map((s) => s.nome).join(", ") });
+  if (tutte || sezioni.includes("app_mappa")) app.push({ nome: "Mappa carichi" });
+  app.push({ nome: "Prodotti OBO" });
+  if (ruolo === "admin") app.push({ nome: "Configuratore torrette" }, { nome: "Manutenzione app" }, { nome: "Amministrazione" });
+  return <div>
+    {tutte && ruolo !== "admin" && <p className="mb-1 font-semibold">Tutte le app, anche quelle future</p>}
+    {ruolo === "admin" && <p className="mb-1 font-semibold">Amministratore: tutte le app</p>}
+    <ul className="flex flex-wrap gap-1">{app.map((a) => <li key={a.nome} title={a.nota} className="rounded-full border-[0.8px] border-bordo-scheda bg-muted px-2 py-0.5 font-semibold">{a.nome}{a.nota && a.nota !== "tutte le sezioni" ? <span className="font-normal text-muted-foreground"> · {mieLps.length} sezioni</span> : null}</li>)}</ul>
+    {mieLps.length > 0 && mieLps.length < lps.length && <p className="mt-1 text-muted-foreground">LPS: {mieLps.map((s) => s.nome).join(", ")}</p>}
+  </div>;
+}
+
 function SceltaSezioni({ valore, onChange }: { valore: string[]; onChange: (v: string[]) => void }) {
   const tutte = valore.includes("tutte");
   const cambia = (id: string, on: boolean) => onChange(on ? [...valore.filter((x) => x !== "tutte"), id] : valore.filter((x) => x !== id));
@@ -37,7 +55,6 @@ function SceltaSezioni({ valore, onChange }: { valore: string[]; onChange: (v: s
     {!tutte && <>
       <div><p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">App di OBO Hub</p>
         <label className="mt-1 flex items-center gap-2 text-sm"><input type="checkbox" checked={valore.includes("app_mappa")} onChange={(e) => cambia("app_mappa", e.target.checked)} />Mappa carichi ufficio tecnico</label>
-        <label className="mt-1 flex items-center gap-2 text-sm"><input type="checkbox" checked={valore.includes("app_spd")} onChange={(e) => cambia("app_spd", e.target.checked)} />Conversione SPD</label>
         <label className="mt-1 flex items-center gap-2 text-sm"><input type="checkbox" checked={tutteLps} onChange={(e) => onChange(e.target.checked ? [...new Set([...valore, ...lps.map((x) => x.id)])] : valore.filter((x) => x.startsWith("app_")))} />Progettazione LPS (tutte le sezioni)</label>
       </div>
       <div><p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Progettazione LPS · singole sezioni</p>
@@ -280,12 +297,12 @@ export function AdminPage() {
 
         <TabsContent value="utenti" className="mt-4">
           <div className="overflow-x-auto"><table className="w-full min-w-[1100px] text-sm">
-            <thead><tr className="border-b text-left"><th className="p-2">Utente</th><th className="p-2">Ruolo</th><th className="p-2">Stato</th><th className="p-2">Sezioni</th><th className="p-2">Mappa carichi</th><th className="p-2">Authenticator</th><th className="p-2">Ultimo accesso</th><th className="p-2">Azioni</th></tr></thead>
+            <thead><tr className="border-b text-left"><th className="p-2">Utente</th><th className="p-2">Ruolo</th><th className="p-2">Stato</th><th className="p-2">App che può usare</th><th className="p-2">Mappa carichi</th><th className="p-2">Authenticator</th><th className="p-2">Ultimo accesso</th><th className="p-2">Azioni</th></tr></thead>
             <tbody>{profili.map((p) => { const me = p.utente === io.profilo?.utente; return <tr key={p.utente} className="border-b align-top">
               <td className="p-2"><p className="font-semibold">{p.nome || "—"}</p><p className="text-xs text-muted-foreground">{p.email}{p.azienda ? ` · ${p.azienda}` : ""}</p>{p.deve_cambiare_password && <p className="text-xs text-[#9a6200]">deve cambiare la password</p>}</td>
               <td className="p-2"><select aria-label="Ruolo" className="rounded border px-2 py-1" disabled={busy || me} value={p.ruolo} onChange={(e) => void azione(() => gestione("aggiorna", { utente: p.utente, ruolo: e.target.value }), "Ruolo aggiornato.")}><option value="utente">Utente</option><option value="admin">Amministratore</option></select></td>
               <td className="p-2"><Button size="sm" variant={p.stato === "attivo" ? "outline" : "default"} disabled={busy || me} onClick={() => void azione(() => gestione("aggiorna", { utente: p.utente, stato: p.stato === "attivo" ? "sospeso" : "attivo" }), p.stato === "attivo" ? "Utente sospeso." : "Utente riattivato.")}>{p.stato === "attivo" ? "Attivo · sospendi" : "Sospeso · riattiva"}</Button></td>
-              <td className="max-w-[260px] p-2 text-xs">{p.ruolo === "admin" || p.sezioni.includes("tutte") ? "Tutte" : p.sezioni.map((s) => SEZIONI.find((x) => x.id === s)?.nome ?? s).join(", ") || "Nessuna"}
+              <td className="max-w-[300px] p-2 text-xs"><AppUtente ruolo={p.ruolo} sezioni={p.sezioni} />
                 {p.ruolo !== "admin" && <Button size="sm" variant="outline" className="mt-1 h-7 text-xs" onClick={() => setModifica({ utente: p.utente, sezioni: p.sezioni })}>Cambia sezioni</Button>}</td>
               <td className="p-2"><MappaUtente p={p} persone={persone} abilitata={p.ruolo === "admin" || p.sezioni.includes("tutte") || p.sezioni.includes("app_mappa")}
                 onCambio={(m) => { setMsg(m); void carica(); }}

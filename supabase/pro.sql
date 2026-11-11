@@ -122,7 +122,6 @@ BEGIN
     'mappa_persone',     (SELECT coalesce(jsonb_agg(to_jsonb(x) - 'personal_pw'), '[]') FROM public.app_people x),
     'mappa_progetti',    (SELECT coalesce(jsonb_agg(to_jsonb(x)), '[]') FROM public.app_projects x),
     'mappa_accessi',     (SELECT coalesce(jsonb_agg(to_jsonb(x)), '[]') FROM public.app_access x),
-    'spd_concorrenti',   (SELECT coalesce(jsonb_agg(to_jsonb(x)), '[]') FROM public.spd_concorrenti x),
     'mappa_impostazioni',(SELECT coalesce(jsonb_agg(to_jsonb(x)), '[]') FROM public.app_settings x WHERE x.key NOT ILIKE '%pw%' AND x.key NOT ILIKE '%password%')
   );
   INSERT INTO public.impostazioni_admin(chiave, valore) VALUES ('ultima_copia_sicurezza', now()::text)
@@ -144,53 +143,3 @@ $$;
 REVOKE ALL ON FUNCTION public.stato_manutenzione() FROM public;
 GRANT EXECUTE ON FUNCTION public.stato_manutenzione() TO anon, authenticated;
 
--- ===================================================================== 5) Conversione SPD (app di OBO Hub)
--- SPD di altre marche (DEHN, Zotup, Lovato, …) con i dati tecnici, per proporre l'equivalente OBO.
--- Li vede e li modifica chi ha l'app "Conversione SPD" (sezione app_spd) o è admin; solo l'admin può eliminarli.
-CREATE OR REPLACE FUNCTION public.ha_app_spd() RETURNS boolean LANGUAGE sql STABLE SECURITY DEFINER SET search_path = public AS $$
-  SELECT EXISTS (SELECT 1 FROM public.accessi_profili WHERE utente = auth.uid() AND stato = 'attivo'
-                 AND (ruolo = 'admin' OR 'tutte' = ANY(sezioni) OR 'app_spd' = ANY(sezioni)));
-$$;
-REVOKE ALL ON FUNCTION public.ha_app_spd() FROM public;
-GRANT EXECUTE ON FUNCTION public.ha_app_spd() TO authenticated;
-
-CREATE TABLE IF NOT EXISTS public.spd_concorrenti (
-  id            bigserial PRIMARY KEY,
-  marca         text NOT NULL,
-  codice        text NOT NULL,
-  nome          text NOT NULL DEFAULT '',
-  applicazione  text NOT NULL DEFAULT 'ac' CHECK (applicazione IN ('ac', 'pv', 'dc', 'dati')),
-  tipo          text NOT NULL DEFAULT '',            -- 1, 1+2, 2, 2+3, 3
-  poli          text NOT NULL DEFAULT '',            -- 1, 1+N, 2, 3, 3+N, 4
-  uc            numeric,                             -- V (AC, o DC per fotovoltaico)
-  iimp_polo     numeric,                             -- kA 10/350 per polo
-  iimp_tot      numeric,                             -- kA 10/350 totale
-  in_ka         numeric,                             -- kA 8/20 per polo
-  imax_ka       numeric,                             -- kA 8/20 per polo
-  up_kv         numeric,                             -- kV
-  segnalazione  boolean,                             -- contatto di segnalazione a distanza
-  estraibile    boolean,                             -- moduli estraibili
-  sistema       text NOT NULL DEFAULT '',            -- TT, TN-C, TN-S, TN-C-S, IT
-  note          text NOT NULL DEFAULT '',
-  fonte         text NOT NULL DEFAULT '',            -- catalogo / scheda tecnica da cui vengono i dati
-  codice_obo    text NOT NULL DEFAULT '',            -- equivalente OBO confermato da una persona
-  obo_verificato_da uuid,
-  obo_verificato_il timestamptz,
-  creato_da     uuid DEFAULT auth.uid(),
-  creato_il     timestamptz NOT NULL DEFAULT now(),
-  modificato_da uuid,
-  modificato_il timestamptz NOT NULL DEFAULT now(),
-  UNIQUE (marca, codice)
-);
-ALTER TABLE public.spd_concorrenti ENABLE ROW LEVEL SECURITY;
-DROP POLICY IF EXISTS "spd_lettura" ON public.spd_concorrenti;
-CREATE POLICY "spd_lettura" ON public.spd_concorrenti FOR SELECT TO authenticated USING (public.ha_app_spd());
-DROP POLICY IF EXISTS "spd_inserimento" ON public.spd_concorrenti;
-CREATE POLICY "spd_inserimento" ON public.spd_concorrenti FOR INSERT TO authenticated WITH CHECK (public.ha_app_spd());
-DROP POLICY IF EXISTS "spd_modifica" ON public.spd_concorrenti;
-CREATE POLICY "spd_modifica" ON public.spd_concorrenti FOR UPDATE TO authenticated USING (public.ha_app_spd()) WITH CHECK (public.ha_app_spd());
-DROP POLICY IF EXISTS "spd_eliminazione" ON public.spd_concorrenti;
-CREATE POLICY "spd_eliminazione" ON public.spd_concorrenti FOR DELETE TO authenticated USING (public.e_admin());
-REVOKE ALL ON public.spd_concorrenti FROM anon;
-GRANT SELECT, INSERT, UPDATE, DELETE ON public.spd_concorrenti TO authenticated;
-GRANT USAGE ON SEQUENCE public.spd_concorrenti_id_seq TO authenticated;

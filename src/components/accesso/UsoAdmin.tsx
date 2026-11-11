@@ -5,12 +5,11 @@ import { db, SEZIONI } from "@/lib/accesso";
 import { dataOra, oggiFile, scaricaCsv } from "@/lib/csv";
 
 interface Riga { giorno: string; app: string; sezione: string; aperture: number; persone: number; visitatori: number }
-const NOMI_APP: Record<string, string> = { hub: "OBO Hub", lps: "Progettazione LPS", mappa: "Mappa carichi ufficio tecnico", prodotti: "Prodotti OBO", spd: "Conversione SPD", torrette: "Configuratore torrette" };
+const NOMI_APP: Record<string, string> = { hub: "OBO Hub", lps: "Progettazione LPS", mappa: "Mappa carichi ufficio tecnico", prodotti: "Prodotti OBO", torrette: "Configuratore torrette" };
 const NOMI_SEZ: Record<string, string> = {
   ...Object.fromEntries(SEZIONI.map((s) => [`lps:${s.id}`, s.nome])),
   "lps:home": "Home", "lps:norma": "Norma 62305: calcoli e tabelle", "lps:strumenti": "Strumenti", "lps:guida": "Guida",
   "mappa:home": "Home", "mappa:ins": "Inserisci progetto", "mappa:map": "Mappa dei carichi", "mappa:prj": "Progetti", "mappa:team": "Persone", "mappa:offerte": "Offerte", "mappa:data": "Download",
-  "spd:converti": "Converti codici", "spd:elenco": "SPD di altre marche", "spd:aggiungi": "Aggiungi SPD", "spd:importa": "Importa da Excel",
   "prodotti:home": "Home", "prodotti:novita": "Novità", "prodotti:codici": "Codici", "prodotti:ricerca": "Ricerca",
 };
 const PERIODI = [{ g: 7, n: "7 giorni" }, { g: 30, n: "30 giorni" }, { g: 90, n: "3 mesi" }, { g: 365, n: "1 anno" }];
