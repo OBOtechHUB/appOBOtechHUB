@@ -1,4 +1,3 @@
-import { CampoLuogo } from "@/components/edificio/CampoLuogo";
 import { Link, useNavigate } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
 import { aggiornaEsteso } from "@/lib/statoProgetto";
@@ -26,7 +25,7 @@ export function DatiEdificioPage() {
   const AD = areaRaccolta(d.L, d.W, d.H);
   const posizione = fattoriPosizione.find((f) => f.id === d.posizioneId)
     ?? { id: "isolata", descrizione: "Isolata, nessun oggetto nelle vicinanze", valore: 1, riferimentoNorma: "" };
-  const ND = eventiPericolosi(2 * d.densita, AD, posizione.valore); // NSG = k·NG con k = 2 (CEI EN IEC 62305-2:2024, A.1)
+  const ND = eventiPericolosi(d.densita, AD, posizione.valore);
 
   return (
     <main className="mx-auto max-w-5xl px-4 py-6 pb-32 md:pb-8">
@@ -41,7 +40,9 @@ export function DatiEdificioPage() {
             <Campo etichetta="Nome progetto">
               <input className={inputCls} value={d.nomeProgetto} onChange={(e) => aggiornaDati({ nomeProgetto: e.target.value })} />
             </Campo>
-            <CampoLuogo valore={{ comune: d.comune, indirizzo: d.indirizzo, lat: d.lat, lon: d.lon }} onChange={(v) => aggiornaDati({ comune: v.comune, indirizzo: v.indirizzo, lat: v.lat ?? null, lon: v.lon ?? null })} />
+            <Campo etichetta="Comune">
+              <input className={inputCls} value={d.comune} onChange={(e) => aggiornaDati({ comune: e.target.value })} />
+            </Campo>
           </section>
           <section className="grid grid-cols-3 gap-3">
             {(["L", "W", "H"] as const).map((k) => (
@@ -109,7 +110,7 @@ export function DatiEdificioPage() {
             <div className="font-mono text-xs uppercase tracking-wider opacity-70">Fattore di posizione C<sub>D</sub></div>
             <div className="mt-1 font-mono text-xl font-bold">{posizione.valore}</div>
 
-            <div className="mt-3 font-mono text-xs uppercase tracking-wider opacity-70">Eventi pericolosi N<sub>D</sub> · N<sub>SG</sub> = 2 · N<sub>G</sub></div>
+            <div className="mt-3 font-mono text-xs uppercase tracking-wider opacity-70">Eventi pericolosi N<sub>D</sub></div>
             <div className="mt-1 font-mono text-xl font-bold text-accent">{fmtND.format(ND)} <span className="text-sm">eventi/anno</span></div>
             {ND > 0 && (
               <div className="mt-1 font-mono text-sm opacity-80">1 fulmine ogni {Math.round(1 / ND)} anni</div>

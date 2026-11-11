@@ -53,7 +53,7 @@ export function SpdPage() {
       <p className="mt-2 max-w-3xl text-white/90">Requisiti degli SPD per la linea di alimentazione (Iimp, Uc, Up) e scelta dei prodotti OBO adatti dal catalogo (CEI EN IEC 62305-4, CEI EN 61643-12).</p>
     </div></section>
     <main className="mx-auto max-w-5xl px-4 py-8">
-      <p className="rounded-lg border-l-4 border-primary bg-muted p-3 text-sm">Regola n. 1 della CEI EN IEC 62305-4:2024 (Allegato C): 50 % della corrente di fulmine dell'LPL nell'impianto di terra, divisa tra i servizi entranti e i conduttori della linea (CEI EN IEC 62305-1:2024, E.2). Con una linea e 4 conduttori si ottengono 12,5 / 18,75 / 25 kA (10/350) per LPL III-IV / II / I, come in Tab. B.7 della 62305-2. Da confrontare con lo schema reale dell'impianto.</p>
+      <p className="rounded-lg border-l-4 border-primary bg-muted p-3 text-sm">Metodo semplificato: 50 % della corrente di fulmine dell'LPL nell'impianto di terra, divisa tra i servizi entranti e i conduttori della linea. Valori tipici <strong>da verificare con l'edizione 2024</strong> e con lo schema reale dell'impianto.</p>
 
       <section className="mt-8" aria-label="Dati della rete">
         <h2 className="text-[1.7rem] font-medium">1 · Rete e apparecchi</h2>
@@ -61,7 +61,7 @@ export function SpdPage() {
           <Campo etichetta="Sistema di distribuzione"><select className={inputCls} value={sistema} onChange={(e) => setSistema(e.target.value as Sistema)}>{(["TN-C", "TN-S", "TN-C-S", "TT"] as Sistema[]).map((x) => <option key={x}>{x}</option>)}</select></Campo>
           <Campo etichetta="Alimentazione"><select className={inputCls} value={fasi} onChange={(e) => setFasi(e.target.value as Fasi)}><option value="trifase">Trifase 230/400 V</option><option value="monofase">Monofase 230 V</option></select></Campo>
           <Campo etichetta="Servizi metallici entranti (energia, acqua, gas, telecom…)"><input className={inputCls} type="number" min={1} max={10} step={1} value={servizi} onChange={(e) => setServizi(Math.max(1, Number(e.target.value)))} /></Campo>
-          <Campo etichetta="Categoria di tenuta degli apparecchi"><select className={inputCls} value={categoria} onChange={(e) => setCategoria(e.target.value as keyof typeof UW_CATEGORIA)}>{(Object.keys(UW_CATEGORIA) as (keyof typeof UW_CATEGORIA)[]).map((k) => <option key={k} value={k}>Categoria {k} · Uw {f(UW_CATEGORIA[k])} kV</option>)}</select>{(categoria === "III" || categoria === "IV") && <p className="mt-1 text-xs font-medium text-[#b3261e]">La regola n. 1 si riferisce agli apparecchi di categoria II (2,5 kV): usa III o IV solo se a valle non ci sono apparecchi di categoria I o II.</p>}</Campo>
+          <Campo etichetta="Categoria di tenuta degli apparecchi"><select className={inputCls} value={categoria} onChange={(e) => setCategoria(e.target.value as keyof typeof UW_CATEGORIA)}>{(Object.keys(UW_CATEGORIA) as (keyof typeof UW_CATEGORIA)[]).map((k) => <option key={k} value={k}>Categoria {k} · Uw {f(UW_CATEGORIA[k])} kV</option>)}</select></Campo>
           <Campo etichetta="Sottoquadri a più di 10 m"><input className={inputCls} type="number" min={0} step={1} value={sotto} onChange={(e) => setSotto(Math.max(0, Number(e.target.value)))} /></Campo>
           <Campo etichetta="Apparecchi sensibili da proteggere"><input className={inputCls} type="number" min={0} step={1} value={app} onChange={(e) => setApp(Math.max(0, Number(e.target.value)))} /></Campo>
         </div>

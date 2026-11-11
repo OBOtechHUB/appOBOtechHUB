@@ -347,32 +347,15 @@ export function proponiTerra(corpi: Corpo[], par: ParametriTerra): PropostaTerra
 function sub(a: Punto2, b: Punto2): [number, number] { return [a[0] - b[0], a[1] - b[1]]; }
 
 /**
- * Lunghezza minima l1 del dispersore (CEI EN IEC 62305-3:2024, Fig. 5), lettura del grafico:
- * classi III-IV 5 m indipendente da ρ; classe I 5 m fino a 500 Ω·m poi lineare fino a 80 m a 3000 Ω·m;
- * classe II 5 m fino a circa 800 Ω·m poi lineare fino a 50 m a 3000 Ω·m (il grafico si legge tra 48 e 50 m: valore prudente).
- * Oltre 3000 Ω·m la norma consiglia il dispersore di tipo B. Il requisito si può ignorare se R < 10 Ω (tipo A).
- */
-export function l1Norma(lpl: "I" | "II" | "III" | "IV", rho: number): number {
-  if (!Number.isFinite(rho) || rho < 0) throw new Error("Resistività non valida");
-  const r = Math.min(rho, 3000);
-  if (lpl === "I") return r <= 500 ? 5 : 5 + (r - 500) * (75 / 2500);
-  if (lpl === "II") return r <= 800 ? 5 : 5 + (r - 800) * (45 / 2200);
-  return 5;
-}
-
-/**
  * Verifica con la lunghezza minima l1 (dal grafico della norma, in funzione di resistività e LPL).
- * Tipo A: almeno 2 dispersori, ogni picchetto verticale ≥ 0,5·l1 + 0,5 m (la parte alta non lavora con gelo o terreno secco, 5.4.3).
- * Tipo B / fondazione: raggio equivalente re ≥ l1.
+ * Tipo A: ogni picchetto verticale ≥ 0,5·l1. Tipo B / fondazione: raggio equivalente re ≥ l1.
  */
 export function verificaTerra(p: PropostaTerra, l1: number | null): { esito: "adeguata" | "non adeguata" | "dato norma mancante"; dettaglio: string } {
   if (l1 == null) return { esito: "dato norma mancante", dettaglio: "Lunghezza minima l1 non impostata (Dati normativi)" };
   if (p.riepilogo.tipo === "A") {
     const min = Math.min(...p.picchetti.map((q) => q.lunghezza));
-    const richiesto = 0.5 * l1 + 0.5;
-    if (p.picchetti.length < 2) return { esito: "non adeguata", dettaglio: "Il dispersore di tipo A richiede almeno 2 elementi" };
-    const ok = min >= richiesto - 1e-9;
-    return { esito: ok ? "adeguata" : "non adeguata", dettaglio: `Picchetto più corto ${min.toFixed(2)} m, richiesto ≥ 0,5·l1 + 0,5 = ${richiesto.toFixed(2)} m` };
+    const ok = min >= 0.5 * l1 - 1e-9;
+    return { esito: ok ? "adeguata" : "non adeguata", dettaglio: `Picchetto più corto ${min.toFixed(2)} m, richiesto ≥ 0,5·l1 = ${(0.5 * l1).toFixed(2)} m` };
   }
   const re = p.riepilogo.raggioEquivalente;
   const ok = re >= l1 - 1e-9;

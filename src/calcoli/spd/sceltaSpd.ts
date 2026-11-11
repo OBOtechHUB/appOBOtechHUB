@@ -4,8 +4,7 @@
  *   va nell'impianto di terra e si divide tra i servizi entranti (n) e i conduttori della linea (m).
  * - Uc ≥ 1,1·U0 (rete 230/400 V → 253 V).
  * - Up ≤ 0,8·Uw (Uw: tensione di tenuta a impulso degli apparecchi da proteggere).
- * Regola n. 1, CEI EN IEC 62305-4:2024 Allegato C; ripartizione della corrente CEI EN IEC 62305-1:2024 E.2.
- * Up ≤ 0,8·Uw è la regola n. 1 (C.2.3.1.2), per apparecchi entro 10 m dall'SPD d'ingresso.
+ * Valori tipici della norma, modificabili e da verificare con l'edizione 2024.
  */
 
 export type Livello = "I" | "II" | "III" | "IV";
@@ -20,9 +19,8 @@ export const UW_CATEGORIA: Record<"I" | "II" | "III" | "IV", number> = { I: 1.5,
 /** Conduttori attivi della linea di alimentazione che portano corrente di fulmine. */
 export function conduttoriLinea(sistema: Sistema, fasi: Fasi): number {
   const f = fasi === "trifase" ? 3 : 1;
-  // Conduttori della linea entrante (CEI EN IEC 62305-1, E.2.3): TN-C e TN-C-S entrano con fasi + PEN,
-  // TT con fasi + N (il PE è locale); solo TN-S ha anche il PE nella linea.
-  return sistema === "TN-S" ? f + 2 : f + 1;
+  if (sistema === "TN-C") return f + 1; // fasi + PEN
+  return f + 2; // fasi + N + PE
 }
 
 export interface Requisiti { iimpPolo: number; iimpTotale: number; ucMin: number; upMax: number; conduttori: number }

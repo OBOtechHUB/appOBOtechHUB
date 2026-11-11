@@ -1,10 +1,8 @@
 /**
- * Verifiche periodiche dell'LPS (CEI EN IEC 62305-3:2024, art. 7 e D.7.2.2).
+ * Verifiche periodiche dell'LPS (CEI EN IEC 62305-3, allegato E – manutenzione e ispezione).
  * Logica pura: checklist, intervalli tra le verifiche, scadenze e riepilogo degli esiti.
- * L'edizione 2024 non lega più gli intervalli alla classe dell'LPS: esame a vista ogni anno e
- * verifica completa (con prove elettriche) ogni 3 anni; ogni anno per strutture a rischio di esplosione,
- * con impianti sensibili, uffici, commerciali o con molte persone; condizioni severe: a vista ogni 6 mesi.
- * Valori modificabili per prescrizioni locali o del proprietario.
+ * Gli intervalli sono quelli tipici della tabella dell'allegato E e restano modificabili:
+ * vanno confermati con l'edizione della norma in uso e con eventuali prescrizioni locali.
  */
 import { z } from "zod";
 
@@ -13,11 +11,13 @@ export type TipoVerifica = "visiva" | "completa" | "straordinaria";
 export type Esito = "C" | "NC" | "NA" | "";
 
 export interface Intervalli { visiva: number; completa: number; critica: number }
-/** Anni tra le verifiche (D.7.2.2): a vista, completa, completa per sistemi critici. Uguali per tutte le classi. */
-const INTERVALLI_2024: Intervalli = { visiva: 1, completa: 3, critica: 1 };
-/** Condizioni ambientali severe (D.7.2.2): a vista ogni 6 mesi, completa ogni anno. */
-export const INTERVALLI_SEVERI: Intervalli = { visiva: 0.5, completa: 1, critica: 1 };
-export const INTERVALLI_TIPICI: Record<Livello, Intervalli> = { I: INTERVALLI_2024, II: INTERVALLI_2024, III: INTERVALLI_2024, IV: INTERVALLI_2024 };
+/** Anni tra le verifiche: visiva, completa, completa per sistemi critici. */
+export const INTERVALLI_TIPICI: Record<Livello, Intervalli> = {
+  I: { visiva: 1, completa: 2, critica: 1 },
+  II: { visiva: 1, completa: 2, critica: 1 },
+  III: { visiva: 2, completa: 4, critica: 1 },
+  IV: { visiva: 2, completa: 4, critica: 1 },
+};
 
 export interface VoceChecklist { id: string; sezione: string; testo: string; soloCompleta?: boolean }
 export const CHECKLIST: VoceChecklist[] = [
@@ -71,11 +71,8 @@ export function riepilogo(v: Verifica): Riepilogo {
 /** Somma anni a una data ISO (AAAA-MM-GG), restando sull'ultimo giorno del mese se serve. */
 export function aggiungiAnni(dataIso: string, anni: number): string {
   const [a, m, g] = dataIso.split("-").map(Number) as [number, number, number];
-  // anche frazioni di anno (0,5 = 6 mesi), contate in mesi
-  const mesi = (m - 1) + Math.round(anni * 12);
-  const anno = a + Math.floor(mesi / 12), mese = (mesi % 12) + 1;
-  const ultimo = new Date(Date.UTC(anno, mese, 0)).getUTCDate();
-  return `${anno}-${String(mese).padStart(2, "0")}-${String(Math.min(g, ultimo)).padStart(2, "0")}`;
+  const ultimo = new Date(Date.UTC(a + anni, m, 0)).getUTCDate();
+  return `${a + anni}-${String(m).padStart(2, "0")}-${String(Math.min(g, ultimo)).padStart(2, "0")}`;
 }
 
 export interface Scadenze { visiva: string | null; completa: string | null }

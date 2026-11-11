@@ -12,7 +12,6 @@ const PAGINE: { titolo: string; to: string; parole: string }[] = [
   { titolo: "Calate e distanza di separazione", to: "/calate", parole: "calate kc ki km distanza sicurezza" },
   { titolo: "Scelta SPD", to: "/spd", parole: "sovratensioni scaricatori iimp up uc" },
   { titolo: "Analisi del rischio", to: "/rischio", parole: "rischio r1 perdite probabilità" },
-  { titolo: "Norma 62305: calcoli e tabelle", to: "/norma", parole: "sezione minima materiali schermo cavo contatto passo esplosione atex schermatura magnetica campo spd up tensione indotta fotovoltaico parametri fulmine" },
   { titolo: "Resistenza di terra", to: "/resistenza-terra", parole: "picchetto wenner resistività" },
   { titolo: "Computo materiali", to: "/computo-materiali", parole: "distinta quantità excel relazione" },
   { titolo: "Particolari costruttivi", to: "/particolari", parole: "schede tbs dwg pdf" },

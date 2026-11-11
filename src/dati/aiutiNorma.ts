@@ -1,380 +1,186 @@
 /**
  * Aiuti "?" nei punti di scelta. Chiave = etichetta del campo (in italiano, come scritta nella pagina).
  * Testi sintetici scritti con parole nostre (non estratti della norma), con il riferimento per approfondire.
- * Riferimenti confrontati con la CEI EN IEC 62305 edizione 2024 (parti 1–4).
- * daVerificare: true solo dove il contenuto dipende da altre norme o da dati del produttore.
+ * daVerificare: true finché i riferimenti e i valori non sono confrontati con il testo dell'edizione 2024.
  */
 export interface Aiuto { it: string; en: string; rif: string; daVerificare?: boolean }
-
-const RISCHIO = "CEI EN IEC 62305-2:2024";
-const LPS = "CEI EN IEC 62305-3:2024";
-const P1 = "CEI EN IEC 62305-1:2024";
-const P4 = "CEI EN IEC 62305-4:2024";
 
 export const AIUTI: Record<string, Aiuto> = {
   // ----- Dati edificio -----
   "Tipo di copertura": {
-    it: "Indica come è fatto il tetto. Serve a scegliere supporti e posa dei conduttori di captazione e a valutare se la copertura metallica può fare da captatore naturale, in base allo spessore minimo della lamiera.",
-    en: "Describes the roof. It drives the choice of supports and conductor installation, and whether a metal roof can act as a natural air-termination, based on minimum sheet thickness.",
-    rif: `${LPS}, 5.2.5 e Tab. 3`,
+    it: "Indica come è fatto il tetto. Serve a scegliere supporti e posa dei conduttori di captazione e a valutare se la copertura metallica può fare da captatore naturale (spessori minimi della lamiera).",
+    en: "Describes the roof. It drives the choice of supports and conductor installation, and whether a metal roof can act as a natural air-termination (minimum sheet thickness).",
+    rif: "CEI EN IEC 62305-3, 5.2.5 e Tab. 3", daVerificare: true,
   },
   "Materiale della struttura": {
-    it: "Il materiale incide sulle calate naturali (ferri d'armatura continui nel cemento armato), sulla distanza di separazione (km) e, nell'analisi del rischio, sulla probabilità PS di scariche pericolose senza LPS.",
-    en: "The material affects natural down conductors (continuous reinforcement in concrete), the separation distance (km) and, in the risk assessment, the probability PS of dangerous sparking without an LPS.",
-    rif: `${LPS}, 5.3.5 e 6.3; ${RISCHIO}, Tab. B.4`,
+    it: "Il materiale incide sulle calate naturali (ferri d'armatura continui nel cemento armato), sulla distanza di separazione (km) e sul rischio d'incendio.",
+    en: "The material affects natural down conductors (continuous reinforcement in concrete), the separation distance (km) and the fire risk.",
+    rif: "CEI EN IEC 62305-3, 5.3.5 e 6.3", daVerificare: true,
   },
   "Posizione della struttura": {
-    it: "Coefficiente di posizione CD: tiene conto degli oggetti entro 3 volte l'altezza. Circondata da oggetti più alti = 0,25; da oggetti di pari altezza o più bassi = 0,5; isolata = 1; isolata in cima a una collina = 2.",
-    en: "Location factor CD: accounts for objects within 3 times the height. Surrounded by taller objects = 0.25; by objects of the same height or lower = 0.5; isolated = 1; isolated on a hilltop = 2.",
-    rif: `${RISCHIO}, A.2.3 e Tab. A.1`,
+    it: "Fattore di posizione CD: tiene conto degli oggetti vicini. Struttura circondata da oggetti più alti = 0,25; da oggetti di pari altezza o più bassi = 0,5; isolata = 1; isolata in cima a una collina = 2.",
+    en: "Location factor CD: accounts for nearby objects. Surrounded by taller objects = 0.25; by objects of the same height or lower = 0.5; isolated = 1; isolated on a hilltop = 2.",
+    rif: "CEI EN IEC 62305-2, Allegato A, Tab. A.1", daVerificare: true,
   },
   "Densità di fulminazione al suolo (fulmini/km²·anno)": {
-    it: "NG: fulmini a terra per km² all'anno nel luogo della struttura, dalla mappa ufficiale. Dal 2024 il calcolo usa i punti di impatto NSG = k · NG: se il fornitore dei dati non indica k si usa k = 2.",
-    en: "NG: ground flashes per km² per year at the site, from the official map. Since 2024 the calculation uses ground strike points NSG = k · NG: if the data provider gives no k, use k = 2.",
-    rif: `${RISCHIO}, A.1`,
+    it: "NG: numero di fulmini a terra per km² all'anno nel luogo della struttura. Va preso dalle mappe ufficiali di fulminazione (in Italia la mappa NG di riferimento per comune).",
+    en: "NG: number of ground flashes per km² per year at the structure's location. Take it from official lightning density maps (in Italy, the reference NG map by municipality).",
+    rif: "CEI EN IEC 62305-2, Allegato A", daVerificare: true,
   },
   // ----- Analisi del rischio -----
-  "Coefficiente k (NSG = k · NG)": {
-    it: "Trasforma la densità dei fulmini NG nella densità dei punti di impatto NSG (un fulmine può toccare terra in più punti). Usa il k del fornitore dei dati di fulminazione; se non c'è, 2.",
-    en: "Converts flash density NG into ground strike point density NSG (one flash can strike the ground at several points). Use the k from the lightning data provider; if none, 2.",
-    rif: `${RISCHIO}, A.1`,
-  },
-  "Tensione di tenuta Uw degli impianti (kV)": {
-    it: "La tensione di tenuta più bassa degli apparecchi collegati. Più è bassa, più è ampia l'area attorno a struttura e linee in cui un fulmine vicino causa danni (rM = 350/Uw, rI = 2000/Uw^1,8). Tipico 2,5 kV per la rete 230/400 V, 1,5 kV per i segnali.",
-    en: "The lowest withstand voltage of the connected equipment. The lower it is, the wider the area around the structure and lines where a nearby flash causes damage (rM = 350/Uw, rI = 2000/Uw^1.8). Typically 2.5 kV for 230/400 V mains, 1.5 kV for signal ports.",
-    rif: `${RISCHIO}, A.3 e A.5`,
-  },
-  "Categoria della struttura (perdite LF, LO)": {
-    it: "Le perdite tipiche dipendono da quanto è critica la struttura: molto elevata (esplosione, sale operatorie), elevata (degenze, carceri, sale controllo, musei), normale (aperte al pubblico: scuole, uffici, alberghi, negozi), bassa (proprietà privata). Si usa il valore più alto dell'intervallo, salvo uno studio specifico.",
-    en: "Typical losses depend on how critical the structure is: very high (explosion, operating theatres), high (wards, prisons, control rooms, museums), normal (open to the public: schools, offices, hotels, shops), low (private property). Use the highest value of the range unless a specific study says otherwise.",
-    rif: `${RISCHIO}, Allegato C, Tab. C.2`,
+  "Destinazione d'uso (LF)": {
+    it: "LF è la percentuale tipica di vittime per danno fisico (incendio) in base all'uso: più alta dove la gente è numerosa o fatica a evacuare (ospedali, scuole, alberghi).",
+    en: "LF is the typical percentage of victims from physical damage (fire) depending on use: higher where many people are present or evacuation is difficult (hospitals, schools, hotels).",
+    rif: "CEI EN IEC 62305-2, Allegato C, Tab. C.2", daVerificare: true,
   },
   "Pavimento esterno/interno (rt)": {
-    it: "rt riduce il pericolo per tensioni di contatto e di passo in base alla resistenza del pavimento: asfalto, linoleum e legno isolano più di terreno o cemento. Uno strato isolante di 5 cm (es. asfalto) di solito basta a rendere il pericolo trascurabile.",
-    en: "rt reduces the touch and step voltage hazard depending on floor resistance: asphalt, linoleum and wood insulate better than soil or concrete. A 5 cm insulating layer (e.g. asphalt) usually makes the hazard negligible.",
-    rif: `${RISCHIO}, Tab. B.2`,
+    it: "rt riduce il rischio di folgorazione per tensioni di contatto e di passo in base alla resistenza del pavimento: asfalto, legno e linoleum isolano più di terreno o cemento.",
+    en: "rt reduces the touch and step voltage risk depending on the floor resistance: asphalt, wood and linoleum insulate better than soil or concrete.",
+    rif: "CEI EN IEC 62305-2, Tab. C.3", daVerificare: true,
   },
-  "Rischio d'incendio o di esplosione (rf)": {
-    it: "rf dipende dal carico d'incendio specifico (alto > 800 MJ/m², ordinario 400–800, basso < 400) o dalla zona con atmosfera esplosiva (0/20, 1/21, 2/22). Con rischio di esplosione entrano anche i danni materiali da guasto degli impianti.",
-    en: "rf depends on the specific fire load (high > 800 MJ/m², ordinary 400–800, low < 400) or on the explosive atmosphere zone (0/20, 1/21, 2/22). With explosion risk, material damage from system failure is also included.",
-    rif: `${RISCHIO}, Tab. B.6`,
+  "Rischio d'incendio (rf)": {
+    it: "rf dipende dal carico d'incendio specifico: esplosione, alto (> 800 MJ/m²), ordinario (400–800), basso (< 400), nessuno. Con rischio di esplosione servono valutazioni dedicate.",
+    en: "rf depends on the specific fire load: explosion, high (> 800 MJ/m²), ordinary (400–800), low (< 400), none. Explosion risk needs a dedicated assessment.",
+    rif: "CEI EN IEC 62305-2, Tab. C.5", daVerificare: true,
   },
   "Protezione antincendio (rp)": {
-    it: "rp riduce le conseguenze di un incendio: estintori, idranti, allarme manuale, compartimentazione o vie di fuga (0,5); impianto automatico di spegnimento o allarme con intervento entro 10 minuti (0,2). Vale solo se il committente ne è informato; con batterie al litio o zone esplosive si usa 1.",
-    en: "rp reduces fire consequences: extinguishers, hydrants, manual alarm, compartments or protected escape routes (0.5); automatic extinguishing or alarm with response within 10 minutes (0.2). Only valid if the owner is informed; with lithium batteries or explosive zones use 1.",
-    rif: `${RISCHIO}, Tab. B.5`,
+    it: "rp riduce le conseguenze di un incendio: estintori, idranti, allarmi manuali (0,5) o impianti automatici di spegnimento/allarme e vigili del fuoco rapidi (0,2).",
+    en: "rp reduces fire consequences: extinguishers, hydrants, manual alarms (0.5) or automatic extinguishing/alarm systems and fast fire brigade (0.2).",
+    rif: "CEI EN IEC 62305-2, Tab. C.4", daVerificare: true,
   },
-  "Tipo di struttura senza LPS (PS)": {
-    it: "Senza LPS, una struttura in cemento armato continuo o metallica interconnessa ha metà probabilità di scariche pericolose rispetto a legno e muratura. Con un LPS conforme alla 62305-3 vale 1 e conta solo la classe dell'LPS.",
-    en: "Without an LPS, a structure in continuous reinforced concrete or interconnected metal has half the probability of dangerous sparking compared with wood and masonry. With an LPS to 62305-3 it is 1 and only the LPS class counts.",
-    rif: `${RISCHIO}, B.4 e Tab. B.4`,
+  "Pericolo particolare (hz)": {
+    it: "hz aumenta il rischio quando il panico o la difficoltà di evacuazione aggravano il danno (es. molte persone, persone non autonome).",
+    en: "hz increases the risk when panic or difficult evacuation worsen the damage (e.g. many people, non-autonomous people).",
+    rif: "CEI EN IEC 62305-2, Tab. C.6", daVerificare: true,
   },
-  "Misure contro tensioni di contatto e passo (PAM)": {
-    it: "PAM: cartelli ammonitori (0,1), isolamento delle calate o equipotenzializzazione del suolo (0,01), LPS naturale con struttura metallica o c.a. interconnesso (0,001), limitazioni di accesso (0). Più misure insieme si moltiplicano. Efficaci solo con un LPS.",
-    en: "PAM: warning notices (0.1), down conductor insulation or ground equipotentialisation (0.01), natural LPS with interconnected metal or concrete frame (0.001), access restrictions (0). Several measures multiply. Only effective with an LPS.",
-    rif: `${RISCHIO}, Tab. B.1`,
-  },
-  "Presenza di persone (ore/anno, PP = ore/8760)": {
-    it: "Ore all'anno in cui ci sono persone nella struttura. Se non si conosce si lascia 8760 (sempre presenti), che è il caso più cautelativo.",
-    en: "Hours per year when people are in the structure. If unknown leave 8760 (always present), the most conservative case.",
-    rif: `${RISCHIO}, B.11`,
+  "Misure contro tensioni di contatto e passo": {
+    it: "Misure che riducono PTA: avvisi, isolamento delle calate (es. PVC ≥ 3 mm), equipotenzializzazione del suolo, barriere. Si sceglie la più efficace presente.",
+    en: "Measures that reduce PTA: warning notices, down conductor insulation (e.g. PVC ≥ 3 mm), ground equipotentialisation, barriers. Choose the most effective one present.",
+    rif: "CEI EN IEC 62305-2, Tab. B.1", daVerificare: true,
   },
   "Posa (CI)": {
-    it: "CI: le linee aeree raccolgono più fulmini delle interrate (0,3 dal 2024); una linea interrata dentro un dispersore magliato quasi non conta (0,01).",
-    en: "CI: overhead lines collect more flashes than buried ones (0.3 since 2024); a line buried within a meshed earth electrode barely counts (0.01).",
-    rif: `${RISCHIO}, Tab. A.2`,
+    it: "CI: le linee aeree raccolgono più fulmini delle interrate; una linea interrata in un dispersore magliato quasi non conta.",
+    en: "CI: overhead lines collect more flashes than buried ones; a line buried in a meshed earth electrode barely counts.",
+    rif: "CEI EN IEC 62305-2, Tab. A.2", daVerificare: true,
   },
   "Ambiente (CE)": {
-    it: "CE: tiene conto dell'ambiente attorno alla linea. In zona urbana con edifici oltre 20 m la linea è molto più schermata che in zona rurale.",
-    en: "CE: accounts for the environment around the line. In urban areas with buildings over 20 m the line is much more shielded than in rural areas.",
-    rif: `${RISCHIO}, Tab. A.4`,
+    it: "CE: tiene conto dell'ambiente attorno alla linea. In zona urbana con edifici alti la linea è più schermata che in zona rurale.",
+    en: "CE: accounts for the environment around the line. In urban areas with tall buildings the line is more shielded than in rural areas.",
+    rif: "CEI EN IEC 62305-2, Tab. A.4", daVerificare: true,
   },
   "Tipo (CT)": {
-    it: "CT: una linea di bassa tensione, telecom o dati arriva direttamente (1); con un trasformatore AT/BT a avvolgimenti separati a monte si riduce (0,2).",
-    en: "CT: a low-voltage, telecom or data line arrives directly (1); with an HV/LV transformer with separate windings upstream it is reduced (0.2).",
-    rif: `${RISCHIO}, Tab. A.3`,
+    it: "CT: una linea di bassa tensione o telecom arriva direttamente; con un trasformatore MT/BT a monte il fattore si riduce.",
+    en: "CT: a low-voltage or telecom line arrives directly; with an MV/LV transformer upstream the factor is reduced.",
+    rif: "CEI EN IEC 62305-2, Tab. A.3", daVerificare: true,
   },
-  "Schermatura (PLD)": {
-    it: "Una linea con schermo collegato alla stessa barra equipotenziale delle apparecchiature trasporta meno sovratensione: più bassa la resistenza dello schermo e più alta la tenuta Uw, più bassa la probabilità di guasto PLD.",
-    en: "A line whose shield is bonded to the same equipotential bar as the equipment carries less surge: the lower the shield resistance and the higher the withstand Uw, the lower the failure probability PLD.",
-    rif: `${RISCHIO}, Tab. B.9 e B.11`,
-  },
-  "LPS (PLPS)": {
-    it: "PLPS è la probabilità di danno materiale in base alla classe dell'LPS: IV 0,2 · III 0,1 · II 0,05 · I 0,02; con struttura metallica o c.a. come calate naturali si scende a 0,01 e 0,001.",
-    en: "PLPS is the probability of physical damage depending on the LPS class: IV 0.2 · III 0.1 · II 0.05 · I 0.02; with a metal or concrete frame as natural down conductors it drops to 0.01 and 0.001.",
-    rif: `${RISCHIO}, Tab. B.3`,
+  "LPS (PB)": {
+    it: "PB è la probabilità di danno fisico in base al livello dell'LPS: più alto il livello (I è il più severo), più bassa la probabilità.",
+    en: "PB is the probability of physical damage depending on the LPS class: the higher the class (I is the most severe), the lower the probability.",
+    rif: "CEI EN IEC 62305-2, Tab. B.2", daVerificare: true,
   },
   "SPD coordinati (PEB, PSPD)": {
-    it: "PEB: SPD di collegamento equipotenziale all'ingresso delle linee (riducono incendi e folgorazioni). PSPD: sistema coordinato di SPD (riduce i guasti degli impianti e la frequenza del danno F). Livello III-IV 0,05 · II 0,02 · I 0,01.",
-    en: "PEB: equipotential bonding SPDs at line entry (reduce fire and electric shock). PSPD: coordinated SPD system (reduces system failures and the damage frequency F). Level III-IV 0.05 · II 0.02 · I 0.01.",
-    rif: `${RISCHIO}, Tab. B.7, B.8 e B.13`,
+    it: "Un sistema di SPD coordinati riduce la probabilità che le sovratensioni entrino dalle linee. Il livello va scelto coerente con l'LPL.",
+    en: "A coordinated SPD system reduces the probability of surges entering through the lines. The level should match the LPL.",
+    rif: "CEI EN IEC 62305-2, Tab. B.3 e B.7", daVerificare: true,
   },
   // ----- Captazione -----
   "LPL": {
-    it: "Il livello di protezione nasce dall'analisi del rischio. Determina raggio della sfera rotolante (I 20 m, II 30 m, III 45 m, IV 60 m), lato della maglia (5, 10, 15, 20 m, aumentabile fino al 25 % se il perimetro non cresce) e passo delle calate (10, 10, 15, 20 m).",
-    en: "The protection level comes from the risk assessment. It sets the rolling sphere radius (I 20 m, II 30 m, III 45 m, IV 60 m), mesh size (5, 10, 15, 20 m, up to 25 % larger if the perimeter does not increase) and down conductor spacing (10, 10, 15, 20 m).",
-    rif: `${LPS}, Tab. 2 e Tab. 5; CEI EN IEC 62305-1:2024, Tab. 4`,
+    it: "Il livello di protezione nasce dall'analisi del rischio. Determina raggio della sfera rotolante (I 20 m, II 30 m, III 45 m, IV 60 m), lato massimo della maglia (5, 10, 15, 20 m) e passo delle calate (10, 10, 15, 20 m).",
+    en: "The protection level comes from the risk assessment. It sets the rolling sphere radius (I 20 m, II 30 m, III 45 m, IV 60 m), maximum mesh size (5, 10, 15, 20 m) and down conductor spacing (10, 10, 15, 20 m).",
+    rif: "CEI EN IEC 62305-3, Tab. 2 e Tab. 4", daVerificare: true,
   },
   "Strategia proposta": {
-    it: "Maglia: per coperture piane o inclinate (oltre 1/10 di pendenza servono conduttori sul colmo). Aste: per impianti sul tetto e punti sporgenti. Mista: maglia sulla copertura e aste dove la sfera rotolante tocca impianti o parti alte. Sotto i 60 m i fulmini laterali si possono trascurare.",
-    en: "Mesh: for flat or pitched roofs (above a 1/10 slope conductors are needed on the ridge). Rods: for rooftop equipment and protruding points. Mixed: mesh on the roof and rods where the rolling sphere touches equipment or high parts. Below 60 m side flashes can be neglected.",
-    rif: `${LPS}, 5.2.2 e 5.2.2.4`,
+    it: "Maglia: per coperture piane estese. Aste: per proteggere impianti sul tetto e punti sporgenti. Mista: maglia sulla copertura e aste dove la sfera rotolante tocca impianti o parti alte.",
+    en: "Mesh: for large flat roofs. Rods: to protect rooftop equipment and protruding points. Mixed: mesh on the roof and rods where the rolling sphere touches equipment or high parts.",
+    rif: "CEI EN IEC 62305-3, 5.2.2", daVerificare: true,
   },
   "Quota conduttore sopra la copertura (m)": {
     it: "Altezza dei conduttori sopra il tetto. Su coperture infiammabili i conduttori vanno distanziati; sui tetti metallici non infiammabili possono essere posati a contatto.",
     en: "Height of the conductors above the roof. On flammable roofs conductors must be kept at a distance; on non-flammable metal roofs they can be laid in contact.",
-    rif: `${LPS}, 5.2.4`,
+    rif: "CEI EN IEC 62305-3, 5.2.4", daVerificare: true,
   },
   "Percorso sfera": {
     it: "Passo con cui la sfera rotolante viene fatta scorrere sul modello: più fine = verifica più precisa ma più lenta.",
     en: "Step used to roll the sphere over the model: finer = more precise but slower check.",
-    rif: `${LPS}, 5.2.2.2 e Allegato D`,
+    rif: "CEI EN IEC 62305-3, Allegato A", daVerificare: true,
   },
   // ----- Calate -----
   "Calcolo di kc": {
-    it: "kc ripartisce la corrente tra le calate. Metodo semplificato: 1 (una calata, solo LPS isolato), 0,66 (due), 0,44 (tre o più), se le resistenze dei dispersori non differiscono più di 2 volte, altrimenti 1. Il metodo dettagliato usa numero di calate, distanza tra loro e altezza degli anelli.",
-    en: "kc shares the current among down conductors. Simplified method: 1 (one conductor, isolated LPS only), 0.66 (two), 0.44 (three or more), if electrode resistances differ by less than a factor 2, otherwise 1. The detailed method uses the number of conductors, their spacing and ring heights.",
-    rif: `${LPS}, 6.3, Tab. 13 e Allegato B`,
+    it: "kc ripartisce la corrente tra le calate. Il metodo semplificato usa 1 (una calata), 0,66 (due), 0,44 (tre o più, con anello). Il metodo dettagliato tiene conto di numero di calate, anelli e distanze.",
+    en: "kc shares the current among down conductors. The simplified method uses 1 (one conductor), 0.66 (two), 0.44 (three or more, with ring). The detailed method considers number of conductors, rings and distances.",
+    rif: "CEI EN IEC 62305-3, 6.3 e Allegato C", daVerificare: true,
   },
   "km aria": {
-    it: "km dipende dal materiale isolante tra captazione/calata e parti metalliche: aria 1; calcestruzzo, mattoni, legno 0,5; distanziatori isolanti FRP, PE o PVC lunghi almeno 0,5 m 0,7. Con più materiali in serie si usa il valore più basso. s = ki · kc / km · l.",
-    en: "km depends on the insulating material between air-termination/down conductor and metal parts: air 1; concrete, bricks, wood 0.5; FRP, PE or PVC insulating spacers at least 0.5 m long 0.7. With several materials in series use the lowest. s = ki · kc / km · l.",
-    rif: `${LPS}, 6.3, Tab. 11 e 12`,
+    it: "km dipende dal materiale isolante tra captazione/calata e parti metalliche: aria = 1, materiale solido (muratura, calcestruzzo) = 0,5. La distanza s si calcola con s = ki · kc / km · l.",
+    en: "km depends on the insulating material between air-termination/down conductor and metal parts: air = 1, solid material (masonry, concrete) = 0.5. The distance is s = ki · kc / km · l.",
+    rif: "CEI EN IEC 62305-3, 6.3, Tab. 10–12", daVerificare: true,
   },
   "Perimetro dell'edificio (m)": {
-    it: "Il numero minimo di calate si ottiene dal perimetro diviso per il passo del livello di protezione (10, 10, 15, 20 m), con almeno due calate e possibilmente una per spigolo.",
-    en: "The minimum number of down conductors is the perimeter divided by the spacing for the protection level (10, 10, 15, 20 m), with at least two and preferably one at each corner.",
-    rif: `${LPS}, 5.3.3 e Tab. 5`,
+    it: "Il numero minimo di calate si ottiene dal perimetro diviso per il passo tipico del livello di protezione, con almeno due calate.",
+    en: "The minimum number of down conductors is the perimeter divided by the typical spacing for the protection level, with at least two.",
+    rif: "CEI EN IEC 62305-3, 5.3.3, Tab. 4", daVerificare: true,
   },
   "Parete delle calate": {
-    it: "Come sono posate le calate sulla parete: a vista, sotto intonaco o sotto cappotto. Vanno il più possibile dritte e verticali; su pareti infiammabili servono distanze o protezioni adeguate.",
-    en: "How down conductors are installed on the wall: exposed, under plaster or under insulation. They should be as straight and vertical as possible; on flammable walls proper distances or protection are needed.",
-    rif: `${LPS}, 5.3.4`,
+    it: "Come sono posate le calate sulla parete: a vista, sotto intonaco o sotto cappotto. Su pareti infiammabili servono distanze o protezioni adeguate.",
+    en: "How down conductors are installed on the wall: exposed, under plaster or under insulation. On flammable walls proper distances or protection are needed.",
+    rif: "CEI EN IEC 62305-3, 5.3.4", daVerificare: true,
   },
   // ----- Terra -----
   "Tipo di dispersore": {
-    it: "Tipo A: picchetti o conduttori radiali a ogni calata (lunghezza minima l1). Tipo B: anello esterno a contatto con il terreno per almeno l'80 % della lunghezza, oppure dispersore di fondazione ad anello chiuso. Oltre 3000 Ω·m è consigliato il tipo B.",
-    en: "Type A: rods or radial conductors at each down conductor (minimum length l1). Type B: external ring in contact with soil for at least 80 % of its length, or a closed-ring foundation electrode. Above 3000 Ω·m type B is recommended.",
-    rif: `${LPS}, 5.4.2`,
+    it: "Tipo A: picchetti o conduttori radiali collegati a ogni calata (lunghezza minima l1). Tipo B: anello perimetrale interrato per almeno l'80% della lunghezza. Fondazione: ferri o conduttori annegati nelle fondazioni.",
+    en: "Type A: rods or radial conductors at each down conductor (minimum length l1). Type B: buried ring for at least 80% of its length. Foundation: bars or conductors embedded in the foundations.",
+    rif: "CEI EN IEC 62305-3, 5.4.2", daVerificare: true,
   },
   "Lunghezza minima l1 (m)": {
-    it: "l1 dipende dalla classe dell'LPS e dalla resistività: classi III-IV 5 m; classe I sale da 5 m (500 Ω·m) a 80 m (3000 Ω·m); classe II da 5 m (circa 800 Ω·m) a circa 48 m. Picchetti verticali 0,5·l1; anello: raggio equivalente ≥ l1. Si può ignorare se il tipo A ha meno di 10 Ω.",
-    en: "l1 depends on the LPS class and soil resistivity: classes III-IV 5 m; class I rises from 5 m (500 Ω·m) to 80 m (3000 Ω·m); class II from 5 m (about 800 Ω·m) to about 48 m. Vertical rods 0.5·l1; ring: equivalent radius ≥ l1. May be ignored if type A is below 10 Ω.",
-    rif: `${LPS}, 5.4.2.2, 5.4.2.3 e Fig. 5`,
+    it: "l1 dipende dal livello di protezione e dalla resistività del terreno: per LPL III-IV vale 5 m; per I-II cresce con la resistività. I picchetti verticali possono essere lunghi 0,5·l1.",
+    en: "l1 depends on the protection level and soil resistivity: for LPL III-IV it is 5 m; for I-II it grows with resistivity. Vertical rods can be 0.5·l1 long.",
+    rif: "CEI EN IEC 62305-3, 5.4.2.1, Fig. 3", daVerificare: true,
   },
   "Resistività ρ (Ω·m)": {
-    it: "Meglio un valore misurato alla profondità dei dispersori (metodo Wenner). I valori tipici per tipo di terreno sono solo indicativi: la resistività cambia con umidità e stagione.",
-    en: "A value measured at electrode depth (Wenner method) is best. Typical values by soil type are only indicative: resistivity changes with moisture and season.",
-    rif: `${LPS}, Fig. 5 Nota 2; CEI EN 50522`,
+    it: "Meglio un valore misurato (metodo Wenner). I valori tipici per tipo di terreno sono solo indicativi: la resistività cambia con umidità e stagione.",
+    en: "A measured value (Wenner method) is best. Typical values by soil type are only indicative: resistivity changes with moisture and season.",
+    rif: "CEI EN IEC 62305-3, 5.4; CEI EN 50522", daVerificare: true,
   },
   "Profondità (m)": {
-    it: "Anello (tipo B) preferibilmente ad almeno 0,5 m di profondità e a circa 1 m dai muri; picchetti (tipo A) ad almeno 0,5 m. Dove il terreno gela o si secca, ai picchetti si aggiungono 0,5 m.",
-    en: "Ring (type B) preferably at least 0.5 m deep and about 1 m from the walls; rods (type A) at least 0.5 m deep. Where soil freezes or dries out, add 0.5 m to the rods.",
-    rif: `${LPS}, 5.4.3`,
+    it: "Profondità di posa del dispersore: di norma almeno 0,5 m e a circa 1 m dalle pareti, per ridurre gli effetti di gelo e corrosione.",
+    en: "Installation depth of the earth electrode: usually at least 0.5 m and about 1 m from the walls, to reduce frost and corrosion effects.",
+    rif: "CEI EN IEC 62305-3, 5.4.3", daVerificare: true,
   },
   // ----- SPD -----
   "Sistema di distribuzione": {
     it: "TT, TN-C, TN-S o IT: cambia lo schema di collegamento degli SPD (es. 3+1 nel TT) e la tensione Uc minima.",
     en: "TT, TN-C, TN-S or IT: changes the SPD connection scheme (e.g. 3+1 in TT) and the minimum Uc.",
-    rif: "CEI EN IEC 62305-4:2024, Allegato C; CEI EN 61643-12; CEI 64-8/5-534", daVerificare: true,
+    rif: "CEI EN IEC 62305-4; CEI EN 61643-12", daVerificare: true,
   },
   "Categoria di tenuta degli apparecchi": {
-    it: "Tensione di tenuta Uw degli apparecchi da proteggere (categoria I–IV). Il livello di protezione Up dell'SPD deve stare sotto Uw con margine per la lunghezza dei collegamenti (indicativamente Up ≤ 0,8 · Uw).",
-    en: "Impulse withstand voltage Uw of the equipment to protect (category I–IV). The SPD protection level Up must be below Uw with a margin for connection length (about Up ≤ 0.8 · Uw).",
-    rif: "CEI EN IEC 62305-4:2024, Allegato C; CEI EN 61643-12", daVerificare: true,
+    it: "Tensione di tenuta Uw degli apparecchi da proteggere (categoria I–IV). Il livello di protezione Up dell'SPD deve stare sotto Uw con margine (indicativamente Up ≤ 0,8 · Uw).",
+    en: "Impulse withstand voltage Uw of the equipment to protect (category I–IV). The SPD protection level Up must be below Uw with a margin (about Up ≤ 0.8 · Uw).",
+    rif: "CEI EN IEC 62305-4, Allegato D; CEI EN 61643-12", daVerificare: true,
   },
   "Servizi metallici entranti (energia, acqua, gas, telecom…)": {
-    it: "Regola semplificata: metà della corrente di fulmine va nell'impianto di terra e l'altra metà si divide tra i servizi entranti e poi tra i loro conduttori. Più servizi = meno corrente per servizio e per conduttore.",
-    en: "Simplified rule: half of the lightning current goes into the earthing system and the other half is shared among incoming services and then their conductors. More services = less current per service and per conductor.",
-    rif: "CEI EN IEC 62305-1:2024, E.2",
+    it: "Metodo semplificato: circa metà della corrente di fulmine va nell'impianto di terra e il resto si divide tra i servizi entranti. Più servizi = meno corrente per servizio e per conduttore.",
+    en: "Simplified method: about half of the lightning current goes into the earthing system and the rest is shared among incoming services. More services = less current per service and per conductor.",
+    rif: "CEI EN IEC 62305-1, Allegato E", daVerificare: true,
   },
   "Sottoquadri a più di 10 m": {
-    it: "Oltre circa 10 m di cavo dall'SPD d'ingresso la protezione degli apparecchi può non bastare (oscillazioni della tensione): si aggiunge un SPD di tipo 2 nel sottoquadro.",
-    en: "Beyond about 10 m of cable from the entrance SPD, equipment protection may not be enough (voltage oscillation): add a type 2 SPD in the sub-board.",
-    rif: "CEI EN IEC 62305-4:2024, Allegato C; CEI EN 61643-12", daVerificare: true,
-  },
-  "Sistema di allerta temporali (PTWS)": {
-    it: "Probabilità che un sistema di allerta temporali (TWS, CEI EN IEC 62793) non rilevi il temporale. 1 = nessun TWS. Riduce i rischi solo se l'allerta porta davvero a evacuare le aree esposte o a scollegare le linee; il valore viene dalla scheda del produttore.",
-    en: "Probability that a thunderstorm warning system (TWS, IEC 62793) misses the storm. 1 = no TWS. It only reduces risk if the warning actually leads to evacuating exposed areas or disconnecting lines; the value comes from the manufacturer's data sheet.",
-    rif: `${RISCHIO}, B.1 e B.2`,
-  },
-  "Tipo di linea e collegamento (CLD, CLI)": {
-    it: "Come arriva la linea e come è collegato lo schermo all'ingresso. Schermo collegato alla barra delle apparecchiature: le sovratensioni indotte vicino alla linea non contano (CLI = 0). Cavo di protezione, interfacce di separazione o fibra ottica: la linea non porta sovratensioni (CLD = CLI = 0).",
-    en: "How the line arrives and how its shield is bonded at entry. Shield bonded to the equipment bar: surges induced near the line do not count (CLI = 0). Protective cable, isolating interfaces or optical fibre: the line carries no surges (CLD = CLI = 0).",
-    rif: `${RISCHIO}, Tab. B.9`,
-  },
-  "Posizione struttura adiacente (CDJ)": {
-    it: "Se la linea collega un'altra struttura (es. un capannone vicino), i fulmini su quella struttura arrivano lungo la linea: si aggiungono gli eventi NDJ, con la sua area di raccolta e la sua posizione.",
-    en: "If the line connects another structure (e.g. a nearby shed), flashes to that structure travel along the line: events NDJ are added, with its collection area and location.",
-    rif: `${RISCHIO}, A.2.5`,
-  },
-  "Nome della zona": {
-    it: "Le zone si separano dove cambiano le caratteristiche: pavimento, compartimenti antincendio (es. REI 120), schermature, impianti interni, misure di protezione o perdite. Ogni zona si confronta da sola con RT; con una zona sola si rischia di proteggere tutto per colpa di una parte.",
-    en: "Zones are split where characteristics change: floor type, fire compartments (e.g. 120 min), shielding, internal systems, protection measures or losses. Each zone is compared with RT on its own; a single zone may force protecting everything because of one part.",
-    rif: `${RISCHIO}, 8.3 e 8.5`,
-  },
-  "Cablaggio interno (KS3)": {
-    it: "Le spire formate dai cavi interni raccolgono la sovratensione indotta da fulmini vicini: più la spira è grande, più è alto il rischio. Cavi nello stesso condotto o schermati riducono molto la probabilità di guasto PM.",
-    en: "Loops formed by internal cables pick up surges induced by nearby flashes: the bigger the loop, the higher the risk. Cables in the same conduit or shielded strongly reduce the failure probability PM.",
-    rif: `${RISCHIO}, B.6 e Tab. B.10`,
-  },
-  "Lato maglia schermo esterno wm1 (m, KS1)": {
-    it: "Lato della maglia dello schermo al confine LPZ 0/1: LPS a maglia, ferri d'armatura o colonne metalliche. KS1 = 0,12 · wm1 (massimo 1). Lascia vuoto se non c'è uno schermo efficace: un LPS normale non scherma in modo significativo.",
-    en: "Mesh size of the shield at the LPZ 0/1 boundary: meshed LPS, reinforcement or metal columns. KS1 = 0.12 · wm1 (max 1). Leave empty if there is no effective shield: an ordinary LPS does not shield significantly.",
-    rif: `${RISCHIO}, B.6 (B.8)`,
-  },
-  "Lato maglia schermi interni wm2 (m, KS2)": {
-    it: "Lato della maglia degli schermi interni (confine LPZ 1/2, es. locale schermato). KS2 = 0,12 · wm2; con schermi continui di almeno 0,1 mm vale 10⁻⁴. Con una rete equipotenziale magliata KS1 e KS2 si possono dimezzare.",
-    en: "Mesh size of internal shields (LPZ 1/2 boundary, e.g. a shielded room). KS2 = 0.12 · wm2; with continuous shields at least 0.1 mm thick it is 10⁻⁴. With a meshed bonding network KS1 and KS2 may be halved.",
-    rif: `${RISCHIO}, B.6 (B.9)`,
-  },
-  "Apparecchiature esposte (ore/anno, Pe)": {
-    it: "Ore all'anno in cui le apparecchiature sono in funzione o esposte a un evento dannoso. Se non si conosce: 8760. Nelle zone esplosive conta anche il tempo di presenza dell'atmosfera esplosiva.",
-    en: "Hours per year when equipment is operating or exposed to a damaging event. If unknown: 8760. In explosive zones the presence time of the explosive atmosphere also counts.",
-    rif: `${RISCHIO}, B.12`,
-  },
-  "Perdita per fulmine diretto su persone esposte (LD)": {
-    it: "Quota tipica di persone ferite da un fulmine diretto tra quelle esposte (tetto, terrazza, parcheggio in copertura): da 10⁻² a 10⁻¹, si usa il valore più alto se non c'è uno studio.",
-    en: "Typical share of exposed people injured by a direct flash (roof, terrace, rooftop car park): 10⁻² to 10⁻¹; use the highest value without a specific study.",
-    rif: `${RISCHIO}, Tab. C.2`,
-  },
-  "SPD della zona (PSPD, PEB)": {
-    it: "Ogni zona può avere un sistema di SPD coordinati diverso: ad esempio SPD di livello I solo per la sala server e nessuno per il magazzino. Se lasci \"Come la protezione scelta\" la zona usa il livello indicato nei risultati. La tabella dei risultati mostra per ogni zona il livello più basso che basta per R ≤ RT e F ≤ FT.",
-    en: "Each zone may have a different coordinated SPD system: for example class I SPDs only for the server room and none for the warehouse. With \"Same as chosen protection\" the zone uses the level set in the results. The results table shows for each zone the lowest level that gives R ≤ RT and F ≤ FT.",
-    rif: `${RISCHIO}, 8.5, Tab. B.7 e B.13`,
-  },
-  "Scenario (LF1E, LO1E · LF2E, LO2E)": {
-    it: "Quando il danno alla struttura può uscire all'esterno (esplosione, calore, fumi tossici, inquinamento di suolo o acqua, materiale radioattivo) si aggiungono le perdite esterne LE. I valori sono quelli proposti dalla norma come massimi: si possono ridurre con uno studio sulla quantità e pericolosità della sostanza. LO1E conta solo dove i guasti degli impianti mettono in pericolo la vita o c'è rischio di esplosione, LO2E solo con rischio di esplosione.",
-    en: "When damage to the structure can spread outside (explosion, heat, toxic fumes, soil or water pollution, radioactive material) external losses LE are added. Values are the maximum ones proposed by the standard and may be reduced by a study of quantity and hazard of the substance. LO1E applies only where failure of internal systems endangers life or there is explosion risk, LO2E only with explosion risk.",
-    rif: `${RISCHIO}, C.2 (C.1, C.2), Allegato E, Tab. E.1, E.3 e E.4`,
-  },
-  "Estensione del danno (Tab. E.3)": {
-    it: "Per le vite umane la norma distingue tra danno contenuto dentro la recinzione del sito e danno che si diffonde fuori: fuori dalla recinzione i valori di LF1E e LO1E sono più alti. Con un sistema di allerta temporali i valori dentro la recinzione si possono ridurre (nota g della Tab. E.3): l'app non applica questa riduzione, in modo cautelativo.",
-    en: "For human life the standard distinguishes between damage contained within the site fence and damage spreading outside: outside the fence LF1E and LO1E are higher. With a thunderstorm warning system the values inside the fence may be reduced (note g of Table E.3): the app does not apply this reduction, conservatively.",
-    rif: `${RISCHIO}, Tab. E.3`,
-    daVerificare: true,
-  },
-  "Ambiente circostante (PPE = tE/8760)": {
-    it: "Frazione dell'anno in cui ci sono persone nel luogo pericoloso intorno alla struttura. Se non si conosce si usa 1, perché possono esserci abitazioni con presenza continua. Con ambienti misti si prende il valore più alto. Vale solo per le vite umane (L1).",
-    en: "Fraction of the year with people in the hazardous area around the structure. If unknown use 1, since there may be dwellings with permanent presence. For mixed surroundings take the highest value. Applies only to human life (L1).",
-    rif: `${RISCHIO}, E.2 (E.3) e Tab. E.2`,
-  },
-  "Linea divisa in sezioni con posa o ambiente diversi (SL)": {
-    it: "Una linea può cambiare lungo il percorso: un tratto aereo in campagna e uno interrato in città. Ogni sezione ha la propria lunghezza, posa (CI), ambiente (CE) e tipo (CT); gli eventi NL e NI sono la somma delle sezioni. Se in una sezione ci sono più valori possibili si usa quello che dà il rischio più alto.",
-    en: "A line may change along its route: an overhead rural section and a buried urban one. Each section has its own length, installation (CI), environment (CE) and type (CT); events NL and NI are summed over the sections. Where a section has several possible values use the one giving the highest risk.",
-    rif: `${RISCHIO}, 8.4`,
-  },
-  "Livello di protezione (LPL)": {
-    it: "Il livello fissa le correnti di fulmine massime (per dimensionare conduttori, schermi, SPD e distanze) e minime (per il raggio della sfera rotolante). Al livello I le correnti massime sono superate al più nell'1 % dei casi; ai livelli II e III–IV i valori sono il 75 % e il 50 % di quelli del livello I.",
-    en: "The level sets the maximum lightning currents (to size conductors, shields, SPDs and distances) and the minimum ones (for the rolling sphere radius). For level I the maximum currents are exceeded in at most 1 % of cases; levels II and III–IV use 75 % and 50 % of the level I values.",
-    rif: `${P1}, 8.2, Tab. 3 e 4`,
-  },
-  "Uso del conduttore": {
-    it: "Le sezioni minime cambiano con l'uso: captatori, aste e calate (Tab. 7), dispersori (Tab. 8, più robusti per la corrosione), collegamenti equipotenziali tra barre o verso terra (Tab. 9, portano gran parte della corrente) e verso corpi metallici interni (Tab. 10, correnti minori). I componenti devono anche rispettare la serie CEI EN IEC 62561.",
-    en: "Minimum cross-sections depend on use: air terminals, rods and down conductors (Table 7), earth electrodes (Table 8, stronger against corrosion), bonding conductors between bars or to earth (Table 9, carrying much of the current) and to internal metal parts (Table 10, smaller currents). Components must also comply with the IEC 62561 series.",
-    rif: `${LPS}, 5.6, Tab. 7–10`,
-  },
-  "Corrente sullo schermo IF (kA)": {
-    it: "Parte della corrente di fulmine che scorre sullo schermo del cavo entrante: si ricava dalla ripartizione tra le linee (CEI EN IEC 62305-1, Allegato E; con una linea a 4 conduttori circa metà della corrente va nei servizi). Se lo schermo è troppo sottile tra schermo e conduttori nascono scariche e servono SPD.",
-    en: "Share of the lightning current flowing on the shield of the incoming cable: it comes from the current sharing between services (IEC 62305-1, Annex E). If the shield is too thin, sparking occurs between shield and conductors and SPDs are needed.",
-    rif: `${LPS}, Allegato A`,
-    daVerificare: true,
-  },
-  "Lato maglia dello schermo wm (m)": {
-    it: "Lato delle maglie dello schermo esterno della LPZ 1: ferri d'armatura collegati, facciate metalliche, LPS a maglia. Maglie più piccole danno più attenuazione (SF) e un volume sicuro più ampio. Con maglie di 10 m o più lo schermo non attenua.",
-    en: "Mesh width of the LPZ 1 outer shield: bonded reinforcement, metal facades, meshed LPS. Smaller meshes give more attenuation (SF) and a larger safe volume. With 10 m meshes or more the shield gives no attenuation.",
-    rif: `${P4}, Allegato A, Tab. A.4`,
-  },
-  "Coefficiente di riflessione kr": {
-    it: "Tiene conto della sovratensione che si propaga tra SPD e apparecchiatura: 1 con l'SPD all'ingresso dell'apparecchiatura, fino a 2 con circuiti lunghi o aperti. Se non si conosce si usa 2.",
-    en: "Accounts for the surge travelling between SPD and equipment: 1 with the SPD at the equipment input, up to 2 with long or open circuits. Use 2 when unknown.",
-    rif: `${P4}, C.2.3.2 e C.2.3.4`,
-  },
-  "Distanza conduttori attivi–PE w (m)": {
-    it: "Larghezza della spira formata dal circuito tra SPD e apparecchiatura (distanza tra conduttori attivi e PE). Posare i cavi vicini, o intrecciati, riduce molto la tensione indotta.",
-    en: "Width of the loop formed by the circuit between SPD and equipment (distance between live and PE conductors). Laying cables close together, or twisted, strongly reduces the induced voltage.",
-    rif: `${P4}, Allegato H`,
-  },
-  "Conduttori CC ed equipotenziali n'": {
-    it: "Numero di conduttori in corrente continua e di conduttori equipotenziali tra campo fotovoltaico e quadro, tra cui si divide la corrente di fulmine quando la distanza di separazione non è rispettata.",
-    en: "Number of DC conductors and bonding conductors between PV array and switchboard, sharing the lightning current when the separation distance is not kept.",
-    rif: `${P4}, Allegato F (F.1)`,
-  },
-  // ----- Aggiunte: altri punti di scelta -----
-  "Lunghezza (m)": {
-    it: "Lunghezza della linea dalla struttura al primo nodo (cabina, armadio, derivazione). Se non si conosce si usa 1000 m, valore cautelativo indicato dalla norma per la somma delle linee di energia e per le linee di telecomunicazione.",
-    en: "Line length from the structure to the first node (substation, cabinet, branch). If unknown use 1000 m, the conservative value given by the standard for power lines combined and for telecom lines.",
-    rif: `${RISCHIO}, 8.2 e A.4`,
-  },
-  "Altezza h (m)": {
-    it: "Per il kc dettagliato: distanza verticale tra gli anelli che collegano le calate (o altezza della struttura se non ci sono anelli intermedi). La formula vale per strutture con almeno 4 calate e h, c tra 3 e 20 m.",
-    en: "For the detailed kc: vertical distance between the rings interconnecting the down conductors (or structure height without intermediate rings). The formula applies to structures with at least 4 down conductors and h, c between 3 and 20 m.",
-    rif: `${LPS}, Allegato B, Fig. B.2 e B.3`,
-  },
-  "km materiale solido (tipico 0.5)": {
-    it: "Calcestruzzo, mattoni o legno tra conduttore e parte metallica: 0,5. Per altri isolanti il valore lo dà il produttore; distanziatori in FRP, PE o PVC lunghi almeno 0,5 m: 0,7.",
-    en: "Concrete, bricks or wood between conductor and metal part: 0.5. For other insulators the manufacturer gives the value; FRP, PE or PVC spacers at least 0.5 m long: 0.7.",
-    rif: `${LPS}, Tab. 12`,
-  },
-  "Distanza dal muro (m)": {
-    it: "Il dispersore ad anello va posato preferibilmente a circa 1 m dai muri perimetrali, così lavora meglio e si riducono le tensioni di passo vicino all'edificio.",
-    en: "The ring electrode should preferably be laid about 1 m from the outer walls, so it works better and step voltages near the building are reduced.",
-    rif: `${LPS}, 5.4.3`,
-  },
-  "Lunghezza picchetto (m)": {
-    it: "Per il dispersore di tipo A ogni picchetto verticale deve essere lungo almeno 0,5·l1; dove il terreno gela o si secca si aggiungono 0,5 m, perché la parte superiore non conta.",
-    en: "For a type A electrode each vertical rod must be at least 0.5·l1 long; where soil freezes or dries out add 0.5 m, as the top part does not count.",
-    rif: `${LPS}, 5.4.2.2 e 5.4.3`,
-  },
-  "Lato maglia fondazione (m)": {
-    it: "Lato della maglia del dispersore di fondazione. Con maglie fitte (dell'ordine di 1 m) la corrente nelle linee collegate in punti diversi è trascurabile; più la maglia è fitta, migliore l'equipotenzialità.",
-    en: "Mesh size of the foundation electrode. With dense meshes (about 1 m) the current in lines bonded at different points is negligible; the denser the mesh, the better the equipotentiality.",
-    rif: `${LPS}, 5.4.2.3; CEI EN IEC 62305-1:2024, E.2.5`, daVerificare: true,
-  },
-  "Profondità di posa (m)": {
-    it: "Profondità del conduttore interrato o della testa del picchetto: almeno 0,5 m, per stabilizzare la resistenza rispetto a gelo e siccità.",
-    en: "Depth of the buried conductor or rod top: at least 0.5 m, to stabilise resistance against frost and drought.",
-    rif: `${LPS}, 5.4.3`,
-  },
-  "Resistenza di terra misurata (Ω)": {
-    it: "Se supera 10 Ω bisogna controllare che i dispersori rispettino la lunghezza minima l1 della Fig. 5 (in terreno roccioso il limite dei 10 Ω non si applica). Una variazione forte rispetto alle misure precedenti va indagata.",
-    en: "Above 10 Ω check that the electrodes meet the minimum length l1 of Fig. 5 (in rocky soil the 10 Ω limit does not apply). A large change from previous measurements must be investigated.",
-    rif: `${LPS}, D.7 e Fig. 5`,
-  },
-  "Continuità: valore massimo (Ω)": {
-    it: "Per le calate naturali nei ferri d'armatura la resistenza complessiva tra captazione e barra equipotenziale non deve superare 0,2 Ω, misurata con strumento a quattro morsetti e circa 10 A.",
-    en: "For natural down conductors in reinforcement, the overall resistance between air-termination and equipotential bar must not exceed 0.2 Ω, measured with a four-wire instrument and about 10 A.",
-    rif: `${LPS}, 5.3.5 e D.5.3.5.2`,
-  },
-  "Alimentazione": {
-    it: "Monofase o trifase cambia il numero di conduttori che si dividono la corrente di fulmine (es. 3 fasi + N = 4): più conduttori, meno corrente per polo dell'SPD.",
-    en: "Single or three phase changes the number of conductors sharing the lightning current (e.g. 3 phases + N = 4): more conductors, less current per SPD pole.",
-    rif: "CEI EN IEC 62305-1:2024, E.2.3",
-  },
-  "Apparecchi sensibili da proteggere": {
-    it: "Apparecchi lontani dal quadro o con bassa tensione di tenuta richiedono un SPD di tipo 3 vicino (entro pochi metri), coordinato con quelli a monte.",
-    en: "Equipment far from the board or with low withstand voltage needs a type 3 SPD close by (within a few metres), coordinated with the upstream ones.",
-    rif: "CEI EN IEC 62305-4:2024, Allegato C", daVerificare: true,
-  },
-  "Coefficiente di utilizzo η (0–1)": {
-    it: "Più dispersori vicini si disturbano a vicenda: la resistenza totale è più alta del semplice parallelo. η tiene conto di questo effetto; picchetti distanti almeno il doppio della loro lunghezza hanno η vicino a 1.",
-    en: "Electrodes close together interfere with each other: the total resistance is higher than a simple parallel. η accounts for this; rods spaced at least twice their length have η close to 1.",
-    rif: "Metodo di calcolo dell'app (non fissato dalla CEI EN IEC 62305); si veda CEI EN 50522", daVerificare: true,
+    it: "Oltre circa 10 m di cavo dall'SPD d'ingresso la protezione degli apparecchi può non bastare: si aggiunge un SPD di tipo 2 nel sottoquadro.",
+    en: "Beyond about 10 m of cable from the entrance SPD, equipment protection may not be enough: add a type 2 SPD in the sub-board.",
+    rif: "CEI EN IEC 62305-4; CEI EN 61643-12", daVerificare: true,
   },
   // ----- Verifiche -----
   "Visiva ogni (anni)": {
-    it: "Dal 2024 l'intervallo non dipende più dalla classe dell'LPS: esame a vista ogni anno; in condizioni climatiche severe ogni 6 mesi. Se non si fa l'esame a vista annuale, la verifica completa va fatta ogni 2 anni.",
-    en: "Since 2024 the interval no longer depends on the LPS class: visual inspection every year; in severe climates every 6 months. Without an annual visual inspection, the full inspection is due every 2 years.",
-    rif: `${LPS}, 7 e D.7.2.2`,
+    it: "Intervallo tra due verifiche visive in base al livello di protezione (indicativamente 1 anno per I-II, 2 anni per III-IV).",
+    en: "Interval between two visual inspections by protection level (about 1 year for I-II, 2 years for III-IV).",
+    rif: "CEI EN IEC 62305-3, Allegato E, Tab. E.2", daVerificare: true,
   },
   "Completa ogni (anni)": {
-    it: "Verifica completa con prove elettriche (continuità, resistenza di terra) ogni 3 anni, oltre che dopo modifiche importanti della struttura o dopo un fulmine noto o sospetto.",
-    en: "Full inspection with electrical tests (continuity, earth resistance) every 3 years, and also after major changes to the structure or after a known or suspected lightning strike.",
-    rif: `${LPS}, 7 e D.7.2.2`,
+    it: "Intervallo tra due verifiche complete, con misure di continuità e di resistenza di terra (indicativamente 2 anni per I-II, 4 anni per III-IV).",
+    en: "Interval between two full inspections, with continuity and earth resistance measurements (about 2 years for I-II, 4 years for III-IV).",
+    rif: "CEI EN IEC 62305-3, Allegato E, Tab. E.2", daVerificare: true,
   },
   "Completa, sistemi critici (anni)": {
-    it: "Ogni anno per strutture a rischio di esplosione, con impianti sensibili, uffici, edifici commerciali o luoghi con molte persone (accettabile anche ogni 14–15 mesi per seguire le variazioni stagionali della resistenza di terra).",
-    en: "Every year for structures with explosion risk, sensitive systems, offices, commercial buildings or crowded places (14–15 months is also acceptable to track seasonal earth resistance changes).",
-    rif: `${LPS}, D.7.2.2`,
+    it: "Per strutture con rischio di esplosione o servizi essenziali la verifica completa è più frequente (indicativamente ogni anno).",
+    en: "For structures with explosion risk or essential services the full inspection is more frequent (about every year).",
+    rif: "CEI EN IEC 62305-3, Allegato E, Tab. E.2", daVerificare: true,
   },
 };

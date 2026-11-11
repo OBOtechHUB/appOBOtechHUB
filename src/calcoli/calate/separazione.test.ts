@@ -13,7 +13,6 @@ describe("calate e distanza di separazione", () => {
   it("kc semplificato e dettagliato", () => {
     expect(kcSemplificato(1)).toBe(1);
     expect(kcSemplificato(2)).toBe(0.66);
-    expect(kcSemplificato(3)).toBe(0.44); // Tab. 13 edizione 2024: 3 e più
     expect(kcSemplificato(8)).toBe(0.44);
     const k = kcDettagliato(8, 15, 10);
     expect(k).toBeCloseTo(1 / 16 + 0.1 + 0.2 * Math.cbrt(1.5), 9);

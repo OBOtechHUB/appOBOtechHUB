@@ -3,11 +3,10 @@ import { Link } from "@tanstack/react-router";
 import { Plus, Save, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Campo, inputCls } from "@/components/Campo";
-import { SchemaKc } from "@/components/schemi/SchemiLps";
 import { aggiornaEsteso, useEsteso } from "@/lib/statoProgetto";
 import { aggiornaComputo, useComputo, useDatiEdificio } from "@/lib/progettoStore";
 import {
-  KI, KM, NOMI_MATERIALE, distanzaSeparazione, kcDettagliato, kcDettagliatoNelCampo, kcSemplificato, numeroCalate, passoCalate, perimetro, verificaPunti,
+  KI, KM, NOMI_MATERIALE, distanzaSeparazione, kcDettagliato, kcSemplificato, numeroCalate, passoCalate, perimetro, verificaPunti,
   type Livello, type Materiale,
 } from "@/calcoli/calate/separazione";
 
@@ -35,10 +34,9 @@ export function CalatePage() {
   const n = dalModello.calate || nNorma;
   const passo = n > 0 ? perimetroUsato / n : 0;
   const ki = sep.ki ?? KI[lpl];
-  const km = { aria: KM.aria, solido: sep.kmSolido ?? KM.solido, frp: KM.frp };
+  const km = { aria: KM.aria, solido: sep.kmSolido ?? KM.solido };
   let kc = kcSemplificato(n), erroreKc = "";
-  if (sep.kcUno) kc = 1;
-  else if (sep.modoKc === "dettagliato") { try { kc = kcDettagliato(n, passo, altezza); } catch (e) { erroreKc = e instanceof Error ? e.message : ""; } }
+  if (sep.modoKc === "dettagliato") { try { kc = kcDettagliato(n, passo, altezza); } catch (e) { erroreKc = e instanceof Error ? e.message : ""; } }
   const sTetto = altezza > 0 ? distanzaSeparazione(ki, kc, km.aria, altezza) : NaN;
   const esiti = verificaPunti(sep.punti, ki, kc, km);
   const [msg, setMsg] = useState("");
@@ -57,7 +55,7 @@ export function CalatePage() {
       <p className="mt-2 max-w-3xl text-white/90">Numero e passo delle calate, coefficiente kc e distanza di separazione s = ki · kc / km · l, con la verifica dei punti critici (CEI EN IEC 62305-3).</p>
     </div></section>
     <main className="mx-auto max-w-5xl px-4 py-8">
-      <p className="rounded-lg border-l-4 border-primary bg-muted p-3 text-sm">Valori della CEI EN IEC 62305-3:2024: ki (Tab. 11), km (Tab. 12, anche distanziatori FRP 0,7), kc (Tab. 13: 2 calate 0,66, 3 o più 0,44; Allegato B per il metodo dettagliato) e distanze tra le calate (Tab. 5).</p>
+      <p className="rounded-lg border-l-4 border-primary bg-muted p-3 text-sm">I coefficienti ki, km, kc e le distanze tra le calate sono i valori tipici della norma: modificabili, <strong>da verificare con l'edizione 2024</strong>.</p>
 
       <section className="mt-8" aria-label="Calate">
         <h2 className="text-[1.7rem] font-medium">1 · Calate · LPL {lpl}</h2>
@@ -86,10 +84,7 @@ export function CalatePage() {
         <div className="mt-4 rounded-lg border-l-4 border-primary bg-muted p-4" role="status">
           <p className="text-lg">kc = <strong>{f(kc, 3)}</strong> · s (in aria, l = h = {f(altezza, 1)} m) = <strong>{f(sTetto, 3)} m</strong></p>
           <p className="mt-1 text-xs text-muted-foreground">{sep.modoKc === "dettagliato" ? `kc = 1/(2n) + 0,1 + 0,2·(c/h)^(1/3) con n = ${n}, c = ${f(passo, 1)} m, h = ${f(altezza, 1)} m` : `kc semplificato per ${n} calate`}{erroreKc && ` · ${erroreKc}`}</p>
-          <label className="mt-2 flex items-center gap-2 text-sm"><input type="checkbox" checked={!!sep.kcUno} onChange={(e) => aggiorna({ kcUno: e.target.checked })} />Dispersore di tipo A con resistenze di terra molto diverse tra i picchetti (oltre il doppio): kc = 1</label>
-          {!sep.kcUno && sep.modoKc === "dettagliato" && !erroreKc && !kcDettagliatoNelCampo(n, passo, altezza) && <p className="mt-1 text-xs font-medium text-[#b3261e]">Formula valida per almeno 4 calate e per c e h tra 3 e 20 m: fuori da questo campo usa il kc semplificato.</p>}
         </div>
-        <div className="mt-4"><SchemaKc n={n} c={passo} h={altezza} kc={kc} /></div>
       </section>
 
       <section className="mt-10" aria-label="Punti critici">
@@ -100,7 +95,7 @@ export function CalatePage() {
           <tbody>{esiti.map((e) => <tr key={e.id} className="border-b">
             <td className="p-2"><input aria-label="Descrizione" className={`${inputCls} py-1.5`} value={e.descrizione} maxLength={200} onChange={(ev) => punto(e.id, { descrizione: ev.target.value })} /></td>
             <td className="p-2"><input aria-label="l" className={`${inputCls} w-24 py-1.5`} type="number" min={0} step={0.5} value={e.l} onChange={(ev) => punto(e.id, { l: Number(ev.target.value) })} /></td>
-            <td className="p-2"><select aria-label="Materiale" className={`${inputCls} py-1.5`} value={e.materiale} onChange={(ev) => punto(e.id, { materiale: ev.target.value as Materiale })}>{(Object.keys(NOMI_MATERIALE) as Materiale[]).map((m) => <option key={m} value={m}>{m === "aria" ? "Aria" : m === "frp" ? "Distanziatore FRP (0,7)" : "Solido (0,5)"}</option>)}</select></td>
+            <td className="p-2"><select aria-label="Materiale" className={`${inputCls} py-1.5`} value={e.materiale} onChange={(ev) => punto(e.id, { materiale: ev.target.value as Materiale })}>{(Object.keys(NOMI_MATERIALE) as Materiale[]).map((m) => <option key={m} value={m}>{m === "aria" ? "Aria" : "Solido"}</option>)}</select></td>
             <td className="p-2"><input aria-label="d" className={`${inputCls} w-24 py-1.5`} type="number" min={0} step={0.05} value={e.d} onChange={(ev) => punto(e.id, { d: Number(ev.target.value) })} /></td>
             <td className="p-2 text-right font-mono">{f(e.s, 3)}</td>
             <td className="p-2"><span className={`rounded-full px-3 py-0.5 text-xs font-semibold ${e.conforme ? "bg-[#e3f4ea] text-[#1d7a45]" : "bg-[#fdecea] text-[#b3261e]"}`}>{e.conforme ? "d ≥ s" : "d < s"}</span></td>

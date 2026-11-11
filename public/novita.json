@@ -2,6 +2,23 @@
   "nota": "Registro degli aggiornamenti di Progettazione LPS. Una voce per aggiornamento, la più recente per prima (app: lps). Viene mostrato nella barra \"Aggiorna app\", nel riquadro Novità e nella pagina Novità di OBO Hub.",
   "aggiornamenti": [
     {
+      "id": "2026-11-11-lps-2",
+      "data": "2026-11-11",
+      "app": "lps",
+      "titolo": "Calcoli tornati alla versione del 9 novembre",
+      "voci": [
+        "Analisi del rischio, calate, terra, SPD e verifiche tornano come erano prima dell'allineamento alla norma 2024",
+        "Tolte la pagina \"Norma 62305: calcoli e tabelle\", gli schemi disegnati e il campo \"Comune o indirizzo\" con mappa",
+        "I progetti salvati si aprono come prima; dove erano state usate più zone di rischio, la pagina Rischio riparte dai dati della scheda singola"
+      ],
+      "titolo_en": "Calculations back to the 9 November version",
+      "voci_en": [
+        "Risk assessment, down conductors, earthing, SPD and inspections are back as they were before the 2024 alignment",
+        "The \"IEC 62305 calculations and tables\" page, the drawn diagrams and the \"Municipality or address\" field with map are removed",
+        "Saved projects open as before; where several risk zones were used, the Risk page starts again from the single-sheet data"
+      ]
+    },
+    {
       "id": "2026-11-11-lps-1",
       "data": "2026-11-11",
       "app": "lps",

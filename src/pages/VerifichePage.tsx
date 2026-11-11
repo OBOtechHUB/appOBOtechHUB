@@ -6,7 +6,7 @@ import { aggiornaEsteso, useEsteso } from "@/lib/statoProgetto";
 import { useDatiEdificio } from "@/lib/progettoStore";
 import { scarica } from "@/lib/esportazioni";
 import {
-  INTERVALLI_SEVERI, INTERVALLI_TIPICI, prossimeScadenze, riepilogo, scaduta, verificaSchema, vociPerTipo,
+  INTERVALLI_TIPICI, prossimeScadenze, riepilogo, scaduta, verificaSchema, vociPerTipo,
   type Esito, type TipoVerifica, type Verifica,
 } from "@/calcoli/verifiche/verifiche";
 
@@ -72,11 +72,10 @@ export function VerifichePage() {
           <Campo etichetta="Completa, sistemi critici (anni)"><input className={inputCls} type="number" min={0.5} step={0.5} value={intervalli.critica} onChange={(e) => intervallo("critica", Number(e.target.value))} /></Campo>
           <div className="flex flex-col justify-end gap-2">
             <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={s.pianoVerifiche.critico} onChange={(e) => piano({ critico: e.target.checked })} />Sistema critico</label>
-            <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={intervalli.visiva === INTERVALLI_SEVERI.visiva && intervalli.completa === INTERVALLI_SEVERI.completa} onChange={(e) => piano({ intervalli: e.target.checked ? INTERVALLI_SEVERI : null })} />Condizioni ambientali severe</label>
             {s.pianoVerifiche.intervalli && <Button size="sm" variant="link" className="justify-start p-0" onClick={() => piano({ intervalli: null })}>Ripristina valori tipici</Button>}
           </div>
         </div>
-        <p className="mt-2 text-xs text-muted-foreground">Sistema critico: strutture a rischio di esplosione, con impianti sensibili, uffici, edifici commerciali o con molte persone (verifica completa ogni anno). Edizione 2024 (D.7.2.2): a vista ogni anno, completa ogni 3 anni, uguale per tutte le classi; in condizioni ambientali severe (atmosfera corrosiva, forti sollecitazioni) a vista ogni 6 mesi e completa ogni anno; se manca l'esame a vista annuale la completa va fatta ogni 2 anni. Modificabili per prescrizioni locali.</p>
+        <p className="mt-2 text-xs text-muted-foreground">Sistema critico: strutture con rischio di esplosione o servizi essenziali (verifica completa più frequente). Valori tipici dell'allegato E, da confermare con l'edizione della norma e le prescrizioni locali.</p>
         <div className="mt-4 grid gap-4 sm:grid-cols-2">
           {([["Prossima verifica visiva", scadenze.visiva], ["Prossima verifica completa", scadenze.completa]] as const).map(([t, data]) =>
             <div key={t} className={`rounded-lg border-[0.8px] p-4 ${scaduta(data, oggi()) ? "border-[#b3261e]" : "border-bordo-scheda"}`}>
