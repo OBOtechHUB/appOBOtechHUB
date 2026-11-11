@@ -20,7 +20,6 @@ export function AppFooter() {
           <p className="mt-1 text-sm text-white/70">Riferimento normativo: CEI EN IEC 62305:2024</p>
           <nav className="mt-6 flex flex-wrap gap-x-3 gap-y-2 text-sm text-white/85" aria-label="Collegamenti legali">
             <a href={URL_HUB} className="hover:text-white">OBO Hub</a><span aria-hidden="true">|</span>
-            <a href={`${URL_HUB}novita.html`} className="hover:text-white">Novità</a><span aria-hidden="true">|</span>
             <a href={`${URL_HUB}privacy.html`} className="hover:text-white">Privacy</a><span aria-hidden="true">|</span>
             <a href={`${URL_HUB}condizioni.html`} className="hover:text-white">Condizioni d'uso</a>
           </nav>
