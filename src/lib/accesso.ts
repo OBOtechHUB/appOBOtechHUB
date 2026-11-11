@@ -6,7 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 export const db = () => supabase as unknown as SupabaseClient;
 import { BASE } from "@/lib/base";
 
-export type Sezione = "assistente" | "progetti" | "edificio" | "rischio" | "captazione" | "calate" | "terra" | "spd" | "computo" | "particolari" | "verifiche" | "prodotti" | "modelli3d" | "cad" | "app_mappa";
+export type Sezione = "assistente" | "progetti" | "edificio" | "rischio" | "captazione" | "calate" | "terra" | "spd" | "computo" | "particolari" | "verifiche" | "prodotti" | "modelli3d" | "cad" | "app_mappa" | "app_prodotti";
 export const SEZIONI: { id: Sezione; nome: string }[] = [
   { id: "assistente", nome: "Assistente di progetto" },
   { id: "progetti", nome: "Progetti salvati" },
@@ -23,6 +23,7 @@ export const SEZIONI: { id: Sezione; nome: string }[] = [
   { id: "modelli3d", nome: "Modelli 3D prodotti" },
   { id: "cad", nome: "Download CAD" },
   { id: "app_mappa", nome: "OBO Hub · Mappa carichi ufficio tecnico" },
+  { id: "app_prodotti", nome: "OBO Hub · Prodotti OBO" },
 ];
 
 /** Indirizzo di OBO Hub (schermata iniziale con tutte le app), sullo stesso sito GitHub Pages. */
@@ -116,8 +117,20 @@ export function puoVedere(a: Accesso, sezione: Sezione | "admin" | undefined): b
 }
 
 /** Chiamata alla funzione Supabase di gestione (solo amministratori). */
+/** Sezioni nuove che la funzione sul server (se non ripubblicata) scarterebbe: dopo invito o approvazione
+ *  le scrive direttamente l'admin, che può aggiornare accessi_profili per le regole del database. */
+const SEZIONI_SERVER = ["tutte", "assistente", "progetti", "edificio", "rischio", "captazione", "calate", "terra", "spd", "computo", "particolari", "verifiche", "prodotti", "modelli3d", "cad", "app_mappa"];
+async function sezioniNonGestiteDalServer(azione: string, dati: Record<string, unknown>) {
+  const sezioni = Array.isArray(dati["sezioni"]) ? (dati["sezioni"] as unknown[]).map(String) : [];
+  const email = typeof dati["email"] === "string" ? dati["email"].trim() : "";
+  if (!["invita", "approva"].includes(azione) || !email || !sezioni.some((s) => !SEZIONI_SERVER.includes(s))) return;
+  const valide = sezioni.filter((s) => s === "tutte" || SEZIONI.some((x) => x.id === s));
+  await db().from("accessi_profili").update({ sezioni: valide }).ilike("email", email).then(() => undefined, () => undefined);
+}
+
 export async function gestione(azione: string, dati: Record<string, unknown> = {}): Promise<Record<string, unknown>> {
   const { data, error } = await supabase.functions.invoke("gestione-accessi", { body: { azione, ...dati } });
+  if (!error) await sezioniNonGestiteDalServer(azione, dati);
   if (error) {
     let messaggio = error.message;
     try { const corpo = await (error as { context?: Response }).context?.json(); if (corpo?.errore) messaggio = corpo.errore; } catch { /* corpo non leggibile */ }

@@ -35,7 +35,8 @@ function AppUtente({ ruolo, sezioni }: { ruolo: string; sezioni: string[] }) {
   const app: { nome: string; nota?: string }[] = [];
   if (mieLps.length) app.push({ nome: "Progettazione LPS", nota: mieLps.length === lps.length ? "tutte le sezioni" : mieLps.map((s) => s.nome).join(", ") });
   if (tutte || sezioni.includes("app_mappa")) app.push({ nome: "Mappa carichi" });
-  app.push({ nome: "Prodotti OBO" });
+  if (tutte || sezioni.includes("app_prodotti")) app.push({ nome: "Prodotti OBO" });
+  if (!app.length) return <p className="text-muted-foreground">Nessuna app</p>;
   if (ruolo === "admin") app.push({ nome: "Configuratore torrette" }, { nome: "Manutenzione app" }, { nome: "Amministrazione" });
   return <div>
     {tutte && ruolo !== "admin" && <p className="mb-1 font-semibold">Tutte le app, anche quelle future</p>}
@@ -55,6 +56,7 @@ function SceltaSezioni({ valore, onChange }: { valore: string[]; onChange: (v: s
     {!tutte && <>
       <div><p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">App di OBO Hub</p>
         <label className="mt-1 flex items-center gap-2 text-sm"><input type="checkbox" checked={valore.includes("app_mappa")} onChange={(e) => cambia("app_mappa", e.target.checked)} />Mappa carichi ufficio tecnico</label>
+        <label className="mt-1 flex items-center gap-2 text-sm"><input type="checkbox" checked={valore.includes("app_prodotti")} onChange={(e) => cambia("app_prodotti", e.target.checked)} />Prodotti OBO <span className="text-xs text-muted-foreground">(catalogo di obo.it e novità)</span></label>
         <label className="mt-1 flex items-center gap-2 text-sm"><input type="checkbox" checked={tutteLps} onChange={(e) => onChange(e.target.checked ? [...new Set([...valore, ...lps.map((x) => x.id)])] : valore.filter((x) => x.startsWith("app_")))} />Progettazione LPS (tutte le sezioni)</label>
       </div>
       <div><p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Progettazione LPS · singole sezioni</p>
@@ -162,6 +164,22 @@ export function AdminPage() {
       leggiRegistro(),
       db().from("impostazioni_admin").select("*"),
     ]);
+    // una volta sola: Prodotti OBO prima era aperto a tutti; diventa un'app da abilitare per persona,
+    // quindi la si lascia a chi c'è già e la si mette nelle sezioni predefinite dei nuovi utenti
+    const imp = Object.fromEntries(((i.data ?? []) as { chiave: string; valore: string }[]).map((x) => [x.chiave, x.valore]));
+    if (!p.error && !i.error && !imp["sezione_prodotti"]) {
+      const daAggiornare = ((p.data ?? []) as Profilo[]).filter((x) => x.ruolo !== "admin" && !x.sezioni.includes("tutte") && !x.sezioni.includes("app_prodotti"));
+      let ok = true;
+      for (const x of daAggiornare) { const u = await db().from("accessi_profili").update({ sezioni: [...x.sezioni, "app_prodotti"] }).eq("utente", x.utente); if (u.error) { ok = false; break; } x.sezioni = [...x.sezioni, "app_prodotti"]; }
+      if (ok) {
+        const pred = (imp["sezioni_predefinite"] ?? "").split(",").map((x) => x.trim()).filter(Boolean);
+        const righe = [{ chiave: "sezione_prodotti", valore: new Date().toISOString() }];
+        if (imp["sezioni_predefinite"] !== undefined && !pred.includes("tutte") && !pred.includes("app_prodotti")) righe.push({ chiave: "sezioni_predefinite", valore: [...pred, "app_prodotti"].join(",") });
+        await db().from("impostazioni_admin").upsert(righe);
+        for (const x of righe) (i.data as { chiave: string; valore: string }[]).push(x);
+        if (daAggiornare.length) setMsg(`Prodotti OBO ora si abilita per persona (finestra "Cambia sezioni"): l'ho lasciato a tutti i ${daAggiornare.length} utenti che lo avevano già.`);
+      }
+    }
     setProfili((p.data ?? []) as Profilo[]);
     setRichieste((r.data ?? []) as Richiesta[]);
     setEventi((e.data ?? []) as Evento[]);
@@ -304,7 +322,7 @@ export function AdminPage() {
             <div className="flex flex-wrap items-start justify-between gap-3"><div><p className="text-lg font-semibold">{r.nome} <span className="font-normal text-muted-foreground">· {r.azienda || "azienda non indicata"}</span></p><p className="text-sm">{r.email} · {data(r.creata_il)}</p>{r.motivo && <p className="mt-2 max-w-3xl text-sm italic">“{r.motivo}”</p>}</div></div>
             <div className="mt-4"><p className="mb-2 text-sm font-semibold">Sezioni da abilitare</p><SceltaSezioni valore={sez} onChange={(v) => setSezioniRichiesta({ ...sezioniRichiesta, [r.id]: v })} /></div>
             <div className="mt-4 flex flex-wrap gap-2">
-              <Button disabled={busy} onClick={() => void azione(() => gestione("approva", { richiesta: r.id, sezioni: sez }), `Accesso approvato per ${r.email}: comunicagli la password iniziale.`)}><UserCheck strokeWidth={1.5} />Approva</Button>
+              <Button disabled={busy} onClick={() => void azione(() => gestione("approva", { richiesta: r.id, sezioni: sez, email: r.email }), `Accesso approvato per ${r.email}: comunicagli la password iniziale.`)}><UserCheck strokeWidth={1.5} />Approva</Button>
               <Button variant="outline" disabled={busy} onClick={() => void azione(() => gestione("rifiuta", { richiesta: r.id }), "Richiesta rifiutata.")}><UserX strokeWidth={1.5} />Rifiuta</Button>
             </div>
           </div>; })}
