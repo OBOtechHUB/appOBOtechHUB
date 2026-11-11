@@ -116,17 +116,6 @@ function GraficoAccessi({ accessi, periodo }: { accessi: Evento[]; periodo: Peri
   </div>;
 }
 
-/** Tipi di risultato della ricerca di OBO Hub (impostazione "ricerca", letta da stato_manutenzione()). */
-const TIPI_RICERCA: [string, string, string][] = [
-  ["app", "App e sezioni", "Le app di OBO Hub e le sezioni di Progettazione LPS"],
-  ["progetti", "Progetti salvati", "I propri progetti di Progettazione LPS"],
-];
-/** Tipi scelti: senza impostazione tutti; "nessuno" = ricerca nascosta. */
-export function tipiRicerca(v: string | undefined): string[] {
-  if (v === undefined || v === "") return TIPI_RICERCA.map(([id]) => id);
-  return v.split(",").map((x) => x.trim()).filter((x) => TIPI_RICERCA.some(([id]) => id === x));
-}
-
 export function AdminPage() {
   const io = useAccesso();
   const [profili, setProfili] = useState<Profilo[]>([]);
@@ -375,13 +364,6 @@ export function AdminPage() {
             <span className="flex gap-2"><input className={inputCls} type={mostraPw ? "text" : "password"} autoComplete="off" value={impostazioni["password_iniziale"] ?? ""} onChange={(e) => setImpostazioni({ ...impostazioni, password_iniziale: e.target.value })} /><Button type="button" variant="outline" size="icon" aria-label={mostraPw ? "Nascondi" : "Mostra"} onClick={() => setMostraPw(!mostraPw)}>{mostraPw ? <EyeOff /> : <Eye />}</Button></span>
           </Campo>
           <div><p className="mb-2 text-sm font-semibold">Sezioni proposte per i nuovi utenti</p><SceltaSezioni valore={predefinite} onChange={(v) => setImpostazioni({ ...impostazioni, sezioni_predefinite: v.join(",") })} /></div>
-          <fieldset className="rounded-lg border-[0.8px] border-bordo-scheda p-4">
-            <legend className="px-1 text-sm font-semibold">Cosa compare nella ricerca di OBO Hub</legend>
-            <p className="mb-3 text-xs text-muted-foreground">Vale per tutti gli utenti e i visitatori; ognuno vede comunque solo le app, le sezioni e i progetti per cui è abilitato.</p>
-            <div className="grid gap-2 sm:grid-cols-2">{TIPI_RICERCA.map(([id, nome, nota]) => { const scelti = tipiRicerca(impostazioni["ricerca"]); return <label key={id} className="flex cursor-pointer items-start gap-2 text-sm">
-              <input type="checkbox" className="mt-0.5 size-4 accent-primary" checked={scelti.includes(id)} onChange={(e) => setImpostazioni({ ...impostazioni, ricerca: (e.target.checked ? [...scelti, id] : scelti.filter((x) => x !== id)).join(",") || "nessuno" })} />
-              <span><span className="font-semibold">{nome}</span><span className="block text-xs text-muted-foreground">{nota}</span></span></label>; })}</div>
-          </fieldset>
           <Button size="lg" disabled={busy} onClick={() => void salvaImpostazioni()}><Save strokeWidth={1.5} />Salva impostazioni</Button>
           <VisitatoriMappa />
           <p className="text-xs text-muted-foreground">La password iniziale è visibile solo agli amministratori. Ogni utente la cambia al primo accesso e collega Microsoft Authenticator: senza codice dell'app non si accede ai dati.</p>
