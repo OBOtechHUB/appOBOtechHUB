@@ -15,3 +15,4 @@
 - Grounding UI uses a dedicated section and state/CAD adapters in `src/lib/impiantoTerra.ts`; optional grounding snapshot fields default safely for older projects, keeping the protected engineering engines unchanged.
 - Open OBO detail sheets through the shared SchedaParticolare dialog and RiferimentoParticolare trigger, reusing schedeParticolari PDF resolution and posizioni labels so tables keep their current proposal state.
 - After every change, also update the project recap `claude/recap-obo-hub.md` in the claude.ai Project "OBOtechHUB" (what the apps do, what changed, what is pending): the owner asked for it to be always current.
+- Animazione di apertura comune: `/benvenuto.js` di OBO Hub (caricato da index.html). All'accesso l'app salva il nome di battesimo in localStorage `obo-nome` e lo toglie all'uscita (`salvaNome` in src/lib/accesso.ts).
