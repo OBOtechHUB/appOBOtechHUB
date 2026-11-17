@@ -128,8 +128,8 @@ export async function passiPermesso(): Promise<ErrorePosizione> {
     android: ["Apri le impostazioni rapide e attiva Posizione (GPS)", "Nel browser: menu → Impostazioni → Impostazioni sito → Posizione → consenti questo sito", "Torna qui e premi di nuovo La mia posizione"],
     altro: ["Attiva la localizzazione nelle impostazioni del dispositivo", "Consenti la posizione a questo sito nelle impostazioni del browser"],
   };
-  if (stato === "denied") return new ErrorePosizione("Il browser ha bloccato la posizione per questo sito.", so === "iphone" ? sistemaSpento.iphone : sito);
-  return new ErrorePosizione(so === "windows" || so === "mac" ? "La localizzazione del computer è spenta oppure non è consentita al browser." : "La localizzazione del dispositivo è spenta o non consentita.", sistemaSpento[so] ?? sistemaSpento.altro ?? []);
+  if (stato === "denied") return new ErrorePosizione("Il browser ha bloccato la posizione per questo sito.", so === "iphone" ? sistemaSpento["iphone"] ?? sito : sito);
+  return new ErrorePosizione(so === "windows" || so === "mac" ? "La localizzazione del computer è spenta oppure non è consentita al browser." : "La localizzazione del dispositivo è spenta o non consentita.", sistemaSpento[so] ?? sistemaSpento["altro"] ?? []);
 }
 
 function leggiPosizione(alta: boolean): Promise<{ lat: number; lon: number; precisione: number }> {
