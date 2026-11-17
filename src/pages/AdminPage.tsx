@@ -35,8 +35,9 @@ function AppUtente({ ruolo, sezioni }: { ruolo: string; sezioni: string[] }) {
   const app: { nome: string; nota?: string }[] = [];
   if (mieLps.length) app.push({ nome: "Progettazione LPS", nota: mieLps.length === lps.length ? "tutte le sezioni" : mieLps.map((s) => s.nome).join(", ") });
   if (tutte || sezioni.includes("app_mappa")) app.push({ nome: "Mappa carichi" });
+  if (tutte || sezioni.includes("app_prodotti")) app.push({ nome: "Prodotti OBO" });
   if (!app.length) return <p className="text-muted-foreground">Nessuna app</p>;
-  if (ruolo === "admin") app.push({ nome: "Amministrazione" });
+  if (ruolo === "admin") app.push({ nome: "Configuratore torrette" }, { nome: "Manutenzione app" }, { nome: "Amministrazione" });
   return <div>
     {tutte && ruolo !== "admin" && <p className="mb-1 font-semibold">Tutte le app, anche quelle future</p>}
     {ruolo === "admin" && <p className="mb-1 font-semibold">Amministratore: tutte le app</p>}
@@ -55,6 +56,7 @@ function SceltaSezioni({ valore, onChange }: { valore: string[]; onChange: (v: s
     {!tutte && <>
       <div><p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">App di OBO Hub</p>
         <label className="mt-1 flex items-center gap-2 text-sm"><input type="checkbox" checked={valore.includes("app_mappa")} onChange={(e) => cambia("app_mappa", e.target.checked)} />Mappa carichi ufficio tecnico</label>
+        <label className="mt-1 flex items-center gap-2 text-sm"><input type="checkbox" checked={valore.includes("app_prodotti")} onChange={(e) => cambia("app_prodotti", e.target.checked)} />Prodotti OBO <span className="text-xs text-muted-foreground">(catalogo di obo.it e novità)</span></label>
         <label className="mt-1 flex items-center gap-2 text-sm"><input type="checkbox" checked={tutteLps} onChange={(e) => onChange(e.target.checked ? [...new Set([...valore, ...lps.map((x) => x.id)])] : valore.filter((x) => x.startsWith("app_")))} />Progettazione LPS (tutte le sezioni)</label>
       </div>
       <div><p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Progettazione LPS · singole sezioni</p>
@@ -116,6 +118,19 @@ function GraficoAccessi({ accessi, periodo }: { accessi: Evento[]; periodo: Peri
   </div>;
 }
 
+/** Tipi di risultato della ricerca di OBO Hub (impostazione "ricerca", letta da stato_manutenzione()). */
+const TIPI_RICERCA: [string, string, string][] = [
+  ["app", "App e sezioni", "Le app di OBO Hub e le sezioni di Progettazione LPS"],
+  ["prodotti", "Prodotti OBO", "Catalogo di obo.it, con numero d'articolo"],
+  ["notizie", "Notizie OBO", "Notizie e comunicati di obo.it"],
+  ["progetti", "Progetti salvati", "I propri progetti di Progettazione LPS"],
+];
+/** Tipi scelti: senza impostazione tutti; "nessuno" = ricerca nascosta. */
+export function tipiRicerca(v: string | undefined): string[] {
+  if (v === undefined || v === "") return TIPI_RICERCA.map(([id]) => id);
+  return v.split(",").map((x) => x.trim()).filter((x) => TIPI_RICERCA.some(([id]) => id === x));
+}
+
 export function AdminPage() {
   const io = useAccesso();
   const [profili, setProfili] = useState<Profilo[]>([]);
@@ -149,6 +164,22 @@ export function AdminPage() {
       leggiRegistro(),
       db().from("impostazioni_admin").select("*"),
     ]);
+    // una volta sola: Prodotti OBO prima era aperto a tutti; diventa un'app da abilitare per persona,
+    // quindi la si lascia a chi c'è già e la si mette nelle sezioni predefinite dei nuovi utenti
+    const imp = Object.fromEntries(((i.data ?? []) as { chiave: string; valore: string }[]).map((x) => [x.chiave, x.valore]));
+    if (!p.error && !i.error && !imp["sezione_prodotti"]) {
+      const daAggiornare = ((p.data ?? []) as Profilo[]).filter((x) => x.ruolo !== "admin" && !x.sezioni.includes("tutte") && !x.sezioni.includes("app_prodotti"));
+      let ok = true;
+      for (const x of daAggiornare) { const u = await db().from("accessi_profili").update({ sezioni: [...x.sezioni, "app_prodotti"] }).eq("utente", x.utente); if (u.error) { ok = false; break; } x.sezioni = [...x.sezioni, "app_prodotti"]; }
+      if (ok) {
+        const pred = (imp["sezioni_predefinite"] ?? "").split(",").map((x) => x.trim()).filter(Boolean);
+        const righe = [{ chiave: "sezione_prodotti", valore: new Date().toISOString() }];
+        if (imp["sezioni_predefinite"] !== undefined && !pred.includes("tutte") && !pred.includes("app_prodotti")) righe.push({ chiave: "sezioni_predefinite", valore: [...pred, "app_prodotti"].join(",") });
+        await db().from("impostazioni_admin").upsert(righe);
+        for (const x of righe) (i.data as { chiave: string; valore: string }[]).push(x);
+        if (daAggiornare.length) setMsg(`Prodotti OBO ora si abilita per persona (finestra "Cambia sezioni"): l'ho lasciato a tutti i ${daAggiornare.length} utenti che lo avevano già.`);
+      }
+    }
     setProfili((p.data ?? []) as Profilo[]);
     setRichieste((r.data ?? []) as Richiesta[]);
     setEventi((e.data ?? []) as Evento[]);
@@ -234,7 +265,7 @@ export function AdminPage() {
   async function salvaImpostazioni() {
     if (impostazioni["password_iniziale"] && impostazioni["password_iniziale"].length < 6) { setMsg("La password iniziale deve avere almeno 6 caratteri."); return; }
     await azione(async () => {
-      const righe = Object.entries(impostazioni).filter(([chiave]) => !["manutenzione", "sezione_prodotti", "ultima_copia_sicurezza", "cartella_copie"].includes(chiave)).map(([chiave, valore]) => ({ chiave, valore })); // chiavi gestite altrove o non più usate
+      const righe = Object.entries(impostazioni).filter(([chiave]) => !["manutenzione", "ultima_copia_sicurezza", "cartella_copie"].includes(chiave)).map(([chiave, valore]) => ({ chiave, valore })); // la manutenzione si gestisce da OBO Hub → Manutenzione app
       const { error } = await db().from("impostazioni_admin").upsert(righe);
       if (error) throw new Error(error.message);
     }, "Impostazioni salvate.");
@@ -364,6 +395,13 @@ export function AdminPage() {
             <span className="flex gap-2"><input className={inputCls} type={mostraPw ? "text" : "password"} autoComplete="off" value={impostazioni["password_iniziale"] ?? ""} onChange={(e) => setImpostazioni({ ...impostazioni, password_iniziale: e.target.value })} /><Button type="button" variant="outline" size="icon" aria-label={mostraPw ? "Nascondi" : "Mostra"} onClick={() => setMostraPw(!mostraPw)}>{mostraPw ? <EyeOff /> : <Eye />}</Button></span>
           </Campo>
           <div><p className="mb-2 text-sm font-semibold">Sezioni proposte per i nuovi utenti</p><SceltaSezioni valore={predefinite} onChange={(v) => setImpostazioni({ ...impostazioni, sezioni_predefinite: v.join(",") })} /></div>
+          <fieldset className="rounded-lg border-[0.8px] border-bordo-scheda p-4">
+            <legend className="px-1 text-sm font-semibold">Cosa compare nella ricerca di OBO Hub</legend>
+            <p className="mb-3 text-xs text-muted-foreground">Vale per tutti gli utenti e i visitatori; ognuno vede comunque solo le app, le sezioni e i progetti per cui è abilitato.</p>
+            <div className="grid gap-2 sm:grid-cols-2">{TIPI_RICERCA.map(([id, nome, nota]) => { const scelti = tipiRicerca(impostazioni["ricerca"]); return <label key={id} className="flex cursor-pointer items-start gap-2 text-sm">
+              <input type="checkbox" className="mt-0.5 size-4 accent-primary" checked={scelti.includes(id)} onChange={(e) => setImpostazioni({ ...impostazioni, ricerca: (e.target.checked ? [...scelti, id] : scelti.filter((x) => x !== id)).join(",") || "nessuno" })} />
+              <span><span className="font-semibold">{nome}</span><span className="block text-xs text-muted-foreground">{nota}</span></span></label>; })}</div>
+          </fieldset>
           <Button size="lg" disabled={busy} onClick={() => void salvaImpostazioni()}><Save strokeWidth={1.5} />Salva impostazioni</Button>
           <VisitatoriMappa />
           <p className="text-xs text-muted-foreground">La password iniziale è visibile solo agli amministratori. Ogni utente la cambia al primo accesso e collega Microsoft Authenticator: senza codice dell'app non si accede ai dati.</p>
