@@ -2,6 +2,44 @@
   "nota": "Registro degli aggiornamenti di Progettazione LPS. Una voce per aggiornamento, la più recente per prima (app: lps). Viene mostrato nella barra \"Aggiorna app\", nel riquadro Novità e nella pagina Novità di OBO Hub.",
   "aggiornamenti": [
     {
+      "id": "2026-11-17-lps-2",
+      "data": "2026-11-17",
+      "app": "lps",
+      "titolo": "Disegno CAD professionale",
+      "voci": [
+        "Il DXF di Edificio 3D è ora una tavola completa: pianta coperture in scala (1:100 o 1:200), squadratura e cartiglio con i dati del progetto",
+        "Layer divisi secondo lo standard LPS OBO (captazione, calate, terra, supporti, morsetti, particolari, quote, testi) con colori pronti per la stampa",
+        "Ogni componente è un blocco con il codice OBO (OBO_codice) e gli attributi codice, descrizione e tipo; calate numerate C1, C2…",
+        "Richiami P01, P02… ai particolari costruttivi, con l'elenco dei particolari e la legenda con codici e quantità",
+        "Lo stesso standard vale per LPS-IMPORTA in ZWCAD e AutoCAD: scarica di nuovo LPS.lsp da Download CAD"
+      ],
+      "titolo_en": "Professional CAD drawing",
+      "voci_en": [
+        "The 3D building DXF is now a complete sheet: roof plan to scale (1:100 or 1:200), frame and title block with the project data",
+        "Layers split by the OBO LPS standard (air termination, down conductors, earthing, supports, clamps, details, dimensions, texts) with print-ready colours",
+        "Each component is a block named with the OBO code (OBO_code) with code, description and type attributes; down conductors numbered C1, C2…",
+        "Callouts P01, P02… to the construction details, with the list of details and a legend with codes and quantities",
+        "The same standard applies to LPS-IMPORTA in ZWCAD and AutoCAD: download LPS.lsp again from CAD download"
+      ]
+    },
+    {
+      "id": "2026-11-17-lps-1",
+      "data": "2026-11-17",
+      "app": "lps",
+      "titolo": "Importa disegni e modelli con verifica della scala",
+      "voci": [
+        "In Edificio 3D, nuova scheda \"Importa file\": DXF, PDF, immagini di pianta, OBJ, STL, PLY, GLB/GLTF, IFC, STEP e IGES",
+        "L'app controlla la scala, propone l'unità più realistica e chiede conferma; si può verificare con una misura nota",
+        "Dai PDF legge la scala scritta sul disegno (es. 1:100) e permette di ricalcare l'impronta dell'edificio"
+      ],
+      "titolo_en": "Import drawings and models with scale check",
+      "voci_en": [
+        "In 3D building, new \"Import file\" tab: DXF, PDF, plan images, OBJ, STL, PLY, GLB/GLTF, IFC, STEP and IGES",
+        "The app checks the scale, proposes the most realistic unit and asks for confirmation; it can be verified with a known measurement",
+        "From PDFs it reads the scale written on the drawing (e.g. 1:100) and lets you trace the building outline"
+      ]
+    },
+    {
       "id": "2026-11-11-lps-1",
       "data": "2026-11-11",
       "app": "lps",
