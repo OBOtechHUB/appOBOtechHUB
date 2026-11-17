@@ -9,10 +9,11 @@ import {
 } from "@/calcoli/importazione/scala";
 import { ESTENSIONI_3D, dimensioniCorpo, leggiDXF, leggiMesh, scalaCorpo, unitaDichiarata3D, verticaleZProposto } from "@/lib/importEdificio";
 import { leggiImmagine, leggiPdf, type PianoImportato } from "@/lib/leggiPdf";
+import { leggiDWG, type LetturaCad } from "@/lib/leggiDwg";
 
 type Tipo = "dxf" | "3d" | "pdf" | "img";
 type P2 = [number, number];
-type LetturaDxf = Awaited<ReturnType<typeof leggiDXF>>;
+type LetturaDxf = LetturaCad;
 
 const ACCETTA = ".dxf,.dwg,.pdf,.png,.jpg,.jpeg,.webp,.obj,.stl,.ply,.glb,.gltf,.bin,.ifc,.step,.stp,.iges,.igs";
 const num = (v: string) => Number(String(v).replace(",", "."));
@@ -50,12 +51,11 @@ export function ImportaFile({ onImporta }: { onImporta: (m: ModelloEdificio) => 
   async function scegli(lista: File[]) {
     azzera(); setFatto("");
     const main = lista.find((f) => /\.(dxf|dwg|pdf|png|jpe?g|webp)$/i.test(f.name) || ESTENSIONI_3D.test(f.name));
-    if (!main) { setErrore("Formato non riconosciuto. Puoi importare DXF, PDF, immagini (PNG, JPG), OBJ, STL, PLY, GLB/GLTF, IFC, STEP e IGES."); return; }
-    if (/\.dwg$/i.test(main.name)) { setErrore("Il formato DWG non si può leggere nel browser. Dal programma CAD salva il disegno come DXF (Salva con nome → DXF) e caricalo qui: il DXF conserva le unità."); return; }
+    if (!main) { setErrore("Formato non riconosciuto. Puoi importare DWG, DXF, PDF, immagini (PNG, JPG), OBJ, STL, PLY, GLB/GLTF, IFC, STEP e IGES."); return; }
     setFiles(lista);
     await esegui(async () => {
-      if (/\.dxf$/i.test(main.name)) {
-        const r = await leggiDXF(main, 1);
+      if (/\.(dxf|dwg)$/i.test(main.name)) {
+        const r: LetturaCad = /\.dwg$/i.test(main.name) ? await leggiDWG(main) : await leggiDXF(main, 1);
         if (!r.layers.length) throw new Error("Nel DXF non ci sono polilinee: l'impronta dell'edificio va disegnata con polilinee chiuse.");
         setDxf(r); setLayer(r.layers[0] ?? ""); setTipo("dxf");
         setUnita(proponiUnita(r.dimensioni, r.unita).consigliata);
@@ -136,7 +136,7 @@ export function ImportaFile({ onImporta }: { onImporta: (m: ModelloEdificio) => 
   return (
     <div className="space-y-4">
       <p className="text-sm text-muted-foreground">
-        Carica un disegno o un modello: <strong>DXF</strong>, <strong>PDF</strong>, immagini di pianta (PNG, JPG), <strong>OBJ, STL, PLY, GLB/GLTF, IFC, STEP, IGES</strong>.
+        Carica un disegno o un modello: <strong>DWG, DXF</strong>, <strong>PDF</strong>, immagini di pianta (PNG, JPG), <strong>OBJ, STL, PLY, GLB/GLTF, IFC, STEP, IGES</strong>.
         Prima di importare l'app controlla la scala, ti propone quella più realistica e ti chiede di confermarla.
       </p>
       <label className="inline-flex cursor-pointer items-center gap-2 rounded-md border border-input bg-card px-4 py-2.5 text-sm font-medium hover:border-accent">

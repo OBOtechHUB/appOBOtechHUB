@@ -69,8 +69,8 @@ describe("Importazione guidata con verifica della scala", () => {
     expect(larghezza(onImporta.mock.calls[0]?.[0])).toBeCloseTo(20);
   });
 
-  it("DWG: spiega come salvarlo in DXF", async () => {
-    carica(file("pianta.dwg", "AC1032"));
-    await waitFor(() => expect(screen.getByRole("alert")).toHaveTextContent(/salva il disegno come DXF/));
+  it("DWG non leggibile: messaggio chiaro con l'alternativa DXF", async () => {
+    carica(file("pianta.dwg", "AC1032 non è un dwg vero"));
+    await waitFor(() => expect(screen.getByRole("alert")).toHaveTextContent(/DXF/), { timeout: 20000 });
   });
 });

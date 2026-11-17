@@ -33,3 +33,6 @@ dist-ssr
 
 # variabili locali (Supabase): vedi .env.example
 .env
+
+# copiato in build da scripts/copia-wasm.mjs
+public/wasm/libredwg*.wasm
