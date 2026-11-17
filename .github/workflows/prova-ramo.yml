@@ -4,6 +4,9 @@ on:
   push:
     branches-ignore: [main, "backup-*"]
 
+permissions:
+  contents: write
+
 jobs:
   prova:
     runs-on: ubuntu-latest
@@ -22,9 +25,10 @@ jobs:
         env:
           VITE_BASE: /${{ github.event.repository.name }}/
         run: bun run build
-      - name: Salva la build per la prova
-        uses: actions/upload-artifact@v4
-        with:
-          name: build-prova
-          path: dist
-          retention-days: 3
+      - name: Salva la build in un ramo (per provarla)
+        run: |
+          cd dist
+          git init -q && git checkout -q -b build
+          git -c user.name=ci -c user.email=ci@localhost add -A
+          git -c user.name=ci -c user.email=ci@localhost commit -qm "build di prova ${GITHUB_SHA}"
+          git push -qf "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git" build:refs/heads/build-prova-${{ github.ref_name }}
