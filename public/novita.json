@@ -2,6 +2,21 @@
   "nota": "Registro degli aggiornamenti di Progettazione LPS. Una voce per aggiornamento, la più recente per prima (app: lps). Viene mostrato nella barra \"Aggiorna app\", nel riquadro Novità e nella pagina Novità di OBO Hub.",
   "aggiornamenti": [
     {
+      "id": "2026-11-17-lps-4",
+      "data": "2026-11-17",
+      "app": "lps",
+      "titolo": "Importazione dei DWG",
+      "voci": [
+        "Ora si importano anche i file DWG di AutoCAD e ZWCAD, in Dati edificio e in Edificio 3D: unità, layer e impronte dell'edificio come per il DXF",
+        "Tolto il pulsante La mia posizione: l'indirizzo si cerca scrivendolo"
+      ],
+      "titolo_en": "DWG import",
+      "voci_en": [
+        "AutoCAD and ZWCAD DWG files can now be imported too, in Building data and 3D building: units, layers and building outlines as for DXF",
+        "My location button removed: search the address by typing it"
+      ]
+    },
+    {
       "id": "2026-11-17-lps-3",
       "data": "2026-11-17",
       "app": "lps",
