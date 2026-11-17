@@ -5,7 +5,9 @@ describe("scelta SPD", () => {
   it("conduttori della linea", () => {
     expect(conduttoriLinea("TN-C", "trifase")).toBe(4);
     expect(conduttoriLinea("TN-S", "trifase")).toBe(5);
-    expect(conduttoriLinea("TT", "monofase")).toBe(3);
+    expect(conduttoriLinea("TT", "monofase")).toBe(2);   // fase + N: il PE è locale
+    expect(conduttoriLinea("TT", "trifase")).toBe(4);
+    expect(conduttoriLinea("TN-C-S", "trifase")).toBe(4); // entra con fasi + PEN
   });
 
   it("Iimp per polo: LPL I, 1 servizio, TN-C trifase → 25 kA; LPL III, 2 servizi, TN-S → 5 kA", () => {
