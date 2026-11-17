@@ -1,0 +1,1 @@
+import{t as e}from"./AuthPage-2q_MPxjN.js";var t=e;export{t as component};
