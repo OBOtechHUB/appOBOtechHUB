@@ -1,8 +1,7 @@
 import { useEffect, useRef, useState, type KeyboardEvent } from "react";
-import { Building2, Crosshair, Landmark, LocateFixed, MapPin, Navigation, X } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Building2, Crosshair, Landmark, MapPin, Navigation, X } from "lucide-react";
 import { Campo, inputCls } from "@/components/Campo";
-import { ErrorePosizione, anteprimaGoogleMaps, cercaLuoghi, fornitoreGeo, linkGoogleEarth, linkGoogleMaps, luogoDaCoordinate, posizioneDispositivo, type Luogo } from "@/lib/geo";
+import { anteprimaGoogleMaps, cercaLuoghi, fornitoreGeo, linkGoogleEarth, linkGoogleMaps, type Luogo } from "@/lib/geo";
 
 /** Parte scritta evidenziata in grassetto, come nei suggerimenti di Google Maps. */
 function Evidenzia({ testo, cerca }: { testo: string; cerca: string }) {
@@ -15,7 +14,7 @@ const IconaTipo = ({ tipo }: { tipo?: string | undefined }) => tipo === "comune"
 
 export interface ValoreLuogo { comune: string; indirizzo?: string | undefined; lat?: number | null | undefined; lon?: number | null | undefined }
 
-/** Comune o indirizzo del progetto: ricerca con suggerimenti, posizione del dispositivo, anteprima satellitare e collegamenti a Google Maps ed Earth. */
+/** Comune o indirizzo del progetto: ricerca con suggerimenti come in Google Maps, anteprima satellitare e collegamenti a Google Maps ed Earth. */
 export function CampoLuogo({ valore, onChange }: { valore: ValoreLuogo; onChange: (v: ValoreLuogo) => void }) {
   const [testo, setTesto] = useState(valore.indirizzo || valore.comune || "");
   const [voci, setVoci] = useState<Luogo[]>([]);
@@ -23,7 +22,6 @@ export function CampoLuogo({ valore, onChange }: { valore: ValoreLuogo; onChange
   const [msg, setMsg] = useState("");
   const [cerco, setCerco] = useState(false);
   const [attivo, setAttivo] = useState(-1);
-  const [passi, setPassi] = useState<string[]>([]);
   const scritto = useRef(false);
   const haPosizione = typeof valore.lat === "number" && typeof valore.lon === "number";
 
@@ -48,17 +46,6 @@ export function CampoLuogo({ valore, onChange }: { valore: ValoreLuogo; onChange
     setTesto(l.etichetta); setVoci([]); setAperto(false); setMsg("");
     onChange({ comune: l.comune || valore.comune, indirizzo: l.etichetta, lat: l.lat, lon: l.lon });
   }
-  async function miaPosizione() {
-    setMsg("Cerco la posizione…"); setPassi([]);
-    try {
-      const p = await posizioneDispositivo();
-      scegli(await luogoDaCoordinate(p.lat, p.lon));
-      if (p.precisione && p.precisione > 500) setMsg(`Posizione approssimata (circa ${Math.round(p.precisione / 100) / 10} km): controlla l'indirizzo o scrivilo nella ricerca.`);
-    } catch (e) {
-      setMsg(e instanceof Error ? e.message : "Posizione non disponibile.");
-      setPassi(e instanceof ErrorePosizione ? e.passi : []);
-    }
-  }
   function tasto(e: KeyboardEvent<HTMLInputElement>) {
     if (e.key === "ArrowDown" && voci.length) { e.preventDefault(); setAperto(true); setAttivo((a) => (a + 1) % voci.length); }
     else if (e.key === "ArrowUp" && voci.length) { e.preventDefault(); setAttivo((a) => (a <= 0 ? voci.length - 1 : a - 1)); }
@@ -82,7 +69,6 @@ export function CampoLuogo({ valore, onChange }: { valore: ValoreLuogo; onChange
               onChange={(e) => scrivi(e.target.value)} onKeyDown={tasto} onFocus={() => setAperto(true)} onBlur={() => setTimeout(() => setAperto(false), 200)} />
             {testo && <button type="button" aria-label="Cancella" className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground" onClick={() => { scritto.current = false; setTesto(""); setVoci([]); onChange({ comune: "", indirizzo: undefined, lat: null, lon: null }); }}><X className="size-4" /></button>}
           </div>
-          <Button type="button" variant="outline" onClick={() => void miaPosizione()}><LocateFixed />La mia posizione</Button>
         </div>
         {aperto && voci.length > 0 && <ul id="luoghi-trovati" role="listbox" className="absolute left-0 right-0 z-30 mt-1 max-h-80 overflow-auto rounded-md border bg-card py-1 shadow-lg">
           {voci.map((l, i) => <li key={`${l.lat},${l.lon},${i}`} id={`luogo-${i}`} role="option" aria-selected={i === attivo}>
@@ -95,12 +81,7 @@ export function CampoLuogo({ valore, onChange }: { valore: ValoreLuogo; onChange
         </ul>}
       </div>
     </Campo>
-    {passi.length > 0 && <div role="alert" className="mt-2 rounded-md border-l-4 border-accent bg-muted/50 p-3 text-sm">
-      <p className="font-medium">{msg}</p>
-      <ol className="mt-1 list-decimal space-y-0.5 pl-5">{passi.map((p) => <li key={p}>{p}</li>)}</ol>
-      <p className="mt-1 text-xs text-muted-foreground">Intanto puoi scrivere l'indirizzo nella ricerca: funziona anche senza posizione.</p>
-    </div>}
-    <p role="status" className="mt-1 text-xs text-muted-foreground">{(passi.length ? "" : msg) || (cerco ? "Ricerca…" : `Scrivi e scegli dall'elenco (frecce e Invio), incolla coordinate, oppure usa la posizione del dispositivo. Ricerca: ${fornitoreGeo()}.`)}{fornitoreGeo() !== "Google Maps" && <> Dati © <a className="underline" href="https://www.openstreetmap.org/copyright" target="_blank" rel="noreferrer">contributori OpenStreetMap</a>.</>}</p>
+    <p role="status" className="mt-1 text-xs text-muted-foreground">{msg || (cerco ? "Ricerca…" : `Scrivi e scegli dall'elenco (frecce e Invio) oppure incolla coordinate. Ricerca: ${fornitoreGeo()}.`)}{fornitoreGeo() !== "Google Maps" && <> Dati © <a className="underline" href="https://www.openstreetmap.org/copyright" target="_blank" rel="noreferrer">contributori OpenStreetMap</a>.</>}</p>
     {haPosizione && <div className="mt-3 rounded-lg border-[0.8px] border-bordo-scheda p-3">
       <div className="flex flex-wrap items-center justify-between gap-2 text-sm">
         <p><strong>{valore.comune || "Comune non indicato"}</strong> · <span className="font-mono">{valore.lat!.toFixed(5)}, {valore.lon!.toFixed(5)}</span></p>

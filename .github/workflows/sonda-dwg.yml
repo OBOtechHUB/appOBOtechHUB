@@ -1,0 +1,16 @@
+name: Sonda libreria DWG (temporanea)
+on:
+  push:
+    branches: [sonda-dwg]
+jobs:
+  sonda:
+    runs-on: ubuntu-latest
+    steps:
+      - run: |
+          npm view @mlightcad/libredwg-web versions --json | tail -15
+          npm view @mlightcad/libredwg-web license dist.unpackedSize time.modified
+          mkdir p && cd p && npm pack @mlightcad/libredwg-web >/dev/null 2>&1 && tar xzf *.tgz && ls -R package | head -40
+          cat package/package.json | head -60
+          find package -name "*.d.ts" | head -5
+          sed -n 1,200p package/README.md
+          for f in $(find package -name "index.d.ts" | head -2); do echo "== $f"; sed -n 1,160p $f; done
