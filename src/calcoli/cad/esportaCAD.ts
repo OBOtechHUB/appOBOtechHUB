@@ -13,12 +13,17 @@
  *   (SUPPORTO "tipo" x y z rotazioneGradi "codice")
  *   (MORSETTO "tipo" x y z rotazioneGradi "codice")
  *   (PICCHETTO "id" x y zTesta lunghezza diametro "codice")
+ *   (VOCE "codice" "descrizione" quantita "pz|m")  ; distinta: descrizioni per blocchi e legenda
+ *   (PARTICOLARE "P01" "nome" punti)            ; particolari costruttivi usati (legenda)
+ *   (RICHIAMO "P01" x y z)                      ; richiamo al particolare in un punto
+ *   (CALATA_NUM "C1" x y z)                     ; numero della calata (in alto)
  *   (ESPOSTA "LPL" x0 x1 y z passo)              ; tratto di copertura esposta (riga di celle)
  *   (PARETE "LPL" x y nx ny zDa zA larghezza)    ; faccia di parete esposta
  */
 
 import type { Corpo, Punto3, RisultatoSfera } from "../captazione/sferaRotolante";
 import type { RisultatoCombinato } from "../captazione/verificaMaglia";
+import { ordinaCalate, scegliRichiami } from "./tavolaDXF";
 
 export interface AstaCAD { id?: string | undefined; x: number; y: number; z?: number | undefined; altezza: number; diametro?: number | undefined; codiceOBO?: string | undefined; origine?: string | undefined }
 export interface ConduttoreCAD { tipo: string; punti: Punto3[]; materiale?: string | undefined; sezione?: number | undefined; codiceOBO?: string | undefined }
@@ -33,6 +38,10 @@ export interface ProgettoCAD {
   supporti?: ComponenteCAD[] | undefined;
   morsetti?: ComponenteCAD[] | undefined;
   picchetti?: PicchettoCAD[] | undefined;
+  /** distinta materiali: descrizioni dei codici per blocchi e legenda */
+  distinta?: { codice: string; descrizione: string; quantita: number; unita: string }[] | undefined;
+  /** particolari costruttivi collegati ai componenti (da posizioniParticolari) */
+  particolari?: { marcatori: { idParticolare: string; nome: string; x: number; y: number; z?: number | undefined }[]; usati: { idParticolare: string; nome: string; punti: number }[] } | undefined;
 }
 
 /** Stringa LISP sicura: solo ASCII, niente virgolette doppie né barre rovesciate. */
@@ -70,6 +79,11 @@ export function generaFileCAD(pr: ProgettoCAD, esposte: ZoneEsposte[] = []): str
   r.push(";; Progettazione LPS - dati per LPS.lsp (ZWCAD / AutoCAD) - coordinate in metri");
   r.push("(LPSDATI 1)");
   r.push(`(PROGETTO ${testoLisp(p.codice)} ${testoLisp(p.nome)} ${testoLisp(p.comune)} ${testoLisp(p.lpl)} ${numeroLisp(p.raggio ?? null)})`);
+  // distinta raggruppata per codice (serve prima dei componenti: il LISP la usa per le descrizioni dei blocchi)
+  const voci = new Map<string, { d: string; q: number; u: string }>();
+  for (const v of pr.distinta ?? []) { if (!v.codice) continue; const o = voci.get(v.codice); voci.set(v.codice, { d: o?.d || v.descrizione, q: (o?.q ?? 0) + v.quantita, u: v.unita }); }
+  for (const [codice, v] of voci) r.push(`(VOCE ${testoLisp(codice)} ${testoLisp(v.d)} ${numeroLisp(v.q, 2)} ${testoLisp(v.u)})`);
+  for (const u of pr.particolari?.usati ?? []) r.push(`(PARTICOLARE ${testoLisp(`P${String((pr.particolari?.usati ?? []).indexOf(u) + 1).padStart(2, "0")}`)} ${testoLisp(u.nome)} ${u.punti})`);
   pr.edificio.corpi.forEach((c, k) => {
     const colmo = c.tipoTetto === "falde" && c.altezzaColmo != null ? numeroLisp(c.altezzaColmo) : "nil";
     r.push(`(CORPO ${testoLisp(c.id || `C${k + 1}`)} ${testoLisp(c.nome || c.id || `Corpo ${k + 1}`)} ${numeroLisp(c.quotaBase ?? 0)} ${numeroLisp(c.altezzaGronda)} ${testoLisp(c.tipoTetto || "piano")} ${colmo} (${c.impronta.map(P2).join(" ")}))`);
@@ -89,6 +103,17 @@ export function generaFileCAD(pr: ProgettoCAD, esposte: ZoneEsposte[] = []): str
   (pr.picchetti ?? []).forEach((q, k) => {
     r.push(`(PICCHETTO ${testoLisp(q.id || `P${k + 1}`)} ${numeroLisp(q.x)} ${numeroLisp(q.y)} ${numeroLisp(q.z ?? 0)} ${numeroLisp(q.lunghezza)} ${numeroLisp(q.diametro ?? 0.02)} ${testoLisp(q.codiceOBO)})`);
   });
+  // richiami ai particolari (al massimo 2 per particolare) e numeri delle calate
+  if (pr.particolari) {
+    const zDi = new Map(pr.particolari.marcatori.map((m) => [`${m.x}|${m.y}`, m.z ?? 0]));
+    for (const m of scegliRichiami(pr.particolari.usati, pr.particolari.marcatori, 5)) r.push(`(RICHIAMO ${testoLisp(m.codice)} ${numeroLisp(m.x)} ${numeroLisp(m.y)} ${numeroLisp(zDi.get(`${m.x}|${m.y}`) ?? 0)})`);
+  }
+  const calate = (pr.conduttori ?? []).filter((c) => c.tipo === "calata" && c.punti.length >= 2).map((c) => c.punti.reduce((a, b) => (b[2] > a[2] ? b : a), c.punti[0] as Punto3));
+  if (calate.length) {
+    const xs = pr.edificio.corpi.flatMap((c) => c.impronta.map((p) => p[0])), ys = pr.edificio.corpi.flatMap((c) => c.impronta.map((p) => p[1]));
+    const centro: [number, number] = xs.length ? [(Math.min(...xs) + Math.max(...xs)) / 2, (Math.min(...ys) + Math.max(...ys)) / 2] : [0, 0];
+    ordinaCalate(calate.map((p) => [p[0], p[1]] as [number, number]), centro).forEach((i, n) => { const p = calate[i] as Punto3; r.push(`(CALATA_NUM ${testoLisp(`C${n + 1}`)} ${numeroLisp(p[0])} ${numeroLisp(p[1])} ${numeroLisp(p[2])})`); });
+  }
   // zone esposte: righe di celle consecutive unite in un unico tratto
   for (const { lpl, risultato: ris, combinata } of esposte) {
     const g = ris.griglia;

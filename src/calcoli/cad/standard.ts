@@ -80,7 +80,7 @@ export const SIMBOLI: Record<TipoSimbolo, { nome: string; descrizione: string; p
 
 /** Nome del blocco: OBO_<codice> se c'è il codice articolo (come i blocchi ufficiali OBO), altrimenti LPS_<TIPO>. */
 export function nomeBlocco(tipo: TipoSimbolo, codiceOBO?: string | null): string {
-  const c = String(codiceOBO ?? "").normalize("NFD").replace(/[^A-Za-z0-9_-]+/g, "").toUpperCase().slice(0, 40);
+  const c = String(codiceOBO ?? "").normalize("NFD").replace(/[^A-Za-z0-9]+/g, "").toUpperCase().slice(0, 40); // solo lettere e cifre, come LPS.lsp
   return c ? `OBO_${c}` : `LPS_${tipo.toUpperCase()}`;
 }
 

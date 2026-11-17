@@ -44,4 +44,21 @@ describe("esportazione verso il CAD", () => {
     expect(e.corpi.length).toBe(1);
     expect(() => leggiEdificioDaCAD('{"corpi":[{"impronta":[[0,0]],"altezzaGronda":3}]}')).toThrow();
   });
+
+  it("passa al LISP distinta, particolari, richiami e numeri delle calate", () => {
+    const t = generaFileCAD({
+      progetto: { codice: "P1", nome: "Prova", comune: "Roma", lpl: "III", raggio: 45 },
+      edificio: { corpi: [{ id: "c", nome: "C", impronta: [[0, 0], [10, 0], [10, 10], [0, 10]], quotaBase: 0, altezzaGronda: 6, tipoTetto: "piano", altezzaColmo: 6 } as never] },
+      conduttori: [{ tipo: "calata", punti: [[0, 10, 6], [0, 10, 0]] }, { tipo: "calata", punti: [[10, 0, 6], [10, 0, 0]] }],
+      supporti: [{ x: 1, y: 0, z: 6, codiceOBO: "5218700" }],
+      distinta: [{ codice: "5218700", descrizione: "Supporto tetto piano", quantita: 10, unita: "pz" }, { codice: "5218700", descrizione: "Supporto tetto piano", quantita: 2, unita: "pz" }],
+      particolari: { marcatori: [{ idParticolare: "A", nome: "Supporto", x: 1, y: 0, z: 6 }], usati: [{ idParticolare: "A", nome: "Supporto", punti: 1 }] },
+    });
+    expect(t).toContain('(VOCE "5218700" "Supporto tetto piano" 12.00 "pz")');
+    expect(t).toContain('(PARTICOLARE "P01" "Supporto" 1)');
+    expect(t).toContain('(RICHIAMO "P01" 1.0000 0.0000 6.0000)');
+    expect(t).toContain('(CALATA_NUM "C1" 0.0000 10.0000 6.0000)');
+    expect(t).toContain('(CALATA_NUM "C2" 10.0000 0.0000 6.0000)');
+    expect(t.indexOf("(VOCE")).toBeLessThan(t.indexOf("(SUPPORTO"));
+  });
 });

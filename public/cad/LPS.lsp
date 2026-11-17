@@ -14,7 +14,7 @@
 ;;; il comando converte nelle unita' del disegno (INSUNITS).
 ;;; ==========================================================================
 
-(setq *LPS-VERSIONE* "1.0")
+(setq *LPS-VERSIONE* "2.0")
 (if vl-load-com (vl-load-com))
 
 ;;; --------------------------------------------------------------------------
@@ -30,18 +30,42 @@
 ;; unita' in cui sono disegnati i blocchi OBO (1000 = millimetri, 1 = metri)
 (if (not *LPS-UNITA-BLOCCHI*) (setq *LPS-UNITA-BLOCCHI* 1000.0))
 
-;; layer: nome, colore
+;; grandezza dei simboli 2D (1.0 = come in una tavola 1:100; 2.0 per 1:200)
+(if (not *LPS-SCALA-SIMBOLI*) (setq *LPS-SCALA-SIMBOLI* 1.0))
+
+;; Standard layer LPS OBO (uguale al DXF del sito): chiave, nome, colore ACI (stampa CTB), tipo linea
 (setq *LPS-LAYER*
-  '(("EDIFICIO" "LPS_EDIFICIO" 8)
-    ("ASTE" "LPS_CAPTAZIONE_ASTE" 1)
-    ("CAPTAZIONE" "LPS_CAPTAZIONE_CONDUTTORI" 1)
-    ("CALATA" "LPS_CALATE" 3)
-    ("TERRA" "LPS_TERRA" 32)
-    ("SUPPORTI" "LPS_SUPPORTI" 5)
-    ("MORSETTI" "LPS_MORSETTI" 6)
-    ("TESTI" "LPS_TESTI" 7)
-    ("ESPOSTO" "LPS_ESPOSTO" 10)
-    ("SFERA" "LPS_SFERA" 4)))
+  '(("EDIFICIO" "LPS-EDIF-CONT" 8 "Continuous")
+    ("COLMO" "LPS-EDIF-COLM" 9 "LPS_TRATTEGGIO")
+    ("ASTE" "LPS-CAPT-ASTA" 6 "Continuous")
+    ("CAPTAZIONE" "LPS-CAPT-COND" 1 "Continuous")
+    ("CALATA" "LPS-CALA" 30 "LPS_TRATTEGGIO")
+    ("CALATANUM" "LPS-CALA-NUM" 30 "Continuous")
+    ("TERRA" "LPS-TERR-ANEL" 3 "LPS_TRATTOPUNTO")
+    ("DISPERSORI" "LPS-TERR-DISP" 3 "Continuous")
+    ("SUPPORTI" "LPS-SUPP" 4 "Continuous")
+    ("MORSETTI" "LPS-MORS" 5 "Continuous")
+    ("COMPENSATORI" "LPS-COMP" 5 "Continuous")
+    ("PARTICOLARI" "LPS-PART" 2 "Continuous")
+    ("TESTI" "LPS-TEST" 7 "Continuous")
+    ("LEGENDA" "LPS-LEGE" 7 "Continuous")
+    ("CARTIGLIO" "LPS-CART" 7 "Continuous")
+    ("ESPOSTO" "LPS-3D-ESPO" 1 "Continuous")
+    ("SFERA" "LPS-3D-SFER" 150 "Continuous")))
+
+;; tipi linea: tratti in metri a scala 1:100 (positivo tratto, negativo spazio, 0 punto)
+(setq *LPS-TIPI-LINEA*
+  '(("LPS_TRATTEGGIO" "Tratteggio __ __ __" (0.6 -0.3))
+    ("LPS_TRATTOPUNTO" "Tratto punto __ . __ ." (1.0 -0.25 0.0 -0.25))))
+
+;; simboli 2D (metri a scala 1:100): (cerchio cx cy r) (linea x1 y1 x2 y2) (poli chiusa (x y)...) (pieno (x y)...)
+(setq *LPS-SIMBOLI*
+  '(("ASTA" "Asta di captazione" ((cerchio 0 0 0.3) (cerchio 0 0 0.1) (linea -0.45 0 0.45 0) (linea 0 -0.45 0 0.45)))
+    ("SUPPORTO" "Supporto conduttore" ((poli T (-0.09 -0.09) (0.09 -0.09) (0.09 0.09) (-0.09 0.09))))
+    ("MORSETTO" "Morsetto / connessione" ((pieno (0 -0.14) (0.14 0) (0 0.14) (-0.14 0))))
+    ("COMPENSATORE" "Compensatore di dilatazione" ((poli nil (-0.25 0) (-0.12 0) (-0.12 0.18) (0.12 0.18) (0.12 0) (0.25 0))))
+    ("PICCHETTO" "Dispersore a picchetto / pozzetto" ((poli T (-0.3 -0.3) (0.3 -0.3) (0.3 0.3) (-0.3 0.3)) (cerchio 0 0 0.12) (linea -0.3 -0.3 0.3 0.3) (linea -0.3 0.3 0.3 -0.3)))
+    ("CALATA" "Calata (punto di discesa)" ((cerchio 0 0 0.25) (pieno (-0.12 0.06) (0.12 0.06) (0 -0.14))))))
 
 ;;; --------------------------------------------------------------------------
 ;;; Utilita'
@@ -70,17 +94,32 @@
 ;; nome del layer per una chiave di *LPS-LAYER*, creato se manca
 (defun lps:layer (chiave / d nome)
   (setq d (assoc chiave *LPS-LAYER*))
-  (setq nome (if d (cadr d) (strcat "LPS_" chiave)))
+  (setq nome (if d (cadr d) (strcat "LPS-" chiave)))
   (if (not (tblsearch "LAYER" nome))
     (entmake
       (list '(0 . "LAYER") '(100 . "AcDbSymbolTableRecord") '(100 . "AcDbLayerTableRecord")
-            (cons 2 nome) '(70 . 0) (cons 62 (if d (caddr d) 7)) '(6 . "Continuous"))))
+            (cons 2 nome) '(70 . 0) (cons 62 (if d (caddr d) 7))
+            (cons 6 (lps:tipo-linea (if d (cadddr d) "Continuous"))))))
   nome)
+
+;; crea il tipo linea dello standard se manca (tratti scalati alle unita' del disegno); restituisce il nome
+(defun lps:tipo-linea (nome / d schema f l)
+  (cond
+    ((= (strcase nome) "CONTINUOUS") "Continuous")
+    ((tblsearch "LTYPE" nome) nome)
+    ((setq d (assoc nome *LPS-TIPI-LINEA*))
+     (setq f (if *LPS-F* *LPS-F* 1.0) schema (mapcar '(lambda (v) (* v f *LPS-SCALA-SIMBOLI*)) (caddr d)))
+     (setq l (list '(0 . "LTYPE") '(100 . "AcDbSymbolTableRecord") '(100 . "AcDbLinetypeTableRecord")
+                   (cons 2 nome) '(70 . 0) (cons 3 (cadr d)) '(72 . 65) (cons 73 (length schema))
+                   (cons 40 (apply '+ (mapcar 'abs schema)))))
+     (foreach v schema (setq l (append l (list (cons 49 v) '(74 . 0)))))
+     (if (entmake l) nome "Continuous"))
+    (T "Continuous")))
 
 ;; layer per livello di protezione (es. LPS_ESPOSTO_III)
 (defun lps:layer-lpl (chiave lpl / nome d)
   (setq d (assoc chiave *LPS-LAYER*))
-  (setq nome (strcat (if d (cadr d) (strcat "LPS_" chiave)) "_" lpl))
+  (setq nome (strcat (if d (cadr d) (strcat "LPS-" chiave)) "-" lpl))
   (if (not (tblsearch "LAYER" nome))
     (entmake
       (list '(0 . "LAYER") '(100 . "AcDbSymbolTableRecord") '(100 . "AcDbLayerTableRecord")
@@ -171,22 +210,54 @@
     (setq i (1+ i)))
   (strcat "OBO_" s))
 
-;; blocco segnaposto (cubetto 40 mm con croce) se manca il blocco OBO
-(defun lps:segnaposto (tipo / nome)
-  (setq nome (strcat "LPS_SEGNAPOSTO_" (strcase tipo)))
+;; punto di un simbolo (metri a 1:100) nelle unita' del disegno
+(defun lps:sp (q k) (list (* (car q) k) (* (cadr q) k) 0.0))
+
+;; tipo di simbolo dello standard per un componente
+(defun lps:tipo-simbolo (tipo chiave)
+  (cond
+    ((wcmatch (strcase (if tipo tipo "")) "*COMPENS*") "COMPENSATORE")
+    ((= chiave "SUPPORTI") "SUPPORTO")
+    ((= chiave "MORSETTI") "MORSETTO")
+    ((= chiave "COMPENSATORI") "COMPENSATORE")
+    ((= chiave "ASTE") "ASTA")
+    ((= chiave "DISPERSORI") "PICCHETTO")
+    ((= chiave "CALATA") "CALATA")
+    (T "SUPPORTO")))
+
+;; blocco simbolo dello standard (OBO_<codice> o LPS_<TIPO>) con attributi CODICE, DESCRIZIONE, TIPO,
+;; disegnato nelle unita' del disegno alla grandezza di una tavola 1:100: sostituibile col blocco ufficiale OBO
+(defun lps:simbolo (nome sim codice / d k descr)
   (if (not (tblsearch "BLOCK" nome))
     (progn
-      (entmake (list '(0 . "BLOCK") (cons 2 nome) '(70 . 0) '(10 0.0 0.0 0.0)))
-      (entmake (list '(0 . "CIRCLE") '(8 . "0") '(10 0.0 0.0 0.0) '(40 . 20.0)))
-      (entmake (list '(0 . "LINE") '(8 . "0") '(10 -30.0 0.0 0.0) '(11 30.0 0.0 0.0)))
-      (entmake (list '(0 . "LINE") '(8 . "0") '(10 0.0 -30.0 0.0) '(11 0.0 30.0 0.0)))
-      (entmake (list '(0 . "LINE") '(8 . "0") '(10 0.0 0.0 0.0) '(11 0.0 0.0 40.0)))
+      (setq d (assoc sim *LPS-SIMBOLI*) k (* *LPS-F* *LPS-SCALA-SIMBOLI*)
+            descr (cond ((cadr (assoc codice *LPS-VOCI*))) ((cadr d)) (T sim)))
+      (entmake (list '(0 . "BLOCK") (cons 2 nome) '(70 . 2) '(10 0.0 0.0 0.0)))
+      (foreach g (caddr d)
+        (cond
+          ((eq (car g) 'cerchio) (entmake (list '(0 . "CIRCLE") '(8 . "0") (cons 10 (lps:sp (cdr g) k)) (cons 40 (* (nth 3 g) k)))))
+          ((eq (car g) 'linea) (entmake (list '(0 . "LINE") '(8 . "0") (cons 10 (lps:sp (cdr g) k)) (cons 11 (lps:sp (cdddr g) k)))))
+          ((eq (car g) 'poli)
+           (entmake (list '(0 . "POLYLINE") '(8 . "0") '(66 . 1) '(10 0.0 0.0 0.0) (cons 70 (if (cadr g) 1 0))))
+           (foreach q (cddr g) (entmake (list '(0 . "VERTEX") '(8 . "0") (cons 10 (lps:sp q k)))))
+           (entmake '((0 . "SEQEND") (8 . "0"))))
+          ((eq (car g) 'pieno)
+           (entmake (list '(0 . "SOLID") '(8 . "0")
+                          (cons 10 (lps:sp (nth 1 g) k)) (cons 11 (lps:sp (nth 2 g) k))
+                          (cons 12 (lps:sp (if (nth 4 g) (nth 4 g) (nth 3 g)) k)) (cons 13 (lps:sp (nth 3 g) k)))))))
+      (foreach a (list (list "CODICE" codice) (list "DESCRIZIONE" descr) (list "TIPO" (cadr d)))
+        (entmake (list '(0 . "ATTDEF") '(8 . "0") '(10 0.0 0.0 0.0) (cons 40 (* 0.25 k))
+                       (cons 1 (cadr a)) (cons 3 (car a)) (cons 2 (car a)) '(70 . 1))))
       (entmake '((0 . "ENDBLK")))))
   nome)
 
 ;; inserisce il blocco del componente; restituisce l'entita'
-(defun lps:inserisci (codice tipo pt rot lay / nome file sc def)
-  (setq nome (lps:nome-blocco codice)
+(defun lps:inserisci (codice tipo pt rot lay / nome file sc def chiave)
+  (setq chiave (cond ((= lay (lps:layer "SUPPORTI")) "SUPPORTI") ((= lay (lps:layer "MORSETTI")) "MORSETTI")
+                     ((= lay (lps:layer "ASTE")) "ASTE") ((= lay (lps:layer "DISPERSORI")) "DISPERSORI")
+                     ((= lay (lps:layer "CALATANUM")) "CALATA") (T "SUPPORTI")))
+  (if (= (lps:tipo-simbolo tipo chiave) "COMPENSATORE") (setq lay (lps:layer "COMPENSATORI")))
+  (setq nome (if (= codice "") (strcat "LPS_" (lps:tipo-simbolo tipo chiave)) (lps:nome-blocco codice))
         sc (/ *LPS-F* *LPS-UNITA-BLOCCHI*))
   (cond
     ((and (/= codice "") (tblsearch "BLOCK" nome)) (setq def nome))
@@ -196,12 +267,19 @@
     ((and (/= codice "") *LPS-CARTELLA-BLOCCHI*
           (setq file (findfile (strcat *LPS-CARTELLA-BLOCCHI* "\\" codice ".dwg"))))
      (setq def (strcat nome "=" file)))
-    (T (setq def (lps:segnaposto tipo) sc (/ *LPS-F* 1000.0))))
+    ;; blocco ufficiale non disponibile: simbolo dello standard con lo stesso nome e gli attributi
+    (T (setq def (lps:simbolo nome (lps:tipo-simbolo tipo chiave) codice) sc 1.0)))
   (setvar "CLAYER" lay)
   (lps:comando (list "_.-INSERT" def pt sc sc rot))
   (if (and (/= codice "") (not (tblsearch "BLOCK" nome)))
     (setq *LPS-MANCANTI* (if (member codice *LPS-MANCANTI*) *LPS-MANCANTI* (cons codice *LPS-MANCANTI*))))
-  (lps:xdata (entlast) codice tipo 1.0 "pz"))
+  ;; i simboli 2D aggiunti ad aste, picchetti e calate non si contano in distinta (lo e' gia' l'oggetto 3D)
+  (if *LPS-SOLO-SIMBOLO* (entlast) (lps:xdata (entlast) codice tipo 1.0 "pz")))
+
+;; inserisce solo il simbolo 2D, senza dati per la distinta
+(defun lps:simbolo-2d (codice tipo pt lay / r)
+  (setq *LPS-SOLO-SIMBOLO* T r (lps:inserisci codice tipo pt 0.0 lay) *LPS-SOLO-SIMBOLO* nil)
+  r)
 
 ;;; --------------------------------------------------------------------------
 ;;; Lettura del file .lpsdati
@@ -230,6 +308,7 @@
         tipo (nth 5 r) colmo (nth 6 r) pts (nth 7 r)
         lay (lps:layer "EDIFICIO"))
   (setq pd (mapcar '(lambda (p) (lps:p (car p) (cadr p) 0.0)) pts))
+  (foreach p pts (lps:estendi (car p) (cadr p)))
   (if *LPS-SOLIDI*
     (progn
       (setq ent (lps:contorno (mapcar '(lambda (p) (list (car p) (cadr p))) pd)
@@ -251,9 +330,9 @@
             miny (apply 'min (mapcar 'cadr pts)) maxy (apply 'max (mapcar 'cadr pts)))
       (if (>= (- maxx minx) (- maxy miny))
         (lps:linea (lps:p minx (/ (+ miny maxy) 2.0) (+ base colmo))
-                   (lps:p maxx (/ (+ miny maxy) 2.0) (+ base colmo)) lay)
+                   (lps:p maxx (/ (+ miny maxy) 2.0) (+ base colmo)) (lps:layer "COLMO"))
         (lps:linea (lps:p (/ (+ minx maxx) 2.0) miny (+ base colmo))
-                   (lps:p (/ (+ minx maxx) 2.0) maxy (+ base colmo)) lay))))
+                   (lps:p (/ (+ minx maxx) 2.0) maxy (+ base colmo)) (lps:layer "COLMO")))))
   (lps:testo (lps:p (car (car pts)) (cadr (car pts)) (+ base gronda)) (* 0.3 *LPS-F*) id (lps:layer "TESTI"))
   (setq *LPS-CONTA-CORPI* (1+ *LPS-CONTA-CORPI*)))
 
@@ -271,6 +350,7 @@
       (setq ent (lps:linea base punta lay))
       (lps:cerchio base (* (/ d 2.0) *LPS-F*) lay)))
   (lps:xdata ent cod "asta" 1.0 "pz")
+  (lps:simbolo-2d cod "asta" base (lps:layer "ASTE"))
   (lps:testo punta (* 0.2 *LPS-F*) (if (= cod "") id (strcat id " " cod)) (lps:layer "TESTI"))
   (setq *LPS-CONTA-ASTE* (1+ *LPS-CONTA-ASTE*)))
 
@@ -310,6 +390,7 @@
     (setq ent (lps:linea (lps:p x y zt) (lps:p x y (- zt l)) lay)))
   ;; picchetto componibile: numero di elementi da *LPS-ELEMENTO-PICCHETTO* m
   (lps:xdata ent cod "picchetto" (float (fix (+ 0.999 (/ l *LPS-ELEMENTO-PICCHETTO*)))) "pz")
+  (lps:simbolo-2d cod "picchetto" (lps:p x y zt) (lps:layer "DISPERSORI"))
   (setq *LPS-CONTA-COMP* (1+ *LPS-CONTA-COMP*)))
 
 ;; (ESPOSTA "LPL" x0 x1 y z passo): rettangolo rosso appena sopra la copertura
@@ -328,6 +409,69 @@
         lay (lps:layer-lpl "ESPOSTO" lpl))
   (lps:faccia (lps:p (- x (* tx w)) (- y (* ty w)) za) (lps:p (+ x (* tx w)) (+ y (* ty w)) za)
               (lps:p (+ x (* tx w)) (+ y (* ty w)) zb) (lps:p (- x (* tx w)) (- y (* ty w)) zb) lay))
+
+;; estensione del progetto in metri (per posizionare legenda e cartiglio)
+(defun lps:estendi (x y)
+  (if (numberp x)
+    (setq *LPS-EST* (if *LPS-EST*
+                      (list (min (car *LPS-EST*) x) (min (cadr *LPS-EST*) y) (max (caddr *LPS-EST*) x) (max (cadddr *LPS-EST*) y))
+                      (list x y x y)))))
+
+;; testo allineato (orizzontale: 0 sinistra 1 centro 2 destra; verticale 2 = medio)
+(defun lps:testo-all (p h s lay oriz vert)
+  (entmake (list '(0 . "TEXT") (cons 8 lay) (cons 10 p) (cons 11 p) (cons 40 h) (cons 1 s) (cons 72 oriz) (cons 73 vert)))
+  (entlast))
+
+;; (RICHIAMO "P01" x y z): cerchio con numero e linea di richiamo verso il punto
+(defun lps:richiamo (r / s x y z c p lay)
+  (setq s (* *LPS-F* *LPS-SCALA-SIMBOLI*) x (nth 2 r) y (nth 3 r) z (lps:num (nth 4 r)) lay (lps:layer "PARTICOLARI"))
+  (setq p (lps:p x y z) c (list (+ (car p) (* 1.1 s)) (+ (cadr p) (* 1.1 s)) (caddr p)))
+  (lps:linea p (list (+ (car p) (* 0.78 s)) (+ (cadr p) (* 0.78 s)) (caddr p)) lay)
+  (lps:cerchio c (* 0.45 s) lay)
+  (lps:testo-all c (* 0.25 s) (nth 1 r) lay 1 2))
+
+;; (CALATA_NUM "C1" x y z)
+(defun lps:calata-num (r / s p)
+  (setq s (* *LPS-F* *LPS-SCALA-SIMBOLI*) p (lps:p (nth 2 r) (nth 3 r) (lps:num (nth 4 r))))
+  (lps:simbolo-2d "" "calata" p (lps:layer "CALATANUM"))
+  (lps:testo-all (list (+ (car p) (* 0.6 s)) (+ (cadr p) (* 0.6 s)) (caddr p)) (* 0.3 s) (nth 1 r) (lps:layer "CALATANUM") 0 2))
+
+;; legenda, particolari e cartiglio a destra del progetto (z = 0)
+(defun lps:legenda (/ s h x0 y lay v q pr)
+  (if *LPS-EST*
+    (progn
+      (setq s (* *LPS-F* *LPS-SCALA-SIMBOLI*) h (* 0.25 s) lay (lps:layer "LEGENDA")
+            x0 (+ (car (lps:p (caddr *LPS-EST*) 0.0 0.0)) (* 6.0 s))
+            y (cadr (lps:p 0.0 (cadddr *LPS-EST*) 0.0)))
+      (lps:testo (list x0 y 0.0) (* 1.6 h) "LEGENDA" lay) (setq y (- y (* 0.9 s)))
+      (foreach v (list (list "CAPTAZIONE" "Conduttore di captazione") (list "CALATA" "Calata") (list "TERRA" "Conduttore di terra / anello"))
+        (lps:linea (list x0 (+ y (* 0.1 s)) 0.0) (list (+ x0 (* 1.4 s)) (+ y (* 0.1 s)) 0.0) (lps:layer (car v)))
+        (lps:testo (list (+ x0 (* 1.8 s)) y 0.0) h (cadr v) lay) (setq y (- y (* 0.55 s))))
+      (setq y (- y (* 0.3 s)))
+      (lps:testo (list x0 y 0.0) (* 0.8 h) "CODICE OBO   DESCRIZIONE   QUANTITA'" lay) (setq y (- y (* 0.55 s)))
+      (foreach v *LPS-VOCI*
+        (setq q (caddr v))
+        (lps:testo (list x0 y 0.0) h (strcat (car v) "   " (cadr v) "   " (if (= (cadddr v) "m") (rtos q 2 1) (rtos q 2 0)) " " (cadddr v)) lay)
+        (setq y (- y (* 0.55 s))))
+      (if *LPS-PART*
+        (progn
+          (setq y (- y (* 0.4 s)))
+          (lps:testo (list x0 y 0.0) (* 1.4 h) "PARTICOLARI COSTRUTTIVI" (lps:layer "PARTICOLARI")) (setq y (- y (* 0.8 s)))
+          (foreach v (reverse *LPS-PART*)
+            (lps:testo (list x0 y 0.0) h (strcat (car v) "  " (cadr v) " (" (itoa (fix (lps:num (caddr v)))) " punti)") lay)
+            (setq y (- y (* 0.55 s))))))
+      ;; cartiglio
+      (setq pr *LPS-PROGETTO* lay (lps:layer "CARTIGLIO") y (- y (* 1.0 s)))
+      (lps:poli3d (list (list (- x0 (* 0.3 s)) (+ y (* 0.5 s)) 0.0) (list (+ x0 (* 17.0 s)) (+ y (* 0.5 s)) 0.0)
+                        (list (+ x0 (* 17.0 s)) (- y (* 5.2 s)) 0.0) (list (- x0 (* 0.3 s)) (- y (* 5.2 s)) 0.0)) T lay)
+      (lps:testo (list x0 (- y (* 0.3 s)) 0.0) (* 1.3 h) "IMPIANTO DI PROTEZIONE CONTRO I FULMINI (LPS)" lay)
+      (setq y (- y (* 1.1 s)))
+      (foreach v (list (list "PROGETTO" (if pr (nth 2 pr) "")) (list "COMUNE" (if pr (nth 3 pr) "")) (list "CODICE" (if pr (nth 1 pr) ""))
+                       (list "LIVELLO DI PROTEZIONE" (if pr (strcat "LPL " (nth 4 pr)) "")) (list "SCALA SIMBOLI" (strcat "1:" (rtos (* 100 *LPS-SCALA-SIMBOLI*) 2 0))))
+        (lps:testo (list x0 (- y (* 0.4 s)) 0.0) (* 0.8 h) (car v) lay)
+        (lps:testo (list (+ x0 (* 5.5 s)) (- y (* 0.4 s)) 0.0) h (cadr v) lay)
+        (setq y (- y (* 0.75 s))))
+      (lps:testo (list x0 (- y (* 0.3 s)) 0.0) (* 0.7 h) "CEI EN IEC 62305 - Progettazione LPS (OBO Italia)" lay))))
 
 ;;; --------------------------------------------------------------------------
 ;;; Gestione errori e variabili di sistema
@@ -369,6 +513,8 @@
   (lps:msg "  LPS-ESPORTA   esporta i contorni dell'edificio verso il sito")
   (lps:msg "  LPS-DISTINTA  distinta dei componenti (codici, pezzi, metri) + CSV")
   (lps:msg "  LPS-BLOCCHI   cartella dei blocchi OBO")
+  (lps:msg "  Standard OBO: layer LPS-*, blocchi OBO_<codice> con attributi CODICE/DESCRIZIONE/TIPO.")
+  (lps:msg "  Simboli per tavole 1:200: (setq *LPS-SCALA-SIMBOLI* 2.0) prima di LPS-IMPORTA.")
   (princ))
 
 (defun c:LPS-BLOCCHI (/ f)
@@ -393,7 +539,7 @@
     (progn (lps:msg "Il file non e' un file .lpsdati valido.") (lps:fine) (exit)))
   (setq *LPS-F* (lps:fattore)
         *LPS-SOLIDI* (lps:solidi-p)
-        *LPS-MANCANTI* nil
+        *LPS-MANCANTI* nil *LPS-VOCI* nil *LPS-PART* nil *LPS-EST* nil *LPS-PROGETTO* nil
         *LPS-CONTA-CORPI* 0 *LPS-CONTA-ASTE* 0 *LPS-CONTA-COND* 0 *LPS-CONTA-COMP* 0)
   (setq o (getpoint "\nPunto di inserimento dell'origine di progetto <0,0,0>: "))
   (setq *LPS-ORIGINE* (if o (if (caddr o) o (list (car o) (cadr o) 0.0)) '(0.0 0.0 0.0)))
@@ -411,15 +557,20 @@
       ((eq tipo 'PICCHETTO) (lps:picchetto r))
       ((eq tipo 'ESPOSTA) (lps:esposta r))
       ((eq tipo 'PARETE) (lps:parete r))
-      ((eq tipo 'PROGETTO) (setq *LPS-PROGETTO* r)))
+      ((eq tipo 'PROGETTO) (setq *LPS-PROGETTO* r))
+      ((eq tipo 'VOCE) (setq *LPS-VOCI* (append *LPS-VOCI* (list (list (nth 1 r) (nth 2 r) (lps:num (nth 3 r)) (nth 4 r))))))
+      ((eq tipo 'PARTICOLARE) (setq *LPS-PART* (cons (list (nth 1 r) (nth 2 r) (nth 3 r)) *LPS-PART*)))
+      ((eq tipo 'RICHIAMO) (lps:richiamo r))
+      ((eq tipo 'CALATA_NUM) (lps:calata-num r)))
     (setq n (1+ n)))
+  (lps:legenda)
   (lps:fine)
   (lps:msg (strcat "LPS-IMPORTA: " (itoa *LPS-CONTA-CORPI*) " corpi, "
                    (itoa *LPS-CONTA-ASTE*) " aste, " (itoa *LPS-CONTA-COND*) " conduttori, "
                    (itoa *LPS-CONTA-COMP*) " componenti."))
   (if *LPS-MANCANTI*
     (progn
-      (lps:msg "Blocchi OBO non trovati (inseriti segnaposto): ")
+      (lps:msg "Blocchi OBO ufficiali non trovati (usati i simboli standard con lo stesso nome e gli attributi): ")
       (foreach c *LPS-MANCANTI* (princ (strcat c " ")))
       (lps:msg "Usa LPS-BLOCCHI per indicare la cartella dei blocchi.")))
   (command "_.ZOOM" "_E")

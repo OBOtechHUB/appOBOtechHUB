@@ -39,6 +39,19 @@ export function codiciRichiamo(usati: { idParticolare: string }[]): Map<string, 
   return new Map(usati.map((u, i) => [u.idParticolare, `P${String(i + 1).padStart(2, "0")}`]));
 }
 
+/** Richiami da disegnare: al massimo 2 per particolare (il primo punto e quello più lontano, se distante almeno distanzaMin). */
+export function scegliRichiami(usati: { idParticolare: string; nome: string }[], marcatori: RichiamoParticolare[], distanzaMin: number): { codice: string; idParticolare: string; nome: string; x: number; y: number }[] {
+  const codici = codiciRichiamo(usati), out: { codice: string; idParticolare: string; nome: string; x: number; y: number }[] = [];
+  for (const u of usati) {
+    const lista = marcatori.filter((m) => m.idParticolare === u.idParticolare);
+    const primo = lista[0]; if (!primo) continue;
+    const lontano = lista.reduce((a, b) => (Math.hypot(b.x - primo.x, b.y - primo.y) > Math.hypot(a.x - primo.x, a.y - primo.y) ? b : a), primo);
+    const scelti = lontano !== primo && Math.hypot(lontano.x - primo.x, lontano.y - primo.y) > distanzaMin ? [primo, lontano] : [primo];
+    for (const m of scelti) out.push({ codice: codici.get(u.idParticolare) ?? "P", idParticolare: u.idParticolare, nome: u.nome, x: m.x, y: m.y });
+  }
+  return out;
+}
+
 /** Calate ordinate in senso orario partendo da ovest (la prima è quella a nord-ovest), attorno al baricentro: C1, C2… */
 export function ordinaCalate(punti: P2[], centro: P2): number[] {
   return punti.map((p, i) => ({ i, a: Math.atan2(p[1] - centro[1], p[0] - centro[0]) }))
@@ -188,12 +201,9 @@ export function generaTavola(d: DatiTavola, layerExtra: { nome: string; colore: 
   // ---------- richiami ai particolari: al massimo 2 per particolare (il primo e il più lontano)
   const codici = codiciRichiamo(d.particolari.usati);
   w.definisciBlocco("LPS_RICHIAMO", SIMBOLI.richiamo.primitive, [{ tag: "NUMERO", valore: "P00", visibile: true, altezza: 0.25, pos: [0, 0.12] }, { tag: "PARTICOLARE", valore: "" }]);
-  for (const u of d.particolari.usati) {
-    const lista = d.particolari.marcatori.filter((m) => m.idParticolare === u.idParticolare);
-    const primo = lista[0]; if (!primo) continue;
-    const lontano = lista.reduce((a, b) => (Math.hypot(b.x - primo.x, b.y - primo.y) > Math.hypot(a.x - primo.x, a.y - primo.y) ? b : a), primo);
-    const scelti = lontano !== primo && Math.hypot(lontano.x - primo.x, lontano.y - primo.y) > hT(25) ? [primo, lontano] : [primo];
-    for (const m of scelti) {
+  {
+    for (const m of scegliRichiami(d.particolari.usati, d.particolari.marcatori, hT(25))) {
+      const u = { idParticolare: m.idParticolare, nome: m.nome };
       const dx = m.x - centro[0], dy = m.y - centro[1], l = Math.hypot(dx, dy) || 1;
       const r = 0.45 * ins, c = posto([m.x, m.y], dx / l, dy / l, r * 1.15, hT(11));
       occupati.push({ x: c[0], y: c[1], r });
@@ -231,7 +241,7 @@ export function generaTavola(d: DatiTavola, layerExtra: { nome: string; colore: 
     y -= 1.5; w.linea(L.legenda.nome, P(x0, y), P(colX + COLONNA_MM - 4, y)); y -= rig - 1;
   }
   voci.slice(0, maxVoci).forEach(([nome, v]) => {
-    w.inserisci(v.layer, nome, P(x0 + 7, y + 1.2), ins, 0, []); // stessa grandezza sulla carta che in pianta
+    w.inserisci(L.legenda.nome, nome, P(x0 + 7, y + 1.2), ins, 0, []); // stessa grandezza sulla carta che in pianta
     w.testo(L.legenda.nome, P(x0 + 18, y), hT(2.2), v.codice || "-");
     const descr = v.descrizione.length > 46 ? `${v.descrizione.slice(0, 45)}...` : v.descrizione;
     w.testo(L.legenda.nome, P(x0 + 42, y), hT(2.2), descr);
