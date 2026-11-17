@@ -22,3 +22,9 @@ jobs:
         env:
           VITE_BASE: /${{ github.event.repository.name }}/
         run: bun run build
+      - name: Salva la build per la prova
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-prova
+          path: dist
+          retention-days: 3
