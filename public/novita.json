@@ -2,6 +2,23 @@
   "nota": "Registro degli aggiornamenti di Progettazione LPS. Una voce per aggiornamento, la più recente per prima (app: lps). Viene mostrato nella barra \"Aggiorna app\", nel riquadro Novità e nella pagina Novità di OBO Hub.",
   "aggiornamenti": [
     {
+      "id": "2026-11-17-lps-3",
+      "data": "2026-11-17",
+      "app": "lps",
+      "titolo": "Importazione in Dati edificio e ricerca indirizzi più comoda",
+      "voci": [
+        "In Dati edificio, in alto, puoi importare un disegno o un modello: lunghezza, larghezza e altezza si compilano da sole e il modello va anche in Edificio 3D",
+        "Ricerca dell'indirizzo come in Google Maps: suggerimenti mentre scrivi, nome e comune su due righe, frecce e Invio per scegliere, anche coordinate incollate",
+        "La mia posizione: se non funziona l'app spiega cosa attivare nel browser o nel computer"
+      ],
+      "titolo_en": "Import in Building data and easier address search",
+      "voci_en": [
+        "In Building data, at the top, you can import a drawing or a model: length, width and height fill in automatically and the model also goes to 3D building",
+        "Address search like Google Maps: suggestions while typing, name and town on two lines, arrows and Enter to choose, pasted coordinates too",
+        "My location: if it does not work the app explains what to enable in the browser or computer"
+      ]
+    },
+    {
       "id": "2026-11-17-lps-2",
       "data": "2026-11-17",
       "app": "lps",
