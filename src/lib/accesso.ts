@@ -68,8 +68,8 @@ function salvaNome(a: Accesso) {
     if (a.stato === "anonimo") { localStorage.removeItem("obo-nome"); return; }
     if (a.stato !== "abilitato" || !a.profilo) return;
     const validi = [a.profilo.nome, a.profilo.mappa_persona].map((x) => (x || "").trim()).filter((x) => x && !/^amministratore$/i.test(x));
-    let primo = validi.length ? validi[0].split(/\s+/)[0] : "";
-    if (!primo) { const parti = (a.email || a.profilo.email || "").split("@")[0].split(/[._-]/).filter(Boolean); const x = parti.length > 1 ? parti[parti.length - 1] : parti[0] || ""; primo = x ? x.charAt(0).toUpperCase() + x.slice(1).toLowerCase() : ""; }
+    let primo = (validi[0] ?? "").split(/\s+/)[0] ?? "";
+    if (!primo) { const parti = (a.email || a.profilo.email || "").split("@")[0].split(/[._-]/).filter(Boolean); const x = (parti.length > 1 ? parti[parti.length - 1] : parti[0]) ?? ""; primo = x ? x.charAt(0).toUpperCase() + x.slice(1).toLowerCase() : ""; }
     if (primo) localStorage.setItem("obo-nome", primo);
   } catch { /* niente */ }
 }
