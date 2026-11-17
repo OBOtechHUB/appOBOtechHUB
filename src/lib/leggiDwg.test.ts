@@ -27,7 +27,7 @@ describe("lettura DWG", () => {
       buf = await r.arrayBuffer();
     } catch { return; } // senza rete il test si salta
     const f = { name: "example_2000.dwg", size: buf.byteLength, arrayBuffer: async () => buf } as unknown as File;
-    const l = await leggiDWG(f, "./node_modules/@mlightcad/libredwg-web/wasm/");
+    const l = await leggiDWG(f, "./node_modules/@mlightcad/libredwg-web/wasm");
     expect(l.unita).toBe("mm");
     expect(l.layers.length).toBeGreaterThan(0);
   }, 60000);

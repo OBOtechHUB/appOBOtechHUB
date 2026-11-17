@@ -68,7 +68,8 @@ async function caricaLibreria(cartellaWasm?: string) {
   if (!libreria) {
     libreria = (async () => {
       const m = await import("@mlightcad/libredwg-web");
-      const cartella = cartellaWasm ?? (typeof window !== "undefined" ? new URL(risorsa("wasm/"), window.location.origin).href : "./node_modules/@mlightcad/libredwg-web/wasm/");
+      // cartella senza barra finale: la libreria aggiunge "/libredwg-web.wasm"
+      const cartella = (cartellaWasm ?? (typeof window !== "undefined" ? new URL(risorsa("wasm"), window.location.origin).href : "./node_modules/@mlightcad/libredwg-web/wasm")).replace(/\/+$/, "");
       const lib = (await m.LibreDwg.create(cartella)) as unknown as Libreria;
       return { lib, tipoDwg: Number(m.Dwg_File_Type.DWG) };
     })();

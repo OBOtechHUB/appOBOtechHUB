@@ -1,5 +1,8 @@
 import "@testing-library/jest-dom/vitest";
 
+// i test con ambiente "node" (senza browser simulato) non hanno window
+if (typeof window !== "undefined") {
+
 Object.defineProperty(window, "scrollTo", {
   writable: true,
   value: () => {},
@@ -18,3 +21,4 @@ Object.defineProperty(window, "matchMedia", {
     dispatchEvent: () => {},
   }),
 });
+}

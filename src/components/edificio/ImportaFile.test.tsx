@@ -1,5 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+// il lettore DWG (WebAssembly) non gira nel browser simulato dei test: qui si simula un DWG illeggibile
+vi.mock("@/lib/leggiDwg", () => ({ leggiDWG: async () => { throw new Error("DWG non leggibile (versione non supportata o file danneggiato): salvalo come DXF dal CAD."); } }));
 import { ImportaFile } from "./ImportaFile";
 import type { ModelloEdificio } from "@/calcoli/edificio/tipi";
 
