@@ -6,11 +6,36 @@ jobs:
   sonda:
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/setup-node@v4
+        with: { node-version: 22 }
       - run: |
-          npm view @mlightcad/libredwg-web versions --json | tail -15
-          npm view @mlightcad/libredwg-web license dist.unpackedSize time.modified
-          mkdir p && cd p && npm pack @mlightcad/libredwg-web >/dev/null 2>&1 && tar xzf *.tgz && ls -R package | head -40
-          cat package/package.json | head -60
-          find package -name "*.d.ts" | head -5
-          sed -n 1,200p package/README.md
-          for f in $(find package -name "index.d.ts" | head -2); do echo "== $f"; sed -n 1,160p $f; done
+          mkdir s && cd s && npm init -y >/dev/null && npm i @mlightcad/libredwg-web@0.9.0 >/dev/null 2>&1
+          P=node_modules/@mlightcad/libredwg-web
+          echo "== libredwg.d.ts"; grep -n "create\|dwg_read_data\|convert\|dwg_free\|static\|INSUNITS" $P/lib/libredwg.d.ts | head -40
+          echo "== database"; ls $P/lib/database $P/lib/database/entities 2>/dev/null | head -80
+          echo "== header"; grep -rn "INSUNITS\|insunits" $P/lib/database --include=*.d.ts | head
+          echo "== lwpolyline"; for f in $(ls $P/lib/database/entities/*olyline*.d.ts 2>/dev/null); do echo "-- $f"; sed -n 1,80p $f; done
+          echo "== entity base"; sed -n 1,60p $P/lib/database/entities/entity.d.ts 2>/dev/null
+          echo "== database.d.ts"; sed -n 1,80p $P/lib/database/database.d.ts 2>/dev/null
+          ls $P/wasm
+          for n in example_2000 example_2018 example_r14; do curl -sfL -o $n.dwg https://raw.githubusercontent.com/LibreDWG/libredwg/master/test/test-data/$n.dwg && ls -la $n.dwg; done
+          cat > t.mjs <<'X'
+          import { Dwg_File_Type, LibreDwg } from '@mlightcad/libredwg-web';
+          import fs from 'node:fs';
+          const lib = await LibreDwg.create('./node_modules/@mlightcad/libredwg-web/wasm/');
+          for (const n of ['example_2000','example_2018','example_r14']) {
+            if (!fs.existsSync(n + '.dwg')) continue;
+            const buf = fs.readFileSync(n + '.dwg');
+            const dwg = lib.dwg_read_data(buf.buffer.slice(buf.byteOffset, buf.byteOffset + buf.byteLength), Dwg_File_Type.DWG);
+            const db = lib.convert(dwg);
+            lib.dwg_free(dwg);
+            const tipi = {}; for (const e of db.entities) tipi[e.type] = (tipi[e.type] || 0) + 1;
+            console.log('##', n, 'header keys:', Object.keys(db.header || {}).filter(k => /UNIT|EXT/i.test(k)).map(k => k + '=' + JSON.stringify(db.header[k])).join(' '));
+            console.log('##', n, 'tipi:', JSON.stringify(tipi));
+            const pl = db.entities.find(e => /POLYLINE/.test(e.type));
+            if (pl) console.log('##', n, 'polilinea:', JSON.stringify(pl).slice(0, 900));
+            const ins = db.entities.find(e => e.type === 'INSERT'); if (ins) console.log('##', n, 'insert:', JSON.stringify(ins).slice(0, 400));
+            console.log('##', n, 'tables:', Object.keys(db.tables || {}).join(','), 'blocks?', Object.keys(db).join(','));
+          }
+          X
+          node t.mjs 2>&1 | head -60
