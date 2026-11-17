@@ -210,8 +210,15 @@ export function AdminPage() {
     return (p?.nome || p?.mappa_persona || "").trim() || (email ?? "").split("@")[0]!.split(/[._-]/).filter(Boolean).reverse().map((x) => x.charAt(0).toUpperCase() + x.slice(1)).join(" ") || "—";
   }, [profili]);
   const perUtente = useMemo(() => {
-    const m = new Map<string, { nome: string; n: number; ultimo: string }>();
-    for (const e of accessi) { const k = e.utente ?? e.email ?? "—"; const x = m.get(k) ?? { nome: nomePersona(e.utente, e.email), n: 0, ultimo: e.quando }; x.n++; if (e.quando > x.ultimo) x.ultimo = e.quando; m.set(k, x); }
+    // una riga per persona: se la stessa persona entra con più account o email, gli accessi si sommano
+    const m = new Map<string, { nome: string; n: number; ultimo: string; account: Set<string>; email: Set<string> }>();
+    for (const e of accessi) {
+      const nome = nomePersona(e.utente, e.email), k = nome.trim().toLowerCase() || (e.utente ?? e.email ?? "—");
+      const x = m.get(k) ?? { nome, n: 0, ultimo: e.quando, account: new Set<string>(), email: new Set<string>() };
+      x.n++; if (e.quando > x.ultimo) x.ultimo = e.quando;
+      x.account.add(e.utente ?? `email:${e.email ?? "-"}`); if (e.email) x.email.add(e.email);
+      m.set(k, x);
+    }
     return [...m.values()].sort((a, b) => b.n - a.n);
   }, [accessi, nomePersona]);
   function esportaCsv() {
@@ -308,7 +315,7 @@ export function AdminPage() {
           <div className="mt-5"><GraficoAccessi accessi={accessiTutti} periodo={periodo} /></div>
         </div>
         <div className="rounded-lg border-[0.8px] border-bordo-scheda p-4"><h2 className="font-semibold">Persone attive · {nomePeriodo}</h2>
-          <ul className="mt-3 space-y-2">{perUtente.map((p) => <li key={p.nome + p.ultimo} className="text-sm"><div className="flex justify-between gap-2"><span className="truncate">{p.nome}</span><span className="font-mono">{p.n}</span></div><div className="mt-0.5 h-1.5 rounded-full bg-muted"><div className="h-full rounded-full bg-primary" style={{ width: `${(p.n / (perUtente[0]?.n ?? 1)) * 100}%` }} /></div><p className="mt-0.5 text-xs text-muted-foreground">ultimo accesso {data(p.ultimo)}</p></li>)}</ul>
+          <ul className="mt-3 space-y-2">{perUtente.map((p) => <li key={p.nome + p.ultimo} className="text-sm"><div className="flex justify-between gap-2"><span className="truncate">{p.nome}</span><span className="font-mono">{p.n}</span></div><div className="mt-0.5 h-1.5 rounded-full bg-muted"><div className="h-full rounded-full bg-primary" style={{ width: `${(p.n / (perUtente[0]?.n ?? 1)) * 100}%` }} /></div><p className="mt-0.5 text-xs text-muted-foreground">ultimo accesso {data(p.ultimo)}{p.account.size > 1 && <> · {p.account.size} account{p.email.size ? `: ${[...p.email].join(", ")}` : ""}</>}</p></li>)}</ul>
           {!perUtente.length && <p className="mt-3 text-sm text-muted-foreground">Nessun accesso nel periodo.</p>}
         </div>
       </section>
