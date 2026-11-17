@@ -1,0 +1,1 @@
+import{t as e}from"./AuthPage-DjGy1qQC.js";var t=e;export{t as component};
