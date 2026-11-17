@@ -8,7 +8,7 @@ interface RisultatoOcct {
   success: boolean;
   meshes: { name?: string; color?: [number, number, number]; attributes: { position: { array: number[] } }; index?: { array: number[] } }[];
 }
-type Occt = { ReadStepFile: (contenuto: Uint8Array, parametri: Record<string, unknown> | null) => RisultatoOcct };
+type Occt = { ReadStepFile: (contenuto: Uint8Array, parametri: Record<string, unknown> | null) => RisultatoOcct; ReadIgesFile: (contenuto: Uint8Array, parametri: Record<string, unknown> | null) => RisultatoOcct };
 
 let occt: Promise<Occt> | null = null;
 
@@ -34,6 +34,19 @@ export async function leggiStep(buffer: ArrayBuffer, nomeFile = "modello", finez
     : { linearUnit: "millimeter", linearDeflectionType: "bounding_box_ratio", linearDeflection: 0.002, angularDeflection: 0.5 };
   const r = lib.ReadStepFile(new Uint8Array(buffer), parametri);
   if (!r.success || !r.meshes.length) throw new Error("File STEP non leggibile o senza geometria.");
+  return r.meshes.map((m, i) => ({
+    nome: m.name || `${nomeFile.replace(/\.[^.]+$/, "")}_${i + 1}`,
+    posizioni: Float32Array.from(m.attributes.position.array),
+    indici: m.index ? Uint32Array.from(m.index.array) : null,
+    colore: m.color ?? null,
+  }));
+}
+
+/** Triangola un file IGES (.igs/.iges), stessa logica dello STEP. */
+export async function leggiIges(buffer: ArrayBuffer, nomeFile = "modello"): Promise<Mesh3D[]> {
+  const lib = await caricaOcct();
+  const r = lib.ReadIgesFile(new Uint8Array(buffer), { linearUnit: "millimeter", linearDeflectionType: "bounding_box_ratio", linearDeflection: 0.002, angularDeflection: 0.5 });
+  if (!r.success || !r.meshes.length) throw new Error("File IGES non leggibile o senza geometria.");
   return r.meshes.map((m, i) => ({
     nome: m.name || `${nomeFile.replace(/\.[^.]+$/, "")}_${i + 1}`,
     posizioni: Float32Array.from(m.attributes.position.array),
