@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { daGoogle, daOsm, daPhoton, linkGoogleEarth, linkGoogleMaps, anteprimaGoogleMaps, cercaLuoghi } from "./geo";
+import { daGoogle, daOsm, daPhoton, linkGoogleEarth, linkGoogleMaps, anteprimaGoogleMaps, cercaLuoghi, coordinateDaTesto } from "./geo";
 
 describe("ricerca dei luoghi", () => {
   it("voce OpenStreetMap: comune da city, town o village", () => {
@@ -9,7 +9,7 @@ describe("ricerca dei luoghi", () => {
   });
   it("voce Photon: coordinate [lon, lat], etichetta con via, CAP e comune", () => {
     const l = daPhoton({ geometry: { coordinates: [9.6773, 45.6983] }, properties: { street: "Via Roma", housenumber: "1", postcode: "24121", city: "Bergamo", state: "Lombardia", country: "Italia" } });
-    expect(l).toEqual({ etichetta: "Via Roma 1, 24121 Bergamo, Lombardia, Italia", comune: "Bergamo", lat: 45.6983, lon: 9.6773 });
+    expect(l).toMatchObject({ etichetta: "Via Roma 1, 24121 Bergamo, Lombardia, Italia", comune: "Bergamo", lat: 45.6983, lon: 9.6773, principale: "Via Roma 1", secondario: "24121 Bergamo, Lombardia", tipo: "indirizzo" });
     expect(daPhoton({ properties: { name: "x" } })).toBeNull();
   });
   it("risultato Google: comune da administrative_area_level_3", () => {
@@ -22,7 +22,12 @@ describe("ricerca dei luoghi", () => {
     expect(linkGoogleEarth(45.69, 9.67)).toContain("earth.google.com/web/@45.690000,9.670000");
     expect(anteprimaGoogleMaps(45.69, 9.67)).toContain("output=embed");
   });
-  it("meno di 3 caratteri: nessuna ricerca", async () => {
-    expect(await cercaLuoghi("mi")).toEqual([]);
+  it("meno di 2 caratteri: nessuna ricerca; coordinate scritte a mano come in Google Maps", async () => {
+    expect(await cercaLuoghi("m")).toEqual([]);
+    expect(coordinateDaTesto("45.6983, 9.6773")).toEqual({ lat: 45.6983, lon: 9.6773 });
+    expect(coordinateDaTesto("45,6983 9,6773")).toEqual({ lat: 45.6983, lon: 9.6773 });
+    expect(coordinateDaTesto("Via Roma 1")).toBeNull();
+    const [c] = await cercaLuoghi("45.6983, 9.6773");
+    expect(c).toMatchObject({ lat: 45.6983, lon: 9.6773, tipo: "coordinate" });
   });
 });

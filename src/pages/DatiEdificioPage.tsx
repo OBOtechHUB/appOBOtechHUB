@@ -1,7 +1,10 @@
 import { CampoLuogo } from "@/components/edificio/CampoLuogo";
 import { Link, useNavigate } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
-import { aggiornaEsteso } from "@/lib/statoProgetto";
+import { aggiornaEsteso, useEsteso } from "@/lib/statoProgetto";
+import { useState } from "react";
+import { ImportaFile } from "@/components/edificio/ImportaFile";
+import type { ModelloEdificio } from "@/calcoli/edificio/tipi";
 import { ArrowLeft } from "lucide-react";
 import opzioni from "@/dati/opzioniEdificio.json";
 import fattoriPosizione from "@/dati/rischio/fattorePosizione.json";
@@ -15,7 +18,20 @@ const fmtND = new Intl.NumberFormat("it-IT", { maximumFractionDigits: 4, minimum
 
 export function DatiEdificioPage() {
   const d = useDatiEdificio();
+  const s = useEsteso();
   const navigate = useNavigate();
+  const [esitoImport, setEsitoImport] = useState("");
+  /** File importato: il modello va in Edificio 3D e le dimensioni d'ingombro compilano L, W e H. */
+  function importaDaFile(m: ModelloEdificio) {
+    if (!m.corpi.length) return;
+    aggiornaEsteso({ modello: { ...s.modello, corpi: [...s.modello.corpi, ...m.corpi] } });
+    const xs = m.corpi.flatMap((c) => c.impronta.map((p) => p[0])), ys = m.corpi.flatMap((c) => c.impronta.map((p) => p[1]));
+    const dx = Math.max(...xs) - Math.min(...xs), dy = Math.max(...ys) - Math.min(...ys);
+    const h = Math.max(0, ...m.corpi.map((c) => c.quotaBase + Math.max(c.altezzaGronda, c.altezzaColmo)));
+    const r2 = (v: number) => Math.round(v * 100) / 100;
+    aggiornaDati({ L: r2(Math.max(dx, dy)), W: r2(Math.min(dx, dy)), ...(h > 0 ? { H: r2(h) } : {}) });
+    setEsitoImport(`Dimensioni compilate dal file: L ${fmt.format(Math.max(dx, dy))} m, W ${fmt.format(Math.min(dx, dy))} m${h > 0 ? `, H ${fmt.format(h)} m` : " (manca l'altezza: scrivila nel campo H)"}. Il modello è anche in Edificio 3D.`);
+  }
   function caricaEsempio() {
     if (!window.confirm("Caricare l'esempio di prova? I dati edificio e il modello 3D attuali saranno sostituiti.")) return;
     aggiornaDati({ nomeProgetto: "Prova capannone", comune: "Torino", L: 60, W: 40, H: 8, copertura: "Piana", materiale: "Cemento armato", lplProgetto: "II" });
@@ -37,6 +53,12 @@ export function DatiEdificioPage() {
 
       <div className="mt-6 grid gap-6 md:grid-cols-[1fr_300px]">
         <form className="space-y-6 rounded-lg border bg-card p-5" onSubmit={(e) => e.preventDefault()}>
+          <details className="rounded-md border border-accent/60 bg-muted/30 p-4" open>
+            <summary className="cursor-pointer font-display text-base font-semibold">Importa un disegno o un modello (CAD, PDF, 3D)</summary>
+            <p className="mt-1 text-sm text-muted-foreground">Lunghezza, larghezza e altezza si compilano da sole dal file; il modello va anche in Edificio 3D.</p>
+            <div className="mt-3"><ImportaFile onImporta={importaDaFile} /></div>
+            {esitoImport && <p role="status" className="mt-3 border-l-4 border-accent pl-3 text-sm font-medium">{esitoImport}</p>}
+          </details>
           <section className="grid gap-4 sm:grid-cols-2">
             <Campo etichetta="Nome progetto">
               <input className={inputCls} value={d.nomeProgetto} onChange={(e) => aggiornaDati({ nomeProgetto: e.target.value })} />

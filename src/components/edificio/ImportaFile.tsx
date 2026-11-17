@@ -27,7 +27,7 @@ export function ImportaFile({ onImporta }: { onImporta: (m: ModelloEdificio) => 
   const [files, setFiles] = useState<File[]>([]);
   const [busy, setBusy] = useState(false), [errore, setErrore] = useState(""), [fatto, setFatto] = useState("");
   // CAD e 3D
-  const [dxf, setDxf] = useState<LetturaDxf | null>(null), [layer, setLayer] = useState("");
+  const [dxf, setDxf] = useState<LetturaDxf | null>(null), [layer, setLayer] = useState(""), [altezzaDxf, setAltezzaDxf] = useState("");
   const [corpo1, setCorpo1] = useState<Corpo | null>(null), [verticaleZ, setVerticaleZ] = useState(false);
   const [unita, setUnita] = useState<Unita | "misura">("m");
   const [asse, setAsse] = useState<0 | 1 | 2>(0), [reale, setReale] = useState("");
@@ -90,9 +90,10 @@ export function ImportaFile({ onImporta }: { onImporta: (m: ModelloEdificio) => 
   function importaCad() {
     if (!fattore) return;
     if (tipo === "dxf" && dxf) {
-      const corpi = dxf.corpi(layer).map((c) => ({ ...c, impronta: c.impronta.map((p) => [p[0] * fattore, p[1] * fattore] as P2) }));
+      const h = num(altezzaDxf);
+      const corpi = dxf.corpi(layer).map((c) => ({ ...c, impronta: c.impronta.map((p) => [p[0] * fattore, p[1] * fattore] as P2), ...(h > 0 ? { altezzaGronda: h, altezzaColmo: h } : {}) }));
       if (!corpi.length) { setErrore("Nel layer scelto non ci sono polilinee chiuse."); return; }
-      onImporta({ corpi }); setFatto(`Importati ${corpi.length} ${corpi.length === 1 ? "corpo" : "corpi"} dal layer ${layer}: imposta l'altezza di ciascun corpo nell'elenco.`); azzera();
+      onImporta({ corpi }); setFatto(`Importati ${corpi.length} ${corpi.length === 1 ? "corpo" : "corpi"} dal layer ${layer}${h > 0 ? `, altezza ${fmt(h)} m` : ": l'altezza dei corpi si imposta in Edificio 3D"}.`); setAltezzaDxf(""); azzera();
     } else if (tipo === "3d" && corpo1) {
       onImporta({ corpi: [scalaCorpo(corpo1, fattore)] }); setFatto(`Modello importato: ${descriviDimensioni(dimFinali)}.`); azzera();
     }
@@ -153,6 +154,11 @@ export function ImportaFile({ onImporta }: { onImporta: (m: ModelloEdificio) => 
           {tipo === "dxf" && dxf && dxf.layers.length > 1 && (
             <div className="mt-3 max-w-xs"><Campo etichetta="Layer con l'impronta dell'edificio">
               <select className={inputCls} value={layer} onChange={(e) => setLayer(e.target.value)}>{dxf.layers.map((l) => <option key={l}>{l}</option>)}</select>
+            </Campo></div>
+          )}
+          {tipo === "dxf" && (
+            <div className="mt-3 max-w-xs"><Campo etichetta="Altezza di gronda (m)">
+              <input className={inputCls} inputMode="decimal" placeholder="es. 9 (il DXF è solo in pianta)" value={altezzaDxf} onChange={(e) => setAltezzaDxf(e.target.value)} />
             </Campo></div>
           )}
           {tipo === "3d" && (
