@@ -11,7 +11,7 @@ function dosData(d: Date): [number, number] {
   return [((d.getHours() & 31) << 11) | ((d.getMinutes() & 63) << 5) | ((d.getSeconds() / 2) & 31), (((d.getFullYear() - 1980) & 127) << 9) | (((d.getMonth() + 1) & 15) << 5) | (d.getDate() & 31)];
 }
 
-export function creaZip(file: FileZip[], data = new Date()): Uint8Array {
+export function creaZip(file: FileZip[], data = new Date()): Uint8Array<ArrayBuffer> {
   const enc = new TextEncoder(), [ora, giorno] = dosData(data);
   const locali: Uint8Array[] = [], centrali: Uint8Array[] = [];
   let offset = 0;
