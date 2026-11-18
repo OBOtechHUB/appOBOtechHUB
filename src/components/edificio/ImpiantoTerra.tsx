@@ -10,6 +10,8 @@ import { aggiornaEsteso, type StatoEsteso } from "@/lib/statoProgetto";
 import { accettaTerra, piediCalate, rimuoviTerra, terraDefault, type ConfigurazioneTerra } from "@/lib/impiantoTerra";
 import { scarica } from "@/lib/esportazioni";
 import { GraficoL1 } from "@/components/schemi/SchemiLps";
+import { libreriaAttiva, type ParticolareLib } from "@/calcoli/particolari/allinea";
+import baseParticolari from "@/dati/particolari/particolari.json";
 
 type Anteprima = { proposta: PropostaTerra; config: ConfigurazioneTerra; stato: StatoEsteso };
 export function ImpiantoTerra({ s, onAnteprima }: { s: StatoEsteso; onAnteprima: (p: PropostaTerra | null) => void }) {
@@ -29,7 +31,7 @@ export function ImpiantoTerra({ s, onAnteprima }: { s: StatoEsteso; onAnteprima:
     try {
       if (!calate.length || !s.modello.corpi.length) throw new Error("Prima accetta o disegna le calate");
       if (![config.distanzaAnello, config.profondita, config.lunghezzaPicchetto, config.latoMagliaFondazione].every((n) => Number.isFinite(n) && n > 0) || (config.l1 !== null && (!Number.isFinite(config.l1) || config.l1 < 0))) throw new Error("Inserisci distanze e lunghezze positive; l1 deve essere positivo o zero.");
-      const proposta = proponiTerra(s.modello.corpi, { ...config, calate });
+      const proposta = proponiTerra(s.modello.corpi, { ...config, calate, particolari: libreriaAttiva(s.particolari as ParticolareLib[], baseParticolari as ParticolareLib[]) });
       setPreview({ proposta, config: { ...config }, stato: s }); onAnteprima(proposta);
     } catch (e) { setErrore(e instanceof Error ? e.message : "Proposta non riuscita."); }
   }

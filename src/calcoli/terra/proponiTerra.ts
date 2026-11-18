@@ -13,6 +13,7 @@
  */
 
 import { puntoInPoligono, trasformataDistanza, type Corpo, type Punto2, type Punto3 } from "../captazione/sferaRotolante";
+import { allinea, type ParticolareLib, type Ruolo } from "../particolari/allinea";
 import type { ConduttoreCAD, ComponenteCAD, PicchettoCAD } from "../cad/esportaCAD";
 import type { VoceDistinta } from "../captazione/proponiCaptazione";
 
@@ -26,6 +27,8 @@ export interface ParametriTerra {
   lunghezzaPicchetto?: number | undefined;  // m per picchetto, tipo A (default 3,0 = 2 elementi da 1,5 m)
   latoMagliaFondazione?: number | undefined;// m (default 20 – T5.09)
   picchettiSuAnello?: boolean | undefined;  // tipo B: aggiunge un picchetto per calata (T5.05)
+  /** libreria dei particolari attiva: i codici vengono da qui */
+  particolari?: readonly ParticolareLib[] | undefined;
 }
 
 export interface PropostaTerra {
@@ -37,8 +40,8 @@ export interface PropostaTerra {
   avvisi: string[];
 }
 
-/* Componenti OBO (serie T5) */
-const C = {
+/* Componenti OBO (serie T5): riserva, i codici usati vengono dal particolare indicato (rif) nella libreria attiva */
+const C0 = {
   piattoInox: { codice: "5018706", descrizione: "5052 V4A 30x3,5 – piatto inox", rif: "OBO-TBS-200-T5.04" },
   piattoZn: { codice: "5019347", descrizione: "5052 DIN 30x3,5 – piatto acciaio zincato", rif: "OBO-TBS-200-T5.09" },
   croceInox: { codice: "5314659", descrizione: "256 A-DIN 30 V4A – morsetto a croce per piatto", rif: "OBO-TBS-200-T5.04" },
@@ -52,6 +55,18 @@ const C = {
   morsettoPicchetto: { codice: "5001633", descrizione: "2760 20 V4A – morsetto universale per picchetto", rif: "OBO-TBS-200-T5.05" },
   puntoFisso: { codice: "5420022", descrizione: "205 DG L180 V4A – punto di terra fisso", rif: "OBO-TBS-200-T5.11" },
 };
+const RUOLI_TERRA: Record<keyof typeof C0, Ruolo> = {
+  piattoInox: "conduttore", piattoZn: "conduttore", croceInox: "connettore", croceZn: "connettore", sezionamento: "sezionamento",
+  targhetta: "targhetta", anticorrosione: "anticorrosione", uscitaTerra: "asta", picchettoBP: "picchetto", punta: "punta",
+  morsettoPicchetto: "connettore", puntoFisso: "accessorio",
+};
+/** Componenti della terra con i codici dei particolari nella libreria attiva. */
+export function componentiTerra(lib: readonly ParticolareLib[] | null | undefined): typeof C0 {
+  if (!lib?.length) return C0;
+  const out = { ...C0 };
+  for (const k of Object.keys(C0) as (keyof typeof C0)[]) { const x = allinea(C0[k], C0[k].rif, lib, 0, RUOLI_TERRA[k]); out[k] = { ...C0[k], codice: x.codice, descrizione: x.descrizione }; }
+  return out;
+}
 const ELEMENTO_PICCHETTO = 1.5; // m per elemento BP (da verificare sul catalogo)
 
 /* ------------------------------------------------------------------ */
@@ -205,6 +220,7 @@ function distanzaDaiCorpi(corpi: Corpo[], q: Punto2): number {
 /* ------------------------------------------------------------------ */
 
 export function proponiTerra(corpi: Corpo[], par: ParametriTerra): PropostaTerra {
+  const C = componentiTerra(par.particolari);
   const dA = par.distanzaAnello ?? 1.0;
   const zP = -(par.profondita ?? 0.7);
   const avvisi: string[] = [];

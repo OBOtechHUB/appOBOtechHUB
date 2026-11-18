@@ -21,6 +21,7 @@ import {
 } from "./sferaRotolante";
 import { verificaMaglia, verificaCombinata, rettangoloMinimo, type RisultatoCombinato } from "./verificaMaglia";
 import type { ConduttoreCAD, ComponenteCAD, AstaCAD } from "../cad/esportaCAD";
+import { allinea, type ParticolareLib } from "../particolari/allinea";
 
 export interface CatalogoCaptazione {
   conduttore: { codice: string; descrizione: string; materiale: string; diametroMm: number };
@@ -133,6 +134,29 @@ export const SUPPORTI_CALATA: Record<string, SupportoCat & { conduttore?: { codi
 
 export interface VoceDistinta { codice: string; descrizione: string; quantita: number; unita: "m" | "pz"; riferimento?: string | undefined }
 
+/** Catalogo della copertura con i codici presi dal particolare nella libreria attiva (se il particolare cambia, cambiano). */
+export function allineaCatalogo(cat: CatalogoCaptazione, lib: readonly ParticolareLib[] | null | undefined): CatalogoCaptazione {
+  if (!lib?.length) return cat;
+  const r = cat.riferimento, al = <V extends { codice: string; descrizione: string }>(v: V, ruolo: Parameters<typeof allinea>[4]): V => { const x = allinea(v, r, lib, 0, ruolo); return { ...v, codice: x.codice, descrizione: x.descrizione }; };
+  return {
+    ...cat,
+    conduttore: al(cat.conduttore, "conduttore"),
+    supporto: cat.supporto ? al(cat.supporto, "supporto") : null,
+    connettore: al(cat.connettore, "connettore"),
+    compensatore: cat.compensatore ? al(cat.compensatore, "compensatore") : cat.compensatore,
+    asta: cat.asta ? al(cat.asta, "asta") : cat.asta,
+  };
+}
+
+/** Supporto (falda, colmo o calata) con accessori e conduttore presi dal suo particolare nella libreria attiva. */
+export function allineaSupporto<S extends SupportoCat & { conduttore?: { codice: string; descrizione: string } | undefined }>(s: S, lib: readonly ParticolareLib[] | null | undefined): S {
+  if (!lib?.length) return s;
+  const sup = s.codice ? allinea(s, s.riferimento, lib, 0, "supporto") : null;
+  const acc = s.accessori?.map((a, i) => { const x = allinea(a, s.riferimento, lib, i, "accessorio"); return { ...a, codice: x.codice, descrizione: x.descrizione }; });
+  const cond = s.conduttore ? allinea(s.conduttore, s.riferimento, lib, 0, "conduttore") : null;
+  return { ...s, ...(sup ? { codice: sup.codice, descrizione: sup.descrizione } : {}), ...(acc ? { accessori: acc } : {}), ...(cond ? { conduttore: { codice: cond.codice, descrizione: cond.descrizione } } : {}) };
+}
+
 /** Particolare OBO da usare per il tipo di copertura e il materiale del conduttore. */
 export function catalogoPerCopertura(copertura: CoperturaPiana | string | undefined, materiale: "alluminio" | "acciaio" = "alluminio"): CatalogoCaptazione {
   if (copertura === "ghiaia") return CATALOGO_T1_07;
@@ -151,6 +175,8 @@ export interface ParametriProposta {
   catalogo?: CatalogoCaptazione | undefined;
   manto?: string | undefined;               // tetti a falde: chiave di SUPPORTI_FALDA (default "tegole")
   parete?: string | undefined;              // calate: chiave di SUPPORTI_CALATA (default "muratura")
+  /** libreria dei particolari attiva: i codici di conduttori, supporti, connettori e accessori vengono da qui */
+  particolari?: readonly ParticolareLib[] | undefined;
 }
 
 export interface PropostaCaptazione {
@@ -313,7 +339,7 @@ function incrociPianta(segs: [Punto3, Punto3][]): Punto3[] {
 /* ------------------------------------------------------------------ */
 
 export function proponiCaptazione(corpi: Corpo[], par: ParametriProposta): PropostaCaptazione {
-  const cat = par.catalogo ?? CATALOGO_T1_05;
+  const cat = allineaCatalogo(par.catalogo ?? CATALOGO_T1_05, par.particolari);
   const strategia = par.strategia ?? "mista";
   const dz = par.altezzaConduttore ?? 0;
   const avvisi: string[] = [];
@@ -330,8 +356,9 @@ export function proponiCaptazione(corpi: Corpo[], par: ParametriProposta): Propo
       } else magliaTettoPiano(c, par.latoMaglia, dz).forEach((punti) => linee.push({ punti, ruolo: "piano" }));
     }
   }
-  const supFalda = SUPPORTI_FALDA[par.manto ?? "tegole"] ?? SUPPORTI_FALDA["tegole"]!;
-  const supCalata = SUPPORTI_CALATA[par.parete ?? "muratura"] ?? SUPPORTI_CALATA["muratura"]!;
+  const supFalda0 = SUPPORTI_FALDA[par.manto ?? "tegole"] ?? SUPPORTI_FALDA["tegole"]!;
+  const supFalda = { falda: allineaSupporto(supFalda0.falda, par.particolari), colmo: allineaSupporto(supFalda0.colmo, par.particolari) };
+  const supCalata = allineaSupporto(SUPPORTI_CALATA[par.parete ?? "muratura"] ?? SUPPORTI_CALATA["muratura"]!, par.particolari);
   const conduttori: ConduttoreCAD[] = linee.map((l) => ({
     tipo: "captazione", punti: l.punti, materiale: cat.conduttore.materiale, sezione: cat.conduttore.diametroMm, codiceOBO: cat.conduttore.codice,
   }));

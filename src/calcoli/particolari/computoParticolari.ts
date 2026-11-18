@@ -12,6 +12,6 @@ export function computoParticolari(s:StatoEsteso){
   }).filter((e):e is Elemento=>e!==null));
   const validi=(s.particolari.length?s.particolari:base).flatMap((p)=>{const r=particolareSchema.safeParse(p);return r.success?[r.data]:[];});
   const result=selezione(elementi,validi);
-  const righe:RigaComputo[]=result.componenti.map((c,i)=>({id:`particolare-${c.elemento}-${i}`,codice:c.codiceOBO??"",descrizione:`${c.esempio?"ESEMPIO — ":""}${c.descrizione}`,categoria:"accessori",unita:"pz",materiale:"",sezione:"",quantita:c.quantita,provenienza:`Particolari: ${c.particolare}`,manuale:false}));
+  const righe:RigaComputo[]=result.componenti.map((c,i)=>({id:`particolare-${c.elemento}-${i}`,codice:c.codiceOBO??"",descrizione:c.descrizione,categoria:"accessori",unita:"pz",materiale:"",sezione:"",quantita:c.quantita,provenienza:`Particolari: ${c.particolare}${c.esempio?" (da verificare)":""}`,manuale:false}));
   return {righe,mancanti:result.mancanti};
 }

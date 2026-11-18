@@ -1,3 +1,4 @@
+import type { CodiciComputo } from "./codiciComputo";
 import { categorie, type Articolo, type ConfigurazioneComputo, type ModificaRiga, type RigaComputo, type RisultatiModuli, type Categoria } from "./tipi";
 
 function positivo(n: number) {
@@ -12,12 +13,14 @@ export function numeroSupporti(metri: number, passo: number) {
   if (!Number.isFinite(passo) || passo <= 0) throw new Error("Il passo dei supporti deve essere maggiore di zero.");
   return Math.ceil(metri / passo);
 }
-export function generaComputo(r: RisultatiModuli, config: ConfigurazioneComputo, copertura: string): { righe: RigaComputo[]; mancanti: string[] } {
+export function generaComputo(r: RisultatiModuli, config: ConfigurazioneComputo, copertura: string, codici: CodiciComputo = {}): { righe: RigaComputo[]; mancanti: string[] } {
   const righe: RigaComputo[] = [];
   const mancanti: string[] = [];
   const aggiungi = (id: string, descrizione: string, categoria: Categoria, unita: "m" | "pz", quantita: number, provenienza: string) => {
     positivo(quantita);
-    righe.push({ id, codice: "", descrizione, categoria, unita, quantita, provenienza, materiale: "", sezione: "" });
+    // codice OBO dal particolare costruttivo collegato (se presente nella libreria attiva)
+    const c = codici[id];
+    righe.push({ id, codice: c?.codice ?? "", descrizione: c ? `${descrizione}: ${c.descrizione}` : descrizione, categoria, unita, quantita, provenienza: c?.riferimento ? `${provenienza} · particolare ${c.riferimento.replace(/^OBO-TBS-\d+-/, "")}` : provenienza, materiale: "", sezione: "" });
   };
   const passo = config.passoSupporti[copertura];
   if (r.captazione) {
