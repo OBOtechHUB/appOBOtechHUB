@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="it">
+  <head>
+    <script>
+      // Pagina rimasta in memoria dopo una nuova pubblicazione: i suoi file non esistono più e resterebbe bianca.
+      // Se un file dell'app non si carica, ricarica una volta la pagina aggiornata dal server.
+      window.addEventListener("error", function (e) {
+        var t = e.target; if (!t || (t.tagName !== "SCRIPT" && t.tagName !== "LINK")) return;
+        if (String(t.src || t.href || "").indexOf("/assets/") < 0) return;
+        try { if (sessionStorage.getItem("lps-ricaricata")) return; sessionStorage.setItem("lps-ricaricata", "1"); } catch (x) { return; }
+        var q = location.search.replace(/([?&])v=\d+&?/, "$1").replace(/[?&]$/, "");
+        location.replace(location.pathname + q + (q ? "&" : "?") + "v=" + Date.now() + location.hash);
+      }, true);
+      window.addEventListener("load", function () { setTimeout(function () { try { sessionStorage.removeItem("lps-ricaricata"); } catch (x) {} }, 5000); });
+    </script>
+    <script>
+      // Indirizzo con maiuscole/minuscole diverse (es. /appobotechhub/admin): lo riporta a quello esatto dell'app.
+      (function () { var b = "/appOBOtechHUB/", l = location.pathname;
+        if (b.length > 1 && l.toLowerCase().indexOf(b.toLowerCase()) === 0 && l.indexOf(b) !== 0) history.replaceState(null, "", b + l.slice(b.length) + location.search + location.hash);
+        else if (b.length > 1 && (l + "/").toLowerCase() === b.toLowerCase() && l + "/" !== b) history.replaceState(null, "", b + location.search + location.hash); })();
+    </script>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
+    <meta name="theme-color" content="#ffffff" />
+    <script>try{var t=localStorage.getItem("obo-tema");if(t==="dark"||(t!=="light"&&matchMedia("(prefers-color-scheme: dark)").matches))document.documentElement.classList.add("dark")}catch(e){}</script>
+    <meta name="application-name" content="Progettazione LPS" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-title" content="LPS" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <link rel="manifest" href="/appOBOtechHUB/manifest.webmanifest" />
+    <link rel="icon" type="image/svg+xml" href="/appOBOtechHUB/icona.svg" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/appOBOtechHUB/favicon-32.png" />
+    <link rel="apple-touch-icon" href="/appOBOtechHUB/apple-touch-icon.png" />
+    <title>Progettazione LPS</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600;700&display=swap" />
+    <script>
+      // animazione di apertura comune a tutte le app di OBO Hub (file pubblicato dal sito di OBO Hub, stesso indirizzo)
+      try { if (/github\.io$/.test(location.hostname)) { var b = document.createElement("script"); b.src = "/benvenuto.js"; b.dataset.app = "Progettazione LPS"; document.head.appendChild(b); } } catch (e) {}
+    </script>
+    <script type="module" crossorigin src="/appOBOtechHUB/assets/index-B0VOh0Mf.js"></script>
+    <link rel="modulepreload" crossorigin href="/appOBOtechHUB/assets/rolldown-runtime-hePW80VL.js">
+    <link rel="modulepreload" crossorigin href="/appOBOtechHUB/assets/react-CwJFpaho.js">
+    <link rel="modulepreload" crossorigin href="/appOBOtechHUB/assets/react-dom-Dl-LT-t1.js">
+    <link rel="modulepreload" crossorigin href="/appOBOtechHUB/assets/jsx-runtime-NZYk81nU.js">
+    <link rel="modulepreload" crossorigin href="/appOBOtechHUB/assets/ClientOnly-BxMocidX.js">
+    <link rel="modulepreload" crossorigin href="/appOBOtechHUB/assets/useRouter-Tlq4ymmd.js">
+    <link rel="modulepreload" crossorigin href="/appOBOtechHUB/assets/with-selector-AH_rApvc.js">
+    <link rel="modulepreload" crossorigin href="/appOBOtechHUB/assets/useSelector-D6rD7TkG.js">
+    <link rel="modulepreload" crossorigin href="/appOBOtechHUB/assets/link-DPUCbDc8.js">
+    <link rel="modulepreload" crossorigin href="/appOBOtechHUB/assets/matchContext-OwRsGrXk.js">
+    <link rel="modulepreload" crossorigin href="/appOBOtechHUB/assets/useSearch-B1B0QhcT.js">
+    <link rel="modulepreload" crossorigin href="/appOBOtechHUB/assets/root-DLTE-HSj.js">
+    <link rel="modulepreload" crossorigin href="/appOBOtechHUB/assets/useNavigate-Zxaj4t3F.js">
+    <link rel="modulepreload" crossorigin href="/appOBOtechHUB/assets/createLucideIcon-CgPoqdpr.js">
+    <link rel="modulepreload" crossorigin href="/appOBOtechHUB/assets/preload-helper-1BXtlfJ0.js">
+    <link rel="modulepreload" crossorigin href="/appOBOtechHUB/assets/tslib.es6-Tae09705.js">
+    <link rel="modulepreload" crossorigin href="/appOBOtechHUB/assets/client-BmpzKavY.js">
+    <link rel="modulepreload" crossorigin href="/appOBOtechHUB/assets/auth-CYyuaxXp.js">
+    <link rel="modulepreload" crossorigin href="/appOBOtechHUB/assets/types-JusijTlt.js">
+    <link rel="modulepreload" crossorigin href="/appOBOtechHUB/assets/verifiche-CFUg3UhO.js">
+    <link rel="modulepreload" crossorigin href="/appOBOtechHUB/assets/tipi-D7rqvxyW.js">
+    <link rel="modulepreload" crossorigin href="/appOBOtechHUB/assets/progettoStore-CuMVvfTq.js">
+    <link rel="modulepreload" crossorigin href="/appOBOtechHUB/assets/statoProgetto-DcmWjTpm.js">
+    <link rel="modulepreload" crossorigin href="/appOBOtechHUB/assets/ProjectSync-iv-oHojW.js">
+    <link rel="modulepreload" crossorigin href="/appOBOtechHUB/assets/progetti-BgdJG4Tv.js">
+    <link rel="modulepreload" crossorigin href="/appOBOtechHUB/assets/Match-mfcDYyNu.js">
+    <link rel="modulepreload" crossorigin href="/appOBOtechHUB/assets/base-BUsTymhB.js">
+    <link rel="modulepreload" crossorigin href="/appOBOtechHUB/assets/lingua-oG3Bu6Kr.js">
+    <link rel="modulepreload" crossorigin href="/appOBOtechHUB/assets/utils-CfhCqfQW.js">
+    <link rel="modulepreload" crossorigin href="/appOBOtechHUB/assets/es2015-QW6z5BI3.js">
+    <link rel="modulepreload" crossorigin href="/appOBOtechHUB/assets/Campo-Cu5SnUKb.js">
+    <link rel="modulepreload" crossorigin href="/appOBOtechHUB/assets/x-BsLKJRv-.js">
+    <link rel="modulepreload" crossorigin href="/appOBOtechHUB/assets/computo-C9oxU9su.js">
+    <link rel="modulepreload" crossorigin href="/appOBOtechHUB/assets/button-xGiymcp1.js">
+    <link rel="stylesheet" crossorigin href="/appOBOtechHUB/assets/index-DY5nhFKx.css">
+  </head>
+  <body>
+    <div id="root"></div>
+  </body>
+</html>

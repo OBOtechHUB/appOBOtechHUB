@@ -1,0 +1,1 @@
+import{t as e}from"./jsx-runtime-NZYk81nU.js";import{t}from"./TestoPubblicoPage-in1eA4Lf.js";var n=e(),r=()=>(0,n.jsx)(t,{titolo:`Contatti`,sezioni:[`Recapiti — da fornire`]});export{r as component};

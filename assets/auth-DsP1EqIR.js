@@ -1,0 +1,1 @@
+import{t as e}from"./AuthPage-B42Qag-r.js";var t=e;export{t as component};
