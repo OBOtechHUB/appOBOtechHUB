@@ -1,0 +1,1 @@
+import{t as e}from"./AuthPage-DWC_T-79.js";var t=e;export{t as component};
