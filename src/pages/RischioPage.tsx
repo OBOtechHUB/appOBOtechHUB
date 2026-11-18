@@ -124,6 +124,11 @@ export function RischioPage() {
             {(l.connessione === "sch-coll") && <Campo etichetta="Schermatura (PLD)"><select className={inputCls} value={l.schermatura ?? "1-5"} onChange={(e) => linea(i, { schermatura: e.target.value as Schermatura })}>{SCHERMATURE.filter((x) => x.id !== "no").map((x) => <option key={x.id} value={x.id}>{x.nome}</option>)}</select></Campo>}
             <div className="flex justify-end"><Button size="icon" variant="ghost" aria-label="Elimina linea" onClick={() => salva({ linee: stato.linee.filter((_, k) => k !== i), zone: stato.zone.map((z) => ({ ...z, linee: z.linee ? z.linee.filter((x) => x !== i).map((x) => (x > i ? x - 1 : x)) : null })) })}><Trash2 /></Button></div>
           </div>
+          <div className="mt-3 grid items-end gap-3 sm:grid-cols-3">
+            <Campo etichetta="Impianto interno della linea: tensione di tenuta Uw (rI, PLD)"><select className={inputCls} value={l.uw ?? ""} onChange={(e) => linea(i, { uw: e.target.value === "" ? null : Number(e.target.value) })}><option value="">Come la struttura ({stato.Uw} kV)</option>{UW.map((u) => <option key={u} value={u}>{u} kV</option>)}</select></Campo>
+            <Campo etichetta="Cablaggio dell'impianto interno (KS3)"><select className={inputCls} value={l.ks3 ?? ""} onChange={(e) => linea(i, { ks3: e.target.value === "" ? null : Number(e.target.value) })}><option value="">Come la zona</option>{CABLAGGIO.map((x) => <option key={x.id} value={x.valore}>{x.nome} · {x.valore}</option>)}</select></Campo>
+            {l.connessione === "nessuna" && <label className="flex items-center gap-2 pb-2 text-sm"><input type="checkbox" checked={!!l.impiantoInterno} onChange={(e) => linea(i, { impiantoInterno: e.target.checked })} />Impianto interno in rame anche se la linea esterna è in fibra (conta per PC e PM)</label>}
+          </div>
           <label className="mt-3 flex items-center gap-2 text-sm"><input type="checkbox" checked={!!l.sezioni?.length} onChange={(e) => linea(i, { sezioni: e.target.checked ? [{ lunghezza: l.lunghezza, posa: l.posa, ambiente: l.ambiente, tipo: l.tipo }] : null })} />Linea divisa in sezioni con posa o ambiente diversi (SL)</label>
           {!!l.sezioni?.length && <div className="mt-2 space-y-2">
             {l.sezioni.map((t, k) => { const set = (q: Partial<SezioneLinea>) => { const sezioni = l.sezioni!.map((x, j) => (j === k ? { ...x, ...q } : x)); linea(i, { sezioni, lunghezza: sezioni.reduce((a, x) => a + x.lunghezza, 0) }); }; return <div key={k} className="grid items-end gap-3 rounded-md bg-muted/50 p-2 sm:grid-cols-5">
@@ -142,7 +147,7 @@ export function RischioPage() {
             <Campo etichetta="Posizione struttura adiacente (CDJ)"><select className={inputCls} value={l.adiacente.CDJ} onChange={(e) => linea(i, { adiacente: { ...l.adiacente!, CDJ: Number(e.target.value) } })}>{fattori.map((f) => <option key={f.id} value={f.valore}>{f.descrizione} · {f.valore}</option>)}</select></Campo>
           </div>}
         </div>)}</div>
-        <p className="mt-2 text-xs text-muted-foreground">Lunghezza fino al primo nodo (1000 m se sconosciuta, al massimo 2000 m realistici per le linee di energia).</p>
+        <p className="mt-2 text-xs text-muted-foreground">Lunghezza fino al primo nodo (1000 m se sconosciuta, al massimo 2000 m realistici per le linee di energia). Ogni impianto interno conta con la propria tensione di tenuta e il proprio cablaggio; per NM si usa la Uw più bassa.</p>
       </section>
 
       <section className="mt-10" aria-label="Zone">
@@ -165,14 +170,16 @@ export function RischioPage() {
             <Campo etichetta="Lato maglia schermo esterno wm1 (m, KS1)"><input className={inputCls} type="number" min={0} step={0.5} placeholder="nessuno" value={za.wm1 ?? ""} onChange={(e) => zona(za.id, { wm1: e.target.value === "" ? null : Math.max(0, Number(e.target.value)) })} /></Campo>
             <Campo etichetta="Lato maglia schermi interni wm2 (m, KS2)"><input className={inputCls} type="number" min={0} step={0.5} placeholder="nessuno" value={za.wm2 ?? ""} onChange={(e) => zona(za.id, { wm2: e.target.value === "" ? null : Math.max(0, Number(e.target.value)) })} /></Campo>
             <Campo etichetta="Apparecchiature esposte (ore/anno, Pe)"><input className={inputCls} type="number" min={0} max={8760} step={10} value={za.oreApparecchi ?? 8760} onChange={(e) => zona(za.id, { oreApparecchi: Math.min(8760, Math.max(0, Number(e.target.value))) })} /></Campo>
-            <Campo etichetta="SPD della zona (PSPD, PEB)"><select className={inputCls} value={za.spd ?? ""} onChange={(e) => zona(za.id, { spd: e.target.value === "" ? null : e.target.value as ClasseLps })}><option value="">Come la protezione scelta nei risultati</option>{CLASSI.map((x) => <option key={x} value={x}>{x === "nessuno" ? "Nessun SPD" : `SPD di livello ${x}`}</option>)}</select></Campo>
+            <Campo etichetta="SPD coordinati della zona (PSPD)"><select className={inputCls} value={za.spd ?? ""} onChange={(e) => zona(za.id, { spd: e.target.value === "" ? null : e.target.value as ClasseLps })}><option value="">Come la protezione scelta nei risultati</option>{CLASSI.map((x) => <option key={x} value={x}>{x === "nessuno" ? "Nessun SPD" : `SPD di livello ${x}`}</option>)}</select></Campo>
+            <Campo etichetta="PSPD indicato (es. migliore di LPL I)"><input className={inputCls} type="number" min={0} max={1} step={0.001} placeholder="dalle Tab. B.7/B.8" value={za.pspd ?? ""} onChange={(e) => zona(za.id, { pspd: e.target.value === "" ? null : Math.min(1, Math.max(0, Number(e.target.value))) })} /></Campo>
+            <Campo etichetta="Frequenza tollerabile FT indicata dal proprietario (1/anno)"><input className={inputCls} type="number" min={0} step={0.01} placeholder={za.serviziCritici ? "0,1 (critici)" : "1 (non critici)"} value={za.FT ?? ""} onChange={(e) => zona(za.id, { FT: e.target.value === "" || !(Number(e.target.value) > 0) ? null : Number(e.target.value) })} /></Campo>
             {za.esposti && <Campo etichetta="Perdita per fulmine diretto su persone esposte (LD)"><select className={inputCls} value={za.LD ?? 0.1} onChange={(e) => zona(za.id, { LD: Number(e.target.value) })}>{[0.1, 0.05, 0.01].map((v) => <option key={v} value={v}>{v}</option>)}</select></Campo>}
           </div>
           <div className="mt-3 grid gap-2 text-sm sm:grid-cols-2">
             <label className="flex items-center gap-2"><input type="checkbox" checked={za.esterna} onChange={(e) => zona(za.id, { esterna: e.target.checked })} />Persone fino a 3 m dalle calate (tensioni di contatto e passo, RAT)</label>
             <label className="flex items-center gap-2"><input type="checkbox" checked={za.esposti} onChange={(e) => zona(za.id, { esposti: e.target.checked })} />Persone esposte al fulmine diretto: tetto, terrazza, parcheggio in copertura (RAD)</label>
             <label className="flex items-center gap-2"><input type="checkbox" checked={za.impiantiCritici} onChange={(e) => zona(za.id, { impiantiCritici: e.target.checked })} />Guasti degli impianti interni mettono in pericolo la vita (RC, RM, RW, RZ)</label>
-            <label className="flex items-center gap-2"><input type="checkbox" checked={za.serviziCritici} onChange={(e) => zona(za.id, { serviziCritici: e.target.checked })} />Impianti interni critici per il servizio (FT = 0,1)</label>
+            <label className="flex items-center gap-2"><input type="checkbox" checked={za.serviziCritici} onChange={(e) => zona(za.id, { serviziCritici: e.target.checked })} />Impianti interni critici per il servizio (FT = 0,1 se non indicata)</label>
           </div>
           <label className="mt-3 flex items-center gap-2 text-sm"><input type="checkbox" checked={!!za.ambiente} onChange={(e) => zona(za.id, { ambiente: e.target.checked ? { scenario: "fumi", fuoriSito: false, tE: 1 } : null })} />Il danno può coinvolgere l'ambiente circostante o le strutture vicine: esplosione, fumi tossici, inquinamento (LE, Allegato E)</label>
           {za.ambiente && <div className="mt-2 grid gap-4 sm:grid-cols-3">
@@ -194,7 +201,7 @@ export function RischioPage() {
         <div className="mt-4 rounded-lg border-[0.8px] border-bordo-scheda p-4">
           <div className="grid gap-3 sm:grid-cols-2">
             <Campo etichetta="LPS (PLPS)"><select className={inputCls} value={prot.lps} onChange={(e) => setProt({ ...prot, lps: e.target.value as ClasseLps })}>{CLASSI.map((x) => <option key={x} value={x}>{nomeClasse(x)}</option>)}</select></Campo>
-            <Campo etichetta="SPD coordinati (PEB, PSPD)"><select className={inputCls} value={prot.spd} onChange={(e) => setProt({ ...prot, spd: e.target.value as ClasseLps })}>{CLASSI.map((x) => <option key={x} value={x}>{nomeClasse(x)}</option>)}</select></Campo>
+            <Campo etichetta="SPD all'ingresso delle linee (PEB) e coordinati delle zone senza SPD propri (PSPD)"><select className={inputCls} value={prot.spd} onChange={(e) => setProt({ ...prot, spd: e.target.value as ClasseLps })}>{CLASSI.map((x) => <option key={x} value={x}>{nomeClasse(x)}</option>)}</select></Campo>
           </div>
           <div className="mt-4 overflow-x-auto"><table className="w-full min-w-[640px] text-sm">
             <thead><tr className="border-b text-left"><th className="p-2">Zona</th><th className="p-2">R senza protezione</th><th className="p-2">R con la protezione scelta</th><th className="p-2">F con la protezione scelta</th><th className="p-2">SPD minimo della zona</th></tr></thead>

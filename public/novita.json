@@ -2,6 +2,25 @@
   "nota": "Registro degli aggiornamenti di Progettazione LPS. Una voce per aggiornamento, la più recente per prima (app: lps). Viene mostrato nella barra \"Aggiorna app\", nel riquadro Novità e nella pagina Novità di OBO Hub.",
   "aggiornamenti": [
     {
+      "id": "2026-11-18-lps-2",
+      "data": "2026-11-18",
+      "app": "lps",
+      "titolo": "Valutazione del rischio verificata con gli esempi della norma",
+      "voci": [
+        "Il calcolo del rischio ora riproduce i tre esempi della norma (fabbricato residenziale, uffici, ospedale) ed è controllato in automatico a ogni aggiornamento",
+        "Per ogni linea si indicano la tensione di tenuta e il cablaggio del suo impianto interno; si può indicare anche un impianto in rame su una linea esterna in fibra",
+        "Gli SPD all'ingresso delle linee valgono per tutta la struttura; ogni zona può avere i propri SPD coordinati, anche con un valore PSPD indicato",
+        "Per ogni zona si può inserire la frequenza tollerabile del danno FT indicata dal proprietario"
+      ],
+      "titolo_en": "Risk assessment checked against the standard's examples",
+      "voci_en": [
+        "The risk calculation now reproduces the three examples of the standard (house, office building, hospital) and is checked automatically at every update",
+        "Each line has the withstand voltage and wiring of its internal system; a copper internal system on an external fibre line can be entered",
+        "Entrance SPDs apply to the whole structure; each zone can have its own coordinated SPDs, also with a given PSPD value",
+        "Each zone can take the tolerable frequency of damage FT set by the owner"
+      ]
+    },
+    {
       "id": "2026-11-18-lps-1",
       "data": "2026-11-18",
       "app": "lps",

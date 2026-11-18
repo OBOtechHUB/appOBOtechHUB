@@ -144,6 +144,7 @@ export function RiepilogoNormativo({ lplProgetto }: { lplProgetto: Lpl | null })
         ["Frequenza tollerabile FT – impianti critici", `${num(FT_CRITICI)} / anno`],
         ["Frequenza tollerabile FT – impianti non critici", `${num(FT_NON_CRITICI)} / anno`],
       ]} />
+      <Nota>Il calcolo del rischio è provato in automatico sui tre esempi dell'Allegato F (fabbricato residenziale, edificio per uffici, ospedale): a ogni aggiornamento dell'app deve dare gli stessi risultati della norma, con e senza protezione.</Nota>
       <Nota>Senza LPS PLPS = 1. Valori più bassi di PLPS (0,01 e 0,001) solo per LPS di classe I con struttura metallica o in cemento armato continuo usata come calata naturale (e copertura metallica completamente protetta per 0,001).</Nota>
     </Blocco>
 

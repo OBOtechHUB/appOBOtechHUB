@@ -18,6 +18,10 @@
  * Il confronto con RT e FT si fa zona per zona. Ogni zona può avere SPD propri (o seguire quelli scelti
  * per la struttura) e, se il danno può coinvolgere l'ambiente circostante, le componenti aggiuntive
  * dell'Allegato E (Tab. E.1, perdite LE delle Tab. E.2–E.4), sommate al rischio della zona.
+ * Ogni linea porta il proprio impianto interno (Uw per rI e PLD, KS3 per PMS); PC e PM combinano gli impianti
+ * della zona (equazioni 10–11 e 14–15). PEB è unico per la struttura (SPD all'ingresso, con l'LPS almeno del suo
+ * livello), PSPD è della zona. FT può essere indicata dal proprietario per ogni zona (9.3).
+ * Prove con gli esempi dell'Allegato F in esempiNorma.test.ts.
  */
 import { areaRaccolta } from "./areaRaccolta";
 
@@ -139,7 +143,14 @@ export interface Adiacente { L: number; W: number; H: number; CDJ: number }
 export interface SezioneLinea { lunghezza: number; posa: number; ambiente: number; tipo: number }
 export interface Linea { nome: string; lunghezza: number; posa: number; ambiente: number; tipo: number; schermata: boolean; schermatura?: Schermatura; connessione?: string; adiacente?: Adiacente | null;
   /** linea suddivisa in sezioni SL (8.4): se presenti sostituiscono lunghezza, posa, ambiente e tipo */
-  sezioni?: SezioneLinea[] | null }
+  sezioni?: SezioneLinea[] | null;
+  /** tensione di tenuta Uw (kV) dell'impianto interno collegato a questa linea: rI e PLD della linea (A.5, Tab. B.11); assente = Uw della struttura */
+  uw?: number | null;
+  /** KS3 (Tab. B.10) del cablaggio dell'impianto interno di questa linea; assente = KS3 della zona */
+  ks3?: number | null;
+  /** impianto interno in rame collegato alla linea. Con linea esterna in fibra (nessuna linea metallica) va indicato:
+   *  conta per PC e PM con CLD = 1 (Tab. B.9, Nota 7). Con linea metallica è sempre presente salvo false. */
+  impiantoInterno?: boolean | null }
 
 /** Zona di rischio ZS (8.3): caratteristiche omogenee. */
 export interface Zona {
@@ -167,6 +178,10 @@ export interface Zona {
   spd?: ClasseLps | null;
   /** danno che può coinvolgere l'ambiente circostante (Allegato E); null = nessuno */
   ambiente?: Ambiente | null;
+  /** PSPD del sistema coordinato di SPD della zona, se diverso dalle Tab. B.7/B.8 (es. "migliore di LPL I") */
+  pspd?: number | null;
+  /** frequenza tollerabile del danno indicata dal proprietario (9.3); assente = 0,1 critici / 1 non critici */
+  FT?: number | null;
 }
 
 /** Dati comuni della struttura. */
@@ -267,10 +282,12 @@ export function calcolaZone(st: Struttura, zone: Zona[], p: Protezione): EsitoSt
   const PTWS = st.PTWS ?? 1;
   const NSG = k * st.NG;
   const AD = areaRaccolta(st.L, st.W, st.H);
-  const AM = areaVicinanze(st.L, st.W, Uw);
+  const uwLinea = (l: Linea) => (l.uw && l.uw > 0 ? l.uw : Uw);
+  // rM = 350/Uw con la tensione di tenuta più bassa degli impianti interni (A.3)
+  const UwMin = Math.min(Uw, ...st.linee.filter((l) => l.uw && l.uw > 0 && (l.connessione !== "nessuna" || l.impiantoInterno)).map((l) => l.uw as number));
+  const AM = areaVicinanze(st.L, st.W, UwMin);
   const ND = NSG * AD * st.CD * 1e-6;
   const NM = (1 / k) * NSG * AM * 1e-6;
-  const rI = 2000 / Math.pow(Uw, 1.8);
   const plps = PLPS[p.lps];
   const PS = p.lps === "nessuno" ? (st.PS ?? 1) : 1;
   const conL2 = st.danniMateriali !== false;
@@ -279,11 +296,14 @@ export function calcolaZone(st: Struttura, zone: Zona[], p: Protezione): EsitoSt
     const tratti: SezioneLinea[] = l.sezioni && l.sezioni.length ? l.sezioni : [l];
     const LC = tratti.reduce((a, t) => a + t.lunghezza * t.posa * t.ambiente * t.tipo, 0);
     const NL = NSG * 40 * LC * 1e-6;
-    const NI = (1 / k) * NSG * 2 * rI * LC * 1e-6;
+    const NI = (1 / k) * NSG * 2 * (2000 / Math.pow(uwLinea(l), 1.8)) * LC * 1e-6;
     const NDJ = l.adiacente ? NSG * areaRaccolta(l.adiacente.L, l.adiacente.W, l.adiacente.H) * l.adiacente.CDJ * l.tipo * 1e-6 : 0;
     const conn = CONNESSIONI.find((c) => c.id === l.connessione) ?? (l.schermata ? CONNESSIONI.find((c) => c.id === "sch-coll")! : CONNESSIONI[0]!);
     const sch: Schermatura = conn.schermoCollegato ? (l.schermatura && l.schermatura !== "no" ? l.schermatura : "5-20") : "no";
-    return { NL, NI, NDJ, CLD: conn.CLD, CLI: conn.CLI, PLD: probabilitaPLD(sch, Uw) };
+    // impianto interno collegato alla linea: con linea in fibra conta solo se dichiarato, con CLD = 1 (Tab. B.9, Nota 7)
+    const interno = conn.id === "nessuna" ? !!l.impiantoInterno : l.impiantoInterno !== false;
+    const CLDint = conn.id === "nessuna" ? 1 : conn.CLD;
+    return { NL, NI, NDJ, CLD: conn.CLD, CLI: conn.CLI, PLD: probabilitaPLD(sch, uwLinea(l)), interno, CLDint, ks3: l.ks3 ?? null };
   });
   const NL = linee.reduce((a, l) => a + l.NL, 0), NI = linee.reduce((a, l) => a + l.NI, 0), NDJ = linee.reduce((a, l) => a + l.NDJ, 0);
 
@@ -298,7 +318,10 @@ export function calcolaZone(st: Struttura, zone: Zona[], p: Protezione): EsitoSt
     const LD = z.LD ?? 1e-1;
     const servite = linee.filter((_, i) => z.linee == null || z.linee.includes(i));
     const spd: ClasseLps = z.spd ?? p.spd;
-    const peb = PEB[spd], pspd = PSPD[spd];
+    // PEB: SPD del collegamento equipotenziale all'ingresso delle linee, uno per la struttura (con l'LPS almeno del suo livello);
+    // PSPD: sistema coordinato di SPD della zona (B.5, B.6, Tab. B.7/B.8), oppure il valore indicato per la zona
+    const peb = Math.min(PEB[p.spd], p.lps !== "nessuno" ? PEB[p.lps] : 1);
+    const pspd = z.pspd != null && z.pspd >= 0 ? z.pspd : PSPD[spd];
     const amb = z.ambiente ? SCENARI_AMBIENTE.find((x) => x.id === z.ambiente!.scenario) : undefined;
     const PPE = z.ambiente ? Math.min(1, Math.max(0, z.ambiente.tE)) : 0;
     const l1e = amb ? (z.ambiente!.fuoriSito ? amb.esterno : amb.interno) : { LF1E: 0, LO1E: 0 };
@@ -315,8 +338,13 @@ export function calcolaZone(st: Struttura, zone: Zona[], p: Protezione): EsitoSt
     const PAT = plps * pam * z.rt * PTWS;
     const PAD = PTWS * pam * plps;
     const PB = PS * plps * rp * rf;
-    const PC = 1 - servite.reduce((a, l) => a * (1 - pspdC * l.CLD), 1);
-    const PM = pspd * pms(z);
+    // PC e PM per ogni impianto interno della zona, combinati (equazioni 10 e 11): PMS con il KS3 del proprio cablaggio
+    const impianti = servite.filter((l) => l.interno);
+    const ks12 = (z.wm1 != null && z.wm1 > 0 ? Math.min(1, 0.12 * z.wm1) : 1) * (z.wm2 != null && z.wm2 > 0 ? Math.min(1, 0.12 * z.wm2) : 1);
+    const PC = 1 - impianti.reduce((a, l) => a * (1 - pspdC * l.CLDint), 1);
+    const PM = z.linee == null && !st.linee.length
+      ? pspd * pms(z) // struttura senza linee: impianto interno unico della zona
+      : 1 - impianti.reduce((a, l) => a * (1 - pspd * Math.pow(ks12 * (l.ks3 ?? z.ks3 ?? 1), 2)), 1);
 
     const RA = z.esterna ? ND * PAT * PP * LT : 0;
     const RAD = z.esposti ? ND * PAD * PP * LD : 0;
@@ -346,7 +374,7 @@ export function calcolaZone(st: Struttura, zone: Zona[], p: Protezione): EsitoSt
     const R = RL1 + RL2;
     const frequenze = { FC: ND * PC * Pe, FM: NM * PM * Pe, FW, FZ };
     const F = frequenze.FC + frequenze.FM + frequenze.FW + frequenze.FZ;
-    const FT = z.serviziCritici ? FT_CRITICI : FT_NON_CRITICI;
+    const FT = z.FT != null && z.FT > 0 ? z.FT : z.serviziCritici ? FT_CRITICI : FT_NON_CRITICI;
     return {
       zona: z, componenti: { RA, RAD, RB: RB1 + RB2, RC: RC1 + RC2, RM: RM1 + RM2, RU, RV: RV1 + RV2, RW: RW1 + RW2, RZ: RZ1 + RZ2, RE: RE1 + RE2 },
       RE1, RE2, spd, RL1, RL2, R, conforme: R <= RT, frequenze, F, FT, frequenzaConforme: F <= FT,
@@ -387,7 +415,9 @@ export function protezionePerZona(st: Struttura, zone: Zona[]): { lps: ClasseLps
       if (l) spd[z.id] = l;
       return l !== null;
     });
-    if (ok) return { lps, spd, esito: calcolaZone(st, zone.map((z) => ({ ...z, spd: spd[z.id]! })), { lps, spd: "nessuno" }) };
+    // gli SPD all'ingresso delle linee (collegamento equipotenziale) sono unici: del livello più alto richiesto dalle zone
+    const ingresso = zone.reduce<ClasseLps>((a, z) => (ORDINE.indexOf(spd[z.id]!) > ORDINE.indexOf(a) ? spd[z.id]! : a), "nessuno");
+    if (ok) return { lps, spd, esito: calcolaZone(st, zone.map((z) => ({ ...z, spd: spd[z.id]! })), { lps, spd: ingresso }) };
   }
   return null;
 }
