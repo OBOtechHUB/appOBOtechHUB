@@ -38,7 +38,7 @@ function Tabella({ intestazioni, righe }: { intestazioni: string[]; righe: (stri
     <tbody>{righe.map((r, i) => <tr key={i} className="border-b">{r.map((c, j) => <td key={j} className={`p-2 ${typeof c === "number" ? "font-mono" : ""}`}>{typeof c === "number" ? num(c) : c}</td>)}</tr>)}</tbody></table></div>;
 }
 
-function Blocco({ id, titolo, rif, aperto, children }: { id: string; titolo: string; rif: string; aperto?: boolean; children: ReactNode }) {
+function Blocco({ id, titolo, rif, aperto, children }: { id: string; titolo: string; rif: string; aperto?: boolean | undefined; children: ReactNode }) {
   return <details id={`norma-${id}`} open={aperto} className="group rounded-lg border bg-card">
     <summary className="flex cursor-pointer list-none flex-wrap items-baseline justify-between gap-2 p-3 font-semibold">
       <span><span className="mr-2 inline-block transition-transform group-open:rotate-90">›</span>{titolo}</span>
