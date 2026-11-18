@@ -7,10 +7,11 @@ import { SchemaAreeRaccolta, SchemaZone } from "@/components/schemi/SchemiRischi
 import { aggiornaEsteso, useEsteso } from "@/lib/statoProgetto";
 import { aggiornaComputo, aggiornaDati, useComputo, useDatiEdificio } from "@/lib/progettoStore";
 import fattori from "@/dati/rischio/fattorePosizione.json";
+import { leggiStato, lineaNuova, zonaNuova, type StatoRischio } from "@/lib/statoRischio";
 import {
   AMBIENTE_LINEA, AMBIENTI_CIRCOSTANTI, CABLAGGIO, SCENARI_AMBIENTE, CATEGORIE, CONNESSIONI, MISURE_CONTATTO, PAVIMENTO, POSA_LINEA, PROTEZIONE_INCENDIO, RISCHIO_INCENDIO, RT_R1, SCHERMATURE, TIPO_LINEA, TIPO_STRUTTURA,
-  calcolaZone, protezioneMinimaZone, protezionePerZona, spdMinimoZona, spdMinimoZone, zonaUnica,
-  type ClasseLps, type DatiRischio, type Linea, type SezioneLinea, type Opzione, type Schermatura, type Struttura, type Zona,
+  calcolaZone, protezioneMinimaZone, protezionePerZona, spdMinimoZona, spdMinimoZone,
+  type ClasseLps, type Linea, type SezioneLinea, type Opzione, type Schermatura, type Struttura, type Zona,
 } from "@/calcoli/rischio/rischioR1";
 
 const sci = (v: number) => (v === 0 ? "0" : v.toExponential(2).replace(".", ",").replace("e", " · 10^"));
@@ -29,22 +30,6 @@ function SceltaId({ etichetta, opzioni, id, onChange }: { etichetta: string; opz
 function Barra({ nome, valore, max }: { nome: string; valore: number; max: number }) {
   const w = valore > 0 && max > 0 ? Math.max(2, (Math.log10(valore) - Math.log10(max) + 6) / 6 * 100) : 0;
   return <div className="grid grid-cols-[3rem_1fr_7rem] items-center gap-2 text-sm"><span className="font-mono">{nome}</span><span className="h-2 rounded-full bg-muted"><span className="block h-2 rounded-full bg-primary" style={{ width: `${Math.min(100, w)}%` }} /></span><span className="text-right font-mono text-xs">{sci(valore)}</span></div>;
-}
-
-/** Dati salvati nel progetto (versione con le zone). */
-interface StatoRischio { versione: 2; k: number; Uw: number; PS: number; PTWS: number; danniMateriali: boolean; linee: Linea[]; zone: Zona[] }
-
-const lineaNuova = (nome: string): Linea => ({ nome, lunghezza: 1000, posa: 0.3, ambiente: 0.5, tipo: 1, schermata: false, connessione: "interrata-ns", schermatura: "no", adiacente: null });
-const zonaNuova = (nome: string, esterna = false): Zona => ({ id: nuovoId(), nome, oreAnno: 8760, rt: 1e-2, rp: 1, rfId: "ordinario", categoria: "normale", misureContatto: 1, esterna, esposti: false, LD: 0.1, impiantiCritici: false, serviziCritici: false, linee: null, wm1: null, wm2: null, ks3: 1, oreApparecchi: 8760 });
-
-function leggiStato(raw: Record<string, unknown> | null): StatoRischio {
-  if (raw && raw["versione"] === 2) return raw as unknown as StatoRischio;
-  if (raw && Array.isArray(raw["linee"])) { // prima versione a zona unica
-    const base: DatiRischio = { L: 1, W: 1, H: 1, NG: 1, CD: 1, LF: 5e-2, rt: 1e-2, rp: 1, rf: 1e-2, misureContatto: 1, impiantiCritici: false, frazionePresenza: 1, linee: [] };
-    const { st, zona } = zonaUnica(Object.assign(base, raw as Partial<DatiRischio>));
-    return { versione: 2, k: st.k ?? 2, Uw: st.Uw ?? 2.5, PS: st.PS ?? 1, PTWS: 1, danniMateriali: st.danniMateriali !== false, linee: st.linee, zone: [zona] };
-  }
-  return { versione: 2, k: 2, Uw: 2.5, PS: 1, PTWS: 1, danniMateriali: true, linee: [lineaNuova("Energia"), lineaNuova("Telecomunicazioni")], zone: [zonaNuova("Struttura", true)] };
 }
 
 export function RischioPage() {

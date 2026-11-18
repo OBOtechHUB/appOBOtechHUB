@@ -60,3 +60,18 @@ export async function eliminaProgetto({ data }: { data: { id: string } }) {
   if (error) throw new Error("Eliminazione non riuscita.");
   return { ok: true };
 }
+
+// ---------- archivio delle revisioni emesse (supabase/revisioni.sql) ----------
+/** Copia della revisione emessa nell'archivio. Restituisce false se l'archivio non è ancora attivo. */
+export async function archiviaRevisione(r: { progetto: string; rev: string; autore: string; descrizione: string; impronta: string; dati: unknown }): Promise<boolean> {
+  const { error } = await supabase.from("progetti_revisioni").insert({ progetto: r.progetto, rev: r.rev, autore: r.autore, descrizione: r.descrizione, impronta: r.impronta, dati: r.dati as Json });
+  if (!error) return true;
+  if (error.code === "23505") return true; // già archiviata
+  return false;
+}
+/** Copia archiviata di una revisione (null se assente o archivio non attivo). */
+export async function leggiRevisione(progetto: string, rev: string): Promise<{ dati: unknown; data: string } | null> {
+  const { data, error } = await supabase.from("progetti_revisioni").select("dati,data").eq("progetto", progetto).eq("rev", rev).maybeSingle();
+  if (error || !data) return null;
+  return { dati: data.dati, data: data.data };
+}

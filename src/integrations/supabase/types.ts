@@ -59,6 +59,12 @@ export type Database = {
         }
         Relationships: []
       }
+      progetti_revisioni: {
+        Row: { id: string; progetto: string; utente: string; rev: string; data: string; autore: string; descrizione: string; impronta: string; dati: Json }
+        Insert: { id?: string; progetto: string; utente?: string; rev: string; data?: string; autore?: string; descrizione?: string; impronta?: string; dati: Json }
+        Update: { id?: string; progetto?: string; utente?: string; rev?: string; data?: string; autore?: string; descrizione?: string; impronta?: string; dati?: Json }
+        Relationships: []
+      }
       progetti: {
         Row: {
           codice: string

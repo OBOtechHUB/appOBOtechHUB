@@ -12,11 +12,16 @@ import { areaRaccolta } from "@/calcoli/rischio/areaRaccolta";
 import { eventiPericolosi } from "@/calcoli/rischio/eventiPericolosi";
 import { aggiornaDati, useDatiEdificio } from "@/lib/progettoStore";
 import { Campo, inputCls } from "@/components/Campo";
+import { RevisioniProgetto } from "@/components/progetto/RevisioniProgetto";
+import { ControlloProgetto } from "@/components/progetto/ControlloProgetto";
+import { useControlloProgetto } from "@/lib/controlloProgetto";
+import { problemi } from "@/calcoli/progetto/controllo";
 
 const fmt = new Intl.NumberFormat("it-IT", { maximumFractionDigits: 2, minimumFractionDigits: 2 });
 const fmtND = new Intl.NumberFormat("it-IT", { maximumFractionDigits: 4, minimumFractionDigits: 4 });
 
 export function DatiEdificioPage() {
+  const controllo = useControlloProgetto(), problemiProgetto = problemi(controllo);
   const d = useDatiEdificio();
   const s = useEsteso();
   const navigate = useNavigate();
@@ -50,6 +55,8 @@ export function DatiEdificioPage() {
         <ArrowLeft className="h-4 w-4" /> Moduli
       </Link>
       <div className="mt-2 flex flex-wrap items-center justify-between gap-3"><h1 className="font-display text-2xl font-bold">Dati edificio</h1><Button type="button" variant="outline" onClick={caricaEsempio}>Carica esempio di prova</Button></div>
+      <ControlloProgetto voci={controllo} />
+      <RevisioniProgetto problemi={problemiProgetto} />
 
       <div className="mt-6 grid gap-6 md:grid-cols-[1fr_300px]">
         <form className="space-y-6 rounded-lg border bg-card p-5" onSubmit={(e) => e.preventDefault()}>

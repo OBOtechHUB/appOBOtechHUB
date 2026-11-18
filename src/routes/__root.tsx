@@ -25,6 +25,7 @@ import {validaCatalogo} from "@/lib/catalogo";
 import {particolareSchema} from "@/calcoli/particolari/selezione";
 import {impostaVerificati} from "@/lib/verificaParticolari";
 import {sostituisciParametriCaptazione} from "@/lib/parametri";
+import { AvvisoEmissione } from "@/components/progetto/RevisioniProgetto";
 
 function NotFoundComponent() {
   return (
@@ -130,5 +131,5 @@ function PortalShell(){
       if(event==="SIGNED_OUT"){impostaAttivo(null);ripristinaLocale();queryClient.clear();}else {void queryClient.invalidateQueries();if(session)libreria(session.user.id);}
     });return()=>data.subscription.unsubscribe();
   },[router,queryClient,setUser,setPronto]);
-  return <><AggiornaApp/><AppHeader/><ProjectSync/><ControlloAccesso/><AppFooter/></>;
+  return <><AggiornaApp/><AppHeader/><AvvisoEmissione/><ProjectSync/><ControlloAccesso/><AppFooter/></>;
 }
