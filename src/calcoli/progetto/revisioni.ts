@@ -41,6 +41,6 @@ export function emetti(revisioni: Revisione[], contenuto: unknown, dati: { autor
 export function apriRevisione(e: Emissione): Emissione { return { stato: "bozza", rev: e.rev, impronta: null }; }
 
 /** Progetto emesso ma con contenuto diverso da quello emesso. */
-export function modificatoDopoEmissione(e: Emissione, contenuto: unknown): boolean {
-  return e.stato === "emesso" && !!e.impronta && impronta(contenuto) !== e.impronta;
+export function modificatoDopoEmissione(e: Emissione | null | undefined, contenuto: unknown): boolean {
+  return !!e && e.stato === "emesso" && !!e.impronta && impronta(contenuto) !== e.impronta;
 }

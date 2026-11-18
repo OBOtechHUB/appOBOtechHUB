@@ -11,7 +11,7 @@ export async function salvaAttivo():Promise<void> {
   if(salvataggio){await salvataggio;if(leggiAttivo()!==attivo)return;return salvaAttivo();}
   const dati=snapshot(),serializzato=JSON.stringify(dati);if(serializzato===attivo.salvato)return;
   // progetto emesso modificato: non si salva finché non si apre la revisione successiva o si annullano le modifiche
-  if(modificatoDopoEmissione(dati.esteso.emissione,dati))return;
+  if(modificatoDopoEmissione(dati.esteso?.emissione,dati))return;
   const job=(async()=>{const {data}=await supabase.auth.getUser();if(!data.user||data.user.id!==attivo.proprietario||leggiAttivo()!==attivo)throw new Error("Sessione o progetto cambiati.");await salvaProgetto({data:{id:attivo.id,codice:attivo.codice,nome:dati.edificio.nomeProgetto||attivo.nome,comune:dati.edificio.comune,dati}});attivo.salvato=serializzato;})();
   salvataggio=job;try{await job;}finally{if(salvataggio===job)salvataggio=null;}
   if(leggiAttivo()===attivo&&JSON.stringify(snapshot())!==serializzato)await salvaAttivo();
@@ -27,7 +27,7 @@ export function ProjectSync(){
   useEffect(()=>{if(!user||attivo)return;const raw=sessionStorage.getItem("lps-progetto-attivo");if(!raw)return;try{const saved=JSON.parse(raw) as {id:string;proprietario:string};if(saved.proprietario!==user.id){sessionStorage.removeItem("lps-progetto-attivo");return;}let cancelled=false;void leggiProgetto({data:{id:saved.id}}).then((p)=>{if(cancelled)return;caricaSnapshot(p.dati);impostaAttivo({id:p.id,nome:p.nome,codice:p.codice,proprietario:p.utente,salvato:JSON.stringify(snapshot())});}).catch(()=>{sessionStorage.removeItem("lps-progetto-attivo");setStato("Progetto non disponibile.");});return()=>{cancelled=true;};}catch{sessionStorage.removeItem("lps-progetto-attivo");return;}},[user,attivo]);
   useEffect(()=>{if(!user||!attivo||attivo.proprietario!==user.id)return;
     const timer=setInterval(()=>{const a=leggiAttivo();if(!a||a.proprietario!==user.id)return;const dati=snapshot();const serialized=JSON.stringify(dati);if(serialized===a.salvato)return;
-      if(modificatoDopoEmissione(dati.esteso.emissione,dati)){setStato("Salvataggio sospeso: progetto emesso");return;}
+      if(modificatoDopoEmissione(dati.esteso?.emissione,dati)){setStato("Salvataggio sospeso: progetto emesso");return;}
       setStato("Salvataggio…");void salvaAttivo().then(()=>setStato("Salvato")).catch(()=>setStato("Salvataggio non riuscito — riprova"));
     },AUTOSAVE_MS);return()=>clearInterval(timer);
   },[user,attivo,salva]);
