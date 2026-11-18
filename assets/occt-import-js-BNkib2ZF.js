@@ -1,0 +1,1 @@
+var e=`/appOBOtechHUB/assets/occt-import-js-BhHfLpto.wasm`;export{e as default};
