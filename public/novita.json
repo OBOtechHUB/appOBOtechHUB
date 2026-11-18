@@ -2,6 +2,21 @@
   "nota": "Registro degli aggiornamenti di Progettazione LPS. Una voce per aggiornamento, la più recente per prima (app: lps). Viene mostrato nella barra \"Aggiorna app\", nel riquadro Novità e nella pagina Novità di OBO Hub.",
   "aggiornamenti": [
     {
+      "id": "2026-11-18-lps-1",
+      "data": "2026-11-18",
+      "app": "lps",
+      "titolo": "Dati normativi più completi",
+      "voci": [
+        "Nuova sezione Riferimenti normativi di progetto in Dati normativi: parametri del fulmine, captazione, calate e distanza di separazione, dispersori, materiali e sezioni minime, valutazione del rischio, SPD e verifiche periodiche",
+        "Il livello di protezione del progetto è evidenziato; si può evidenziare un altro livello per confrontare"
+      ],
+      "titolo_en": "More complete standard data",
+      "voci_en": [
+        "New Project standard references section in Standard data: lightning parameters, air-termination, down conductors and separation distance, earthing, materials and minimum sizes, risk assessment, SPDs and periodic inspections",
+        "The project protection level is highlighted; another level can be highlighted to compare"
+      ]
+    },
+    {
       "id": "2026-11-17-lps-4",
       "data": "2026-11-17",
       "app": "lps",

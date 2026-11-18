@@ -9,10 +9,15 @@ import { categorie, type Articolo } from "@/calcoli/materiali/tipi";
 import {salvaLibreria} from "@/lib/libreria";
 import {aggiornaParametriCaptazione,useParametriCaptazione} from "@/lib/parametri";
 import parametriLPL from "@/dati/captazione/parametriLPL.json";
+import { RiepilogoNormativo } from "@/components/norma/RiepilogoNormativo";
+import { useDatiEdificio } from "@/lib/progettoStore";
+import { useEsteso } from "@/lib/statoProgetto";
 
 export function DatiNormativiPage() {
   const c = useComputo(); const fileRef = useRef<HTMLInputElement>(null);
   const parametri = useParametriCaptazione();
+  const d = useDatiEdificio(), esteso = useEsteso();
+  const lplProgetto = d.lplProgetto ?? esteso.lpl;
   const [pendenza, setPendenza] = useState<string>(parametri.pendenzaMassimaMaglia == null ? "" : String(parametri.pendenzaMassimaMaglia));
   const [bozza, setBozza] = useState<Articolo[] | null>(null);
   const [messaggio, setMessaggio] = useState(""); const [errore, setErrore] = useState(false); const [busy, setBusy] = useState(false);
@@ -37,7 +42,12 @@ export function DatiNormativiPage() {
     catch (e) { setErrore(true); setMessaggio(`${e instanceof Error ? e.message : "Salvataggio in Cloud non riuscito."} Il valore resta salvato solo su questo dispositivo.`); }
   }
   return <main className="mx-auto max-w-5xl px-4 py-6"><PageTitle titolo="Dati normativi" />
-    <p className="mt-3 text-sm text-muted-foreground">Il catalogo personale non costituisce una fonte normativa. Codici, prezzi e particolari richiedono verifica; le righe ESEMPIO non sono dati di progetto validati.</p>
+    <section className="mt-6">
+      <h2 className="font-display text-xl font-semibold">Riferimenti normativi di progetto</h2>
+      <p className="mt-2 text-sm text-muted-foreground">Tutti i valori della CEI EN IEC 62305:2024 (parti 1–4) che l’app usa nei calcoli, per argomento, con la tabella di riferimento. La colonna evidenziata è il livello di protezione del progetto.</p>
+      <RiepilogoNormativo key={lplProgetto ?? "-"} lplProgetto={lplProgetto} />
+    </section>
+    <p className="mt-6 border-t pt-5 text-sm text-muted-foreground">Il catalogo personale non costituisce una fonte normativa. Codici, prezzi e particolari richiedono verifica; le righe ESEMPIO non sono dati di progetto validati.</p>
     <section className="mt-6 border-t pt-5">
       <div className="flex flex-wrap items-center justify-between gap-3"><h2 className="font-display text-xl font-semibold">Catalogo <span className="font-mono text-sm text-muted-foreground">({righe.length})</span></h2>
         <div className="flex flex-wrap gap-2">
@@ -63,10 +73,7 @@ export function DatiNormativiPage() {
     </section>
     <section className="mt-6 border-t pt-5">
       <h2 className="font-display text-xl font-semibold">Parametri di captazione</h2>
-      <p className="mt-2 text-xs text-muted-foreground">Raggio della sfera rotolante e lato massimo della maglia per livello di protezione (CEI EN IEC 62305-3:2024, Tab. 2; CEI EN IEC 62305-1:2024, Tab. 4). Il lato della maglia può crescere al massimo del 25 % se il perimetro della maglia non aumenta.</p>
-      <div className="mt-3 overflow-x-auto"><table className="w-full max-w-md text-sm"><thead><tr className="border-b text-left"><th className="p-2">LPL</th><th className="p-2">Raggio sfera (m)</th><th className="p-2">Lato maglia (m)</th></tr></thead><tbody>
-        {(["I", "II", "III", "IV"] as const).map((l) => <tr key={l} className="border-b"><td className="p-2 font-semibold">LPL {l}</td><td className="p-2 font-mono">{parametriLPL[l].raggio}</td><td className="p-2 font-mono">{parametriLPL[l].latoMaglia}</td></tr>)}
-      </tbody></table></div>
+      <p className="mt-2 text-xs text-muted-foreground">Raggio della sfera e lato della maglia per livello sono nella sezione Captazione dei riferimenti normativi qui sopra.</p>
       <div className="mt-4 flex flex-wrap items-end gap-3">
         <label className="block text-sm">Pendenza massima maglia (Δz/Δx)
           <input aria-label="Pendenza massima maglia" className={`${inputCls} mt-1 w-40`} type="number" min="0" step="0.01" placeholder="non impostata" value={pendenza} onChange={(e) => setPendenza(e.target.value)} />

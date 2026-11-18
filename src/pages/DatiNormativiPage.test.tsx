@@ -24,7 +24,7 @@ async function renderPagina() {
 describe("Dati normativi – parametri di captazione", () => {
   it("mostra la tabella LPL e il campo pendenza massima maglia", async () => {
     await renderPagina();
-    expect(screen.getByText("LPL III")).toBeInTheDocument();
+    expect(screen.getAllByText(/LPL III/).length).toBeGreaterThan(0);
     expect(screen.getByLabelText("Pendenza massima maglia")).toBeInTheDocument();
   });
 
@@ -44,5 +44,21 @@ describe("Dati normativi – parametri di captazione", () => {
     fireEvent.click(screen.getByRole("button", { name: /Salva parametri/ }));
     await waitFor(() => expect(screen.getByRole("alert").textContent).toContain("numero positivo"));
     expect(leggiParametriCaptazione().pendenzaMassimaMaglia).toBeNull();
+  });
+});
+
+describe("Dati normativi – riferimenti normativi di progetto", () => {
+  it("mostra tutti gli argomenti della norma, non solo i livelli LPL", async () => {
+    await renderPagina();
+    for (const t of ["Parametri del fulmine", "Captazione", "Calate e distanza di separazione", "Dispersori", "Materiali e sezioni minime", "Valutazione del rischio", "SPD e tensioni di tenuta", "Verifiche periodiche"])
+      expect(screen.getAllByText(t).length).toBeGreaterThan(0);
+    expect(screen.getByText("Coefficiente ki (classe dell'LPS)")).toBeInTheDocument();
+    expect(screen.getByText("Corrente minima di picco intercettata")).toBeInTheDocument();
+  });
+
+  it("evidenzia il livello scelto", async () => {
+    await renderPagina();
+    fireEvent.click(screen.getByRole("button", { name: /^LPL I(\s|$)/ }));
+    expect(screen.getByRole("button", { name: /^LPL I(\s|$)/ }).getAttribute("aria-pressed")).toBe("true");
   });
 });
