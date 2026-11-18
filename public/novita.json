@@ -2,6 +2,19 @@
   "nota": "Registro degli aggiornamenti di Progettazione LPS. Una voce per aggiornamento, la più recente per prima (app: lps). Viene mostrato nella barra \"Aggiorna app\", nel riquadro Novità e nella pagina Novità di OBO Hub.",
   "aggiornamenti": [
     {
+      "id": "2026-11-19-lps-4",
+      "data": "2026-11-19",
+      "app": "lps",
+      "titolo": "Pagina Licenze",
+      "voci": [
+        "Nel piè di pagina c'è il link Licenze: elenco delle librerie usate dall'app con la loro licenza e la nota sul lettore DWG (GPL-3.0), con il link al codice sorgente"
+      ],
+      "titolo_en": "Licences page",
+      "voci_en": [
+        "The footer has a Licences link: list of the libraries used by the app with their licence and the note on the DWG reader (GPL-3.0), with a link to the source code"
+      ]
+    },
+    {
       "id": "2026-11-19-lps-3",
       "data": "2026-11-19",
       "app": "lps",

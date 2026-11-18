@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { ArrowUp } from "lucide-react";
 import { URL_HUB } from "@/lib/accesso";
+import { Link } from "@tanstack/react-router";
 
 /** Fascia ardesia in fondo alla pagina + pulsante tondo "torna su". */
 export function AppFooter() {
@@ -22,7 +23,8 @@ export function AppFooter() {
             <a href={URL_HUB} className="hover:text-white">OBO Hub</a><span aria-hidden="true">|</span>
             <a href={`${URL_HUB}novita.html`} className="hover:text-white">Novità</a><span aria-hidden="true">|</span>
             <a href={`${URL_HUB}privacy.html`} className="hover:text-white">Privacy</a><span aria-hidden="true">|</span>
-            <a href={`${URL_HUB}condizioni.html`} className="hover:text-white">Condizioni d'uso</a>
+            <a href={`${URL_HUB}condizioni.html`} className="hover:text-white">Condizioni d'uso</a><span aria-hidden="true">|</span>
+            <Link to="/licenze" className="hover:text-white">Licenze</Link>
           </nav>
         </div>
       </footer>

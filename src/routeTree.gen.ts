@@ -31,6 +31,7 @@ import { Route as DownloadCadRouteImport } from './routes/download-cad'
 import { Route as Edificio3dRouteImport } from './routes/edificio-3d'
 import { Route as GuidaRouteImport } from './routes/guida'
 import { Route as ParticolariRouteImport } from './routes/particolari'
+import { Route as LicenzeRouteImport } from './routes/licenze'
 import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as StrumentiRouteImport } from './routes/strumenti'
@@ -147,6 +148,11 @@ const ParticolariRoute = ParticolariRouteImport.update({
   path: '/particolari',
   getParentRoute: () => rootRouteImport,
 } as any)
+const LicenzeRoute = LicenzeRouteImport.update({
+  id: '/licenze',
+  path: '/licenze',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const PrivacyRoute = PrivacyRouteImport.update({
   id: '/privacy',
   path: '/privacy',
@@ -200,6 +206,7 @@ export interface FileRoutesByFullPath {
   '/edificio-3d': typeof Edificio3dRoute
   '/guida': typeof GuidaRoute
   '/particolari': typeof ParticolariRoute
+  '/licenze': typeof LicenzeRoute
   '/privacy': typeof PrivacyRoute
   '/reset-password': typeof ResetPasswordRoute
   '/strumenti': typeof StrumentiRoute
@@ -229,6 +236,7 @@ export interface FileRoutesByTo {
   '/edificio-3d': typeof Edificio3dRoute
   '/guida': typeof GuidaRoute
   '/particolari': typeof ParticolariRoute
+  '/licenze': typeof LicenzeRoute
   '/privacy': typeof PrivacyRoute
   '/reset-password': typeof ResetPasswordRoute
   '/strumenti': typeof StrumentiRoute
@@ -260,6 +268,7 @@ export interface FileRoutesById {
   '/edificio-3d': typeof Edificio3dRoute
   '/guida': typeof GuidaRoute
   '/particolari': typeof ParticolariRoute
+  '/licenze': typeof LicenzeRoute
   '/privacy': typeof PrivacyRoute
   '/reset-password': typeof ResetPasswordRoute
   '/strumenti': typeof StrumentiRoute
@@ -291,6 +300,7 @@ export interface FileRouteTypes {
     | '/edificio-3d'
     | '/guida'
     | '/particolari'
+    | '/licenze'
     | '/privacy'
     | '/reset-password'
     | '/strumenti'
@@ -320,6 +330,7 @@ export interface FileRouteTypes {
     | '/edificio-3d'
     | '/guida'
     | '/particolari'
+    | '/licenze'
     | '/privacy'
     | '/reset-password'
     | '/strumenti'
@@ -350,6 +361,7 @@ export interface FileRouteTypes {
     | '/edificio-3d'
     | '/guida'
     | '/particolari'
+    | '/licenze'
     | '/privacy'
     | '/reset-password'
     | '/strumenti'
@@ -381,6 +393,7 @@ export interface RootRouteChildren {
   Edificio3dRoute: typeof Edificio3dRoute
   GuidaRoute: typeof GuidaRoute
   ParticolariRoute: typeof ParticolariRoute
+  LicenzeRoute: typeof LicenzeRoute
   PrivacyRoute: typeof PrivacyRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
   StrumentiRoute: typeof StrumentiRoute
@@ -543,6 +556,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ParticolariRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/licenze': {
+      id: '/licenze'
+      path: '/licenze'
+      fullPath: '/licenze'
+      preLoaderRoute: typeof LicenzeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/privacy': {
       id: '/privacy'
       path: '/privacy'
@@ -624,6 +644,7 @@ const rootRouteChildren: RootRouteChildren = {
   Edificio3dRoute: Edificio3dRoute,
   GuidaRoute: GuidaRoute,
   ParticolariRoute: ParticolariRoute,
+  LicenzeRoute: LicenzeRoute,
   PrivacyRoute: PrivacyRoute,
   ResetPasswordRoute: ResetPasswordRoute,
   StrumentiRoute: StrumentiRoute,
