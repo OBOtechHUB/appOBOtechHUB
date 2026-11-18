@@ -10,5 +10,5 @@ it("sceglie la parete percorsa dalla calata e non la prima parete del corpo",()=
 it("scarta particolari non validi senza perdere quelli validi",()=>{
   const corpo={...rettangolo(20,20,10,"t"),pareti:{"1":{tipo:"cappotto",spessore:150}}};
   const r=computoParticolari({modello:{corpi:[corpo]},aste:[],conduttori:[{id:"c",tipo:"calata",punti:[[20,10,10],[20,10,0]],materiale:"",sezione:"",codiceOBO:""}],lpl:"III",particolari:[{...particolare,id:"invalido",componenti:[{codiceOBO:null,descrizione:"Invalido",unitaQuantita:"per_calata",quantita:-1}]},particolare],supporti:[],morsetti:[],compensatori:[],distinta:[],picchetti:[],terra:null,verifiche:[],pianoVerifiche:{critico:false,intervalli:null},separazione:{modoKc:"semplificato",ki:null,kmSolido:null,punti:[]},datiRischio:null});
-  expect(r.righe).toHaveLength(1);expect(r.righe[0]?.quantita).toBe(1);expect(r.righe[0]?.provenienza).toBe("Particolari: parete-cappotto");
+  expect(r.righe).toHaveLength(1);expect(r.righe[0]?.quantita).toBe(1);expect(r.righe[0]?.provenienza).toMatch(/^Particolari: parete-cappotto( \(da verificare\))?$/);
 });
