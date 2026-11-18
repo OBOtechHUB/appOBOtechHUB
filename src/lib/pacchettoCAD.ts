@@ -1,0 +1,33 @@
+/** Testo del file LEGGIMI del pacchetto CAD (righe Windows). */
+export function leggimiCAD(nome: string): string {
+  return [
+    "PROGETTAZIONE LPS - PACCHETTO PER AUTOCAD E ZWCAD",
+    "",
+    "Contenuto della cartella",
+    `  ${nome}.dxf       tavola 2D (pianta coperture, legenda con codici OBO, particolari, cartiglio)`,
+    `  ${nome}.lpsdati   dati del progetto per il modello 3D e la distinta`,
+    "  LPS.lsp            programma per AutoCAD e ZWCAD",
+    "",
+    "Come si usa (una sola volta per progetto)",
+    "  1. Estrai tutta la cartella dallo ZIP (non aprire i file dentro lo ZIP).",
+    `  2. Apri ${nome}.dxf con AutoCAD o ZWCAD (doppio clic o Apri).`,
+    "  3. Trascina LPS.lsp dentro la finestra del disegno.",
+    "     Se compare l'avviso di sicurezza scegli \"Carica una volta\" (AutoCAD) o \"Carica\" (ZWCAD).",
+    "  4. Alla domanda \"Costruire il disegno LPS...\" premi Invio.",
+    "     Il programma disegna il modello 3D accanto alla tavola con blocchi e codici OBO,",
+    "     inserisce la distinta dei materiali e salva il disegno in formato DWG nella stessa cartella",
+    `     (${nome}.dwg; se esiste gia' non viene sovrascritto: si aggiunge un numero).`,
+    "",
+    "Blocchi OBO ufficiali (facoltativo)",
+    "  Se nella cartella c'e' una sottocartella \"blocchi\" con i file <codice>.dwg, vengono usati quelli.",
+    "  Altrimenti si usano i simboli standard LPS con lo stesso nome e gli attributi CODICE, DESCRIZIONE, TIPO.",
+    "  La cartella dei blocchi si puo' indicare anche una volta per tutte con il comando LPS-BLOCCHI.",
+    "",
+    "Comandi disponibili dopo il caricamento: LPS (elenco), LPS-AUTO, LPS-IMPORTA, LPS-DISTINTA, LPS-SFERA,",
+    "LPS-ESPORTA, LPS-BLOCCHI.",
+    "",
+    "Stampa: la tavola si stampa dallo spazio modello con finestra sulla squadratura; il modello 3D e' a destra",
+    "della tavola e non va stampato.",
+    "",
+  ].join("\r\n");
+}

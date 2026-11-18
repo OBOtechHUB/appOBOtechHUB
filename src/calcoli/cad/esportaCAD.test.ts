@@ -62,3 +62,11 @@ describe("esportazione verso il CAD", () => {
     expect(t.indexOf("(VOCE")).toBeLessThan(t.indexOf("(SUPPORTO"));
   });
 });
+
+describe("record ORIGINE per LPS-AUTO", () => {
+  it("scrive l'origine del modello 3D quando indicata", () => {
+    const t = generaFileCAD({ progetto: { codice: "P", nome: "N", comune: "C", lpl: "III" }, edificio: { corpi: [] }, origine: [120.5, -3, 0] });
+    expect(t).toContain("(ORIGINE 120.5000 -3.0000 0.0000)");
+    expect(generaFileCAD({ progetto: {}, edificio: { corpi: [] } })).not.toMatch(/ORIGINE/);
+  });
+});

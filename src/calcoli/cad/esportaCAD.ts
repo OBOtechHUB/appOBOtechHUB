@@ -42,6 +42,8 @@ export interface ProgettoCAD {
   distinta?: { codice: string; descrizione: string; quantita: number; unita: string }[] | undefined;
   /** particolari costruttivi collegati ai componenti (da posizioniParticolari) */
   particolari?: { marcatori: { idParticolare: string; nome: string; x: number; y: number; z?: number | undefined }[]; usati: { idParticolare: string; nome: string; punti: number }[] } | undefined;
+  /** punto (m) dove LPS-AUTO disegna il modello 3D: accanto alla tavola del DXF del pacchetto */
+  origine?: [number, number, number] | undefined;
 }
 
 /** Stringa LISP sicura: solo ASCII, niente virgolette doppie né barre rovesciate. */
@@ -79,6 +81,7 @@ export function generaFileCAD(pr: ProgettoCAD, esposte: ZoneEsposte[] = []): str
   r.push(";; Progettazione LPS - dati per LPS.lsp (ZWCAD / AutoCAD) - coordinate in metri");
   r.push("(LPSDATI 1)");
   r.push(`(PROGETTO ${testoLisp(p.codice)} ${testoLisp(p.nome)} ${testoLisp(p.comune)} ${testoLisp(p.lpl)} ${numeroLisp(p.raggio ?? null)})`);
+  if (pr.origine) r.push(`(ORIGINE ${numeroLisp(pr.origine[0])} ${numeroLisp(pr.origine[1])} ${numeroLisp(pr.origine[2])})`);
   // distinta raggruppata per codice (serve prima dei componenti: il LISP la usa per le descrizioni dei blocchi)
   const voci = new Map<string, { d: string; q: number; u: string }>();
   for (const v of pr.distinta ?? []) { if (!v.codice) continue; const o = voci.get(v.codice); voci.set(v.codice, { d: o?.d || v.descrizione, q: (o?.q ?? 0) + v.quantita, u: v.unita }); }

@@ -2,8 +2,13 @@
 ;;; LPS.lsp - Progettazione LPS (protezione contro i fulmini)
 ;;; Compatibile: ZWCAD 2025 e AutoCAD (completo; LT dalla 2024 senza solidi 3D)
 ;;;
+;;; Uso automatico (pacchetto CAD del sito): apri il DXF del pacchetto e trascina LPS.lsp nel disegno:
+;;; il programma trova il .lpsdati nella stessa cartella e, con una conferma, costruisce tutto (LPS-AUTO).
+;;;
 ;;; Comandi
 ;;;   LPS            elenco dei comandi
+;;;   LPS-AUTO       costruisce il disegno dal .lpsdati della cartella del disegno, senza domande,
+;;;                  inserisce la distinta e salva il DWG
 ;;;   LPS-IMPORTA    disegna in 3D il progetto esportato dal sito (file .lpsdati)
 ;;;   LPS-SFERA      disegna la sfera rotolante di un livello in un punto
 ;;;   LPS-ESPORTA    esporta i contorni dell'edificio verso il sito (edificio_da_CAD.json)
@@ -14,7 +19,7 @@
 ;;; il comando converte nelle unita' del disegno (INSUNITS).
 ;;; ==========================================================================
 
-(setq *LPS-VERSIONE* "2.0")
+(setq *LPS-VERSIONE* "3.0")
 (if vl-load-com (vl-load-com))
 
 ;;; --------------------------------------------------------------------------
@@ -508,6 +513,7 @@
 
 (defun c:LPS ()
   (lps:msg (strcat "Progettazione LPS " *LPS-VERSIONE* " - comandi:"))
+  (lps:msg "  LPS-AUTO      costruisce tutto dal .lpsdati accanto al disegno (pacchetto CAD)")
   (lps:msg "  LPS-IMPORTA   disegna il progetto esportato dal sito (.lpsdati)")
   (lps:msg "  LPS-SFERA     disegna la sfera rotolante di un livello")
   (lps:msg "  LPS-ESPORTA   esporta i contorni dell'edificio verso il sito")
@@ -526,54 +532,132 @@
       (lps:msg (strcat "Cartella blocchi: " *LPS-CARTELLA-BLOCCHI*))))
   (princ))
 
-(defun c:LPS-IMPORTA (/ file dati o tipo n)
-  (lps:inizio)
+;; cartella dei blocchi: variabile, ambiente LPS_BLOCCHI, sottocartella "blocchi" accanto al disegno
+(defun lps:cartella-blocchi (/ o d)
   (if (not *LPS-CARTELLA-BLOCCHI*)
     (progn
       (setq o (vl-catch-all-apply 'getenv (list "LPS_BLOCCHI")))
-      (if (and o (not (vl-catch-all-error-p o))) (setq *LPS-CARTELLA-BLOCCHI* o))))
-  (setq file (getfiled "File di progetto LPS" "" "lpsdati" 0))
-  (if (not file) (progn (lps:fine) (exit)))
+      (if (and o (not (vl-catch-all-error-p o)) (/= o "")) (setq *LPS-CARTELLA-BLOCCHI* o))))
+  (setq d (strcat (getvar "DWGPREFIX") "blocchi"))
+  (if (and (not *LPS-CARTELLA-BLOCCHI*) (vl-file-directory-p d)) (setq *LPS-CARTELLA-BLOCCHI* d))
+  *LPS-CARTELLA-BLOCCHI*)
+
+;; disegna il contenuto di un file .lpsdati; auto = T: origine dal record ORIGINE, nessuna domanda
+(defun lps:importa (file auto / dati o tipo n orig)
   (setq dati (lps:leggi file))
   (if (not (assoc 'LPSDATI dati))
-    (progn (lps:msg "Il file non e' un file .lpsdati valido.") (lps:fine) (exit)))
-  (setq *LPS-F* (lps:fattore)
-        *LPS-SOLIDI* (lps:solidi-p)
-        *LPS-MANCANTI* nil *LPS-VOCI* nil *LPS-PART* nil *LPS-EST* nil *LPS-PROGETTO* nil
-        *LPS-CONTA-CORPI* 0 *LPS-CONTA-ASTE* 0 *LPS-CONTA-COND* 0 *LPS-CONTA-COMP* 0)
-  (setq o (getpoint "\nPunto di inserimento dell'origine di progetto <0,0,0>: "))
-  (setq *LPS-ORIGINE* (if o (if (caddr o) o (list (car o) (cadr o) 0.0)) '(0.0 0.0 0.0)))
-  (if (not *LPS-SOLIDI*)
-    (lps:msg "AutoCAD LT: aste e corpi disegnati come linee e facce (senza solidi 3D)."))
-  (setq n 0)
-  (foreach r dati
-    (setq tipo (car r))
-    (cond
-      ((eq tipo 'CORPO) (lps:corpo r))
-      ((eq tipo 'ASTA) (lps:asta r))
-      ((eq tipo 'CONDUTTORE) (lps:conduttore r))
-      ((eq tipo 'SUPPORTO) (lps:componente r "SUPPORTI"))
-      ((eq tipo 'MORSETTO) (lps:componente r "MORSETTI"))
-      ((eq tipo 'PICCHETTO) (lps:picchetto r))
-      ((eq tipo 'ESPOSTA) (lps:esposta r))
-      ((eq tipo 'PARETE) (lps:parete r))
-      ((eq tipo 'PROGETTO) (setq *LPS-PROGETTO* r))
-      ((eq tipo 'VOCE) (setq *LPS-VOCI* (append *LPS-VOCI* (list (list (nth 1 r) (nth 2 r) (lps:num (nth 3 r)) (nth 4 r))))))
-      ((eq tipo 'PARTICOLARE) (setq *LPS-PART* (cons (list (nth 1 r) (nth 2 r) (nth 3 r)) *LPS-PART*)))
-      ((eq tipo 'RICHIAMO) (lps:richiamo r))
-      ((eq tipo 'CALATA_NUM) (lps:calata-num r)))
-    (setq n (1+ n)))
-  (lps:legenda)
-  (lps:fine)
-  (lps:msg (strcat "LPS-IMPORTA: " (itoa *LPS-CONTA-CORPI*) " corpi, "
-                   (itoa *LPS-CONTA-ASTE*) " aste, " (itoa *LPS-CONTA-COND*) " conduttori, "
-                   (itoa *LPS-CONTA-COMP*) " componenti."))
-  (if *LPS-MANCANTI*
+    (progn (lps:msg "Il file non e' un file .lpsdati valido.") nil)
     (progn
-      (lps:msg "Blocchi OBO ufficiali non trovati (usati i simboli standard con lo stesso nome e gli attributi): ")
-      (foreach c *LPS-MANCANTI* (princ (strcat c " ")))
-      (lps:msg "Usa LPS-BLOCCHI per indicare la cartella dei blocchi.")))
-  (command "_.ZOOM" "_E")
+      ;; il DXF del pacchetto e' in metri: se il disegno non dichiara l'unita' non si chiede nulla
+      (if (and auto (= (getvar "INSUNITS") 0)) (setvar "INSUNITS" 6))
+      (setq *LPS-F* (lps:fattore)
+            *LPS-SOLIDI* (lps:solidi-p)
+            *LPS-MANCANTI* nil *LPS-VOCI* nil *LPS-PART* nil *LPS-EST* nil *LPS-PROGETTO* nil
+            *LPS-CONTA-CORPI* 0 *LPS-CONTA-ASTE* 0 *LPS-CONTA-COND* 0 *LPS-CONTA-COMP* 0)
+      (if auto
+        (setq orig (assoc 'ORIGINE dati)
+              *LPS-ORIGINE* (if orig
+                              (list (* (lps:num (nth 1 orig)) *LPS-F*) (* (lps:num (nth 2 orig)) *LPS-F*) (* (lps:num (nth 3 orig)) *LPS-F*))
+                              '(0.0 0.0 0.0)))
+        (progn
+          (setq o (getpoint "\nPunto di inserimento dell'origine di progetto <0,0,0>: "))
+          (setq *LPS-ORIGINE* (if o (if (caddr o) o (list (car o) (cadr o) 0.0)) '(0.0 0.0 0.0)))))
+      (if (not *LPS-SOLIDI*)
+        (lps:msg "AutoCAD LT: aste e corpi disegnati come linee e facce (senza solidi 3D)."))
+      (setq n 0)
+      (foreach r dati
+        (setq tipo (car r))
+        (cond
+          ((eq tipo 'CORPO) (lps:corpo r))
+          ((eq tipo 'ASTA) (lps:asta r))
+          ((eq tipo 'CONDUTTORE) (lps:conduttore r))
+          ((eq tipo 'SUPPORTO) (lps:componente r "SUPPORTI"))
+          ((eq tipo 'MORSETTO) (lps:componente r "MORSETTI"))
+          ((eq tipo 'PICCHETTO) (lps:picchetto r))
+          ((eq tipo 'ESPOSTA) (lps:esposta r))
+          ((eq tipo 'PARETE) (lps:parete r))
+          ((eq tipo 'PROGETTO) (setq *LPS-PROGETTO* r))
+          ((eq tipo 'VOCE) (setq *LPS-VOCI* (append *LPS-VOCI* (list (list (nth 1 r) (nth 2 r) (lps:num (nth 3 r)) (nth 4 r))))))
+          ((eq tipo 'PARTICOLARE) (setq *LPS-PART* (cons (list (nth 1 r) (nth 2 r) (nth 3 r)) *LPS-PART*)))
+          ((eq tipo 'RICHIAMO) (lps:richiamo r))
+          ((eq tipo 'CALATA_NUM) (lps:calata-num r)))
+        (setq n (1+ n)))
+      (lps:legenda)
+      (lps:msg (strcat "Disegnati: " (itoa *LPS-CONTA-CORPI*) " corpi, "
+                       (itoa *LPS-CONTA-ASTE*) " aste, " (itoa *LPS-CONTA-COND*) " conduttori, "
+                       (itoa *LPS-CONTA-COMP*) " componenti."))
+      (if *LPS-MANCANTI*
+        (progn
+          (lps:msg "Blocchi OBO ufficiali non trovati (usati i simboli standard con lo stesso nome e gli attributi): ")
+          (foreach c *LPS-MANCANTI* (princ (strcat c " ")))
+          (lps:msg "Per i blocchi ufficiali: sottocartella \"blocchi\" accanto al disegno oppure comando LPS-BLOCCHI.")))
+      T)))
+
+(defun c:LPS-IMPORTA (/ file)
+  (lps:inizio)
+  (lps:cartella-blocchi)
+  (setq file (getfiled "File di progetto LPS" "" "lpsdati" 0))
+  (if file (lps:importa file nil))
+  (lps:fine)
+  (if file (command "_.ZOOM" "_E"))
+  (princ))
+
+;; primo file .lpsdati nella cartella del disegno (nil se il disegno non e' salvato o non c'e')
+(defun lps:file-progetto (/ d l)
+  (setq d (getvar "DWGPREFIX"))
+  (if (and (= (getvar "DWGTITLED") 1) d (setq l (vl-directory-files d "*.lpsdati" 1)))
+    (strcat d (car l))))
+
+;; T se nel disegno ci sono gia' componenti LPS (progetto gia' costruito)
+(defun lps:gia-costruito () (if (ssget "_X" '((-3 ("LPS")))) T nil))
+
+;; salva una copia DWG accanto al disegno senza sovrascrivere file esistenti
+(defun lps:salva-dwg (/ base nome i doc r)
+  (setq base (strcat (getvar "DWGPREFIX") (vl-filename-base (getvar "DWGNAME"))) nome (strcat base ".dwg") i 1)
+  (while (findfile nome) (setq i (1+ i) nome (strcat base "_" (itoa i) ".dwg")))
+  (setq doc (vl-catch-all-apply 'vla-get-ActiveDocument (list (vlax-get-acad-object))))
+  (setq r (if (vl-catch-all-error-p doc) doc (vl-catch-all-apply 'vla-SaveAs (list doc nome))))
+  (if (vl-catch-all-error-p r)
+    (progn (lps:msg "Salvataggio DWG non riuscito: salva il disegno con Salva con nome.") nil)
+    (progn (lps:msg (strcat "Disegno salvato: " nome)) nome)))
+
+;; tabella della distinta calcolata dai componenti disegnati, sotto il modello 3D
+(defun lps:tabella-distinta (tab / s h x0 y lay q descr)
+  (if (and tab *LPS-EST*)
+    (progn
+      (setq s (* *LPS-F* *LPS-SCALA-SIMBOLI*) h (* 0.25 s) lay (lps:layer "LEGENDA")
+            x0 (car (lps:p (car *LPS-EST*) 0.0 0.0))
+            y (- (cadr (lps:p 0.0 (cadr *LPS-EST*) 0.0)) (* 4.0 s)))
+      (lps:testo (list x0 y 0.0) (* 1.6 h) "DISTINTA MATERIALI DAL DISEGNO (codici OBO)" lay)
+      (setq y (- y (* 0.9 s)))
+      (lps:testo (list x0 y 0.0) (* 0.8 h) "CODICE" lay)
+      (lps:testo (list (+ x0 (* 3.0 s)) y 0.0) (* 0.8 h) "DESCRIZIONE" lay)
+      (lps:testo (list (+ x0 (* 15.0 s)) y 0.0) (* 0.8 h) "QUANTITA'" lay)
+      (setq y (- y (* 0.6 s)))
+      (foreach v tab
+        (setq q (caddr v) descr (cadr (assoc (car v) *LPS-VOCI*)))
+        (lps:testo (list x0 y 0.0) h (car v) lay)
+        (lps:testo (list (+ x0 (* 3.0 s)) y 0.0) h (if descr descr (cadr v)) lay)
+        (lps:testo (list (+ x0 (* 15.0 s)) y 0.0) h (if (= (cadddr v) "m") (strcat (rtos q 2 1) " m") (strcat (rtos q 2 0) " pz")) lay)
+        (setq y (- y (* 0.5 s)))))))
+
+(defun c:LPS-AUTO (/ file tab)
+  (setq file (lps:file-progetto))
+  (cond
+    ((not file) (lps:msg "Nessun file .lpsdati nella cartella del disegno: apri il DXF del pacchetto CAD o usa LPS-IMPORTA."))
+    ((lps:gia-costruito) (lps:msg "Il progetto LPS e' gia' disegnato in questo file (componenti LPS presenti)."))
+    (T
+     (lps:inizio)
+     (lps:cartella-blocchi)
+     (lps:msg (strcat "LPS-AUTO: costruzione da " file))
+     (if (lps:importa file T)
+       (progn
+         (setq tab (lps:distinta-tab))
+         (lps:tabella-distinta tab)
+         (lps:distinta-csv tab)))
+     (lps:fine)
+     (command "_.ZOOM" "_E")
+     (lps:salva-dwg)))
   (princ))
 
 (defun c:LPS-SFERA (/ lpl r c f lay i a n pts)
@@ -664,40 +748,58 @@
   (foreach s l (setq o (if (= o "") s (strcat o sep s))))
   o)
 
-(defun c:LPS-DISTINTA (/ ss i e x d cod tipo q u voce tab file fh)
+;; distinta dai componenti disegnati (xdata LPS): lista (codice tipo quantita unita) ordinata per codice
+(defun lps:distinta-tab (/ ss i e x cod tipo q u voce tab)
   (setq ss (ssget "_X" '((-3 ("LPS")))))
-  (if (not ss) (progn (lps:msg "Nessun componente LPS nel disegno.") (exit)))
-  (setq i 0 tab nil)
-  (while (< i (sslength ss))
-    (setq e (ssname ss i)
-          x (cdr (car (cdr (assoc -3 (entget e '("LPS")))))))
-    ;; x = ((1000 . codice) (1000 . tipo) (1040 . qta) (1000 . unita))
-    (setq cod (cdr (nth 0 x)) tipo (cdr (nth 1 x)) q (cdr (nth 2 x)) u (cdr (nth 3 x)))
-    (setq voce (assoc cod tab))
-    (if voce
-      (setq tab (subst (list cod
-                             (if (wcmatch (cadr voce) (strcat "*" tipo "*")) (cadr voce) (strcat (cadr voce) "/" tipo))
-                             (+ (caddr voce) q) u)
-                       voce tab))
-      (setq tab (cons (list cod tipo q u) tab)))
-    (setq i (1+ i)))
-  (setq tab (vl-sort tab '(lambda (a b) (< (car a) (car b)))))
+  (if ss
+    (progn
+      (setq i 0 tab nil)
+      (while (< i (sslength ss))
+        (setq e (ssname ss i)
+              x (cdr (car (cdr (assoc -3 (entget e '("LPS")))))))
+        ;; x = ((1000 . codice) (1000 . tipo) (1040 . qta) (1000 . unita))
+        (setq cod (cdr (nth 0 x)) tipo (cdr (nth 1 x)) q (cdr (nth 2 x)) u (cdr (nth 3 x)))
+        (setq voce (assoc cod tab))
+        (if voce
+          (setq tab (subst (list cod
+                                 (if (wcmatch (cadr voce) (strcat "*" tipo "*")) (cadr voce) (strcat (cadr voce) "/" tipo))
+                                 (+ (caddr voce) q) u)
+                           voce tab))
+          (setq tab (cons (list cod tipo q u) tab)))
+        (setq i (1+ i)))
+      (vl-sort tab '(lambda (a b) (< (car a) (car b)))))))
+
+;; CSV della distinta accanto al disegno
+(defun lps:distinta-csv (tab / file fh)
+  (if tab
+    (progn
+      (setq file (strcat (getvar "DWGPREFIX") (vl-filename-base (getvar "DWGNAME")) "_distinta_LPS.csv"))
+      (setq fh (open file "w"))
+      (if fh
+        (progn
+          (write-line "Codice;Tipo;Quantita;Unita" fh)
+          (foreach v tab
+            (write-line (strcat (car v) ";" (cadr v) ";"
+                                (vl-string-subst "," "." (rtos (caddr v) 2 2)) ";" (cadddr v)) fh))
+          (close fh)
+          (lps:msg (strcat "Distinta salvata in " file)))))))
+
+(defun c:LPS-DISTINTA (/ tab)
+  (setq tab (lps:distinta-tab))
+  (if (not tab) (progn (lps:msg "Nessun componente LPS nel disegno.") (exit)))
   (lps:msg "Codice          Tipo            Quantita'")
   (foreach v tab
     (lps:msg (strcat (car v) "  " (cadr v) "  "
                      (if (= (cadddr v) "m") (strcat (rtos (caddr v) 2 1) " m")
                          (strcat (rtos (caddr v) 2 0) " pz")))))
-  (setq file (strcat (getvar "DWGPREFIX") (vl-filename-base (getvar "DWGNAME")) "_distinta_LPS.csv"))
-  (setq fh (open file "w"))
-  (if fh
-    (progn
-      (write-line "Codice;Tipo;Quantita;Unita" fh)
-      (foreach v tab
-        (write-line (strcat (car v) ";" (cadr v) ";"
-                            (vl-string-subst "," "." (rtos (caddr v) 2 2)) ";" (cadddr v)) fh))
-      (close fh)
-      (lps:msg (strcat "Distinta salvata in " file))))
+  (lps:distinta-csv tab)
   (princ))
 
 (lps:msg (strcat "Progettazione LPS " *LPS-VERSIONE* " caricato. Digita LPS per l'elenco dei comandi."))
+;; avvio automatico: disegno del pacchetto CAD (c'e' un .lpsdati accanto) non ancora costruito
+(if (and (lps:file-progetto) (not (lps:gia-costruito)))
+  (progn
+    (initget "Si No")
+    (if (/= (getkword (strcat "\nCostruire il disegno LPS da " (vl-filename-base (lps:file-progetto)) ".lpsdati? [Si/No] <Si>: ")) "No")
+      (c:LPS-AUTO))))
 (princ)

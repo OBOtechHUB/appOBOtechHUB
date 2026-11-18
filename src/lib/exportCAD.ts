@@ -13,7 +13,7 @@ import catalogoParticolari from "@/dati/particolari/particolari.json";
  * richiami ai particolari costruttivi e cartiglio; a destra della tavola il modello 3D (layer LPS-3D-*,
  * non stampati: la tavola si stampa dallo spazio modello con finestra sulla squadratura).
  */
-export function generaCAD(s:StatoEsteso,progetto:{codice:string;nome:string;comune:string},sfere:Partial<Record<string,RisultatoSfera>>){
+export function generaCAD(s:StatoEsteso,progetto:{codice:string;nome:string;comune:string},sfere:Partial<Record<string,RisultatoSfera>>,opzioni:{senzaModello3D?:boolean}={}){
   // particolari costruttivi collegati ai componenti del progetto (stesso criterio della pagina Edificio 3D)
   const personali=new Map(s.particolari.map((p)=>[p.id,p]));
   const catalogo=[...(catalogoParticolari as unknown as ParticolareCatalogo[]).filter((p)=>!personali.has(p.id)),...(s.particolari as unknown as ParticolareCatalogo[])];
@@ -40,8 +40,9 @@ export function generaCAD(s:StatoEsteso,progetto:{codice:string;nome:string;comu
   const dx=foglio.x+foglio.larghezza+foglio.larghezza*0.1-mx,dy=foglio.y-my;
   const T=(a:Punto3):[number,number,number]=>[a[0]+dx,a[1]+dy,a[2]];
   const face=(layer:string,a:Punto3,b:Punto3,c:Punto3,d:Punto3)=>w.faccia(layer,T(a),T(b),T(c),T(d));
-  w.testo(L.testi.nome,[foglio.x+foglio.larghezza*1.1,foglio.y+foglio.altezza+foglio.altezza*0.03],foglio.altezza*0.025,"MODELLO 3D (layer LPS-3D-*, da non stampare)");
-  s.modello.corpi.forEach((body)=>{
+  w.testo(L.testi.nome,[foglio.x+foglio.larghezza*1.1,foglio.y+foglio.altezza+foglio.altezza*0.03],foglio.altezza*0.025,opzioni.senzaModello3D?"MODELLO 3D (disegnato da LPS.lsp con blocchi e codici OBO)":"MODELLO 3D (layer LPS-3D-*, da non stampare)");
+  // nel pacchetto CAD edificio, aste e conduttori 3D li disegna LPS.lsp (con blocchi e codici): qui restano sfera e zone esposte
+  if(!opzioni.senzaModello3D)s.modello.corpi.forEach((body)=>{
     const z=body.quotaBase+body.altezzaGronda;
     if(body.mesh){const vertices=body.mesh.posizioni,indices=body.mesh.indici??vertices.map((_,i)=>i).filter((i)=>i%3===0).map((i)=>i/3);const vertex=(i:number):Punto3=>[vertices[i*3]??0,vertices[i*3+1]??0,(vertices[i*3+2]??0)+body.quotaBase];for(let i=0;i<indices.length;i+=3){const a=vertex(indices[i]??0),b=vertex(indices[i+1]??0),c=vertex(indices[i+2]??0);face(L.edificio3d.nome,a,b,c,c);}}
     else {body.impronta.forEach((a,i)=>{const b=body.impronta[(i+1)%body.impronta.length];if(b)face(L.edificio3d.nome,[...a,body.quotaBase],[...b,body.quotaBase],[...b,z],[...a,z]);});
@@ -49,8 +50,8 @@ export function generaCAD(s:StatoEsteso,progetto:{codice:string;nome:string;comu
       else for(const triangle of ShapeUtils.triangulateShape(body.impronta.map((q)=>new Vector2(...q)),[])){const points=triangle.map((i)=>body.impronta[i]);const a=points[0],b=points[1],c=points[2];if(a&&b&&c)face(L.edificio3d.nome,[...a,z],[...b,z],[...c,z],[...c,z]);}
     }
   });
-  s.aste.forEach((a)=>w.linea(L.captazione3d.nome,T([a.x,a.y,a.z]),T([a.x,a.y,a.z+a.altezza])));
-  s.conduttori.forEach((c)=>w.poli3d(c.tipo==="calata"?L.calate3d.nome:c.tipo==="terra"?L.terra3d.nome:L.captazione3d.nome,c.punti.map(T)));
+  if(!opzioni.senzaModello3D)s.aste.forEach((a)=>w.linea(L.captazione3d.nome,T([a.x,a.y,a.z]),T([a.x,a.y,a.z+a.altezza])));
+  if(!opzioni.senzaModello3D)s.conduttori.forEach((c)=>w.poli3d(c.tipo==="calata"?L.calate3d.nome:c.tipo==="terra"?L.terra3d.nome:L.captazione3d.nome,c.punti.map(T)));
   Object.entries(sfere).forEach(([lpl,r])=>{if(!r)return;const g=r.griglia,h=g.passo/2,layer=LAYER_SFERA(lpl).nome;
     const inv=inviluppoSuGriglia(r,Math.max(1,r.raggio/10));
     for(let j=0;j+1<inv.ny;j++)for(let i=0;i+1<inv.nx;i++){const z=inv.z[j]?.[i],za=inv.z[j]?.[i+1],zb=inv.z[j+1]?.[i+1],zc=inv.z[j+1]?.[i];if(![z,za,zb,zc].every(Number.isFinite))continue;const x0=inv.x0+i*inv.passo,y0=inv.y0+j*inv.passo,x1=x0+inv.passo,y1=y0+inv.passo;face(layer,[x0,y0,z as number],[x1,y0,za as number],[x1,y1,zb as number],[x0,y1,zc as number]);}
@@ -58,5 +59,5 @@ export function generaCAD(s:StatoEsteso,progetto:{codice:string;nome:string;comu
     r.facceEsposte.forEach((f)=>{const nx=f.normale[0],ny=f.normale[1],tx=-ny,ty=nx,hl=f.lunghezza/2;face(L.esposto3d.nome,[f.x-tx*hl,f.y-ty*hl,f.zDa],[f.x+tx*hl,f.y+ty*hl,f.zDa],[f.x+tx*hl,f.y+ty*hl,f.zA],[f.x-tx*hl,f.y-ty*hl,f.zA]);});
   });
   const json={versione:2,unita:"m",tavola:{scala,formato},progetto:{...progetto,lpl:s.lpl},edificio:s.modello,aste:s.aste.map(({id,...a})=>a),conduttori:s.conduttori.map(({id,...c})=>c),supporti:s.supporti,morsetti:s.morsetti,compensatori:s.compensatori,picchetti:s.picchetti,particolari:pos.usati,sfere:{raggio:sfere[s.lpl]?.raggio??({I:20,II:30,III:45,IV:60})[s.lpl],inviluppo:"nel DXF",calcoli:Object.fromEntries(Object.entries(sfere).map(([l,r])=>[l,r?{passo:r.griglia.passo,areaCoperturaEsposta:r.areaCoperturaEsposta,areaPareteEsposta:r.areaPareteEsposta,esito:r.esito,avvisi:r.avvisi}:null]))}};
-  return {dxf:new Blob([w.finale()],{type:"application/dxf"}),json:new Blob([JSON.stringify(json,null,2)],{type:"application/json"}),scala,formato};
+  return {origine3D:[dx,dy,0] as [number,number,number],dxf:new Blob([w.finale()],{type:"application/dxf"}),json:new Blob([JSON.stringify(json,null,2)],{type:"application/json"}),scala,formato};
 }

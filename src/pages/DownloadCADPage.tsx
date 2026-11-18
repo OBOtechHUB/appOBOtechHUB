@@ -2,11 +2,19 @@ import { risorsa } from "@/lib/base";
 import { Button } from "@/components/ui/button";
 import { Download } from "lucide-react";
 
+const automatico = [
+  "In Edificio 3D premi «Pacchetto AutoCAD / ZWCAD (.zip)» e estrai tutta la cartella dallo ZIP.",
+  "Apri il file .dxf della cartella con AutoCAD o ZWCAD.",
+  "Trascina LPS.lsp (è nella stessa cartella) dentro la finestra del disegno; all'avviso di sicurezza scegli «Carica una volta».",
+  "Alla domanda «Costruire il disegno LPS…» premi Invio: il programma disegna il modello 3D accanto alla tavola con blocchi e codici OBO, inserisce la distinta dei materiali e salva il DWG nella stessa cartella (senza sovrascrivere file esistenti).",
+  "Blocchi OBO ufficiali: mettili in una sottocartella «blocchi» accanto al disegno (file OBO_<codice>.dwg o <codice>.dwg) e vengono usati in automatico.",
+];
+
 const istruzioni = [
   "Scarica LPS.lsp e salvalo in una cartella fissa, per esempio C:\\OBO\\LPS.",
   "In ZWCAD o AutoCAD: comando APPLOAD, scegli LPS.lsp e premi Carica. Per caricarlo a ogni avvio aggiungilo a «Gruppo di avvio» (Startup Suite).",
   "Esporta il progetto dal sito con «Esporta per CAD» e in CAD lancia LPS-IMPORTA.",
-  "Comandi: LPS (elenco), LPS-IMPORTA, LPS-SFERA, LPS-ESPORTA, LPS-DISTINTA, LPS-BLOCCHI.",
+  "Comandi: LPS (elenco), LPS-AUTO, LPS-IMPORTA, LPS-SFERA, LPS-ESPORTA, LPS-DISTINTA, LPS-BLOCCHI.",
   "Blocchi OBO: con LPS-BLOCCHI indica la cartella con i blocchi chiamati OBO_<codice>.dwg (per esempio OBO_5218700.dwg), disegnati in millimetri. Se un blocco manca, il comando inserisce un segnaposto e lo elenca.",
   "AutoCAD LT (2024 e successivi): funziona senza solidi 3D, con linee e facce.",
   "Standard LPS OBO: layer LPS-* (captazione, calate, terra, supporti, morsetti, particolari, testi, legenda, cartiglio) con colori per la stampa CTB; simboli 2D chiamati OBO_<codice> con attributi CODICE, DESCRIZIONE e TIPO, sostituibili con i blocchi ufficiali OBO con lo stesso nome.",
@@ -17,6 +25,10 @@ export function DownloadCADPage() {
   return (
     <main className="mx-auto max-w-5xl px-4 py-8">
       <h1 className="font-display text-2xl font-bold">Download CAD</h1>
+      <section className="mt-5 rounded-lg border border-accent p-4" aria-labelledby="h-auto">
+        <h2 id="h-auto" className="font-display text-lg font-semibold">Uso automatico con il pacchetto CAD</h2>
+        <ol className="mt-2 list-decimal space-y-1 pl-5 text-sm">{automatico.map((t) => <li key={t}>{t}</li>)}</ol>
+      </section>
       <p className="mt-3 text-muted-foreground">
         LPS.lsp è un programma per ZWCAD e AutoCAD che disegna in 3D il progetto esportato dal sito
         (file .lpsdati), disegna la sfera rotolante, esporta i contorni dell'edificio verso il sito

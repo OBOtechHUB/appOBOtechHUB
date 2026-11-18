@@ -2,6 +2,23 @@
   "nota": "Registro degli aggiornamenti di Progettazione LPS. Una voce per aggiornamento, la più recente per prima (app: lps). Viene mostrato nella barra \"Aggiorna app\", nel riquadro Novità e nella pagina Novità di OBO Hub.",
   "aggiornamenti": [
     {
+      "id": "2026-11-19-lps-3",
+      "data": "2026-11-19",
+      "app": "lps",
+      "titolo": "Pacchetto unico per AutoCAD e ZWCAD",
+      "voci": [
+        "In Edificio 3D il pulsante Pacchetto AutoCAD / ZWCAD scarica una cartella con la tavola DXF, i dati del progetto, LPS.lsp e le istruzioni",
+        "Si apre il DXF, si trascina LPS.lsp nel disegno e, con una conferma, il programma disegna il modello 3D con blocchi e codici OBO, inserisce la distinta dei materiali e salva il DWG",
+        "LPS.lsp 3.0: nuovo comando LPS-AUTO; se accanto al disegno c'è una cartella \"blocchi\" con i blocchi OBO ufficiali vengono usati in automatico"
+      ],
+      "titolo_en": "Single package for AutoCAD and ZWCAD",
+      "voci_en": [
+        "In 3D building the AutoCAD / ZWCAD package button downloads a folder with the DXF sheet, the project data, LPS.lsp and instructions",
+        "Open the DXF, drag LPS.lsp into the drawing and, after one confirmation, the program draws the 3D model with OBO blocks and codes, adds the bill of materials and saves the DWG",
+        "LPS.lsp 3.0: new LPS-AUTO command; a \"blocchi\" folder next to the drawing with the official OBO blocks is used automatically"
+      ]
+    },
+    {
       "id": "2026-11-19-lps-2",
       "data": "2026-11-19",
       "app": "lps",
