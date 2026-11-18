@@ -1,0 +1,299 @@
+{
+  "nota": "Registro degli aggiornamenti di Progettazione LPS. Una voce per aggiornamento, la più recente per prima (app: lps). Viene mostrato nella barra \"Aggiorna app\", nel riquadro Novità e nella pagina Novità di OBO Hub.",
+  "aggiornamenti": [
+    {
+      "id": "2026-11-19-lps-1",
+      "data": "2026-11-19",
+      "app": "lps",
+      "titolo": "Revisioni del progetto e controllo prima dell'emissione",
+      "voci": [
+        "In Dati edificio c'è il Controllo del progetto: segnala cosa manca o non torna (dati, livello di protezione rispetto al rischio, captazione, calate, distanza di separazione, dispersore, SPD) con il link alla pagina da sistemare",
+        "Revisioni del progetto: bozza ed emesso, con Rev. A, B, C, data, autore e descrizione. Ogni emissione viene archiviata e si può scaricare",
+        "Un progetto emesso non si modifica per errore: se cambi qualcosa compare un avviso e il salvataggio si ferma finché non apri la revisione successiva o annulli le modifiche"
+      ],
+      "titolo_en": "Project revisions and check before issue",
+      "voci_en": [
+        "Building data now has a Project check: it flags what is missing or wrong (data, protection level against the risk, air-termination, down conductors, separation distance, earthing, SPDs) with a link to the page to fix",
+        "Project revisions: draft and issued, with Rev. A, B, C, date, author and description. Each issue is archived and can be downloaded",
+        "An issued project cannot be changed by mistake: if you change something a notice appears and saving stops until you open the next revision or undo the changes"
+      ]
+    },
+    {
+      "id": "2026-11-18-lps-3",
+      "data": "2026-11-18",
+      "app": "lps",
+      "titolo": "Codici OBO collegati ai particolari costruttivi",
+      "voci": [
+        "Il computo dei materiali propone ora un codice OBO reale per conduttori, supporti, morsetti, calate, sezionamenti e dispersori, preso dal particolare costruttivo adatto alla copertura e alla parete",
+        "Proposta di captazione, calate e impianto di terra prendono i codici dai particolari: se un particolare cambia articolo, proposte e computo usano subito il nuovo codice",
+        "Le righe dei particolari non ancora verificati non hanno più la scritta ESEMPIO nella descrizione: l'indicazione \"da verificare\" è nella provenienza"
+      ],
+      "titolo_en": "OBO codes linked to construction details",
+      "voci_en": [
+        "The bill of materials now proposes a real OBO code for conductors, supports, clamps, down conductors, test joints and earth electrodes, taken from the detail that fits the roof and wall",
+        "Air-termination, down-conductor and earthing proposals take their codes from the details: if a detail changes article, proposals and bill use the new code at once",
+        "Rows from details not yet checked no longer carry EXAMPLE in the description: \"to be checked\" is shown in the source column"
+      ]
+    },
+    {
+      "id": "2026-11-18-lps-2",
+      "data": "2026-11-18",
+      "app": "lps",
+      "titolo": "Valutazione del rischio verificata con gli esempi della norma",
+      "voci": [
+        "Il calcolo del rischio ora riproduce i tre esempi della norma (fabbricato residenziale, uffici, ospedale) ed è controllato in automatico a ogni aggiornamento",
+        "Per ogni linea si indicano la tensione di tenuta e il cablaggio del suo impianto interno; si può indicare anche un impianto in rame su una linea esterna in fibra",
+        "Gli SPD all'ingresso delle linee valgono per tutta la struttura; ogni zona può avere i propri SPD coordinati, anche con un valore PSPD indicato",
+        "Per ogni zona si può inserire la frequenza tollerabile del danno FT indicata dal proprietario"
+      ],
+      "titolo_en": "Risk assessment checked against the standard's examples",
+      "voci_en": [
+        "The risk calculation now reproduces the three examples of the standard (house, office building, hospital) and is checked automatically at every update",
+        "Each line has the withstand voltage and wiring of its internal system; a copper internal system on an external fibre line can be entered",
+        "Entrance SPDs apply to the whole structure; each zone can have its own coordinated SPDs, also with a given PSPD value",
+        "Each zone can take the tolerable frequency of damage FT set by the owner"
+      ]
+    },
+    {
+      "id": "2026-11-18-lps-1",
+      "data": "2026-11-18",
+      "app": "lps",
+      "titolo": "Dati normativi più completi",
+      "voci": [
+        "Nuova sezione Riferimenti normativi di progetto in Dati normativi: parametri del fulmine, captazione, calate e distanza di separazione, dispersori, materiali e sezioni minime, valutazione del rischio, SPD e verifiche periodiche",
+        "Il livello di protezione del progetto è evidenziato; si può evidenziare un altro livello per confrontare"
+      ],
+      "titolo_en": "More complete standard data",
+      "voci_en": [
+        "New Project standard references section in Standard data: lightning parameters, air-termination, down conductors and separation distance, earthing, materials and minimum sizes, risk assessment, SPDs and periodic inspections",
+        "The project protection level is highlighted; another level can be highlighted to compare"
+      ]
+    },
+    {
+      "id": "2026-11-17-lps-4",
+      "data": "2026-11-17",
+      "app": "lps",
+      "titolo": "Importazione dei DWG",
+      "voci": [
+        "Ora si importano anche i file DWG di AutoCAD e ZWCAD, in Dati edificio e in Edificio 3D: unità, layer e impronte dell'edificio come per il DXF",
+        "Tolto il pulsante La mia posizione: l'indirizzo si cerca scrivendolo"
+      ],
+      "titolo_en": "DWG import",
+      "voci_en": [
+        "AutoCAD and ZWCAD DWG files can now be imported too, in Building data and 3D building: units, layers and building outlines as for DXF",
+        "My location button removed: search the address by typing it"
+      ]
+    },
+    {
+      "id": "2026-11-17-lps-3",
+      "data": "2026-11-17",
+      "app": "lps",
+      "titolo": "Importazione in Dati edificio e ricerca indirizzi più comoda",
+      "voci": [
+        "In Dati edificio, in alto, puoi importare un disegno o un modello: lunghezza, larghezza e altezza si compilano da sole e il modello va anche in Edificio 3D",
+        "Ricerca dell'indirizzo come in Google Maps: suggerimenti mentre scrivi, nome e comune su due righe, frecce e Invio per scegliere, anche coordinate incollate",
+        "La mia posizione: se non funziona l'app spiega cosa attivare nel browser o nel computer"
+      ],
+      "titolo_en": "Import in Building data and easier address search",
+      "voci_en": [
+        "In Building data, at the top, you can import a drawing or a model: length, width and height fill in automatically and the model also goes to 3D building",
+        "Address search like Google Maps: suggestions while typing, name and town on two lines, arrows and Enter to choose, pasted coordinates too",
+        "My location: if it does not work the app explains what to enable in the browser or computer"
+      ]
+    },
+    {
+      "id": "2026-11-17-lps-2",
+      "data": "2026-11-17",
+      "app": "lps",
+      "titolo": "Disegno CAD professionale",
+      "voci": [
+        "Il DXF di Edificio 3D è ora una tavola completa: pianta coperture in scala (1:100 o 1:200), squadratura e cartiglio con i dati del progetto",
+        "Layer divisi secondo lo standard LPS OBO (captazione, calate, terra, supporti, morsetti, particolari, quote, testi) con colori pronti per la stampa",
+        "Ogni componente è un blocco con il codice OBO (OBO_codice) e gli attributi codice, descrizione e tipo; calate numerate C1, C2…",
+        "Richiami P01, P02… ai particolari costruttivi, con l'elenco dei particolari e la legenda con codici e quantità",
+        "Lo stesso standard vale per LPS-IMPORTA in ZWCAD e AutoCAD: scarica di nuovo LPS.lsp da Download CAD"
+      ],
+      "titolo_en": "Professional CAD drawing",
+      "voci_en": [
+        "The 3D building DXF is now a complete sheet: roof plan to scale (1:100 or 1:200), frame and title block with the project data",
+        "Layers split by the OBO LPS standard (air termination, down conductors, earthing, supports, clamps, details, dimensions, texts) with print-ready colours",
+        "Each component is a block named with the OBO code (OBO_code) with code, description and type attributes; down conductors numbered C1, C2…",
+        "Callouts P01, P02… to the construction details, with the list of details and a legend with codes and quantities",
+        "The same standard applies to LPS-IMPORTA in ZWCAD and AutoCAD: download LPS.lsp again from CAD download"
+      ]
+    },
+    {
+      "id": "2026-11-17-lps-1",
+      "data": "2026-11-17",
+      "app": "lps",
+      "titolo": "Importa disegni e modelli con verifica della scala",
+      "voci": [
+        "In Edificio 3D, nuova scheda \"Importa file\": DXF, PDF, immagini di pianta, OBJ, STL, PLY, GLB/GLTF, IFC, STEP e IGES",
+        "L'app controlla la scala, propone l'unità più realistica e chiede conferma; si può verificare con una misura nota",
+        "Dai PDF legge la scala scritta sul disegno (es. 1:100) e permette di ricalcare l'impronta dell'edificio"
+      ],
+      "titolo_en": "Import drawings and models with scale check",
+      "voci_en": [
+        "In 3D building, new \"Import file\" tab: DXF, PDF, plan images, OBJ, STL, PLY, GLB/GLTF, IFC, STEP and IGES",
+        "The app checks the scale, proposes the most realistic unit and asks for confirmation; it can be verified with a known measurement",
+        "From PDFs it reads the scale written on the drawing (e.g. 1:100) and lets you trace the building outline"
+      ]
+    },
+    {
+      "id": "2026-11-11-lps-1",
+      "data": "2026-11-11",
+      "app": "lps",
+      "titolo": "Testo regolabile in alto e pagine ferme di lato",
+      "voci": [
+        "Nuovo pulsante \"Testo\" nella barra in alto: A− e A+ per rimpicciolire o ingrandire il testo",
+        "Su telefono e tablet le pagine non scorrono più di lato"
+      ],
+      "titolo_en": "Text size at the top and pages locked sideways",
+      "voci_en": [
+        "New \"Text\" button in the top bar: A− and A+ to shrink or enlarge the text",
+        "On phones and tablets pages no longer move sideways"
+      ]
+    },
+    {
+      "id": "2026-11-10-lps-3",
+      "data": "2026-11-10",
+      "app": "lps",
+      "titolo": "Piè di pagina comune e apertura dei progetti dalla ricerca",
+      "voci": [
+        "In fondo alla pagina: OBO Hub, Novità, Privacy e Condizioni d'uso, uguali in tutte le app",
+        "I progetti salvati si aprono anche dalla ricerca della pagina iniziale di OBO Hub"
+      ],
+      "titolo_en": "Common footer and opening projects from search",
+      "voci_en": [
+        "At the bottom of the page: OBO Hub, What's new, Privacy and Terms of use, the same in every app",
+        "Saved projects can also be opened from the search on the OBO Hub home page"
+      ]
+    },
+    {
+      "id": "2026-11-10-lps-2",
+      "data": "2026-11-10",
+      "app": "lps",
+      "titolo": "Comune e indirizzo con ricerca, posizione e Google Maps",
+      "titolo_en": "Municipality and address with search, location and Google Maps",
+      "voci": [
+        "Dati edificio: scrivi l'indirizzo o il comune e scegli dall'elenco (suggerimenti gratuiti da Photon, dati OpenStreetMap), oppure premi \"La mia posizione\"",
+        "Vista satellitare di Google Maps dell'edificio e collegamenti \"Apri in Google Maps\" e \"Apri in Google Earth\"",
+        "Coordinate salvate nel progetto e riportate nella relazione; la mappa dell'Edificio 3D si apre già sul posto",
+        "Verifiche: spunta \"Condizioni ambientali severe\" (a vista ogni 6 mesi, completa ogni anno)",
+        "Calate: opzione kc = 1 per dispersori di tipo A con resistenze molto diverse",
+        "Fotovoltaico: aggiunti i valori per SPD a commutazione (Tab. F.2)",
+        "SPD: avviso quando si sceglie la categoria di tenuta III o IV"
+      ],
+      "voci_en": [
+        "Building data: type the address or municipality and pick from the list (free suggestions from Photon, OpenStreetMap data), or press \"My location\"",
+        "Google Maps satellite view of the building and \"Open in Google Maps\" / \"Open in Google Earth\" links",
+        "Coordinates saved in the project and shown in the report; the 3D Building map opens on the site",
+        "Inspections: \"Severe environmental conditions\" tick (visual every 6 months, complete every year)",
+        "Down conductors: kc = 1 option for type A earthing with very different resistances",
+        "Photovoltaics: values for switching SPDs added (Table F.2)",
+        "SPD: warning when withstand category III or IV is chosen"
+      ]
+    },
+    {
+      "id": "2026-11-10-lps-1",
+      "data": "2026-11-10",
+      "app": "lps",
+      "titolo": "Controllo indipendente con la norma: correzioni",
+      "titolo_en": "Independent check against the standard: corrections",
+      "voci": [
+        "Tutti i valori di tabella e le formule sono stati riletti sulla CEI EN IEC 62305:2024: oltre 400 confermati",
+        "Rischio: senza LPS gli SPD non riducono più il rischio per fulmine sulla struttura e le misure contro il contatto non contano",
+        "Rischio: nelle zone con rischio di esplosione la protezione antincendio non riduce il rischio e i guasti degli impianti contano sempre",
+        "Rischio: schermo della linea senza resistenza indicata calcolato con il valore più prudente",
+        "SPD: nei sistemi TT e TN-C-S la corrente si divide sui conduttori che entrano davvero (4 in trifase): Iimp per polo più alta di prima",
+        "Terra: i picchetti del tipo A devono essere almeno 2 e lunghi 0,5·l1 + 0,5 m",
+        "Calate: avviso quando la formula dettagliata di kc è usata fuori dal suo campo di validità"
+      ],
+      "voci_en": [
+        "All table values and formulas re-read against IEC 62305:2024: more than 400 confirmed",
+        "Risk: without an LPS, SPDs no longer reduce the risk from flashes to the structure and touch-voltage measures do not count",
+        "Risk: in zones with explosion risk fire protection does not reduce the risk and failures of internal systems always count",
+        "Risk: line shield without stated resistance calculated with the most cautious value",
+        "SPD: in TT and TN-C-S systems the current is shared by the conductors actually entering (4 for three-phase): higher Iimp per pole than before",
+        "Earthing: type A rods must be at least 2 and 0.5·l1 + 0.5 m long",
+        "Down conductors: warning when the detailed kc formula is used outside its validity range"
+      ]
+    },
+    {
+      "id": "2026-11-09-lps-5",
+      "data": "2026-11-09",
+      "app": "lps",
+      "titolo": "Nuova pagina \"Norma 62305: calcoli e tabelle\"",
+      "titolo_en": "New page \"IEC 62305: calculations and tables\"",
+      "voci": [
+        "Parametri del fulmine per livello di protezione e raggio della sfera rotolante",
+        "Verifica delle sezioni minime di captatori, calate, dispersori e collegamenti equipotenziali, con le tabelle dei materiali",
+        "Sezione minima dello schermo dei cavi entranti",
+        "Tensioni di contatto e di passo, requisiti per strutture con rischio di esplosione",
+        "Schermatura magnetica, livello di protezione effettivo degli SPD e tensione indotta",
+        "Impianti fotovoltaici sul tetto: corrente nei conduttori CC e SPD lato continua",
+        "Analisi del rischio: linee divise in tratti con posa o ambiente diversi"
+      ],
+      "voci_en": [
+        "Lightning parameters per protection level and rolling sphere radius",
+        "Minimum size check for air terminals, down conductors, earth electrodes and bonding conductors, with material tables",
+        "Minimum shield cross-section of incoming cables",
+        "Touch and step voltages, requirements for structures with explosion risk",
+        "Magnetic shielding, effective SPD protection level and induced voltage",
+        "Rooftop PV systems: current in DC conductors and DC side SPDs",
+        "Risk assessment: lines split into sections with different installation or environment"
+      ]
+    },
+    {
+      "id": "2026-11-09-lps-4",
+      "data": "2026-11-09",
+      "app": "lps",
+      "titolo": "Analisi del rischio: SPD per zona e danni all'ambiente circostante",
+      "titolo_en": "Risk assessment: per-zone SPDs and damage to the surroundings",
+      "voci": [
+        "Ogni zona può avere SPD propri; la tabella mostra l'SPD minimo di ogni zona",
+        "Proposta ottimizzata: LPS più basso con gli SPD giusti per ogni zona, applicabile con un clic",
+        "Perdita esterna LE (Allegato E): esplosione, fumi tossici, inquinamento e ambiente circostante"
+      ],
+      "voci_en": [
+        "Each zone may have its own SPDs; the table shows the minimum SPD of each zone",
+        "Optimised proposal: lowest LPS with the right SPDs per zone, applied with one click",
+        "External loss LE (Annex E): explosion, toxic fumes, pollution and surroundings"
+      ]
+    },
+    {
+      "id": "2026-11-09-lps-3",
+      "data": "2026-11-09",
+      "app": "lps",
+      "titolo": "Analisi del rischio con più zone (edizione 2024)",
+      "titolo_en": "Multi-zone risk assessment (2024 edition)",
+      "voci": [
+        "Zone di rischio da aggiungere, duplicare ed eliminare, ognuna con i propri parametri e confrontata da sola con RT",
+        "Persone esposte sul tetto, struttura adiacente, schermature e cablaggio interno, sistema di allerta temporali",
+        "Schemi disegnati: aree di raccolta, zone, ripartizione della corrente sulle calate, grafico di l1",
+        "Calate: kc della Tab. 13 e km per vetroresina; impianto di terra: pulsante \"Calcola l1\""
+      ],
+      "voci_en": [
+        "Risk zones to add, duplicate and delete, each with its own parameters and compared with RT on its own",
+        "People exposed on the roof, adjacent structure, shielding and internal wiring, thunderstorm warning system",
+        "Drawn diagrams: collection areas, zones, current sharing on down conductors, l1 chart",
+        "Down conductors: kc from Table 13 and km for fibreglass; earthing: \"Calculate l1\" button"
+      ]
+    },
+    {
+      "id": "2026-11-09-lps-2",
+      "data": "2026-11-09",
+      "app": "lps",
+      "titolo": "Aiuti \"?\" aggiornati alla CEI EN IEC 62305:2024",
+      "titolo_en": "\"?\" help updated to IEC 62305:2024",
+      "voci": [
+        "Ogni scelta ha una spiegazione e il riferimento all'articolo della norma",
+        "Verifiche: a vista ogni anno, completa ogni 3 anni, ogni anno per sistemi critici"
+      ],
+      "voci_en": [
+        "Every choice has an explanation and the reference to the clause of the standard",
+        "Inspections: visual every year, complete every 3 years, every year for critical systems"
+      ]
+    }
+  ]
+}
