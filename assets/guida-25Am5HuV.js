@@ -1,0 +1,1 @@
+import{t as e}from"./jsx-runtime-NZYk81nU.js";import{t}from"./TestoPubblicoPage-in1eA4Lf.js";var n=e(),r=()=>(0,n.jsx)(t,{titolo:`Guida`,sezioni:[`Cos’è un LPS`,`Livelli di protezione`,`Sfera rotolante`,`Calate`,`Terra`,`SPD`]});export{r as component};

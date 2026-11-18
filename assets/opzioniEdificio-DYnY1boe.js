@@ -1,0 +1,1 @@
+var e={coperture:[`Piana`,`A falde`,`A volta`,`Shed`,`Altro`],materiali:[`Cemento armato`,`Muratura`,`Acciaio`,`Legno`,`Mista`]};export{e as t};
