@@ -146,7 +146,8 @@ export function RischioPage() {
           <div className="grid gap-4 sm:grid-cols-3">
             <Campo etichetta="Nome della zona"><input className={inputCls} value={za.nome} maxLength={60} onChange={(e) => zona(za.id, { nome: e.target.value })} /></Campo>
             <Campo etichetta="Presenza di persone (ore/anno, PP = ore/8760)"><input className={inputCls} type="number" min={0} max={8760} step={10} value={za.oreAnno} onChange={(e) => zona(za.id, { oreAnno: Math.min(8760, Math.max(0, Number(e.target.value))) })} /></Campo>
-            <SceltaId etichetta="Categoria della struttura (perdite LF, LO)" opzioni={CATEGORIE.map((x) => ({ id: x.id, nome: x.nome, extra: `LF ${x.LF}` }))} id={za.categoria} onChange={(id) => zona(za.id, { categoria: id })} />
+            <SceltaId etichetta="Categoria di perdita per le persone (LF1, LO1)" opzioni={CATEGORIE.map((x) => ({ id: x.id, nome: x.nome, extra: `LF ${x.LF}` }))} id={za.categoria} onChange={(id) => zona(za.id, { categoria: id })} />
+            <Campo etichetta="Categoria per la struttura e il contenuto (LF2, LO2)"><select className={inputCls} value={za.categoriaL2 ?? ""} onChange={(e) => zona(za.id, { categoriaL2: e.target.value || null })}><option value="">Come per le persone</option>{CATEGORIE.map((x) => <option key={x.id} value={x.id}>{x.nome} · LF {x.LF}</option>)}</select></Campo>
             <Scelta etichetta="Pavimento esterno/interno (rt)" opzioni={PAVIMENTO} valore={za.rt} onChange={(v) => zona(za.id, { rt: v })} />
             <SceltaId etichetta="Rischio d'incendio o di esplosione (rf)" opzioni={RISCHIO_INCENDIO} id={za.rfId} onChange={(id) => zona(za.id, { rfId: id })} />
             <Scelta etichetta="Protezione antincendio (rp)" opzioni={PROTEZIONE_INCENDIO} valore={za.rp} onChange={(v) => zona(za.id, { rp: v })} />

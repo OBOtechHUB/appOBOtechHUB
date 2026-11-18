@@ -210,3 +210,17 @@ describe("Allegato F.4 – ospedale", () => {
     expect(e.frequenzaConforme).toBe(true);
   });
 });
+
+describe("Tab. C.2, Nota 2 – categorie di perdita diverse per persone (L1) e struttura (L2)", () => {
+  it("museo: persone a perdita normale, patrimonio a perdita elevata → RB2 con LF2 = 0,1", () => {
+    const st: Struttura = { L: 30, W: 20, H: 12, NG: 2, k: 2, CD: 1, Uw: 2.5, PS: 1, linee: [] };
+    const base = zona({ id: "Sale", oreAnno: 2000, rfId: "ordinario", categoria: "normale" });
+    const uguale = calcolaZone(st, [base], NESSUNA).zone[0]!.componenti;
+    const museo = calcolaZone(st, [{ ...base, categoriaL2: "elevata" }], NESSUNA).zone[0]!.componenti;
+    expect(museo.RB).toBeGreaterThan(uguale.RB);
+    // RB2 = ND · PB · LF2: raddoppia passando da 0,05 a 0,1, RB1 resta uguale
+    const nd = calcolaZone(st, [base], NESSUNA).ND, pb = 1 * 1 * 1 * 1e-2;
+    expect(museo.RB - uguale.RB).toBeCloseTo(nd * pb * (0.1 - 0.05), 12);
+  });
+});
+

@@ -2,6 +2,19 @@
   "nota": "Registro degli aggiornamenti di Progettazione LPS. Una voce per aggiornamento, la più recente per prima (app: lps). Viene mostrato nella barra \"Aggiorna app\", nel riquadro Novità e nella pagina Novità di OBO Hub.",
   "aggiornamenti": [
     {
+      "id": "2026-11-19-lps-2",
+      "data": "2026-11-19",
+      "app": "lps",
+      "titolo": "Rischio: perdita per la struttura separata da quella per le persone",
+      "voci": [
+        "Per ogni zona si può scegliere una categoria di perdita per la struttura e il contenuto diversa da quella per le persone, come prevede la norma (es. museo: persone a perdita normale, patrimonio a perdita elevata; ospedale: il contrario)"
+      ],
+      "titolo_en": "Risk: structure loss separate from people loss",
+      "voci_en": [
+        "Each zone can take a loss category for the structure and contents different from the one for people, as the standard allows (e.g. museum: normal loss for people, high for heritage; hospital: the other way round)"
+      ]
+    },
+    {
       "id": "2026-11-19-lps-1",
       "data": "2026-11-19",
       "app": "lps",

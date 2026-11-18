@@ -182,6 +182,8 @@ export interface Zona {
   pspd?: number | null;
   /** frequenza tollerabile del danno indicata dal proprietario (9.3); assente = 0,1 critici / 1 non critici */
   FT?: number | null;
+  /** categoria di perdita per la struttura e il contenuto (LF2, LO2) se diversa da quella per le persone (Tab. C.2, Nota 2) */
+  categoriaL2?: string | null;
 }
 
 /** Dati comuni della struttura. */
@@ -313,8 +315,10 @@ export function calcolaZone(st: Struttura, zone: Zona[], p: Protezione): EsitoSt
     const esplosione = z.rfId.startsWith("esplosione");
     const PP = Math.min(1, Math.max(0, z.oreAnno / 8760));
     const Pe = Math.min(1, Math.max(0, (z.oreApparecchi ?? 8760) / 8760));
-    const LF1 = cat.LF, LF2 = conL2 ? cat.LF : 0;
-    const LO1 = z.impiantiCritici || esplosione ? cat.LO : 0, LO2 = conL2 && esplosione ? cat.LO : 0;
+    // L2 (struttura e contenuto) può avere una categoria diversa da L1 (persone): Tab. C.2, Nota 2 (es. museo, ospedale)
+    const cat2 = (z.categoriaL2 && CATEGORIE.find((c) => c.id === z.categoriaL2)) || cat;
+    const LF1 = cat.LF, LF2 = conL2 ? cat2.LF : 0;
+    const LO1 = z.impiantiCritici || esplosione ? cat.LO : 0, LO2 = conL2 && esplosione ? cat2.LO : 0;
     const LD = z.LD ?? 1e-1;
     const servite = linee.filter((_, i) => z.linee == null || z.linee.includes(i));
     const spd: ClasseLps = z.spd ?? p.spd;
