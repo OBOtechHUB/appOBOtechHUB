@@ -3,7 +3,7 @@ import { z } from "zod";
 import base from "@/dati/captazione/parametriLPL.json";
 
 /**
- * Parametri normativi personali di captazione (metodo della maglia, CEI EN IEC 62305-3:2024).
+ * Parametri normativi personali di captazione (metodo della maglia, CEI EN IEC 62305-3:2026-10).
  * I valori predefiniti arrivano da src/dati/captazione/parametriLPL.json; l'utente può
  * impostare la pendenza massima in "Dati normativi". Salvati in locale e nella libreria Cloud.
  */

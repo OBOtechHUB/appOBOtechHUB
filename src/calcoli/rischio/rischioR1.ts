@@ -1,7 +1,7 @@
 /**
- * Analisi del rischio secondo CEI EN IEC 62305-2:2024, con la struttura divisa in una o più zone ZS (8.3–8.5).
+ * Analisi del rischio secondo CEI EN IEC 62305-2:2026-10, con la struttura divisa in una o più zone ZS (8.3–8.5).
  *
- * Edizione 2024, in sintesi (riferimenti alla norma tra parentesi):
+ * Edizione 2026-10, in sintesi (riferimenti alla norma tra parentesi):
  *  - un solo rischio R = R_L1 (vite umane) + R_L2 (danni materiali), da confrontare con RT = 10⁻⁵ (7.3);
  *  - la perdita di servizio e la perdita economica non sono più un rischio: si valuta la frequenza
  *    del danno agli impianti interni F = FC + FM + FW + FZ, da confrontare con FT (9.3);
@@ -213,7 +213,7 @@ export interface DatiRischio {
   categoria?: string;
   /** LF dei progetti salvati prima del 2024: usato solo se manca la categoria */
   LF: number;
-  /** non più usato dall'edizione 2024 (resta per i progetti salvati) */
+  /** non più usato dall'edizione 2026-10 (resta per i progetti salvati) */
   hz?: number;
   PS?: number;
   misureContatto: number;

@@ -14,7 +14,7 @@ function Riquadro({ titolo, rif, children }: { titolo: string; rif: string; chil
 
 /** Aree di raccolta: AD (struttura), AM (vicino alla struttura), AL (linea), AI (vicino alla linea), ADJ. */
 export function SchemaAreeRaccolta({ rM, rI }: { rM?: number; rI?: number }) {
-  return <Riquadro titolo="Aree di raccolta dei fulmini" rif="CEI EN IEC 62305-2:2024, Allegato A (Fig. A.1 e A.5)">
+  return <Riquadro titolo="Aree di raccolta dei fulmini" rif="CEI EN IEC 62305-2:2026-10, Allegato A (Fig. A.1 e A.5)">
     <svg viewBox="0 0 540 230" className="h-auto w-full text-foreground" role="img" aria-label="Aree di raccolta AD, AM, AL, AI e ADJ">
       {/* AM */}
       <rect x="20" y="20" width="230" height="190" rx="70" className="fill-primary/5 stroke-primary" strokeDasharray="5 4" />
@@ -42,7 +42,7 @@ export function SchemaAreeRaccolta({ rM, rI }: { rM?: number; rI?: number }) {
 
 /** Esempio di suddivisione in zone ZS e componenti di rischio che riguardano ciascuna. */
 export function SchemaZone() {
-  return <Riquadro titolo="Suddivisione della struttura in zone di rischio" rif="CEI EN IEC 62305-2:2024, 8.3 (Fig. 2)">
+  return <Riquadro titolo="Suddivisione della struttura in zone di rischio" rif="CEI EN IEC 62305-2:2026-10, 8.3 (Fig. 2)">
     <svg viewBox="0 0 560 250" className="h-auto w-full text-foreground" role="img" aria-label="Esempio di zone: esterno, interno, compartimento, terrazza">
       <line x1="10" y1="200" x2="510" y2="200" stroke="currentColor" />
       {/* edificio */}

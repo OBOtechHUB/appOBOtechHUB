@@ -70,10 +70,10 @@ export function RischioPage() {
   return <>
     <section className="bg-ardesia text-white"><div className="mx-auto max-w-5xl px-4 py-10">
       <h1 className="text-3xl font-bold">Analisi del rischio</h1>
-      <p className="mt-2 max-w-3xl text-white/90">Rischio R (vite umane L1 + danni materiali L2) e frequenza del danno agli impianti interni F, per una o più zone della struttura, con il livello di protezione minimo (CEI EN IEC 62305-2:2024).</p>
+      <p className="mt-2 max-w-3xl text-white/90">Rischio R (vite umane L1 + danni materiali L2) e frequenza del danno agli impianti interni F, per una o più zone della struttura, con il livello di protezione minimo (CEI EN IEC 62305-2:2026-10).</p>
     </div></section>
     <main className="mx-auto max-w-5xl px-4 py-8">
-      <p className="rounded-lg border-l-4 border-primary bg-muted p-3 text-sm">Metodo dell'edizione 2024 con i valori tipici degli Allegati A, B, C ed E. Il numero di eventi è comune a tutta la struttura; probabilità, perdite e SPD si scelgono per ogni zona e ogni zona va confrontata da sola con RT e FT. Se il danno può coinvolgere l'ambiente circostante, la zona aggiunge le perdite esterne LE.</p>
+      <p className="rounded-lg border-l-4 border-primary bg-muted p-3 text-sm">Metodo dell'edizione 2026-10 con i valori tipici degli Allegati A, B, C ed E. Il numero di eventi è comune a tutta la struttura; probabilità, perdite e SPD si scelgono per ogni zona e ogni zona va confrontata da sola con RT e FT. Se il danno può coinvolgere l'ambiente circostante, la zona aggiunge le perdite esterne LE.</p>
       <p className="mt-2 text-xs text-muted-foreground">Condizioni della norma applicate dal calcolo: senza LPS gli SPD non riducono il rischio per fulmine sulla struttura (RC) e le misure contro contatto e passo non contano; nelle zone con rischio di esplosione la protezione antincendio non riduce il rischio (rp = 1) e i guasti degli impianti contano sempre per le vite umane.</p>
 
       <section className="mt-8" aria-label="Struttura">

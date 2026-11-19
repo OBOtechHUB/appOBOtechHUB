@@ -1,5 +1,5 @@
 /**
- * Riepilogo dei dati normativi usati dall'app (CEI EN IEC 62305:2024, parti 1–4), raggruppati per argomento.
+ * Riepilogo dei dati normativi usati dall'app (CEI EN IEC 62305:2026-10, parti 1–4), raggruppati per argomento.
  * I valori vengono dalle stesse costanti usate nei calcoli: pagina e calcoli restano sempre allineati.
  * Solo valori numerici e descrizioni scritte con parole nostre, con il riferimento alla tabella: nessun testo copiato.
  */
@@ -16,7 +16,7 @@ import { PLPS, PEB, PSPD, RT_R1, FT_CRITICI, FT_NON_CRITICI } from "@/calcoli/ri
 import { CORRENTE_LPL, UW_CATEGORIA } from "@/calcoli/spd/sceltaSpd";
 import { INTERVALLI_TIPICI, INTERVALLI_SEVERI } from "@/calcoli/verifiche/verifiche";
 
-const P1 = "CEI EN IEC 62305-1:2024", P2 = "CEI EN IEC 62305-2:2024", P3 = "CEI EN IEC 62305-3:2024", P4 = "CEI EN IEC 62305-4:2024";
+const P1 = "CEI EN IEC 62305-1:2026-10", P2 = "CEI EN IEC 62305-2:2026-10", P3 = "CEI EN IEC 62305-3:2026-10", P4 = "CEI EN IEC 62305-4:2026-10";
 const num = (v: number, dec = 2) => v.toLocaleString("it-IT", { maximumFractionDigits: dec });
 const esp = (v: number) => (v >= 0.01 ? num(v, 3) : v.toExponential(0).replace("e-", "·10⁻").replace(/(\d)$/, (d) => "⁰¹²³⁴⁵⁶⁷⁸⁹"[Number(d)] ?? d));
 
@@ -165,7 +165,7 @@ export function RiepilogoNormativo({ lplProgetto }: { lplProgetto: Lpl | null })
         ["Sistemi critici (esplosione, impianti sensibili, uffici, commerciali, affollamento)", `ogni ${num(INTERVALLI_TIPICI.I.visiva)} anno`, `ogni ${num(INTERVALLI_TIPICI.I.critica)} anno`],
         ["Condizioni ambientali severe", "ogni 6 mesi", `ogni ${num(INTERVALLI_SEVERI.completa)} anno`],
       ]} />
-      <Nota>Nell'edizione 2024 gli intervalli non dipendono più dalla classe dell'LPS. Se l'esame a vista annuale non si fa, verifica completa ogni 2 anni. Verifica straordinaria dopo modifiche della struttura, riparazioni o un fulmine sull'LPS. Mai verifiche durante i temporali.</Nota>
+      <Nota>Nell'edizione 2026-10 gli intervalli non dipendono più dalla classe dell'LPS. Se l'esame a vista annuale non si fa, verifica completa ogni 2 anni. Verifica straordinaria dopo modifiche della struttura, riparazioni o un fulmine sull'LPS. Mai verifiche durante i temporali.</Nota>
     </Blocco>
   </div>;
 }

@@ -80,7 +80,7 @@ export function NormaPage() {
 
   return <>
     <section className="bg-ardesia text-white"><div className="mx-auto max-w-5xl px-4 py-10">
-      <h1 className="text-3xl font-bold">Norma CEI EN IEC 62305:2024</h1>
+      <h1 className="text-3xl font-bold">Norma CEI EN IEC 62305:2026-10</h1>
       <p className="mt-2 max-w-3xl text-white/90">Calcoli e verifiche delle quattro parti della norma che non hanno una pagina propria: parametri del fulmine, materiali, schermi, tensioni di contatto, aree con rischio di esplosione, schermatura magnetica, SPD, tensioni indotte e fotovoltaico.</p>
     </div></section>
     <main className="mx-auto max-w-5xl px-4 py-8">
@@ -90,7 +90,7 @@ export function NormaPage() {
       </div>
       <nav className="mt-4 flex flex-wrap gap-2" aria-label="Indice">{INDICE.map(([id, t]) => <a key={id} href={`#${id}`} className="rounded-full border-[0.8px] border-bordo-scheda px-3 py-1 text-sm hover:bg-muted">{t}</a>)}</nav>
 
-      <Sezione id="fulmine" titolo="Parametri del fulmine" rif="CEI EN IEC 62305-1:2024, 8.2, Tab. 3 e Tab. 4, A.4">
+      <Sezione id="fulmine" titolo="Parametri del fulmine" rif="CEI EN IEC 62305-1:2026-10, 8.2, Tab. 3 e Tab. 4, A.4">
         <Tabella testa={["Parametro", ...LPL.map((l) => `LPL ${l}`)]} righe={[
           ["Primo colpo positivo: picco (kA), 10/350 µs", ...LPL.map((l) => PARAMETRI_FULMINE[l].primoPositivo.I)],
           ["Primo colpo positivo: carica (C)", ...LPL.map((l) => PARAMETRI_FULMINE[l].primoPositivo.Q)],
@@ -110,7 +110,7 @@ export function NormaPage() {
         </div>
       </Sezione>
 
-      <Sezione id="materiali" titolo="Materiali e sezioni minime" rif="CEI EN IEC 62305-3:2024, 5.6, Tab. 3, 6, 7, 8, 9 e 10">
+      <Sezione id="materiali" titolo="Materiali e sezioni minime" rif="CEI EN IEC 62305-3:2026-10, 5.6, Tab. 3, 6, 7, 8, 9 e 10">
         <div className="grid gap-4 sm:grid-cols-3">
           <Campo etichetta="Uso del conduttore"><select className={inputCls} value={uso} onChange={(e) => setUso(e.target.value as UsoConduttore)}>
             <option value="captatore-calata">Captatore, asta o calata (Tab. 7)</option><option value="dispersore">Dispersore (Tab. 8)</option>
@@ -137,7 +137,7 @@ export function NormaPage() {
           <p className="mt-1 text-xs text-muted-foreground">Alluminio mai a contatto con terra, ghiaia, calcare o malta. Acciaio zincato nel calcestruzzo non deve proseguire nel terreno; i trefoli zincati non sono consigliati per la dispersione.</p></details>
       </Sezione>
 
-      <Sezione id="schermo-cavi" titolo="Schermo dei cavi entranti" rif="CEI EN IEC 62305-3:2024, Allegato A (A.1, Tab. A.1)">
+      <Sezione id="schermo-cavi" titolo="Schermo dei cavi entranti" rif="CEI EN IEC 62305-3:2026-10, Allegato A (A.1, Tab. A.1)">
         <div className="grid gap-4 sm:grid-cols-3">
           <N e="Corrente sullo schermo IF (kA)" v={IF} set={setIF} passo={0.5} />
           <Campo etichetta="Materiale dello schermo (ρC)"><select className={inputCls} value={schermo} onChange={(e) => setSchermo(e.target.value)}>{RESISTIVITA_SCHERMI.map((x) => <option key={x.id} value={x.id}>{x.nome} · {x.rho.toExponential(2)} Ω·m</option>)}</select></Campo>
@@ -151,7 +151,7 @@ export function NormaPage() {
         {schermo === "rame" && <p className="mt-2 text-sm">Limite termico per schermi in rame: IF ≤ 8 · SC = {f(correnteMaxSchermoRame(Sc), 0)} kA ({IF <= correnteMaxSchermoRame(Sc) ? "rispettato" : "superato"}).</p>}
       </Sezione>
 
-      <Sezione id="contatto" titolo="Tensioni di contatto e di passo" rif="CEI EN IEC 62305-3:2024, 8.1 e 8.2">
+      <Sezione id="contatto" titolo="Tensioni di contatto e di passo" rif="CEI EN IEC 62305-3:2026-10, 8.1 e 8.2">
         <div className="grid gap-2 text-sm">
           <label className="flex items-center gap-2"><input type="checkbox" checked={c3m} onChange={(e) => setC3m(e.target.checked)} />In condizioni normali nessuno si trova entro 3 m dalle calate</label>
           <label className="flex items-center gap-2"><input type="checkbox" checked={c10} onChange={(e) => setC10(e.target.checked)} />Calate naturali: almeno 10 colonne o pilastri metallici interconnessi, continuità garantita</label>
@@ -165,14 +165,14 @@ export function NormaPage() {
         <p className="mt-2 text-xs text-muted-foreground">Obiettivo delle misure contro il passo: al massimo 25 kV per un passo di 1 m con corrente 10/350 µs. Nell'analisi del rischio queste misure corrispondono al fattore PAM.</p>
       </Sezione>
 
-      <Sezione id="esplosione" titolo="Strutture con rischio di esplosione" rif="CEI EN IEC 62305-3:2024, Allegato C">
+      <Sezione id="esplosione" titolo="Strutture con rischio di esplosione" rif="CEI EN IEC 62305-3:2026-10, Allegato C">
         <Campo etichetta="Area pericolosa più critica"><select className={inputCls} value={atex} onChange={(e) => setAtex(e.target.value as ZonaAtex)}>
           <option value="0-20">Zone 0 e 20</option><option value="1-21">Zone 1 e 21</option><option value="2-22">Zone 2 e 22</option><option value="esplosivi-solidi">Materiali esplosivi solidi</option></select></Campo>
         <ul className="mt-3 space-y-1.5 text-sm">{requisitiEsplosione(atex).map((r) => <li key={r} className="flex gap-2"><input type="checkbox" aria-label={r} /><span>{r}</span></li>)}</ul>
         <p className="mt-2 text-xs text-muted-foreground">Lista di controllo da spuntare durante il progetto; le spunte non vengono salvate.</p>
       </Sezione>
 
-      <Sezione id="schermatura" titolo="Schermatura magnetica" rif="CEI EN IEC 62305-4:2024, Allegato A (A.1–A.17, Tab. A.4)">
+      <Sezione id="schermatura" titolo="Schermatura magnetica" rif="CEI EN IEC 62305-4:2026-10, Allegato A (A.1–A.17, Tab. A.4)">
         <div className="grid gap-4 sm:grid-cols-4">
           <N e="Lato maglia dello schermo wm (m)" v={wm} set={setWm} passo={0.1} />
           <Campo etichetta="Materiale dello schermo"><select className={inputCls} value={mats} onChange={(e) => setMats(e.target.value as "rame-alluminio" | "acciaio")}><option value="rame-alluminio">Rame o alluminio</option><option value="acciaio">Acciaio (ferri d'armatura)</option></select></Campo>
@@ -192,7 +192,7 @@ export function NormaPage() {
         <p className="mt-2 text-xs text-muted-foreground">Confronta H1 con la tenuta al campo magnetico delle apparecchiature. Formule semplificate: per volumi piccoli o fulmini molto vicini serve un calcolo numerico del campo.</p>
       </Sezione>
 
-      <Sezione id="spd" titolo="SPD: livello di protezione effettivo" rif="CEI EN IEC 62305-4:2024, Allegato C (C.1–C.5, regola n. 2)">
+      <Sezione id="spd" titolo="SPD: livello di protezione effettivo" rif="CEI EN IEC 62305-4:2026-10, Allegato C (C.1–C.5, regola n. 2)">
         <div className="grid gap-4 sm:grid-cols-4">
           <N e="Livello di protezione Up (kV)" v={Up} set={setUp} passo={0.1} />
           <Campo etichetta="Tipo di SPD"><select className={inputCls} value={tipoSpd} onChange={(e) => setTipoSpd(e.target.value as "limitatore" | "commutazione")}><option value="limitatore">Limitatore di tensione</option><option value="commutazione">A commutazione</option></select></Campo>
@@ -207,7 +207,7 @@ export function NormaPage() {
         <p className="mt-2 text-xs text-muted-foreground">Con l'SPD all'ingresso dell'apparecchiatura la propagazione è trascurabile (kr = 1); con circuiti lunghi o aperti la tensione può raddoppiare (kr = 2). La tensione indotta si stima nella sezione seguente.</p>
       </Sezione>
 
-      <Sezione id="indotta" titolo="Tensione indotta nel circuito protetto" rif="CEI EN IEC 62305-4:2024, Allegato H (H.1–H.3, Tab. H.1–H.3)">
+      <Sezione id="indotta" titolo="Tensione indotta nel circuito protetto" rif="CEI EN IEC 62305-4:2026-10, Allegato H (H.1–H.3, Tab. H.1–H.3)">
         <div className="grid gap-4 sm:grid-cols-4">
           <N e="Distanza circuito–calata d (m)" v={dI} set={setDI} passo={0.1} />
           <N e="Distanza conduttori attivi–PE w (m)" v={wI} set={setWI} passo={0.01} />
@@ -228,7 +228,7 @@ export function NormaPage() {
         <p className="mt-2 text-xs text-muted-foreground">Ui è trascurabile (h = 0, q = 0) con struttura o locale schermato con maglia ≤ 0,1 m, circuito schermato o in condotto metallico chiuso collegato alle due estremità, fibra ottica senza parti metalliche, conduttore attivo e PE intrecciati.</p>
       </Sezione>
 
-      <Sezione id="fotovoltaico" titolo="Impianti fotovoltaici sul tetto" rif="CEI EN IEC 62305-4:2024, Allegato F (F.1, Tab. F.1)">
+      <Sezione id="fotovoltaico" titolo="Impianti fotovoltaici sul tetto" rif="CEI EN IEC 62305-4:2026-10, Allegato F (F.1, Tab. F.1)">
         <div className="grid gap-4 sm:grid-cols-3">
           <N e="Calate esterne" v={calFV} set={(v) => setCalFV(Math.max(1, Math.round(v)))} passo={1} min={1} />
           <N e="Conduttori CC ed equipotenziali n'" v={nCC} set={(v) => setNCC(Math.max(1, Math.round(v)))} passo={1} min={1} />

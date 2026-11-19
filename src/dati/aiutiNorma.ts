@@ -1,15 +1,15 @@
 /**
  * Aiuti "?" nei punti di scelta. Chiave = etichetta del campo (in italiano, come scritta nella pagina).
  * Testi sintetici scritti con parole nostre (non estratti della norma), con il riferimento per approfondire.
- * Riferimenti confrontati con la CEI EN IEC 62305 edizione 2024 (parti 1–4).
+ * Riferimenti confrontati con la CEI EN IEC 62305 edizione 2026-10 (parti 1–4).
  * daVerificare: true solo dove il contenuto dipende da altre norme o da dati del produttore.
  */
 export interface Aiuto { it: string; en: string; rif: string; daVerificare?: boolean }
 
-const RISCHIO = "CEI EN IEC 62305-2:2024";
-const LPS = "CEI EN IEC 62305-3:2024";
-const P1 = "CEI EN IEC 62305-1:2024";
-const P4 = "CEI EN IEC 62305-4:2024";
+const RISCHIO = "CEI EN IEC 62305-2:2026-10";
+const LPS = "CEI EN IEC 62305-3:2026-10";
+const P1 = "CEI EN IEC 62305-1:2026-10";
+const P4 = "CEI EN IEC 62305-4:2026-10";
 
 export const AIUTI: Record<string, Aiuto> = {
   // ----- Dati edificio -----
@@ -113,7 +113,7 @@ export const AIUTI: Record<string, Aiuto> = {
   "LPL": {
     it: "Il livello di protezione nasce dall'analisi del rischio. Determina raggio della sfera rotolante (I 20 m, II 30 m, III 45 m, IV 60 m), lato della maglia (5, 10, 15, 20 m, aumentabile fino al 25 % se il perimetro non cresce) e passo delle calate (10, 10, 15, 20 m).",
     en: "The protection level comes from the risk assessment. It sets the rolling sphere radius (I 20 m, II 30 m, III 45 m, IV 60 m), mesh size (5, 10, 15, 20 m, up to 25 % larger if the perimeter does not increase) and down conductor spacing (10, 10, 15, 20 m).",
-    rif: `${LPS}, Tab. 2 e Tab. 5; CEI EN IEC 62305-1:2024, Tab. 4`,
+    rif: `${LPS}, Tab. 2 e Tab. 5; CEI EN IEC 62305-1:2026-10, Tab. 4`,
   },
   "Strategia proposta": {
     it: "Maglia: per coperture piane o inclinate (oltre 1/10 di pendenza servono conduttori sul colmo). Aste: per impianti sul tetto e punti sporgenti. Mista: maglia sulla copertura e aste dove la sfera rotolante tocca impianti o parti alte. Sotto i 60 m i fulmini laterali si possono trascurare.",
@@ -176,22 +176,22 @@ export const AIUTI: Record<string, Aiuto> = {
   "Sistema di distribuzione": {
     it: "TT, TN-C, TN-S o IT: cambia lo schema di collegamento degli SPD (es. 3+1 nel TT) e la tensione Uc minima.",
     en: "TT, TN-C, TN-S or IT: changes the SPD connection scheme (e.g. 3+1 in TT) and the minimum Uc.",
-    rif: "CEI EN IEC 62305-4:2024, Allegato C; CEI EN 61643-12; CEI 64-8/5-534", daVerificare: true,
+    rif: "CEI EN IEC 62305-4:2026-10, Allegato C; CEI EN 61643-12; CEI 64-8/5-534", daVerificare: true,
   },
   "Categoria di tenuta degli apparecchi": {
     it: "Tensione di tenuta Uw degli apparecchi da proteggere (categoria I–IV). Il livello di protezione Up dell'SPD deve stare sotto Uw con margine per la lunghezza dei collegamenti (indicativamente Up ≤ 0,8 · Uw).",
     en: "Impulse withstand voltage Uw of the equipment to protect (category I–IV). The SPD protection level Up must be below Uw with a margin for connection length (about Up ≤ 0.8 · Uw).",
-    rif: "CEI EN IEC 62305-4:2024, Allegato C; CEI EN 61643-12", daVerificare: true,
+    rif: "CEI EN IEC 62305-4:2026-10, Allegato C; CEI EN 61643-12", daVerificare: true,
   },
   "Servizi metallici entranti (energia, acqua, gas, telecom…)": {
     it: "Regola semplificata: metà della corrente di fulmine va nell'impianto di terra e l'altra metà si divide tra i servizi entranti e poi tra i loro conduttori. Più servizi = meno corrente per servizio e per conduttore.",
     en: "Simplified rule: half of the lightning current goes into the earthing system and the other half is shared among incoming services and then their conductors. More services = less current per service and per conductor.",
-    rif: "CEI EN IEC 62305-1:2024, E.2",
+    rif: "CEI EN IEC 62305-1:2026-10, E.2",
   },
   "Sottoquadri a più di 10 m": {
     it: "Oltre circa 10 m di cavo dall'SPD d'ingresso la protezione degli apparecchi può non bastare (oscillazioni della tensione): si aggiunge un SPD di tipo 2 nel sottoquadro.",
     en: "Beyond about 10 m of cable from the entrance SPD, equipment protection may not be enough (voltage oscillation): add a type 2 SPD in the sub-board.",
-    rif: "CEI EN IEC 62305-4:2024, Allegato C; CEI EN 61643-12", daVerificare: true,
+    rif: "CEI EN IEC 62305-4:2026-10, Allegato C; CEI EN 61643-12", daVerificare: true,
   },
   "Sistema di allerta temporali (PTWS)": {
     it: "Probabilità che un sistema di allerta temporali (TWS, CEI EN IEC 62793) non rilevi il temporale. 1 = nessun TWS. Riduce i rischi solo se l'allerta porta davvero a evacuare le aree esposte o a scollegare le linee; il valore viene dalla scheda del produttore.",
@@ -329,7 +329,7 @@ export const AIUTI: Record<string, Aiuto> = {
   "Lato maglia fondazione (m)": {
     it: "Lato della maglia del dispersore di fondazione. Con maglie fitte (dell'ordine di 1 m) la corrente nelle linee collegate in punti diversi è trascurabile; più la maglia è fitta, migliore l'equipotenzialità.",
     en: "Mesh size of the foundation electrode. With dense meshes (about 1 m) the current in lines bonded at different points is negligible; the denser the mesh, the better the equipotentiality.",
-    rif: `${LPS}, 5.4.2.3; CEI EN IEC 62305-1:2024, E.2.5`, daVerificare: true,
+    rif: `${LPS}, 5.4.2.3; CEI EN IEC 62305-1:2026-10, E.2.5`, daVerificare: true,
   },
   "Profondità di posa (m)": {
     it: "Profondità del conduttore interrato o della testa del picchetto: almeno 0,5 m, per stabilizzare la resistenza rispetto a gelo e siccità.",
@@ -349,12 +349,12 @@ export const AIUTI: Record<string, Aiuto> = {
   "Alimentazione": {
     it: "Monofase o trifase cambia il numero di conduttori che si dividono la corrente di fulmine (es. 3 fasi + N = 4): più conduttori, meno corrente per polo dell'SPD.",
     en: "Single or three phase changes the number of conductors sharing the lightning current (e.g. 3 phases + N = 4): more conductors, less current per SPD pole.",
-    rif: "CEI EN IEC 62305-1:2024, E.2.3",
+    rif: "CEI EN IEC 62305-1:2026-10, E.2.3",
   },
   "Apparecchi sensibili da proteggere": {
     it: "Apparecchi lontani dal quadro o con bassa tensione di tenuta richiedono un SPD di tipo 3 vicino (entro pochi metri), coordinato con quelli a monte.",
     en: "Equipment far from the board or with low withstand voltage needs a type 3 SPD close by (within a few metres), coordinated with the upstream ones.",
-    rif: "CEI EN IEC 62305-4:2024, Allegato C", daVerificare: true,
+    rif: "CEI EN IEC 62305-4:2026-10, Allegato C", daVerificare: true,
   },
   "Coefficiente di utilizzo η (0–1)": {
     it: "Più dispersori vicini si disturbano a vicenda: la resistenza totale è più alta del semplice parallelo. η tiene conto di questo effetto; picchetti distanti almeno il doppio della loro lunghezza hanno η vicino a 1.",

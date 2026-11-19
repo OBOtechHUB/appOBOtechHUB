@@ -27,7 +27,7 @@ export function HomePage() {
     <section className="bg-ardesia text-white">
       <div className="mx-auto grid max-w-5xl gap-8 px-4 py-12 md:grid-cols-[1fr_auto] md:items-end"><div>
         <h1 className="text-3xl font-bold leading-tight sm:text-4xl">Progettazione LPS – protezione contro i fulmini</h1>
-        <p className="mt-3 max-w-2xl text-lg text-white/90">Dall’edificio al progetto: rischio, protezione esterna e documentazione tecnica secondo CEI EN IEC 62305:2024.</p>
+        <p className="mt-3 max-w-2xl text-lg text-white/90">Dall’edificio al progetto: rischio, protezione esterna e documentazione tecnica secondo CEI EN IEC 62305:2026-10.</p>
         <div className="mt-6 flex flex-wrap gap-3">
           {!user && <Button asChild variant="outline" size="lg"><Link to="/auth">Accedi <ArrowRight strokeWidth={1.5} /></Link></Button>}
           <Button asChild size="lg"><Link to="/assistente">Apri l’assistente di progetto <ArrowRight strokeWidth={1.5} /></Link></Button>
@@ -59,7 +59,7 @@ export function HomePage() {
         <ModuleCard titolo="Verifiche e dossier" descrizione="Piano delle verifiche, checklist, misure e dossier PDF." icona={ClipboardCheck} to="/verifiche" />
         <ModuleCard titolo="Particolari costruttivi" descrizione="Componenti e raccordi per le superfici." icona={ClipboardList} to="/particolari" />
       </div>
-      <section className="mt-8 border-y py-5"><h2 className="font-display font-semibold">Norme di riferimento</h2><ul className="mt-3 space-y-1 text-sm text-muted-foreground"><li>CEI EN IEC 62305-1/2/3/4:2024</li><li>CEI EN 61643-12</li></ul><p className="mt-4 text-sm">Calcoli di supporto – da validare da tecnico abilitato</p></section>
+      <section className="mt-8 border-y py-5"><h2 className="font-display font-semibold">Norme di riferimento</h2><ul className="mt-3 space-y-1 text-sm text-muted-foreground"><li>CEI EN IEC 62305-1/2/3/4:2026-10</li><li>CEI EN 61643-12</li></ul><p className="mt-4 text-sm">Calcoli di supporto – da validare da tecnico abilitato</p></section>
     </main>
     </>
   );

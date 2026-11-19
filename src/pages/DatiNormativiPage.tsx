@@ -44,7 +44,7 @@ export function DatiNormativiPage() {
   return <main className="mx-auto max-w-5xl px-4 py-6"><PageTitle titolo="Dati normativi" />
     <section className="mt-6">
       <h2 className="font-display text-xl font-semibold">Riferimenti normativi di progetto</h2>
-      <p className="mt-2 text-sm text-muted-foreground">Tutti i valori della CEI EN IEC 62305:2024 (parti 1–4) che l’app usa nei calcoli, per argomento, con la tabella di riferimento. La colonna evidenziata è il livello di protezione del progetto.</p>
+      <p className="mt-2 text-sm text-muted-foreground">Tutti i valori della CEI EN IEC 62305:2026-10 (parti 1–4) che l’app usa nei calcoli, per argomento, con la tabella di riferimento. La colonna evidenziata è il livello di protezione del progetto.</p>
       <RiepilogoNormativo key={lplProgetto ?? "-"} lplProgetto={lplProgetto} />
     </section>
     <p className="mt-6 border-t pt-5 text-sm text-muted-foreground">Il catalogo personale non costituisce una fonte normativa. Codici, prezzi e particolari richiedono verifica; le righe ESEMPIO non sono dati di progetto validati.</p>
@@ -80,6 +80,6 @@ export function DatiNormativiPage() {
         </label>
         <Button variant="outline" onClick={salvaParametri}><Check />Salva parametri</Button>
       </div>
-      <p className="mt-2 text-xs text-muted-foreground">La norma 2024 non pone limiti di pendenza al metodo della maglia ({parametriLPL.pendenzaMassimaMaglia.riferimentoNorma}): lascia vuoto. Un valore inserito qui è una scelta personale, più restrittiva della norma.</p>
+      <p className="mt-2 text-xs text-muted-foreground">La norma 2026-10 non pone limiti di pendenza al metodo della maglia ({parametriLPL.pendenzaMassimaMaglia.riferimentoNorma}): lascia vuoto. Un valore inserito qui è una scelta personale, più restrittiva della norma.</p>
     </section></main>;
 }

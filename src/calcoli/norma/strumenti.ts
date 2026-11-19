@@ -1,5 +1,5 @@
 /**
- * Strumenti di calcolo e verifiche della serie CEI EN IEC 62305:2024 che non hanno una pagina propria:
+ * Strumenti di calcolo e verifiche della serie CEI EN IEC 62305:2026-10 che non hanno una pagina propria:
  * parametri del fulmine (parte 1), materiali e sezioni minime, schermo dei cavi entranti, tensioni di
  * contatto e di passo, strutture con rischio di esplosione (parte 3), schermatura magnetica, livello di
  * protezione effettivo degli SPD, tensione indotta e impianti fotovoltaici (parte 4).

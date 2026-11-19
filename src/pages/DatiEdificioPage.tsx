@@ -47,7 +47,7 @@ export function DatiEdificioPage() {
   const AD = areaRaccolta(d.L, d.W, d.H);
   const posizione = fattoriPosizione.find((f) => f.id === d.posizioneId)
     ?? { id: "isolata", descrizione: "Isolata, nessun oggetto nelle vicinanze", valore: 1, riferimentoNorma: "" };
-  const ND = eventiPericolosi(2 * d.densita, AD, posizione.valore); // NSG = k·NG con k = 2 (CEI EN IEC 62305-2:2024, A.1)
+  const ND = eventiPericolosi(2 * d.densita, AD, posizione.valore); // NSG = k·NG con k = 2 (CEI EN IEC 62305-2:2026-10, A.1)
 
   return (
     <main className="mx-auto max-w-5xl px-4 py-6 pb-32 md:pb-8">

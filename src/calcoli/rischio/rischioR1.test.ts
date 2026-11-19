@@ -7,7 +7,7 @@ const base: DatiRischio = {
   rt: 1e-2, LF: 5e-2, categoria: "normale", rp: 1, rf: 1e-2, rfId: "ordinario", misureContatto: 1, impiantiCritici: false, frazionePresenza: 1,
 };
 
-describe("rischio – CEI EN IEC 62305-2:2024", () => {
+describe("rischio – CEI EN IEC 62305-2:2026-10", () => {
   it("NSG = k·NG e numero di eventi pericolosi (Allegato A)", () => {
     const e = calcolaR1(base, { lps: "nessuno", spd: "nessuno" });
     expect(e.NSG).toBe(8);

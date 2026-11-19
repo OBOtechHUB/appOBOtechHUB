@@ -2282,6 +2282,7 @@
       {
         "codiceOBO": "3133320",
         "descrizione": "985 M8 35 – tassello filettato M8",
+        "nota": "codice da verificare: non è nel catalogo OBO (su obo.it c'è 3133230)",
         "quantita": 1,
         "unitaQuantita": "per_m"
       },
@@ -2982,8 +2983,9 @@
         "unitaQuantita": "per_m"
       },
       {
-        "codiceOBO": "5236457",
+        "codiceOBO": "5336457",
         "descrizione": "233 A VA – giunto di sezionamento",
+        "nota": "codice corretto da 5236457 (non esiste): 5336457 è il giunto di sezionamento Rd 8-10 / Fl 30-40 sul sito OBO",
         "quantita": 1,
         "unitaQuantita": "per_calata"
       },

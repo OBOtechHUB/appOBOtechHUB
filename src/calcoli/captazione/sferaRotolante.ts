@@ -1,5 +1,5 @@
 /**
- * Motore della sfera rotolante – CEI EN IEC 62305-3:2024 (metodo della sfera rotolante)
+ * Motore della sfera rotolante – CEI EN IEC 62305-3:2026-10 (metodo della sfera rotolante)
  *
  * Funzioni pure, senza dipendenze, eseguibili in un Web Worker.
  * Unità: metri. Asse z verso l'alto, quota 0 = terreno.

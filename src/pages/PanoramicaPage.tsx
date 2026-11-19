@@ -6,7 +6,7 @@ import { PulsanteInstalla } from "@/components/InstallaApp";
 
 const VANTAGGI = [
   "Tutto il progetto dell'LPS in un unico strumento, dal rischio al dossier",
-  "Calcoli secondo CEI EN IEC 62305:2024, con i valori sempre visibili e modificabili",
+  "Calcoli secondo CEI EN IEC 62305:2026-10, con i valori sempre visibili e modificabili",
   "Proposte automatiche di aste, maglia, calate e impianto di terra in 3D",
   "Computo materiali con codici OBO, schede tecniche e particolari costruttivi",
   "Esportazione verso ZWCAD e AutoCAD, relazioni PDF ed Excel",
@@ -40,7 +40,7 @@ export function PanoramicaPage() {
         <div>
           <p className="text-sm font-semibold uppercase tracking-wide text-primary">Progettazione LPS – smart planning</p>
           <h1 className="mt-3 text-4xl font-bold leading-tight sm:text-5xl">Progettare la protezione contro i fulmini non è mai stato così semplice.</h1>
-          <p className="mt-4 max-w-2xl text-lg text-white/90">Lo strumento per progettisti e installatori: rischio, protezione esterna, terra, SPD e documentazione secondo CEI EN IEC 62305:2024.</p>
+          <p className="mt-4 max-w-2xl text-lg text-white/90">Lo strumento per progettisti e installatori: rischio, protezione esterna, terra, SPD e documentazione secondo CEI EN IEC 62305:2026-10.</p>
           <div className="mt-7 flex flex-wrap gap-3">
             <Button asChild size="lg"><Link to="/auth">Accedi <ArrowRight strokeWidth={1.5} /></Link></Button>
             <Button asChild size="lg" variant="outline"><Link to="/richiesta-accesso">Richiedi l'accesso <ArrowRight strokeWidth={1.5} /></Link></Button>

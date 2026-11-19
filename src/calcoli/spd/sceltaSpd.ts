@@ -4,7 +4,7 @@
  *   va nell'impianto di terra e si divide tra i servizi entranti (n) e i conduttori della linea (m).
  * - Uc ≥ 1,1·U0 (rete 230/400 V → 253 V).
  * - Up ≤ 0,8·Uw (Uw: tensione di tenuta a impulso degli apparecchi da proteggere).
- * Regola n. 1, CEI EN IEC 62305-4:2024 Allegato C; ripartizione della corrente CEI EN IEC 62305-1:2024 E.2.
+ * Regola n. 1, CEI EN IEC 62305-4:2026-10 Allegato C; ripartizione della corrente CEI EN IEC 62305-1:2026-10 E.2.
  * Up ≤ 0,8·Uw è la regola n. 1 (C.2.3.1.2), per apparecchi entro 10 m dall'SPD d'ingresso.
  */
 

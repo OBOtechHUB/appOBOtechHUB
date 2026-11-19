@@ -1,7 +1,7 @@
 /**
- * Verifiche periodiche dell'LPS (CEI EN IEC 62305-3:2024, art. 7 e D.7.2.2).
+ * Verifiche periodiche dell'LPS (CEI EN IEC 62305-3:2026-10, art. 7 e D.7.2.2).
  * Logica pura: checklist, intervalli tra le verifiche, scadenze e riepilogo degli esiti.
- * L'edizione 2024 non lega più gli intervalli alla classe dell'LPS: esame a vista ogni anno e
+ * L'edizione 2026-10 non lega più gli intervalli alla classe dell'LPS: esame a vista ogni anno e
  * verifica completa (con prove elettriche) ogni 3 anni; ogni anno per strutture a rischio di esplosione,
  * con impianti sensibili, uffici, commerciali o con molte persone; condizioni severe: a vista ogni 6 mesi.
  * Valori modificabili per prescrizioni locali o del proprietario.

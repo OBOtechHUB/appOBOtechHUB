@@ -1,5 +1,5 @@
 /**
- * Proposta automatica della captazione e delle calate – CEI EN IEC 62305-3:2024
+ * Proposta automatica della captazione e delle calate – CEI EN IEC 62305-3:2026-10
  *
  * Per ogni corpo di fabbrica:
  *  - tetto piano:  conduttore perimetrale + maglia orientata secondo il lato lungo, con passo

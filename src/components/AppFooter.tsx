@@ -18,7 +18,7 @@ export function AppFooter() {
       <footer className="mt-16 bg-ardesia text-white">
         <div className="mx-auto max-w-5xl px-4 py-10">
           <p className="text-base">Calcoli di supporto – da validare da tecnico abilitato</p>
-          <p className="mt-1 text-sm text-white/70">Riferimento normativo: CEI EN IEC 62305:2024</p>
+          <p className="mt-1 text-sm text-white/70">Riferimento normativo: CEI EN IEC 62305:2026-10</p>
           <nav className="mt-6 flex flex-wrap gap-x-3 gap-y-2 text-sm text-white/85" aria-label="Collegamenti legali">
             <a href={URL_HUB} className="hover:text-white">OBO Hub</a><span aria-hidden="true">|</span>
             <a href={`${URL_HUB}novita.html`} className="hover:text-white">Novità</a><span aria-hidden="true">|</span>

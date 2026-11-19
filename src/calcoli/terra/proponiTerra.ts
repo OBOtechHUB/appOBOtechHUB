@@ -1,5 +1,5 @@
 /**
- * Proposta automatica dell'impianto di terra – CEI EN IEC 62305-3:2024 e particolari OBO serie T5
+ * Proposta automatica dell'impianto di terra – CEI EN IEC 62305-3:2026-10 e particolari OBO serie T5
  *
  *  - "A"           picchetti: un dispersore verticale per ogni calata, a 1 m dal muro (T5.01/T5.02);
  *  - "B"           anello perimetrale in piatto inox, a 1 m dall'edificio e 0,7 m di profondità
@@ -363,7 +363,7 @@ export function proponiTerra(corpi: Corpo[], par: ParametriTerra): PropostaTerra
 function sub(a: Punto2, b: Punto2): [number, number] { return [a[0] - b[0], a[1] - b[1]]; }
 
 /**
- * Lunghezza minima l1 del dispersore (CEI EN IEC 62305-3:2024, Fig. 5), lettura del grafico:
+ * Lunghezza minima l1 del dispersore (CEI EN IEC 62305-3:2026-10, Fig. 5), lettura del grafico:
  * classi III-IV 5 m indipendente da ρ; classe I 5 m fino a 500 Ω·m poi lineare fino a 80 m a 3000 Ω·m;
  * classe II 5 m fino a circa 800 Ω·m poi lineare fino a 50 m a 3000 Ω·m (il grafico si legge tra 48 e 50 m: valore prudente).
  * Oltre 3000 Ω·m la norma consiglia il dispersore di tipo B. Il requisito si può ignorare se R < 10 Ω (tipo A).

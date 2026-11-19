@@ -3,7 +3,7 @@
  *   s = ki · kc / km · l
  * ki dipende dall'LPL, km dal materiale isolante, kc dalla ripartizione della corrente tra le calate,
  * l è la lunghezza lungo l'LPS dal punto considerato al più vicino collegamento equipotenziale.
- * Valori della CEI EN IEC 62305-3:2024: ki Tab. 11, km Tab. 12, kc Tab. 13 e Allegato B,
+ * Valori della CEI EN IEC 62305-3:2026-10: ki Tab. 11, km Tab. 12, kc Tab. 13 e Allegato B,
  * distanza tra le calate Tab. 5.
  */
 import distanze from "@/dati/calate/distanzaCalate.json";

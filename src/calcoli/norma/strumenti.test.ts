@@ -5,7 +5,7 @@ import {
   tensioneIndotta, ksSchermo, correnteConduttoriCC, spdFotovoltaico, spdFotovoltaicoCommutazione,
 } from "./strumenti";
 
-describe("strumenti CEI EN IEC 62305:2024", () => {
+describe("strumenti CEI EN IEC 62305:2026-10", () => {
   it("parametri del fulmine e sfera rotolante (parte 1)", () => {
     expect(PARAMETRI_FULMINE.I.primoPositivo.I).toBe(200);
     expect(PARAMETRI_FULMINE.II.successivo.I).toBe(37.5);

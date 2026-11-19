@@ -11,7 +11,7 @@ describe("verifiche periodiche", () => {
     expect(aggiungiAnni("2026-08-31", 0.5)).toBe("2027-02-28");
   });
 
-  it("scadenze edizione 2024: a vista ogni anno, completa ogni 3 anni (1 se critico), per tutte le classi", () => {
+  it("scadenze edizione 2026-10: a vista ogni anno, completa ogni 3 anni (1 se critico), per tutte le classi", () => {
     const lista = [v("2024-05-10", "completa"), v("2025-06-01", "visiva")];
     expect(prossimeScadenze(lista, INTERVALLI_TIPICI.III)).toEqual({ visiva: "2026-06-01", completa: "2027-05-10" });
     expect(INTERVALLI_TIPICI.I).toEqual(INTERVALLI_TIPICI.IV);

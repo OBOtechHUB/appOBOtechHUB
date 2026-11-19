@@ -1,5 +1,5 @@
 /**
- * Metodo della maglia e verifica combinata – CEI EN IEC 62305-3:2024
+ * Metodo della maglia e verifica combinata – CEI EN IEC 62305-3:2026-10
  *
  * Usa la griglia e le coperture del risultato della sfera rotolante, così i due metodi
  * lavorano sulle stesse celle.

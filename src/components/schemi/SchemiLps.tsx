@@ -17,7 +17,7 @@ function Riquadro({ titolo, rif, children }: { titolo: string; rif: string; chil
 export function SchemaKc({ n, c, h, kc }: { n: number; c: number; h: number; kc: number }) {
   const calate = Math.min(6, Math.max(2, n));
   const xs = Array.from({ length: calate }, (_, i) => 70 + (i * 300) / (calate - 1));
-  return <Riquadro titolo="Distanza di separazione e ripartizione della corrente (kc)" rif="CEI EN IEC 62305-3:2024, 6.3, Tab. 13 e Allegato B (Fig. B.2–B.3)">
+  return <Riquadro titolo="Distanza di separazione e ripartizione della corrente (kc)" rif="CEI EN IEC 62305-3:2026-10, 6.3, Tab. 13 e Allegato B (Fig. B.2–B.3)">
     <svg viewBox="0 0 520 230" className="h-auto w-full text-foreground" role="img" aria-label="Schema delle calate con corrente di fulmine ripartita">
       <line x1="20" y1="200" x2="420" y2="200" stroke="currentColor" />
       <rect x="70" y="60" width="300" height="140" className="fill-muted" />
@@ -56,7 +56,7 @@ export function GraficoL1({ rho, lpl }: { rho: number | null; lpl: "I" | "II" | 
   const X = (r: number) => 50 + (r / 3000) * 420, Y = (l: number) => 190 - (l / 90) * 170;
   const curva = (c: "I" | "II" | "III") => Array.from({ length: 31 }, (_, i) => i * 100).map((r) => `${X(r)},${Y(l1Norma(c, r))}`).join(" ");
   const punto = rho != null && Number.isFinite(rho) && rho >= 0 ? { x: X(Math.min(rho, 3000)), y: Y(l1Norma(lpl, rho)), l: l1Norma(lpl, rho) } : null;
-  return <Riquadro titolo="Lunghezza minima l1 del dispersore" rif="CEI EN IEC 62305-3:2024, 5.4.2 e Fig. 5">
+  return <Riquadro titolo="Lunghezza minima l1 del dispersore" rif="CEI EN IEC 62305-3:2026-10, 5.4.2 e Fig. 5">
     <svg viewBox="0 0 520 225" className="h-auto w-full text-foreground" role="img" aria-label="Grafico di l1 in funzione della resistività per le classi di LPS">
       {[0, 20, 40, 60, 80].map((l) => <g key={l}><line x1="50" y1={Y(l)} x2="470" y2={Y(l)} className="stroke-muted-foreground/30" /><text x="22" y={Y(l) + 4} style={{ ...t, fontSize: 10 }}>{l}</text></g>)}
       {[0, 500, 1000, 1500, 2000, 2500, 3000].map((r) => <text key={r} x={X(r) - 12} y="206" style={{ ...t, fontSize: 10 }}>{r}</text>)}

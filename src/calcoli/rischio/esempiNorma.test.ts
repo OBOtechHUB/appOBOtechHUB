@@ -1,5 +1,5 @@
 /**
- * Prove di non regressione con gli esempi dell'Allegato F della CEI EN IEC 62305-2:2024
+ * Prove di non regressione con gli esempi dell'Allegato F della CEI EN IEC 62305-2:2026-10
  * (fabbricato residenziale, edificio per uffici, ospedale): stessi dati in ingresso, stessi risultati.
  * La norma arrotonda i risultati a 3 cifre decimali (valori di rischio × 10⁻⁵): le tolleranze ne tengono conto.
  * Qui ci sono solo i dati numerici degli esempi, nessun testo della norma.

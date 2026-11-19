@@ -57,7 +57,7 @@ export function CalatePage() {
       <p className="mt-2 max-w-3xl text-white/90">Numero e passo delle calate, coefficiente kc e distanza di separazione s = ki · kc / km · l, con la verifica dei punti critici (CEI EN IEC 62305-3).</p>
     </div></section>
     <main className="mx-auto max-w-5xl px-4 py-8">
-      <p className="rounded-lg border-l-4 border-primary bg-muted p-3 text-sm">Valori della CEI EN IEC 62305-3:2024: ki (Tab. 11), km (Tab. 12, anche distanziatori FRP 0,7), kc (Tab. 13: 2 calate 0,66, 3 o più 0,44; Allegato B per il metodo dettagliato) e distanze tra le calate (Tab. 5).</p>
+      <p className="rounded-lg border-l-4 border-primary bg-muted p-3 text-sm">Valori della CEI EN IEC 62305-3:2026-10: ki (Tab. 11), km (Tab. 12, anche distanziatori FRP 0,7), kc (Tab. 13: 2 calate 0,66, 3 o più 0,44; Allegato B per il metodo dettagliato) e distanze tra le calate (Tab. 5).</p>
 
       <section className="mt-8" aria-label="Calate">
         <h2 className="text-[1.7rem] font-medium">1 · Calate · LPL {lpl}</h2>

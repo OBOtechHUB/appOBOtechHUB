@@ -174,7 +174,7 @@ export function AppHeader() {
             <SaettaFigura className="h-10 w-8 shrink-0 sm:h-12 sm:w-10" />
             <span className="hidden min-w-0 sm:block">
               <span className="block whitespace-nowrap text-lg font-bold leading-tight sm:text-xl">Progettazione <span className="text-primary">LPS</span></span>
-              <span className="block max-w-[46vw] truncate text-[11px] text-muted-foreground sm:max-w-[320px] sm:text-xs">{!abilitato ? "CEI EN IEC 62305:2024 · smart planning" : visitatore ? `Visitatore · ${accesso.profilo?.nome ?? ""} · niente salvataggi nel cloud` : attivo ? `${attivo.codice ? attivo.codice + " · " : ""}${attivo.nome} · ${statoSalvataggio || "salvato"}` : "Lavoro locale · nessun progetto aperto"}</span>
+              <span className="block max-w-[46vw] truncate text-[11px] text-muted-foreground sm:max-w-[320px] sm:text-xs">{!abilitato ? "CEI EN IEC 62305:2026-10 · smart planning" : visitatore ? `Visitatore · ${accesso.profilo?.nome ?? ""} · niente salvataggi nel cloud` : attivo ? `${attivo.codice ? attivo.codice + " · " : ""}${attivo.nome} · ${statoSalvataggio || "salvato"}` : "Lavoro locale · nessun progetto aperto"}</span>
             </span>
           </Link>
           <nav aria-label="Accessi rapidi" className="ml-auto flex items-stretch">

@@ -19,7 +19,7 @@ export function AiutoNorma({ chiave }: { chiave: string }) {
       <p className="font-semibold">{en ? "How to choose" : "Come scegliere"}</p>
       <p className="mt-1">{en ? a.en : a.it}</p>
       <p className="mt-2 text-xs text-muted-foreground">{en ? "Reference" : "Riferimento"}: {a.rif}</p>
-      {a.daVerificare && <p className="mt-1 text-xs text-muted-foreground">{en ? "Summary in our own words, to be checked against the 2024 edition." : "Sintesi con parole nostre, da verificare con l'edizione 2024."}</p>}
+      {a.daVerificare && <p className="mt-1 text-xs text-muted-foreground">{en ? "Summary in our own words, to be checked against the 2024 edition." : "Sintesi con parole nostre, da verificare con l'edizione 2026-10."}</p>}
     </PopoverContent>
   </Popover>;
 }
