@@ -39,7 +39,7 @@ async function schedaPng(file: string): Promise<ImmaginePdf | null> {
 }
 
 /** SVG → PNG a 200 dpi con il canvas del browser. */
-async function svgPng(svg: string, larghezzaCm: number): Promise<Uint8Array> {
+export async function svgPng(svg: string, larghezzaCm: number): Promise<Uint8Array> {
   const url = URL.createObjectURL(new Blob([svg], { type: "image/svg+xml" }));
   try {
     const img = new Image();
@@ -60,7 +60,7 @@ import type { ImmagineIn } from "@/calcoli/relazione/relazioneTecnica";
 import { risorsa } from "@/lib/base";
 
 /** Immagine pronta per Word: ridotta a `maxPx`, JPEG per le foto, PNG per loghi e stemmi. */
-async function preparaImmagine(sorgente: Blob, foto: boolean, maxPx = 1600): Promise<ImmagineIn> {
+export async function preparaImmagine(sorgente: Blob, foto: boolean, maxPx = 1600): Promise<ImmagineIn> {
   const bmp = await createImageBitmap(sorgente);
   const k = Math.min(1, maxPx / Math.max(bmp.width, bmp.height));
   const w = Math.max(1, Math.round(bmp.width * k)), h = Math.max(1, Math.round(bmp.height * k));
@@ -71,7 +71,7 @@ async function preparaImmagine(sorgente: Blob, foto: boolean, maxPx = 1600): Pro
   if (!blob) throw new Error("Immagine non convertita.");
   return { dati: new Uint8Array(await blob.arrayBuffer()), jpeg: foto, larghezzaPx: w, altezzaPx: h };
 }
-async function logoObo(): Promise<ImmagineIn | undefined> {
+export async function logoObo(): Promise<ImmagineIn | undefined> {
   try { const r = await fetch(risorsa("relazione/logo-obo.png")); return r.ok ? await preparaImmagine(await r.blob(), false, 800) : undefined; } catch { return undefined; }
 }
 type Foto = { file: File; didascalia: string };
@@ -90,7 +90,7 @@ const NATURALE = [["no", "Assente"], ["si-collegato", "Presente, collegato alle 
 const SINO = [["no", "No"], ["si", "Sì"], ["da-verificare", "Da verificare"]] as const;
 
 /** Testi evidenziati "[DA COMPLETARE …]" rimasti nella relazione. */
-function daCompletare(doc: Documento): string[] {
+export function daCompletare(doc: Documento): string[] {
   const out = new Set<string>();
   const vedi = (t: Testo) => { if (typeof t !== "string") for (const r of t) if (r.daCompletare) out.add(r.t.replace(/^\[DA COMPLETARE: /, "").replace(/\]$/, "")); };
   for (const b of doc.blocchi) {

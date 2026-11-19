@@ -48,6 +48,12 @@ export interface DatiRelazione {
   fissaggioAste: "putrella" | "parapetto" | "treppiede" | "basamento" | "parete" | "misto"; ventoKmh: number | null; margineSicurezza: number;
   corpi: Record<string, { altezzaDaProteggere: number | null; nota: string }>;
   valutazioneEconomica: boolean; tecnico: string; albo: string;
+  /** impresa installatrice (dichiarazione di conformità D.M. 37/2008) */
+  impresaNome: string; impresaSede: string; impresaPiva: string; impresaCciaa: string; impresaResponsabile: string;
+  /** verifiche: luogo di lavoro (D.P.R. 462/2001), condizioni ambientali severe, data di messa in esercizio AAAA-MM-GG */
+  luogoDiLavoro: boolean; ambienteSevero: boolean; dataMessaEsercizio: string;
+  /** lingua dei documenti */
+  lingua: "it" | "en";
 }
 export const datiRelazioneVuoti: DatiRelazione = {
   committente: "", indirizzoCommittente: "", cittaCommittente: "", provincia: "", titoloOpera: "", destinazione: "", luogo: "Rivoli", descrizione: "",
@@ -58,6 +64,8 @@ export const datiRelazioneVuoti: DatiRelazione = {
   impiantiCopertura: "", altezzaImpianti: null,
   fissaggioAste: "misto", ventoKmh: null, margineSicurezza: 1,
   corpi: {}, valutazioneEconomica: false, tecnico: "", albo: "",
+  impresaNome: "", impresaSede: "", impresaPiva: "", impresaCciaa: "", impresaResponsabile: "",
+  luogoDiLavoro: false, ambienteSevero: false, dataMessaEsercizio: "", lingua: "it",
 };
 
 export interface ImmagineIn { dati: Uint8Array; jpeg: boolean; larghezzaPx: number; altezzaPx: number }

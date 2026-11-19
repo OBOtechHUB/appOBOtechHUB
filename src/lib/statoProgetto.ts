@@ -30,6 +30,10 @@ export const relazioneSchema = z.object({
   fissaggioAste: z.enum(["putrella", "parapetto", "treppiede", "basamento", "parete", "misto"]).default("misto"), ventoKmh: nNull, margineSicurezza: z.number().finite().min(0).max(10).default(1),
   corpi: z.record(z.object({ altezzaDaProteggere: nNull, nota: z.string().max(1000).default("") })).default({}),
   valutazioneEconomica: z.boolean().default(false), tecnico: t200, albo: t200,
+  // impresa installatrice e verifiche
+  impresaNome: t200, impresaSede: t200, impresaPiva: z.string().max(40).default(""), impresaCciaa: t200, impresaResponsabile: t200,
+  luogoDiLavoro: z.boolean().default(false), ambienteSevero: z.boolean().default(false), dataMessaEsercizio: z.string().max(10).default(""),
+  lingua: z.enum(["it", "en"]).default("it"),
 });
 export const estesoSchema = z.object({ modello: modelloSchema, aste: z.array(astaSchema).max(1000), conduttori: z.array(conduttoreSchema).max(5000), lpl: z.enum(["I","II","III","IV"]), particolari: z.array(particolareSchema).max(5000), supporti: z.array(componenteSchema).max(50000).default([]), morsetti: z.array(componenteSchema).max(20000).default([]), compensatori: z.array(componenteSchema).max(20000).default([]), distinta: distintaSchema.default([]), picchetti: z.array(picchettoSchema).max(5000).default([]), terra: terraSchema.nullable().default(null), verifiche: z.array(verificaSchema).max(500).default([]), pianoVerifiche: pianoVerificheSchema.default({ critico: false, intervalli: null }), separazione: separazioneSchema.default({ modoKc: "semplificato", ki: null, kmSolido: null, punti: [] }), datiRischio: z.record(z.string(), z.unknown()).nullable().default(null), revisioni: z.array(revisioneSchema).max(500).default([]), emissione: emissioneSchema.default({ stato: "bozza", rev: null, impronta: null }), relazione: relazioneSchema.optional() });
 export type StatoEsteso = z.infer<typeof estesoSchema>;
