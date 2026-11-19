@@ -189,6 +189,7 @@ export function AppHeader() {
               {visibile("/prodotti") && <IconaBarra to="/prodotti" etichetta="Prodotti" icona={Package} nascondiMobile />}
               <IconaBarra etichetta="Cerca" icona={Search} onClick={() => setRicerca(true)} nascondiMobile />
               {visibile("/progetti") && !visitatore && <IconaBarra to="/progetti" etichetta="Progetti" icona={ClipboardList} />}
+              {!visitatore && <IconaBarra to="/sopralluogo" etichetta="Sopralluogo" icona={Camera} titolo="Sopralluogo: foto di particolari e impianti esistenti" />}
               {admin && <IconaBarra to="/admin" etichetta="Admin" icona={ShieldCheck} nascondiMobile />}
               {!visitatore && <IconaBarra to="/profilo" etichetta="Profilo" icona={User} nascondiMobile />}
             </> : <>
