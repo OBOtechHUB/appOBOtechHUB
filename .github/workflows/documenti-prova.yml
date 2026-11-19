@@ -34,7 +34,7 @@ jobs:
           n=0
           for f in documenti-prova/*.docx documenti-prova/*.xlsx; do
             unzip -tq "$f" > /dev/null || { echo "File rovinato: $f"; exit 1; }
-            unzip -p "$f" "[Content_Types].xml" > /dev/null
+            unzip -l "$f" | grep -q "Content_Types"
             n=$((n+1))
           done
           test -s documenti-prova/08-Tavola-LPS.dxf
