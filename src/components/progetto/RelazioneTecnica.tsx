@@ -15,6 +15,7 @@ import { caricaCatalogoObo, trovaArticolo } from "@/lib/catalogoObo";
 import type { InfoArticolo } from "@/calcoli/relazione/testiProgetto";
 import { trovaSchedaPdf } from "@/lib/schedeParticolari";
 import { caricaDisegniObo, incorporaImmagini } from "@/lib/disegniObo";
+import { archiviaDocumento } from "@/lib/archivioDocumenti";
 import { stemmaDelComune, type ComuneTrovato, type StemmaComune } from "@/lib/stemmaComune";
 
 /** Prima pagina della scheda PDF di un particolare (archivio privato dei particolari) come PNG. */
@@ -169,7 +170,8 @@ export function RelazioneTecnica({ righe, mancanti, particolari }: { righe: Riga
         creditoStemma: stemmaAuto && !stemmaAuto.pubblicoDominio ? stemmaAuto.credito : undefined,
       }), svgPng, schedaPng);
       const nome = `Relazione-LPS-${(d.nomeProgetto || d.comune || "progetto").replace(/[^\w.-]+/g, "_")}${s.revisioni.at(-1) ? `-Rev${s.revisioni.at(-1)!.rev}` : ""}.docx`;
-      setFile({ blob: new Blob([creaDocx(doc)], { type: "application/vnd.openxmlformats-officedocument.wordprocessingml.document" }), nome });
+      const blob = new Blob([creaDocx(doc)], { type: "application/vnd.openxmlformats-officedocument.wordprocessingml.document" });
+      setFile({ blob, nome }); void archiviaDocumento(blob, nome);
       setMancano(daCompletare(doc));
     } catch (e) { setErrore(e instanceof Error ? e.message : "Relazione non creata."); }
     finally { setOccupato(false); }

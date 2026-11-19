@@ -12,6 +12,7 @@ import { datiRelazioneVuoti, bloccoImmagine, type DatiRelazione } from "@/calcol
 import { dichiarazioneConformita, pianoVerifichePeriodiche, verbalePrimaVerifica, type IngressoDocumenti } from "@/calcoli/documenti/documentiImpianto";
 import { creaDocx, type Documento } from "@/lib/docx";
 import { scarica } from "@/lib/esportazioni";
+import { archiviaDocumento } from "@/lib/archivioDocumenti";
 import { Gruppo, daCompletare, logoObo } from "./RelazioneTecnica";
 
 type Tipo = "dichiarazione" | "verbale" | "piano";
@@ -37,7 +38,8 @@ export function DocumentiImpianto() {
       };
       const doc: Documento = tipo === "dichiarazione" ? dichiarazioneConformita(x) : tipo === "verbale" ? verbalePrimaVerifica(x) : pianoVerifichePeriodiche(x);
       const base = (d.nomeProgetto || d.comune || "progetto").replace(/[^\w.-]+/g, "_");
-      setPronti((p) => ({ ...p, [tipo]: { blob: new Blob([creaDocx(doc)], { type: "application/vnd.openxmlformats-officedocument.wordprocessingml.document" }), nome: `${FILE[tipo]}-${base}.docx`, mancano: daCompletare(doc) } }));
+      const blob = new Blob([creaDocx(doc)], { type: "application/vnd.openxmlformats-officedocument.wordprocessingml.document" }), nome = `${FILE[tipo]}-${base}.docx`;
+      setPronti((p) => ({ ...p, [tipo]: { blob, nome, mancano: daCompletare(doc) } })); void archiviaDocumento(blob, nome);
     } catch (e) { setErrore(e instanceof Error ? e.message : "Documento non creato."); }
     finally { setOccupato(null); }
   }

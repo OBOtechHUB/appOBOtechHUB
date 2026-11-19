@@ -45,6 +45,7 @@ export type StatoEsteso = z.infer<typeof estesoSchema>;
 export const estesoIniziale: StatoEsteso = { modello: {corpi:[]}, aste: [], conduttori: [], lpl:"III", particolari:[], supporti: [], morsetti: [], compensatori: [], distinta: [], picchetti: [], terra: null, verifiche: [], pianoVerifiche: { critico: false, intervalli: null }, separazione: { modoKc: "semplificato", ki: null, kmSolido: null, punti: [] }, datiRischio: null, revisioni: [], emissione: { stato: "bozza", rev: null, impronta: null } };
 let esteso=estesoIniziale, caricato=false;
 const listeners=new Set<()=>void>();
+export function leggiEsteso() { return esteso; }
 export function aggiornaEsteso(p: Partial<StatoEsteso>) { esteso=estesoSchema.parse({...esteso,...p}); try {if(!attivo)localStorage.setItem("lps-stato-esteso",JSON.stringify(esteso));}catch{} listeners.forEach((f)=>f()); }
 export function useEsteso() { return useSyncExternalStore((f)=>{listeners.add(f); if(!caricato&&typeof window!=="undefined"){caricato=true;try{const raw=localStorage.getItem("lps-stato-esteso");if(raw){const parsed=estesoSchema.safeParse(JSON.parse(raw));if(parsed.success)esteso=parsed.data;}}catch{}f();}return()=>listeners.delete(f);},()=>esteso,()=>estesoIniziale); }
 export const snapshotSchema=z.object({versione:z.literal(1), edificio:edificioSchema,computo:computoSchema,esteso:estesoSchema});

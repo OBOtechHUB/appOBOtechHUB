@@ -17,6 +17,7 @@ import type { VoceListino } from "@/lib/listinoMetel";
 import { creaDocx } from "@/lib/docx";
 import { bloccoImmagine } from "@/calcoli/relazione/relazioneTecnica";
 import { scarica } from "@/lib/esportazioni";
+import { archiviaDocumento } from "@/lib/archivioDocumenti";
 import { logoObo } from "./RelazioneTecnica";
 
 const euro = (v: number | null) => (v == null ? "—" : v.toLocaleString("it-IT", { style: "currency", currency: "EUR" }));
@@ -42,7 +43,8 @@ export function OffertaMateriali({ righe }: { righe: RigaComputo[] }) {
   async function word() {
     const logo = await logoObo();
     const doc = documentoOfferta({ righe: rOff, o, progetto: d.nomeProgetto, comune: d.comune, codice: leggiAttivo()?.codice || undefined, rev: s.revisioni.at(-1)?.rev, versioneListino: listino?.versione?.versione, logo: logo ? bloccoImmagine(logo, 4.2, "sinistra", 3) : undefined, data: new Date() });
-    setFile({ blob: new Blob([creaDocx(doc)], { type: "application/vnd.openxmlformats-officedocument.wordprocessingml.document" }), nome: `Offerta-${base}.docx` });
+    const blob = new Blob([creaDocx(doc)], { type: "application/vnd.openxmlformats-officedocument.wordprocessingml.document" });
+    setFile({ blob, nome: `Offerta-${base}.docx` }); void archiviaDocumento(blob, `Offerta-${base}.docx`);
   }
   async function excel() {
     const XLSX = await import("xlsx");

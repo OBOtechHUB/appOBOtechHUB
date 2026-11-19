@@ -1,3 +1,4 @@
+import { archiviaDocumento } from "@/lib/archivioDocumenti";
 import {lazy,Suspense,useEffect,useMemo,useRef,useState} from "react";
 import {ClientOnly,Link} from "@tanstack/react-router";
 import {Button} from "@/components/ui/button";
@@ -99,7 +100,7 @@ export function Edificio3DPage(){const s=useEsteso(),d=useDatiEdificio(),c=useCo
     const dati=await lpsDati(c.origine3D);if(!dati)return;
     const lsp=await fetch(risorsa("cad/LPS.lsp")).then((r)=>{if(!r.ok)throw new Error("LPS.lsp non disponibile: riprova.");return r.arrayBuffer();});
     const zip=creaZip([{nome:`${nome}/${nome}.dxf`,dati:new Uint8Array(await c.dxf.arrayBuffer())},{nome:`${nome}/${nome}.lpsdati`,dati},{nome:`${nome}/LPS.lsp`,dati:new Uint8Array(lsp)},{nome:`${nome}/LEGGIMI.txt`,dati:leggimiCAD(nome)}]);
-    scarica(new Blob([zip],{type:"application/zip"}),`${nome}_CAD.zip`);
+    {const b=new Blob([zip],{type:"application/zip"});scarica(b,`${nome}_CAD.zip`);void archiviaDocumento(b,`${nome}_CAD.zip`);}
     setMsg("Pacchetto scaricato: estrai la cartella, apri il DXF in AutoCAD o ZWCAD e trascina LPS.lsp nel disegno (istruzioni in LEGGIMI.txt).");}catch(err){setMsg(err instanceof Error?err.message:"Pacchetto non creato.");}}
   const esito=esiti[s.lpl],risultato=esito?.risultato;
   const centriSfera=useMemo(():Punto3[]=>{if(!risultato)return[];const g=risultato.griglia,x0=g.x0+risultato.raggio,y0=g.y0+risultato.raggio,x1=g.x0+(g.nx-1)*g.passo-risultato.raggio,y1=g.y0+(g.ny-1)*g.passo-risultato.raggio;const da:[number,number]=percorso==="lato"?[x0,(y0+y1)/2]:[x0,y0];const a:[number,number]=percorso==="lato"?[x1,(y0+y1)/2]:[x1,y1];return percorsoSfera(risultato,da,a,.5);},[risultato,percorso]);

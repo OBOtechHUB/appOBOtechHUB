@@ -8,6 +8,7 @@ import { Campo, inputCls } from "@/components/Campo";
 import { useAuth } from "@/lib/auth";
 import { aggiornaEsteso, caricaSnapshot, leggiAttivo, snapshot, useAttivo, useEsteso } from "@/lib/statoProgetto";
 import { archiviaRevisione, leggiProgetto, leggiRevisione } from "@/lib/progetti.functions";
+import { documentiRevisione, linkDocumento, type DocumentoArchiviato } from "@/lib/archivioDocumenti";
 import { salvaAttivo } from "@/components/ProjectSync";
 import { apriRevisione, emetti, modificatoDopoEmissione, revSuccessiva } from "@/calcoli/progetto/revisioni";
 
@@ -25,6 +26,15 @@ export function RevisioniProgetto({ problemi = 0 }: { problemi?: number }) {
   const [descrizione, setDescrizione] = useState(""), [autore, setAutore] = useState(""), [msg, setMsg] = useState(""), [occupato, setOccupato] = useState(false);
   useEffect(() => { setAutore((a) => a || nomeAutore(user?.email)); }, [user]);
   const e = s.emissione, prossima = revSuccessiva(s.revisioni.at(-1)?.rev);
+  const [documenti, setDocumenti] = useState<Record<string, DocumentoArchiviato[] | "carico">>({});
+  async function mostraDocumenti(rev: string) {
+    const a = leggiAttivo(); if (!a) return;
+    if (documenti[rev] && documenti[rev] !== "carico") { setDocumenti((x) => { const y = { ...x }; delete y[rev]; return y; }); return; }
+    setDocumenti((x) => ({ ...x, [rev]: "carico" }));
+    const lista = await documentiRevisione(a.proprietario || user?.id || "", a.id, rev);
+    setDocumenti((x) => ({ ...x, [rev]: lista }));
+  }
+  async function apriDocumento(percorso: string) { const u = await linkDocumento(percorso); if (u) window.open(u, "_blank", "noopener"); else setMsg("Documento non disponibile."); }
 
   async function emettiOra() {
     if (problemi > 0 && !window.confirm(`Il controllo del progetto segnala ${problemi} ${problemi === 1 ? "punto aperto" : "punti aperti"}. Emettere comunque la Rev. ${prossima}?`)) return;
@@ -37,7 +47,7 @@ export function RevisioniProgetto({ problemi = 0 }: { problemi?: number }) {
         const ok = await archiviaRevisione({ progetto: a.id, rev: r.revisione.rev, autore: r.revisione.autore, descrizione: r.revisione.descrizione, impronta: r.revisione.impronta, dati: snapshot() });
         if (ok) aggiornaEsteso({ revisioni: r.revisioni.map((x) => (x.rev === r.revisione.rev ? { ...x, archiviata: true } : x)) });
         await salvaAttivo();
-        setMsg(ok ? `Rev. ${r.revisione.rev} emessa e archiviata.` : `Rev. ${r.revisione.rev} emessa. Archivio non ancora attivo: l'amministratore deve eseguire supabase/revisioni.sql.`);
+        setMsg(ok ? `Rev. ${r.revisione.rev} emessa e archiviata. I documenti che crei ora (relazione, dichiarazione, verbali, offerta, pacchetto CAD) vengono copiati nella revisione.` : `Rev. ${r.revisione.rev} emessa. Archivio non ancora attivo: l'amministratore deve eseguire supabase/revisioni.sql.`);
       } else setMsg(`Rev. ${r.revisione.rev} emessa. Apri o salva il progetto nel cloud per archiviarne la copia.`);
       setDescrizione("");
     } catch (err) { setMsg(err instanceof Error ? err.message : "Emissione non riuscita."); }
@@ -62,10 +72,14 @@ export function RevisioniProgetto({ problemi = 0 }: { problemi?: number }) {
       </span>
     </div>
     {s.revisioni.length > 0 && <div className="mt-3 overflow-x-auto"><table className="w-full min-w-[560px] text-sm">
-      <thead><tr className="border-b text-left"><th className="p-2">Rev.</th><th className="p-2">Data</th><th className="p-2">Autore</th><th className="p-2">Descrizione</th><th className="p-2">Copia</th></tr></thead>
+      <thead><tr className="border-b text-left"><th className="p-2">Rev.</th><th className="p-2">Data</th><th className="p-2">Autore</th><th className="p-2">Descrizione</th><th className="p-2">Copia</th><th className="p-2">Documenti</th></tr></thead>
       <tbody>{s.revisioni.slice().reverse().map((r) => <tr key={r.rev} className="border-b">
         <td className="p-2 font-mono font-semibold">{r.rev}</td><td className="p-2">{dataIt(r.data)}</td><td className="p-2">{r.autore}</td><td className="p-2">{r.descrizione}</td>
         <td className="p-2">{r.archiviata && attivo ? <button type="button" className="text-accent underline-offset-2 hover:underline" onClick={() => void scarica(r.rev)}>Scarica</button> : <span className="text-muted-foreground">solo nel progetto</span>}</td>
+        <td className="p-2">{attivo ? <button type="button" className="text-accent underline-offset-2 hover:underline" aria-expanded={!!documenti[r.rev]} onClick={() => void mostraDocumenti(r.rev)}>{documenti[r.rev] ? "Chiudi" : "Mostra"}</button> : "—"}
+          {documenti[r.rev] === "carico" && <span className="ml-2 text-muted-foreground">…</span>}
+          {Array.isArray(documenti[r.rev]) && <ul className="mt-1 space-y-0.5">{(documenti[r.rev] as DocumentoArchiviato[]).map((dd) => <li key={dd.percorso}><button type="button" className="text-left underline-offset-2 hover:underline" onClick={() => void apriDocumento(dd.percorso)}>{dd.nome}</button> <span className="text-xs text-muted-foreground">{dd.data ? new Date(dd.data).toLocaleString("it-IT") : ""}</span></li>)}
+            {!(documenti[r.rev] as DocumentoArchiviato[]).length && <li className="text-xs text-muted-foreground">Nessun documento: quelli creati mentre la revisione è emessa (relazione, dichiarazione, verbali, offerta, pacchetto CAD) vengono copiati qui.</li>}</ul>}</td>
       </tr>)}</tbody></table></div>}
     {e.stato === "bozza"
       ? <div className="mt-4 grid items-end gap-3 sm:grid-cols-[1fr_2fr_auto]">
