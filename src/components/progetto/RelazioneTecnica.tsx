@@ -110,7 +110,7 @@ async function articoliAste(codici: string[]): Promise<Record<string, InfoArtico
   return out;
 }
 
-const Gruppo = ({ titolo, children }: { titolo: string; children: ReactNode }) => <fieldset className="grid gap-3 rounded-md border p-3 sm:col-span-2 sm:grid-cols-2"><legend className="px-1 text-sm font-semibold">{titolo}</legend>{children}</fieldset>;
+export const Gruppo = ({ titolo, children }: { titolo: string; children: ReactNode }) => <fieldset className="grid gap-3 rounded-md border p-3 sm:col-span-2 sm:grid-cols-2"><legend className="px-1 text-sm font-semibold">{titolo}</legend>{children}</fieldset>;
 
 export function RelazioneTecnica({ righe, mancanti, particolari }: { righe: RigaComputo[]; mancanti: string[]; particolari: readonly ParticolareLib[] }) {
   const d = useDatiEdificio(), c = useComputo(), s = useEsteso();
