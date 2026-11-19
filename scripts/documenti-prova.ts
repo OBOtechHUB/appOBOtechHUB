@@ -63,7 +63,7 @@ await salva("05-Offerta-materiali.docx", documentoOfferta({ righe, o: OFFERTA_PR
 const t = totaliOfferta(righe);
 const XLSX = await import("xlsx").catch(() => null);
 if (XLSX) { const ws = XLSX.utils.aoa_to_sheet([["Pos.", "Codice", "Descrizione", "Q.tà", "U.m.", "Listino unit. €", "Sconto %", "Netto unit. €", "Totale €"], ...righe.map((r, i) => [i + 1, r.codice, r.descrizione, r.quantita, r.unita, r.listino, r.sconto, r.netto, r.totale]), [], ["", "", "Totale netto", "", "", "", "", "", t.netto]]);
-const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "Offerta"); XLSX.writeFile(wb, `${out}/06-Offerta-materiali.xlsx`); }
+const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "Offerta"); writeFileSync(`${out}/06-Offerta-materiali.xlsx`, new Uint8Array(XLSX.write(wb, { type: "array", bookType: "xlsx" }) as ArrayBuffer)); }
 report.push(`Offerta: totale netto ${t.netto.toFixed(2)} €, ${t.mancanti} articoli senza prezzo (listino ${versione})`);
 
 const svg = svgTipologico(TIPOLOGICO_PROVA, { titolo: "Tipologico – Asta su treppiede e tondo su tetto piano", legenda: true });
