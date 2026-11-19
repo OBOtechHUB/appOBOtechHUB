@@ -519,7 +519,7 @@
         "descrizione": "165 R-8-10 – supporto per tetto piano",
         "quantita": 1,
         "unitaQuantita": "per_m",
-        "nota": "passo da verificare"
+        "nota": "passo da verificare; codice non presente nel listino OBO 2026-1"
       },
       {
         "codiceOBO": "5311209",
@@ -2280,9 +2280,9 @@
         "unitaQuantita": "per_m"
       },
       {
-        "codiceOBO": "3133320",
+        "codiceOBO": "3133230",
         "descrizione": "985 M8 35 – tassello filettato M8",
-        "nota": "codice da verificare: non è nel catalogo OBO (su obo.it c'è 3133230)",
+        "nota": "codice corretto da 3133320 (non esiste): 3133230 è il 985 M8 35 nel listino OBO 2026-1",
         "quantita": 1,
         "unitaQuantita": "per_m"
       },
@@ -2985,7 +2985,7 @@
       {
         "codiceOBO": "5336457",
         "descrizione": "233 A VA – giunto di sezionamento",
-        "nota": "codice corretto da 5236457 (non esiste): 5336457 è il giunto di sezionamento Rd 8-10 / Fl 30-40 sul sito OBO",
+        "nota": "codice corretto da 5236457 (non esiste): 5336457 è il 233 A VA nel listino OBO 2026-1",
         "quantita": 1,
         "unitaQuantita": "per_calata"
       },

@@ -10,6 +10,7 @@ import { InvitaUtenti } from "@/components/accesso/InvitaUtenti";
 import { VisitatoriMappa } from "@/components/accesso/VisitatoriMappa";
 import { ErroriAdmin } from "@/components/accesso/ErroriAdmin";
 import { UsoAdmin } from "@/components/accesso/UsoAdmin";
+import { ListinoAdmin } from "@/components/accesso/ListinoAdmin";
 import { CopiaSicurezza, giorniDallaCopia } from "@/components/accesso/CopiaSicurezza";
 import { oggiFile, scaricaCsv } from "@/lib/csv";
 
@@ -321,7 +322,7 @@ export function AdminPage() {
       </section>
 
       <Tabs defaultValue={inAttesa.length ? "richieste" : "utenti"} className="mt-8">
-        <TabsList className="h-auto flex-wrap"><TabsTrigger value="richieste">Richieste{inAttesa.length ? ` (${inAttesa.length})` : ""}</TabsTrigger><TabsTrigger value="utenti">Utenti ({profili.length})</TabsTrigger><TabsTrigger value="invita">Invita</TabsTrigger><TabsTrigger value="progetti">Progetti salvati</TabsTrigger><TabsTrigger value="registro">Registro accessi</TabsTrigger><TabsTrigger value="uso">Uso delle app</TabsTrigger><TabsTrigger value="errori">Errori</TabsTrigger><TabsTrigger value="copia">Copia di sicurezza</TabsTrigger><TabsTrigger value="impostazioni">Impostazioni</TabsTrigger></TabsList>
+        <TabsList className="h-auto flex-wrap"><TabsTrigger value="richieste">Richieste{inAttesa.length ? ` (${inAttesa.length})` : ""}</TabsTrigger><TabsTrigger value="utenti">Utenti ({profili.length})</TabsTrigger><TabsTrigger value="invita">Invita</TabsTrigger><TabsTrigger value="progetti">Progetti salvati</TabsTrigger><TabsTrigger value="registro">Registro accessi</TabsTrigger><TabsTrigger value="uso">Uso delle app</TabsTrigger><TabsTrigger value="errori">Errori</TabsTrigger><TabsTrigger value="listino">Listino prezzi</TabsTrigger><TabsTrigger value="copia">Copia di sicurezza</TabsTrigger><TabsTrigger value="impostazioni">Impostazioni</TabsTrigger></TabsList>
 
         <TabsContent value="richieste" className="mt-4 space-y-4">
           {!inAttesa.length && <p className="text-sm text-muted-foreground">Nessuna richiesta in attesa.</p>}
@@ -395,6 +396,7 @@ export function AdminPage() {
 
         <TabsContent value="uso" className="mt-4"><UsoAdmin nomePersona={nomePersona} /></TabsContent>
         <TabsContent value="errori" className="mt-4"><ErroriAdmin nomePersona={nomePersona} /></TabsContent>
+        <TabsContent value="listino" className="mt-4"><ListinoAdmin /></TabsContent>
         <TabsContent value="copia" className="mt-4"><CopiaSicurezza ultima={impostazioni["ultima_copia_sicurezza"]} cartella={impostazioni["cartella_copie"]} onFatto={() => void carica()} /></TabsContent>
 
         <TabsContent value="impostazioni" className="mt-4 max-w-2xl space-y-5">
