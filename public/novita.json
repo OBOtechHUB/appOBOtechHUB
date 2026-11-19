@@ -2,6 +2,81 @@
   "nota": "Registro degli aggiornamenti di Progettazione LPS. Una voce per aggiornamento, la più recente per prima (app: lps). Viene mostrato nella barra \"Aggiorna app\", nel riquadro Novità e nella pagina Novità di OBO Hub.",
   "aggiornamenti": [
     {
+      "id": "2026-11-19-lps-17",
+      "data": "2026-11-19",
+      "app": "lps",
+      "titolo": "Archivio dei documenti di ogni revisione",
+      "voci": [
+        "Con il progetto emesso, relazione, dichiarazione, verbali, offerta e pacchetto CAD creati vengono copiati nella cartella della revisione",
+        "In Revisioni del progetto, colonna Documenti: elenco e apertura delle copie; non si sovrascrivono e non si cancellano"
+      ],
+      "titolo_en": "Archive of the documents of each revision",
+      "voci_en": [
+        "When the project is issued, the report, declaration, records, offer and CAD package you create are copied into the revision folder",
+        "In Project revisions, Documents column: list and open the copies; they cannot be overwritten or deleted"
+      ]
+    },
+    {
+      "id": "2026-11-19-lps-16",
+      "data": "2026-11-19",
+      "app": "lps",
+      "titolo": "Editor dei tipologici con blocchi OBO",
+      "voci": [
+        "In Particolari: \"Disegna nuovo tipologico\" con blocchi realistici (aste, treppiedi, supporti, morsetti, giunti, compensatori, picchetti, strutture), conduttori metallici, quote e testi",
+        "Blocchi anche dal codice OBO con il disegno 2D ufficiale del prodotto; richiami numerati e distinta automatica",
+        "Il tipologico si salva nella libreria dei particolari e va nella relazione; i particolari senza scheda hanno uno schema dei componenti"
+      ],
+      "titolo_en": "Detail drawing editor with OBO blocks",
+      "voci_en": [
+        "In Details: \"Draw new detail\" with realistic blocks (rods, tripods, holders, clamps, joints, expansion pieces, earth rods, structures), metal conductors, dimensions and texts",
+        "Blocks also from the OBO code with the official 2D product drawing; numbered callouts and automatic parts list",
+        "The detail is saved in the details library and goes into the report; details without a sheet get a component diagram"
+      ]
+    },
+    {
+      "id": "2026-11-19-lps-15",
+      "data": "2026-11-19",
+      "app": "lps",
+      "titolo": "Listino OBO e offerta materiali",
+      "voci": [
+        "L'amministratore carica il listino METEL da obo.it (Amministrazione → Listino prezzi); ogni caricamento resta come versione",
+        "In Computo materiali: offerta con prezzi di listino, sconto generale e per famiglia, confezioni, prezzi netti modificabili, Word ed Excel"
+      ],
+      "titolo_en": "OBO price list and material offer",
+      "voci_en": [
+        "The administrator uploads the METEL price list from obo.it (Administration → Price list); each upload is kept as a version",
+        "In Material take-off: offer with list prices, general and family discounts, packaging, editable net prices, Word and Excel"
+      ]
+    },
+    {
+      "id": "2026-11-19-lps-14",
+      "data": "2026-11-19",
+      "app": "lps",
+      "titolo": "Dichiarazione di conformità, verbale e piano delle verifiche",
+      "voci": [
+        "In Computo materiali, \"Documenti dell'impianto\": bozza della dichiarazione di conformità D.M. 37/2008 per l'impresa installatrice, verbale di prima verifica con le misure per calata, piano delle verifiche periodiche con il calendario di 10 anni (anche D.P.R. 462/2001)"
+      ],
+      "titolo_en": "Declaration of conformity, inspection record and inspection plan",
+      "voci_en": [
+        "In Material take-off, \"System documents\": draft declaration of conformity (Italian D.M. 37/2008) for the installer, first inspection record with per down-conductor measurements, periodic inspection plan with a 10-year calendar (also D.P.R. 462/2001)"
+      ]
+    },
+    {
+      "id": "2026-11-19-lps-13",
+      "data": "2026-11-19",
+      "app": "lps",
+      "titolo": "Norma CEI EN IEC 62305:2026-10 in tutta l'app",
+      "voci": [
+        "Pagine, aiuti e calcoli citano l'edizione italiana 2026-10",
+        "Codici dei particolari corretti con il listino OBO 2026-1: 5336457 (233 A VA) e 3133230 (985 M8 35)"
+      ],
+      "titolo_en": "CEI EN IEC 62305:2026-10 across the app",
+      "voci_en": [
+        "Pages, help and calculations cite the Italian 2026-10 edition",
+        "Detail codes corrected with the OBO 2026-1 price list: 5336457 (233 A VA) and 3133230 (985 M8 35)"
+      ]
+    },
+    {
       "id": "2026-11-19-lps-12",
       "data": "2026-11-19",
       "app": "lps",
