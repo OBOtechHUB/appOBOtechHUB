@@ -10,7 +10,30 @@ import { useComputo, useDatiEdificio } from "@/lib/progettoStore";
 import { aggiornaEsteso, leggiAttivo, useEsteso } from "@/lib/statoProgetto";
 import { leggiStato, strutturaRischio } from "@/lib/statoRischio";
 import { relazioneTecnica, datiRelazioneVuoti, type DatiRelazione } from "@/calcoli/relazione/relazioneTecnica";
-import { creaDocx, rasterizza } from "@/lib/docx";
+import { creaDocx, rasterizza, type ImmaginePdf } from "@/lib/docx";
+import { trovaSchedaPdf } from "@/lib/schedeParticolari";
+
+/** Prima pagina della scheda PDF di un particolare (archivio privato dei particolari) come PNG. */
+async function schedaPng(file: string): Promise<ImmaginePdf | null> {
+  const s = await trovaSchedaPdf(file);
+  if (s.tipo !== "locale") return null;
+  const r = await fetch(s.url); if (!r.ok) return null;
+  const [pdfjs, worker] = await Promise.all([import("pdfjs-dist"), import("pdfjs-dist/build/pdf.worker.min.mjs?url")]);
+  pdfjs.GlobalWorkerOptions.workerSrc = worker.default;
+  const doc = await pdfjs.getDocument({ data: new Uint8Array(await r.arrayBuffer()) }).promise;
+  try {
+    const pag = await doc.getPage(1), base = pag.getViewport({ scale: 1 });
+    const vp = pag.getViewport({ scale: 1800 / Math.max(base.width, base.height) });
+    const cv = document.createElement("canvas"); cv.width = Math.round(vp.width); cv.height = Math.round(vp.height);
+    const ctx = cv.getContext("2d"); if (!ctx) return null;
+    ctx.fillStyle = "#fff"; ctx.fillRect(0, 0, cv.width, cv.height);
+    await pag.render({ canvasContext: ctx, viewport: vp }).promise;
+    const blob = await new Promise<Blob | null>((ok) => cv.toBlob(ok, "image/png")); if (!blob) return null;
+    // al massimo 16 × 21 cm (pagina A4 con i margini)
+    let w = 16, h = (16 * cv.height) / cv.width; if (h > 21) { w = (w * 21) / h; h = 21; }
+    return { png: new Uint8Array(await blob.arrayBuffer()), larghezza: Math.round(w * 100) / 100, altezza: Math.round(h * 100) / 100 };
+  } finally { void doc.destroy(); }
+}
 
 /** SVG → PNG a 200 dpi con il canvas del browser. */
 async function svgPng(svg: string, larghezzaCm: number): Promise<Uint8Array> {
@@ -57,7 +80,7 @@ export function RelazioneTecnica({ righe, mancanti, particolari }: { righe: Riga
         edificio: d, codice: leggiAttivo()?.codice || undefined, revisioni: s.revisioni, lplDisegno: s.lpl,
         modello: s.modello, aste: s.aste, conduttori: s.conduttori, picchetti: s.picchetti, terra: s.terra,
         separazione: s.separazione, rischio, risultati: c.risultati, righe, mancanti, particolari, dati: r, data: new Date(),
-      }), svgPng);
+      }), svgPng, schedaPng);
       const nome = `Relazione-LPS-${(d.nomeProgetto || d.comune || "progetto").replace(/[^\w.-]+/g, "_")}${s.revisioni.at(-1) ? `-Rev${s.revisioni.at(-1)!.rev}` : ""}.docx`;
       setFile({ blob: new Blob([creaDocx(doc)], { type: "application/vnd.openxmlformats-officedocument.wordprocessingml.document" }), nome });
     } catch (e) { setErrore(e instanceof Error ? e.message : "Relazione non creata."); }

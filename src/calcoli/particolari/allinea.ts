@@ -12,7 +12,7 @@
 export type Ruolo = "conduttore" | "supporto" | "connettore" | "compensatore" | "picchetto" | "punta" | "sezionamento" | "targhetta" | "anticorrosione" | "asta" | "accessorio";
 
 export interface ComponenteLib { codiceOBO: string | null; descrizione: string; unitaQuantita?: string | undefined; quantita?: number | null | undefined }
-export interface ParticolareLib { id: string; nome?: string | undefined; categoria?: string | undefined; condizioni?: { elemento?: string; tipo?: string; applicazione?: string } | undefined; componenti: ComponenteLib[] }
+export interface ParticolareLib { id: string; nome?: string | undefined; immagine?: string | null | undefined; categoria?: string | undefined; condizioni?: { elemento?: string; tipo?: string; applicazione?: string } | undefined; componenti: ComponenteLib[] }
 
 const T = (d: string) => d.toLowerCase();
 

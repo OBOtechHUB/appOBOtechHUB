@@ -13,7 +13,7 @@ export type Blocco =
   | { tipo: "par"; testo: Testo; allinea?: "sinistra" | "centro" | "destra" | "giustificato"; dimensione?: number; grassetto?: boolean; spazioPrima?: number; spazioDopo?: number; formula?: boolean }
   | { tipo: "elenco"; voci: Testo[] }
   | { tipo: "tabella"; intestazione: Testo[]; righe: Testo[][]; larghezze?: number[]; evidenziaColonna?: number; evidenziaRighe?: number[]; dimensione?: number }
-  | { tipo: "immagine"; svg: string; larghezza: number; altezza: number; png?: Uint8Array }
+  | { tipo: "immagine"; svg: string; larghezza: number; altezza: number; png?: Uint8Array; pdf?: string; mancante?: string }
   | { tipo: "salto" };
 
 export interface Documento { blocchi: Blocco[]; intestazione?: string; piede?: Testo[]; titolo?: string; autore?: string }
@@ -74,10 +74,23 @@ function immagine(b: Extract<Blocco, { tipo: "immagine" }>, id: number): string 
   return `<w:p><w:pPr><w:keepNext/><w:spacing w:before="120" w:after="40"/><w:jc w:val="center"/></w:pPr><w:r><w:drawing><wp:inline distT="0" distB="0" distL="0" distR="0"><wp:extent cx="${cx}" cy="${cy}"/><wp:docPr id="${id}" name="Figura ${id}"/><a:graphic xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main"><a:graphicData uri="http://schemas.openxmlformats.org/drawingml/2006/picture"><pic:pic xmlns:pic="http://schemas.openxmlformats.org/drawingml/2006/picture"><pic:nvPicPr><pic:cNvPr id="${id}" name="img${id}.png"/><pic:cNvPicPr/></pic:nvPicPr><pic:blipFill><a:blip r:embed="rIdImg${id}"/><a:stretch><a:fillRect/></a:stretch></pic:blipFill><pic:spPr><a:xfrm><a:off x="0" y="0"/><a:ext cx="${cx}" cy="${cy}"/></a:xfrm><a:prstGeom prst="rect"><a:avLst/></a:prstGeom></pic:spPr></pic:pic></a:graphicData></a:graphic></wp:inline></w:drawing></w:r></w:p>`;
 }
 
-/** Converte gli SVG del documento in PNG (nel browser: canvas; nelle prove: qualunque funzione). */
-export async function rasterizza(doc: Documento, converti: (svg: string, larghezzaCm: number, altezzaCm: number) => Promise<Uint8Array>): Promise<Documento> {
+export type ImmaginePdf = { png: Uint8Array; larghezza: number; altezza: number };
+/**
+ * Converte le immagini del documento in PNG: gli SVG con `converti`, le schede PDF (prima pagina) con `convertiPdf`.
+ * Una scheda non trovata diventa un paragrafo evidenziato da completare.
+ */
+export async function rasterizza(doc: Documento, converti: (svg: string, larghezzaCm: number, altezzaCm: number) => Promise<Uint8Array>, convertiPdf?: (file: string) => Promise<ImmaginePdf | null>): Promise<Documento> {
   const blocchi: Blocco[] = [];
-  for (const b of doc.blocchi) blocchi.push(b.tipo === "immagine" && !b.png ? { ...b, png: await converti(b.svg, b.larghezza, b.altezza) } : b);
+  for (const b of doc.blocchi) {
+    if (b.tipo !== "immagine" || b.png) { blocchi.push(b); continue; }
+    if (b.pdf) {
+      let r: ImmaginePdf | null = null;
+      try { r = convertiPdf ? await convertiPdf(b.pdf) : null; } catch { r = null; }
+      blocchi.push(r ? { ...b, ...r } : { tipo: "par", testo: [{ t: `[DA COMPLETARE: ${b.mancante ?? `inserire la scheda ${b.pdf}`}]`, daCompletare: true }], allinea: "centro" });
+      continue;
+    }
+    blocchi.push({ ...b, png: await converti(b.svg, b.larghezza, b.altezza) });
+  }
   return { ...doc, blocchi };
 }
 

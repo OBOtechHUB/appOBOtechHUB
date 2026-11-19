@@ -624,7 +624,9 @@ export function relazioneTecnica(x: IngressoRelazione): Documento {
       for (const rr of righe) { const kk = `${rr.codice}|${rr.unita}`; const u = unite.get(kk); if (u) u.q += rr.quantita; else unite.set(kk, { codice: rr.codice, descrizione: rr.descrizione, q: rr.quantita, unita: rr.unita }); }
       B.push(h3(`Tipologico ${n} – ${pa.nome ?? pa.id}`), p(`Riferimento OBO: ${pa.id}`, { dimensione: 9, spazioDopo: 2 }),
         tab(["Art. No", "Tipo │ DESCRIZIONE", "Qty TOT (m / pz)", "Qty tipico"], [...unite.values()].map((u) => [[{ t: u.codice || "—", b: true }], u.descrizione.replace(/ – /, " │ "), `${it(u.q)} ${u.unita}`, tipica(u.codice)]), [1.6, 6.5, 1.8, 1.6]),
-        p([{ t: `Figura ${++nFig} – `, b: true }, dc(`disegno del tipologico ${pa.id} (scheda OBO)`)], { dimensione: 9 }));
+      );
+      if (pa.immagine) B.push({ tipo: "immagine", svg: "", pdf: pa.immagine, larghezza: 16, altezza: 11, mancante: `scheda ${pa.immagine} non trovata nell'archivio dei particolari: inserire il disegno del tipologico` });
+      B.push(p([{ t: `Figura ${++nFig} – `, b: true }, ...(pa.immagine ? [{ t: `Tipologico ${n}: ${pa.nome ?? pa.id} (scheda OBO ${pa.id})` }] : [dc(`disegno del tipologico ${pa.id} (scheda OBO)`)])], { dimensione: 9 }));
     }
   } else B.push(p([dc("nessun particolare costruttivo collegato alle righe del computo")]));
 
