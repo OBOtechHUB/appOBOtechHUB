@@ -7,7 +7,7 @@
       "app": "lps",
       "titolo": "Relazione tecnica in Word sul format OBO",
       "voci": [
-        "In Computo materiali c'è \"Relazione tecnica (Word)\": crea la relazione sul format OBO (copertina, premessa, norme 2024, valutazione del rischio con i valori calcolati, captazione, calate, distanza di separazione, terra, SPD, tipologici con Art. No e quantità, elenco materiale, verifiche, allegati)",
+        "In Computo materiali c'è \"Relazione tecnica (Word)\": crea la relazione completa sul format OBO, in due parti. Prima parte: premessa, norme, definizioni, valutazione del rischio con tutte le componenti, LPS esterno, captazione, calate, materiali. Seconda parte \"Valutazione del rischio e scelta delle misure di protezione\": densità NG/NSG, struttura, valori calcolati del rischio, soluzione di progetto con penetrazione della sfera, calate, distanza di separazione, terra, SPD, tipologici con Art. No e quantità, elenco materiale, valori NG/NSG",
         "Committente, provincia, destinazione d'uso e testo del sopralluogo si scrivono in \"Dati della relazione\" e restano nel progetto",
         "Le parti che l'app non conosce sono evidenziate in giallo nel documento, da completare in Word"
       ],

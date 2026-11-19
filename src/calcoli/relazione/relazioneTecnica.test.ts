@@ -7,12 +7,12 @@ describe("relazione tecnica", () => {
   it("segue il format OBO con i valori del progetto", () => {
     const doc = relazioneTecnica(esempio());
     const t = testoDocumento(doc);
-    for (const s of ["COMUNE DI GRUGLIASCO", "PROVINCIA DI TORINO", "SINELEC S.p.A.", "1. Premessa", "2. Elenco elaborati", "3. Norme", "6. Valutazione del rischio", "7. Protezione contro le scariche", "7.2 Calate", "8. Impianto di terra", "10. Particolari costruttivi", "11. Elenco materiale", "CEI EN IEC 62561", "LPL IV", "Rev. A"]) expect(t).toContain(s);
+    for (const s of ["COMUNE DI GRUGLIASCO", "PROVINCIA DI TORINO", "SINELEC S.p.A.", "1. Premessa", "2. Elenco elaborati", "3. Norme", "5. Definizioni", "6. Valutazione del rischio", "6.8 Componenti di rischio", "RU = (NL + NDJ)", "7. Protezione contro le scariche", "7.2 Calate", "R = f(Pr, Q)", "NYY 1 × 16", "Valutazione del rischio e scelta delle misure di protezione", "11. Individuazione della struttura", "13.4 Impianto di terra", "14. Particolari costruttivi", "15. Elenco materiale", "17. Valori NG", "CEI EN IEC 62561", "LPL IV", "Rev. A"]) expect(t).toContain(s);
     expect(t).toContain("Caso"); // esito della valutazione
     expect(t).toContain("Tipologico 1 – Asta su putrella");
     expect(t).toContain("Tipologico 2 – Giunzioni conduttore tondo");
     expect(t).toContain("N° 2 – aste di altezza 4 m");
-    expect(t).toContain("sostituisce la serie EN 50164");
+    expect(t).toContain("sostituiscono la serie CEI EN 50164");
     expect(t).toContain("Unità trattamento aria");
   });
   it("lascia evidenziate le parti da completare quando mancano i dati", () => {
