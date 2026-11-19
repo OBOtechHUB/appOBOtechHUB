@@ -200,3 +200,50 @@ export function flussoValutazione(): string {
   c += testo(450, 500, "Procedura di valutazione secondo la CEI EN IEC 62305-2:2026-10 (schema riassuntivo)", { size: 11, anchor: "middle", colore: "#555" });
   return svg(W, H, c);
 }
+
+/**
+ * Schema a blocchi dell'edificio (pianta): ogni corpo numerato con dimensioni, altezza di gronda e altezza da
+ * proteggere in copertura; aste colorate per tipo. Il colore dei corpi va dal più basso (chiaro) al più alto (scuro).
+ */
+export function schemaBlocchi(blocchi: { corpo: Corpo; numero: number; daProteggere: number | null }[], aste: { x: number; y: number; tipo: string }[], nomiTipo: Record<string, string>): string | null {
+  const pts = blocchi.flatMap((b) => b.corpo.impronta);
+  if (pts.length < 3) return null;
+  const xs = pts.map((q) => q[0]), ys = pts.map((q) => q[1]);
+  const x0 = Math.min(...xs), x1 = Math.max(...xs), y0 = Math.min(...ys), y1 = Math.max(...ys);
+  const W = 900, lg = 90, H = Math.round(Math.min(680, Math.max(360, 820 * ((y1 - y0 || 1) / (x1 - x0 || 1)) + 140))), m = 40;
+  const s = Math.min((W - 2 * m) / (x1 - x0 || 1), (H - 2 * m - lg) / (y1 - y0 || 1));
+  const X = (x: number) => m + (x - x0) * s, Y = (y: number) => H - m - lg - (y - y0) * s;
+  const hs = blocchi.map((b) => b.corpo.quotaBase + b.corpo.altezzaGronda), hMin = Math.min(...hs), hMax = Math.max(...hs);
+  const SCALA = ["#E4EBED", "#C5D9DE", "#7694A4", "#41525D"];
+  const fill = (h: number) => SCALA[hMax - hMin < 0.01 ? 1 : Math.min(3, Math.floor(((h - hMin) / (hMax - hMin)) * 3.999))]!;
+  let c = "";
+  const ord = [...blocchi].sort((a, b) => (a.corpo.quotaBase + a.corpo.altezzaGronda) - (b.corpo.quotaBase + b.corpo.altezzaGronda));
+  for (const b of ord) {
+    const h = b.corpo.quotaBase + b.corpo.altezzaGronda, f = fill(h);
+    c += `<polygon points="${b.corpo.impronta.map((q) => `${n(X(q[0]))},${n(Y(q[1]))}`).join(" ")}" fill="${f}" stroke="#282A31" stroke-width="1.5"/>`;
+  }
+  for (const b of blocchi) {
+    const im = b.corpo.impronta, cx = im.reduce((a, q) => a + q[0], 0) / im.length, cy = im.reduce((a, q) => a + q[1], 0) / im.length;
+    const bx = im.map((q) => q[0]), by = im.map((q) => q[1]);
+    const dimA = Math.max(...bx) - Math.min(...bx), dimB = Math.max(...by) - Math.min(...by);
+    const h = b.corpo.quotaBase + b.corpo.altezzaGronda, scuro = fill(h) === "#41525D" || fill(h) === "#7694A4";
+    const col = scuro ? "#FFFFFF" : SCURO;
+    c += `<circle cx="${n(X(cx))}" cy="${n(Y(cy) - 26)}" r="15" fill="${ARANCIO}"/>` + testo(X(cx), Y(cy) - 21, String(b.numero), { size: 14, anchor: "middle", colore: "#FFFFFF", bold: true });
+    c += testo(X(cx), Y(cy) + 4, `${it(dimA, 1)} × ${it(dimB, 1)} m · H ${it(h, 1)} m`, { size: 11, anchor: "middle", colore: col, bold: true });
+    if (b.daProteggere != null) c += testo(X(cx), Y(cy) + 20, `da proteggere: ${it(b.daProteggere, 1)} m`, { size: 11, anchor: "middle", colore: col });
+  }
+  const COL: Record<string, string> = { isolata: "#2E7D32", treppiede: ARANCIO, basamento: "#7694A4", fissa: "#C62828" };
+  for (const a of aste) c += `<circle cx="${n(X(a.x))}" cy="${n(Y(a.y))}" r="4.5" fill="${COL[a.tipo] ?? SCURO}" stroke="#fff" stroke-width="1"/>`;
+  // legenda
+  let ly = H - lg + 14;
+  c += testo(m, ly, "Corpi (numero, dimensioni, altezza di gronda):", { size: 11, bold: true });
+  const passo = [1, 2, 5, 10, 20, 50, 100].find((p) => p * s > 70) ?? 100;
+  c += `<line x1="${W - m - passo * s}" y1="${ly - 4}" x2="${W - m}" y2="${ly - 4}" stroke="${SCURO}" stroke-width="3"/>` + testo(W - m - (passo * s) / 2, ly + 12, `${passo} m`, { size: 11, anchor: "middle" });
+  ly += 18;
+  let lx = m;
+  SCALA.forEach((col, i) => { const h = hMin + ((hMax - hMin) * (i + 0.5)) / 4; c += `<rect x="${lx}" y="${ly - 10}" width="14" height="12" fill="${col}" stroke="#282A31"/>` + testo(lx + 18, ly, hMax - hMin < 0.01 ? `H ${it(hMin, 1)} m` : `≈ ${it(h, 0)} m`, { size: 10 }); lx += 78; });
+  ly += 20; lx = m;
+  const tipiPresenti = [...new Set(aste.map((a) => a.tipo))];
+  for (const t of tipiPresenti) { c += `<circle cx="${lx + 6}" cy="${ly - 4}" r="5" fill="${COL[t] ?? SCURO}"/>` + testo(lx + 16, ly, `${nomiTipo[t] ?? t} (${aste.filter((a) => a.tipo === t).length})`, { size: 10 }); lx += 26 + (nomiTipo[t] ?? t).length * 5.6 + 24; }
+  return svg(W, H, c);
+}

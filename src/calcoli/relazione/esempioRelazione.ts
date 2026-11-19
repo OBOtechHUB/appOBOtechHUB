@@ -32,7 +32,7 @@ export function esempio(): IngressoRelazione {
       { id: "OBO-TBS-250-T2.01", nome: "Asta su putrella", componenti: [{ codiceOBO: "5402864", descrizione: "101 3B-4000", quantita: 1, unitaQuantita: "per_asta" }] },
       { id: "OBO-TBS-250-T1.01", nome: "Giunzioni conduttore tondo", componenti: [{ codiceOBO: "5021296", descrizione: "RD 8", quantita: 1, unitaQuantita: "per_m" }] },
     ],
-    dati: { ...datiRelazioneVuoti, committente: "SINELEC S.p.A.", indirizzoCommittente: "Via Tazio Nuvolari 9", cittaCommittente: "10028 Trofarello (TO)", provincia: "Torino", destinazione: "attività didattiche e laboratori" },
+    dati: { ...datiRelazioneVuoti, ngFornitore: "TNE srl", ngData: "12/09/2025", tecnico: "Ing. Mario Rossi", albo: "Ordine degli Ingegneri di Torino n. 0000", committente: "SINELEC S.p.A.", indirizzoCommittente: "Via Tazio Nuvolari 9", cittaCommittente: "10028 Trofarello (TO)", provincia: "Torino", destinazione: "attività didattiche e laboratori" },
     data: new Date("2026-11-19T12:00:00Z"),
   };
 }

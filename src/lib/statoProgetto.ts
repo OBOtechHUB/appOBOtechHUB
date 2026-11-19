@@ -14,10 +14,26 @@ export const terraSchema = z.object({ tipo: z.enum(["A", "B", "fondazione"]), di
 export const revisioneSchema = z.object({ rev: z.string().max(10), data: z.string().max(40), autore: z.string().max(200), descrizione: z.string().max(1000), impronta: z.string().max(40), archiviata: z.boolean().default(false) });
 export const emissioneSchema = z.object({ stato: z.enum(["bozza", "emesso"]), rev: z.string().max(10).nullable(), impronta: z.string().max(40).nullable() });
 const t200 = z.string().max(200).default("");
-export const relazioneSchema = z.object({ committente: t200, indirizzoCommittente: t200, cittaCommittente: t200, provincia: t200, titoloOpera: z.string().max(300).default(""), destinazione: z.string().max(500).default(""), luogo: z.string().max(100).default("Rivoli"), descrizione: z.string().max(20000).default("") });
+const sn = z.enum(["no", "si", "da-verificare"]);
+const naturale = z.enum(["no", "si-collegato", "si-da-collegare", "si-da-verificare"]);
+const nNull = z.number().finite().nullable().default(null);
+export const relazioneSchema = z.object({
+  committente: t200, indirizzoCommittente: t200, cittaCommittente: t200, provincia: t200, titoloOpera: z.string().max(300).default(""), destinazione: z.string().max(500).default(""), luogo: z.string().max(100).default("Rivoli"), descrizione: z.string().max(20000).default(""),
+  // intervento e attestato NG/NSG
+  tipoIntervento: z.enum(["nuovo", "adeguamento", "integrazione"]).default("nuovo"), ngFornitore: t200, ngData: t200, nsgAttestato: nNull,
+  // stato di fatto (sopralluogo)
+  parapetto: naturale.default("no"), strutturaMetallica: naturale.default("no"), armature: sn.default("no"), coperturaMetallica: z.boolean().default(false),
+  calateEsistenti: z.enum(["nessuna", "naturali", "in-getto", "esterne"]).default("nessuna"), calateNumero: nNull, calateInterasse: nNull,
+  terraEsistente: z.enum(["nessuno", "anello", "fondazione", "picchetti", "misto"]).default("nessuno"), terraCollegataAltri: z.boolean().default(false), spdEsistenti: sn.default("no"),
+  impiantiCopertura: z.string().max(2000).default(""), altezzaImpianti: nNull,
+  // captazione
+  fissaggioAste: z.enum(["putrella", "parapetto", "treppiede", "basamento", "parete", "misto"]).default("misto"), ventoKmh: nNull, margineSicurezza: z.number().finite().min(0).max(10).default(1),
+  corpi: z.record(z.object({ altezzaDaProteggere: nNull, nota: z.string().max(1000).default("") })).default({}),
+  valutazioneEconomica: z.boolean().default(false), tecnico: t200, albo: t200,
+});
 export const estesoSchema = z.object({ modello: modelloSchema, aste: z.array(astaSchema).max(1000), conduttori: z.array(conduttoreSchema).max(5000), lpl: z.enum(["I","II","III","IV"]), particolari: z.array(particolareSchema).max(5000), supporti: z.array(componenteSchema).max(50000).default([]), morsetti: z.array(componenteSchema).max(20000).default([]), compensatori: z.array(componenteSchema).max(20000).default([]), distinta: distintaSchema.default([]), picchetti: z.array(picchettoSchema).max(5000).default([]), terra: terraSchema.nullable().default(null), verifiche: z.array(verificaSchema).max(500).default([]), pianoVerifiche: pianoVerificheSchema.default({ critico: false, intervalli: null }), separazione: separazioneSchema.default({ modoKc: "semplificato", ki: null, kmSolido: null, punti: [] }), datiRischio: z.record(z.string(), z.unknown()).nullable().default(null), revisioni: z.array(revisioneSchema).max(500).default([]), emissione: emissioneSchema.default({ stato: "bozza", rev: null, impronta: null }), relazione: relazioneSchema.optional() });
 export type StatoEsteso = z.infer<typeof estesoSchema>;
-export const estesoIniziale: StatoEsteso = { modello: {corpi:[]}, aste: [], conduttori: [], lpl:"III", particolari:[], supporti: [], morsetti: [], compensatori: [], distinta: [], picchetti: [], terra: null, verifiche: [], pianoVerifiche: { critico: false, intervalli: null }, separazione: { modoKc: "semplificato", ki: null, kmSolido: null, punti: [] }, datiRischio: null, revisioni: [], emissione: { stato: "bozza", rev: null, impronta: null }, relazione: { committente: "", indirizzoCommittente: "", cittaCommittente: "", provincia: "", titoloOpera: "", destinazione: "", luogo: "Rivoli", descrizione: "" } };
+export const estesoIniziale: StatoEsteso = { modello: {corpi:[]}, aste: [], conduttori: [], lpl:"III", particolari:[], supporti: [], morsetti: [], compensatori: [], distinta: [], picchetti: [], terra: null, verifiche: [], pianoVerifiche: { critico: false, intervalli: null }, separazione: { modoKc: "semplificato", ki: null, kmSolido: null, punti: [] }, datiRischio: null, revisioni: [], emissione: { stato: "bozza", rev: null, impronta: null } };
 let esteso=estesoIniziale, caricato=false;
 const listeners=new Set<()=>void>();
 export function aggiornaEsteso(p: Partial<StatoEsteso>) { esteso=estesoSchema.parse({...esteso,...p}); try {if(!attivo)localStorage.setItem("lps-stato-esteso",JSON.stringify(esteso));}catch{} listeners.forEach((f)=>f()); }

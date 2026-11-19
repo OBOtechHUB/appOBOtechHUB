@@ -11,7 +11,7 @@ describe("relazione tecnica", () => {
     expect(t).toContain("Caso"); // esito della valutazione
     expect(t).toContain("Tipologico 1 – Asta su putrella");
     expect(t).toContain("Tipologico 2 – Giunzioni conduttore tondo");
-    expect(t).toContain("N° 2 – aste di altezza 4 m");
+    expect(t).toContain("N° 2 – aste non isolate su treppiede di altezza 4 m");
     expect(t).toContain("sostituiscono la serie CEI EN 50164");
     expect(t).toContain("Unità trattamento aria");
   });
@@ -40,6 +40,20 @@ describe("relazione tecnica", () => {
     expect(t).toContain("Tabella 1 – ");
     expect(t).toContain("Fattore di posizione CD");
     expect(t).toContain("Lunghezza minima l1");
+  });
+  it("genera i testi dai dati del progetto (stato di fatto, verifica per blocco, blocchi per il vento)", () => {
+    const e = esempio();
+    e.dati = { ...e.dati, parapetto: "si-collegato", calateEsistenti: "in-getto", calateNumero: 20, calateInterasse: 15, terraEsistente: "anello", terraCollegataAltri: true, spdEsistenti: "si", impiantiCopertura: "unità di trattamento aria", altezzaImpianti: 2, fissaggioAste: "treppiede", ventoKmh: 150, corpi: { c1: { altezzaDaProteggere: 1.5, nota: "" } } };
+    const t = testoDocumento(relazioneTecnica(e));
+    expect(t).toContain("Stato di fatto rilevato al sopralluogo");
+    expect(t).toContain("presente e collegato elettricamente alle calate");
+    expect(t).toContain("predisposte in fase di getto");
+    expect(t).toContain("Verifica dell'altezza protetta per blocco");
+    expect(t).toContain("Blocco 1");
+    expect(t).toContain("km/h");
+    expect(t).toContain("6 x 16 kg"); // 4 m su treppiede AL: 150 km/h → 6 blocchi (fino a 191 km/h)
+    expect(t).toContain("dispersori degli edifici vicini");
+    expect(t).not.toContain("DA COMPLETARE: stato di fatto");
   });
   it("crea un file Word valido", () => {
     const zip = creaDocx(relazioneTecnica(esempio()));

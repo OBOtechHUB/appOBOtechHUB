@@ -2,6 +2,28 @@
   "nota": "Registro degli aggiornamenti di Progettazione LPS. Una voce per aggiornamento, la più recente per prima (app: lps). Viene mostrato nella barra \"Aggiorna app\", nel riquadro Novità e nella pagina Novità di OBO Hub.",
   "aggiornamenti": [
     {
+      "id": "2026-11-19-lps-11",
+      "data": "2026-11-19",
+      "app": "lps",
+      "titolo": "Relazione tecnica scritta dai dati del progetto",
+      "voci": [
+        "\"Dati della relazione\" ha nuove sezioni: tipo di intervento, attestato NG/NSG, sopralluogo (parapetti e strutture metalliche, ferri d'armatura, calate, terra e SPD esistenti, impianti in copertura), captazione (fissaggio delle aste, vento di progetto, distanza di sicurezza, altezza da proteggere per ogni blocco) e firma del tecnico",
+        "La relazione scrive da sola lo stato di fatto, la soluzione di captazione, le calate, la terra e gli SPD, le perdite da considerare (dalle zone del rischio) e il tipo di aste (isolate, su treppiede, su basamento, fissate alla struttura)",
+        "Nuovo schema a blocchi dell'edificio con numero, dimensioni, altezza e altezza da proteggere di ogni blocco e le aste colorate per tipo",
+        "Verifica per blocco: interasse delle aste, diagonale della figura replicata, penetrazione della sfera rotolante e altezza protetta, confrontata con l'altezza da proteggere più la distanza di sicurezza",
+        "Blocchi in calcestruzzo per le aste su treppiede scelti in automatico dalla velocità del vento di progetto",
+        "Dopo \"Crea relazione\" l'app elenca le parti che restano da completare"
+      ],
+      "titolo_en": "Technical report written from project data",
+      "voci_en": [
+        "New report data sections: intervention type, NG/NSG certificate, site survey, air-termination fixing, design wind speed, height to protect per block, signature",
+        "Site, solution, down-conductor, earthing and SPD texts generated from the data",
+        "Building block diagram and per-block rolling-sphere check",
+        "Tripod concrete blocks chosen from the design wind speed",
+        "List of parts still to complete after generating"
+      ]
+    },
+    {
       "id": "2026-11-19-lps-10",
       "data": "2026-11-19",
       "app": "lps",

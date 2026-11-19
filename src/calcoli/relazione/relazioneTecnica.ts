@@ -26,18 +26,39 @@ import { PLPS, PEB, PSPD } from "@/calcoli/rischio/rischioR1";
 import { CORRENTE_LPL } from "@/calcoli/spd/sceltaSpd";
 import { l1Norma } from "@/calcoli/terra/proponiTerra";
 import blocchiTreppiede from "@/dati/captazione/blocchiTreppiede.json";
+import { NOME_TIPO, blocchiPerVento, fraseCalate, fraseIntervento, fraseSoluzione, frasiStatoDiFatto, tipoAsta, verificaCorpi, type InfoArticolo, type TipoAsta } from "./testiProgetto";
+import { schemaBlocchi } from "./grafici";
 import { barreLog, curvaCorrente, flussoValutazione, graficoSeparazione, graficoSfera, piantaCopertura, schemaSorgenti } from "./grafici";
 
 export type Lpl = "I" | "II" | "III" | "IV";
 
 /** Dati della relazione che l'app non calcola (salvati nel progetto). */
+export type SiNo = "no" | "si" | "da-verificare";
+export type Naturale = "no" | "si-collegato" | "si-da-collegare" | "si-da-verificare";
 export interface DatiRelazione {
   committente: string; indirizzoCommittente: string; cittaCommittente: string;
   provincia: string; titoloOpera: string; destinazione: string; luogo: string;
   /** testo libero: sopralluogo, impianti esistenti, scelte del progettista */
   descrizione: string;
+  tipoIntervento: "nuovo" | "adeguamento" | "integrazione"; ngFornitore: string; ngData: string; nsgAttestato: number | null;
+  parapetto: Naturale; strutturaMetallica: Naturale; armature: SiNo; coperturaMetallica: boolean;
+  calateEsistenti: "nessuna" | "naturali" | "in-getto" | "esterne"; calateNumero: number | null; calateInterasse: number | null;
+  terraEsistente: "nessuno" | "anello" | "fondazione" | "picchetti" | "misto"; terraCollegataAltri: boolean; spdEsistenti: SiNo;
+  impiantiCopertura: string; altezzaImpianti: number | null;
+  fissaggioAste: "putrella" | "parapetto" | "treppiede" | "basamento" | "parete" | "misto"; ventoKmh: number | null; margineSicurezza: number;
+  corpi: Record<string, { altezzaDaProteggere: number | null; nota: string }>;
+  valutazioneEconomica: boolean; tecnico: string; albo: string;
 }
-export const datiRelazioneVuoti: DatiRelazione = { committente: "", indirizzoCommittente: "", cittaCommittente: "", provincia: "", titoloOpera: "", destinazione: "", luogo: "Rivoli", descrizione: "" };
+export const datiRelazioneVuoti: DatiRelazione = {
+  committente: "", indirizzoCommittente: "", cittaCommittente: "", provincia: "", titoloOpera: "", destinazione: "", luogo: "Rivoli", descrizione: "",
+  tipoIntervento: "nuovo", ngFornitore: "", ngData: "", nsgAttestato: null,
+  parapetto: "no", strutturaMetallica: "no", armature: "no", coperturaMetallica: false,
+  calateEsistenti: "nessuna", calateNumero: null, calateInterasse: null,
+  terraEsistente: "nessuno", terraCollegataAltri: false, spdEsistenti: "no",
+  impiantiCopertura: "", altezzaImpianti: null,
+  fissaggioAste: "misto", ventoKmh: null, margineSicurezza: 1,
+  corpi: {}, valutazioneEconomica: false, tecnico: "", albo: "",
+};
 
 export interface ImmagineIn { dati: Uint8Array; jpeg: boolean; larghezzaPx: number; altezzaPx: number }
 /** Blocco immagine da un'immagine pronta, larga `cm` (altezza massima `maxH` cm). */
@@ -60,6 +81,8 @@ export interface IngressoRelazione {
   risultati: RisultatiModuli; righe: RigaComputo[]; mancanti: string[];
   particolari: readonly ParticolareLib[];
   dati: DatiRelazione;
+  /** nome e dati tecnici degli articoli (catalogo OBO), per riconoscere il tipo delle aste */
+  articoli?: Record<string, InfoArticolo> | undefined;
   /** immagini già pronte (PNG o JPEG): logo OBO, stemma del Comune, logo del committente, foto e planimetrie */
   immagini?: { logo?: ImmagineIn | undefined; stemma?: ImmagineIn | undefined; logoCommittente?: ImmagineIn | undefined; foto?: { img: ImmagineIn; didascalia: string }[] | undefined } | undefined;
   data: Date;
@@ -122,6 +145,13 @@ export function relazioneTecnica(x: IngressoRelazione): Documento {
   const corpi = x.modello.corpi;
   const par = parametriLPL as unknown as Record<string, { raggio: number; latoMaglia: number }>;
   const R = par[lpl]!.raggio;
+  // tipo di ogni asta (catalogo + descrizioni del computo) e verifica per corpo
+  const articoli: Record<string, InfoArticolo> = {};
+  for (const rr of x.righe) if (rr.codice) articoli[rr.codice] = { nome: `${articoli[rr.codice]?.nome ?? ""} ${rr.descrizione}` };
+  for (const [c, a] of Object.entries(x.articoli ?? {})) articoli[c] = { nome: `${a.nome} ${articoli[c]?.nome ?? ""}`, dati: a.dati };
+  const tipi = new Map<string, TipoAsta>(x.aste.map((a) => [a.id, tipoAsta(a.codiceOBO, articoli, r.fissaggioAste)]));
+  const verifiche = verificaCorpi(x.modello.corpi, x.aste, x.conduttori, R, r, tipi);
+  const NOME_BREVE: Record<TipoAsta, string> = { isolata: "isolata su treppiede", treppiede: "su treppiede", basamento: "su basamento", fissa: "fissata alla struttura" };
   let nFig = 0, nTab = 0;
   /** figura numerata: SVG (larghezza in px → 16 cm) con didascalia */
   const fig = (svgTesto: string | null, didascalia: string, cm = 16) => {
@@ -213,7 +243,7 @@ export function relazioneTecnica(x: IngressoRelazione): Documento {
 
   // ---------- 4 Descrizione
   B.push(h1("4. Descrizione"),
-    p("Questa fase prevede la progettazione e la realizzazione di un sistema di protezione contro le fulminazioni dirette (LPS), coordinato con l'impianto di terra e con le misure di protezione degli impianti interni (SPD)."));
+    p(fraseIntervento(r, lpl)));
 
   // ---------- 5 Definizioni
   const def = (t: string, s: string): Testo => [{ t: `${t}: `, b: true }, { t: s }];
@@ -454,8 +484,8 @@ export function relazioneTecnica(x: IngressoRelazione): Documento {
   const k = x.rischio?.struttura.k ?? 2;
   B.push(h1("10. Densità annua di fulmini a terra"),
     p("La densità annua di fulmini a terra al kilometro quadrato nella posizione in cui è ubicata la struttura vale:"),
-    p([{ t: `NG = ${it(d.densita)}  –  NSG = ${it(k * d.densita)}`, b: true, i: true }, { t: "  fulmini/(anno·km²)", i: true }], { allinea: "centro" }),
-    p([{ t: `NSG è la densità dei punti di impatto al suolo; se il fornitore dei dati non indica il rapporto k = NSG/NG si assume k = 2 (CEI EN IEC 62305-2:2026-10, A.1). Nel progetto k = ${it(k)}. I valori sono quelli dell'attestato allegato (capitolo 17). ` }, dc("verificare NG e NSG con l'attestato")]),
+    p([{ t: `NG = ${it(d.densita)}  –  NSG = ${it(r.nsgAttestato ?? k * d.densita)}`, b: true, i: true }, { t: "  fulmini/(anno·km²)", i: true }], { allinea: "centro" }),
+    p([{ t: `NSG è la densità dei punti di impatto al suolo; se il fornitore dei dati non indica il rapporto k = NSG/NG si assume k = 2 (CEI EN IEC 62305-2:2026-10, A.1). Nel progetto k = ${it(k)}. ` }, ...(r.ngFornitore ? [{ t: `I valori sono quelli dell'attestato ${r.ngFornitore}${r.ngData ? ` del ${r.ngData}` : ""}${r.nsgAttestato != null ? ` (NSG da attestato = ${it(r.nsgAttestato)})` : ""}, allegato alla relazione (capitolo 17).` }] : [dc("fornitore e data dell'attestato NG/NSG (Dati della relazione)")])]),
   );
 
   // struttura
@@ -476,22 +506,33 @@ export function relazioneTecnica(x: IngressoRelazione): Documento {
   );
   tabN("Fattore di posizione CD (CEI EN IEC 62305-2:2026-10, Tab. A.1) – riga del progetto evidenziata", ["Posizione relativa della struttura", "CD"], fattori.map((f) => [f.descrizione, it(f.valore)]), [9, 2]);
   { const b = B.pop()!; B.push(evid(b, [fattori.findIndex((f) => f.id === d.posizioneId)])); }
+  if (corpi.length > 1) B.push(p(`La struttura può essere semplificata e descritta come formata da ${corpi.length} blocchi${corpi.every((c) => c.impronta.length === 4) ? " di forma rettangolare" : ""} intersecati e contigui tra loro, numerati nello schema a blocchi seguente:`));
   corpi.forEach((c, i) => {
     const xs = c.impronta.map((q) => q[0]), ys = c.impronta.map((q) => q[1]);
     const a = Math.max(...xs) - Math.min(...xs), b = Math.max(...ys) - Math.min(...ys);
-    B.push(h3(c.nome || `Edificio ${i + 1}`), p(`${c.nome || `L'edificio ${i + 1}`} ha dimensioni planari di ${it(Math.max(a, b), 1)} m × ${it(Math.min(a, b), 1)} m (${c.impronta.length === 4 ? "pianta rettangolare" : `pianta di ${c.impronta.length} lati`}), un'area di ${it(areaPoligono(c.impronta), 0)} m², un perimetro di ${it(perimetro(c.impronta), 1)} m e un'altezza di gronda di ${it(c.quotaBase + c.altezzaGronda, 2)} m${c.tipoTetto === "falde" ? `, con copertura a falde e colmo a ${it(c.quotaBase + c.altezzaColmo, 2)} m` : c.tipoTetto === "piano" ? ", con copertura piana" : ""}.`));
+    const dp = r.corpi[c.id]?.altezzaDaProteggere, nota = r.corpi[c.id]?.nota;
+    B.push(h3(`Blocco ${i + 1}${c.nome ? ` – ${c.nome}` : ""}`), p(`${c.nome || `Il blocco ${i + 1}`} ha dimensioni planari di ${it(Math.max(a, b), 1)} m × ${it(Math.min(a, b), 1)} m (${c.impronta.length === 4 ? "pianta rettangolare" : `pianta di ${c.impronta.length} lati`}), un'area di ${it(areaPoligono(c.impronta), 0)} m², un perimetro di ${it(perimetro(c.impronta), 1)} m e un'altezza di gronda di ${it(c.quotaBase + c.altezzaGronda, 2)} m${c.tipoTetto === "falde" ? `, con copertura a falde e colmo a ${it(c.quotaBase + c.altezzaColmo, 2)} m` : c.tipoTetto === "piano" ? ", con copertura piana" : ""}.${dp != null ? ` Sul tetto va protetta un'altezza di ${it(dp, 1)} m (impianti e strutture in copertura).` : ""}${nota ? ` ${nota}` : ""}`));
   });
+  if (corpi.length) fig(schemaBlocchi(verifiche.map((v) => ({ corpo: v.corpo, numero: v.numero, daProteggere: v.daProteggere })), x.aste.map((a) => ({ x: a.x, y: a.y, tipo: tipi.get(a.id) ?? "fissa" })), NOME_BREVE), "Schema a blocchi dell'edificio: numero del blocco, dimensioni in pianta, altezza di gronda, altezza da proteggere in copertura e posizione delle aste per tipo");
+  const sdf = frasiStatoDiFatto(r);
+  if (sdf.length) B.push(h3("Stato di fatto rilevato al sopralluogo"), el(...sdf));
   const fotoBlocchi = () => { for (const f of im.foto ?? []) { B.push(bloccoImmagine(f.img, 15, "centro", 11)); B.push(p([{ t: `Figura ${++nFig} – `, b: true }, { t: f.didascalia || "Immagine del sopralluogo" }], { allinea: "centro", dimensione: 9 })); } };
-  B.push(p(r.descrizione ? r.descrizione : [dc("esito del sopralluogo: impianti e calate esistenti, componenti naturali (ferri d'armatura, parapetti, putrelle, strutture metalliche), collegamenti verificati, impianti in copertura con le loro altezze, fotografie")]));
+  if (r.descrizione) B.push(...r.descrizione.split(/\n{2,}/).map((t) => p(t.trim())));
+  else if (!sdf.length) B.push(p([dc("stato di fatto: compilare la sezione \"Sopralluogo\" in Dati della relazione (componenti naturali, calate, terra, SPD, impianti in copertura)")]));
   if (im.foto?.length) fotoBlocchi(); else B.push(p([dc("fotografie del sopralluogo e planimetria (si possono aggiungere in \"Dati della relazione\")")]));
 
-  // dati iniziali e rischio
+  // dati iniziali e rischio: perdite considerate dai dati delle zone
+  const zz = x.rischio?.zone ?? [];
+  const perdite: { l: string; testo: string }[] = [];
+  if (!zz.length || zz.some((z) => z.oreAnno > 0)) perdite.push({ l: "L1", testo: "perdita di vite umane (L1), per la presenza di persone nella struttura;" });
+  if (x.rischio?.struttura.danniMateriali !== false) perdite.push({ l: "L2", testo: "perdita dovuta a danni materiali alla struttura e al suo contenuto (L2);" });
+  if (!zz.length || zz.some((z) => (z.oreApparecchi ?? 8760) > 0)) perdite.push({ l: "L3", testo: `perdita dovuta al guasto degli impianti interni (L3), valutata con la frequenza del danno F${zz.some((z) => z.impiantiCritici) ? " (impianti critici: FT = 0,1)" : ""}.` });
   B.push(h1("12. Dati iniziali e valutazione del rischio"),
     p([{ t: "La destinazione d'uso prevalente della struttura è: " }, ...destinazione, { t: "." }]),
     p("In relazione anche alla sua destinazione d'uso, la struttura può essere soggetta a:"),
-    el("perdita di vite umane (L1);", "perdita dovuta a danni materiali alla struttura e al contenuto (L2);", "perdita dovuta al guasto degli impianti interni (L3), valutata con la frequenza del danno F."),
-    p("In accordo con la norma CEI EN IEC 62305-2:2026-10, per valutare la necessità della protezione contro il fulmine devono pertanto essere calcolati il rischio R = RL1 + RL2 e la frequenza del danno F per ogni zona della struttura."),
-    p("Le valutazioni di natura economica, volte ad accertare la convenienza dell'adozione delle misure di protezione, non sono state condotte perché non richieste dal Committente."),
+    el(...perdite.map((x2) => x2.testo)),
+    p(`In accordo con la norma CEI EN IEC 62305-2:2026-10, per valutare la necessità della protezione contro il fulmine ${perdite.some((x2) => x2.l === "L3") ? "devono pertanto essere calcolati il rischio R e la frequenza del danno F" : "deve pertanto essere calcolato il rischio R"} per ogni zona della struttura${x.rischio ? ` (${x.rischio.zone.length} ${x.rischio.zone.length === 1 ? "zona" : "zone"}: ${x.rischio.zone.map((z) => z.nome).join(", ")})` : ""}.`),
+    p(r.valutazioneEconomica ? "La valutazione della convenienza economica delle misure di protezione, richiesta dal Committente, è riportata in un documento separato." : "Le valutazioni di natura economica, volte ad accertare la convenienza dell'adozione delle misure di protezione, non sono state condotte perché non richieste dal Committente."),
   );
   let esitoSenza: EsitoStruttura | null = null, esitoCon: EsitoStruttura | null = null, minimo: ClasseLps | null = null;
   if (x.rischio && x.rischio.zone.length) {
@@ -562,20 +603,27 @@ export function relazioneTecnica(x: IngressoRelazione): Documento {
   const calate = x.conduttori.filter((c) => c.tipo === "calata");
   const nCalate = calate.length || x.risultati.calate?.numero || 0;
   const per = corpi.reduce((t, c) => t + perimetro(c.impronta), 0) || (d.L > 0 && d.W > 0 ? 2 * (d.L + d.W) : 0);
-  const asteGr = new Map<string, { altezza: number; codice: string; n: number }>();
-  for (const a of x.aste) { const kk = `${a.altezza.toFixed(2)}|${a.codiceOBO}`; const g = asteGr.get(kk); if (g) g.n++; else asteGr.set(kk, { altezza: a.altezza, codice: a.codiceOBO, n: 1 }); }
+  const asteGr = new Map<string, { altezza: number; codice: string; n: number; tipo: TipoAsta }>();
+  for (const a of x.aste) { const tp = tipi.get(a.id) ?? "fissa", kk = `${tp}|${a.altezza.toFixed(2)}|${a.codiceOBO}`; const g = asteGr.get(kk); if (g) g.n++; else asteGr.set(kk, { altezza: a.altezza, codice: a.codiceOBO, n: 1, tipo: tp }); }
   // distanza massima tra un'asta e la più vicina (in pianta)
   let dMax = 0;
   for (const a of x.aste) { let m = Infinity; for (const b of x.aste) if (b !== a) m = Math.min(m, Math.hypot(a.x - b.x, a.y - b.y)); if (Number.isFinite(m)) dMax = Math.max(dMax, m); }
+  const dDiag = Math.max(0, ...verifiche.map((v) => v.diagonale ?? 0));
   const ver = x.risultati.captazione?.verifica;
   B.push(h1("13. Scelta delle misure di protezione e soluzione di progetto"),
-    p(`Da progetto, l'analisi di rischio definita per la struttura è di livello ${lpl}. Pertanto, viene previsto un LPS di classe ${lpl} coordinato con il sistema dei dispersori e con il sistema di SPD.`),
+    p(`Da progetto, l'analisi di rischio definita per la struttura è di livello ${lpl}. Pertanto, viene previsto un LPS di classe ${lpl} coordinato con il sistema dei dispersori ${r.terraEsistente !== "nessuno" ? "esistente" : "di progetto"} e con il sistema di SPD ${r.spdEsistenti === "si" ? "esistente" : "di progetto"}.`),
     h2("13.1 Sistema di captazione"),
-    p(x.risultati.captazione?.descrizione ? x.risultati.captazione.descrizione : [dc("descrizione della soluzione di captazione (aste su putrelle/ringhiera, aste isolate su treppiede, maglia)")]),
   );
+  { const perTipo: Partial<Record<TipoAsta, number>> = {};
+    for (const a of x.aste) { const t2 = tipi.get(a.id) ?? "fissa"; perTipo[t2] = (perTipo[t2] ?? 0) + 1; }
+    const fr = fraseSoluzione(r, perTipo, x.conduttori.some((c) => c.tipo === "captazione"), lpl, R);
+    if (x.risultati.captazione?.descrizione) B.push(p(x.risultati.captazione.descrizione));
+    if (fr) B.push(p(fr));
+    if (!fr && !x.risultati.captazione?.descrizione) B.push(p([dc("captazione non ancora disegnata nell'app (Edificio 3D)")])); }
   if (asteGr.size || capt.length) {
     B.push(p("Così progettato l'impianto di captazione sarà costituito da:"), el(
-      ...[...asteGr.values()].sort((a, b) => a.altezza - b.altezza).map((g): Testo => `N° ${g.n} – aste di altezza ${it(g.altezza)} m${g.codice ? ` (art. ${g.codice})` : ""}`),
+      ...[...asteGr.values()].sort((a, b) => a.tipo.localeCompare(b.tipo) || a.altezza - b.altezza).map((g): Testo => `N° ${g.n} – ${NOME_TIPO[g.tipo].replace(/^aste /, g.n === 1 ? "asta " : "aste ").replace("isolate", g.n === 1 ? "isolata" : "isolate").replace("non isolate", g.n === 1 ? "non isolata" : "non isolate")} di altezza ${it(g.altezza)} m${g.codice ? ` (art. ${g.codice})` : ""}`),
+      ...(() => { const ni = x.aste.filter((a) => tipi.get(a.id) !== "isolata").length, is = x.aste.length - ni; return [...(ni ? [`N° ${ni} collegamenti di aste non isolate` as Testo] : []), ...(is ? [`N° ${is} collegamenti per aste isolate (conduttore isCon)` as Testo] : [])]; })(),
       ...(capt.length ? [`conduttori di captazione per ${it(lCapt, 1)} m complessivi (${capt.length} ${capt.length === 1 ? "tratto" : "tratti"})` as Testo] : []),
       ...(x.risultati.captazione ? [`N° ${x.risultati.captazione.giunzioni} giunzioni e N° ${x.risultati.captazione.incroci} incroci` as Testo] : []),
     ));
@@ -583,29 +631,51 @@ export function relazioneTecnica(x: IngressoRelazione): Documento {
   B.push(p(`Con un LPS di classe ${lpl} la sfera rotolante di riferimento ha raggio ${R} m. La profondità di penetrazione della sfera tra due captatori in funzione della loro distanza (diagonale della figura replicata) è:`),
     tab(["Distanza tra i captatori d (m)", ...[10, 15, 20, 25, 30, 35, 40].map(String)], [["Penetrazione p (m)", ...[10, 15, 20, 25, 30, 35, 40].map((dd) => it(penetrazione(R, dd), 2))]], [3.5, 1, 1, 1, 1, 1, 1, 1]),
   );
-  fig(graficoSfera(R, dMax > 0 ? dMax : null), `Profondità di penetrazione della sfera rotolante (R = ${R} m) in funzione della distanza tra i captatori e schema in sezione`);
+  fig(graficoSfera(R, dDiag > 0 ? dDiag : dMax > 0 ? dMax : null), `Profondità di penetrazione della sfera rotolante (R = ${R} m) in funzione della distanza tra i captatori e schema in sezione`);
   B.push(
-    ...(dMax > 0 ? [p(`Nel progetto la distanza massima tra un'asta e la più vicina è di ${it(dMax, 1)} m: la sfera penetra di circa ${it(penetrazione(R, dMax), 2)} m (lungo la diagonale tra quattro aste la penetrazione è maggiore e va verificata sui disegni).`)] : []),
-    p([{ t: "Sul tetto dell'edificio viene mantenuta un'altezza da difendere di: " }, dc("altezze massime degli impianti da proteggere per ogni zona della copertura"), { t: ". Sarà prevista una distanza di sicurezza di almeno 1 m tra l'altezza massima da proteggere e il punto di massima penetrazione della sfera rotolante." }]),
   );
+  const conAste = verifiche.filter((v) => v.aste.length);
+  if (conAste.length) {
+    B.push(h3("Verifica dell'altezza protetta per blocco"));
+    for (const v of conAste) {
+      const nome = `Blocco ${v.numero}${v.corpo.nome ? ` (${v.corpo.nome})` : ""}`;
+      const frase: Run[] = [{ t: `${nome}: ${v.aste.length} ${v.aste.length === 1 ? "asta" : "aste"}` }];
+      if (v.interasse != null) frase.push({ t: ` con interasse massimo di circa ${it(v.interasse, 1)} m${v.diagonale != null && v.diagonale !== v.interasse ? `, che formano una figura replicata con diagonale di ${it(v.diagonale, 1)} m` : ""}; la profondità di penetrazione della sfera rotolante al centro della figura è di ${it(v.penetrazione ?? 0, 2)} m` });
+      if (v.puntaMin != null) frase.push({ t: `. La punta più bassa delle aste è a ${it(v.puntaMin, 2)} m sul piano di copertura, quindi la sfera resta a ${it(v.protezione ?? v.puntaMin, 2)} m dalla copertura` });
+      if (v.richiesta != null) frase.push({ t: `; l'altezza da proteggere è di ${it(v.daProteggere ?? 0, 1)} m, che con la distanza di sicurezza di ${it(r.margineSicurezza, 1)} m richiede ${it(v.richiesta, 2)} m: ` }, { t: v.esito === "ok" ? "verifica soddisfatta." : "verifica NON soddisfatta, aumentare l'altezza delle aste o ridurne l'interasse.", b: true });
+      else frase.push({ t: ". " }, dc(`altezza da proteggere sul blocco ${v.numero} (Dati della relazione)`));
+      B.push(p(frase));
+    }
+    tabN("Verifica della penetrazione della sfera rotolante per blocco", ["Blocco", "H gronda (m)", "Aste", "Interasse (m)", "Diagonale (m)", "Penetrazione (m)", "Punta min. (m)", "Altezza protetta (m)", "Richiesta (m)", "Esito"], conAste.map((v) => [String(v.numero), it(v.corpo.quotaBase + v.corpo.altezzaGronda, 1), String(v.aste.length), v.interasse != null ? it(v.interasse, 1) : "—", v.diagonale != null ? it(v.diagonale, 1) : "—", v.penetrazione != null ? it(v.penetrazione, 2) : "—", v.puntaMin != null ? it(v.puntaMin, 2) : "—", v.protezione != null ? it(v.protezione, 2) : "—", v.richiesta != null ? it(v.richiesta, 2) : "—", v.esito === "ok" ? "OK" : v.esito === "no" ? [{ t: "NO", b: true, colore: "C62828" }] : "dati mancanti"]), [1, 1.1, 0.8, 1.1, 1.1, 1.2, 1.1, 1.2, 1.1, 1.2]);
+    B.push(p("Punta min.: altezza della punta dell'asta più bassa sul piano di copertura del blocco; altezza protetta = punta min. − penetrazione; richiesta = altezza da proteggere + distanza di sicurezza.", { dimensione: 8.5 }));
+  } else if (verifiche.some((v) => v.maglia)) B.push(p("La copertura è protetta con conduttori a maglia: la verifica è riportata nella tabella seguente (superfici protette dalla sfera rotolante e dalla maglia)."));
   if (ver) B.push(tab(["Verifica della captazione", "Valore"], [["Superficie protetta dalla sfera rotolante", `${it(ver.areaProtettaSfera, 1)} m²`], ["Superficie protetta dalla maglia", `${it(ver.areaProtettaMaglia, 1)} m²`], ["Superficie esposta", `${it(ver.areaEsposta, 1)} m²`], ["Maglie conformi", `${ver.maglie.filter((m) => m.conforme).length} su ${ver.maglie.length}`]], [6, 5]), ...(ver.areaEsposta > 0.5 ? [p([{ t: `Attenzione: ${it(ver.areaEsposta, 1)} m² di copertura risultano esposti. `, b: true }, dc("integrare la captazione o motivare")])] : []));
-  B.push(p([{ t: "Aste su treppiede: in funzione della valutazione del carico di vento è necessario scegliere il numero di blocchi in calcestruzzo per sostenere l'asta. Nelle tabelle seguenti è possibile incrociare la velocità del vento con l'altezza dell'asta scelta: la velocità indicata è quella massima ammessa con il numero di blocchi della riga. Va inoltre considerato il peso della struttura che sostiene l'asta (asta, treppiede, blocchi). " }, dc("velocità del vento di progetto, numero di blocchi e pesi")]));
-  for (const tb of blocchiTreppiede.tabelle) {
-    const cols = tb.colonne as { altezza: number; materiale?: string; asta: string; sostegno: string; vento: number[] }[];
-    const art = (c: string) => `${c.slice(0, 4)} ${c.slice(4)}`;
-    tabN(`Numero di blocchi in calcestruzzo da 16 kg – ${tb.titolo} (catalogo OBO)`, ["Altezza asta (m)", ...cols.map((c) => it(c.altezza, 1) + (c.materiale ? ` ${c.materiale}` : "")), "Blocchi"], [
-      ["Asta – Art. n.", ...cols.map((c) => art(c.asta)), ""],
-      ["Treppiede – Art. n.", ...cols.map((c) => art(c.sostegno)), ""],
-      ...blocchiTreppiede.blocchi.map((bl, i) => [i === 0 ? "Velocità del vento (km/h)" : "", ...cols.map((c) => String(c.vento[i] ?? "")), [{ t: bl, b: true }]] as Testo[]),
-    ], [2.6, ...cols.map(() => 1), 1.6]);
-    { const b = B.pop()!; B.push(b.tipo === "tabella" ? { ...b, dimensione: cols.length > 5 ? 7.5 : 8.5 } : b); }
+  const asteTreppiede = x.aste.filter((a) => { const t2 = tipi.get(a.id); return t2 === "treppiede" || t2 === "isolata"; });
+  if (asteTreppiede.length) {
+    B.push(p("Aste su treppiede: in funzione della velocità del vento di progetto è necessario scegliere il numero di blocchi in calcestruzzo che sostengono ogni asta. Va inoltre considerato il peso complessivo della struttura che sostiene l'asta (asta, treppiede, blocchi) rispetto alla portata della copertura."));
+    const bl = blocchiPerVento(asteTreppiede, r.ventoKmh);
+    if (r.ventoKmh != null && bl.length) {
+      tabN(`Blocchi in calcestruzzo per le aste su treppiede del progetto – velocità del vento di progetto ${it(r.ventoKmh, 0)} km/h (tabelle del catalogo OBO)`, ["Art. asta", "Altezza (m)", "N° aste", "Blocchi per asta", "Peso blocchi per asta", "Blocchi totali"], bl.map((b) => [[{ t: b.codice, b: true }], it(b.altezza, 1), String(b.numero), b.blocchi ?? [{ t: `oltre ${b.ventoMax} km/h: non ammesso`, b: true, colore: "C62828" }], b.pesoKg != null ? `${b.pesoKg} kg` : "—", b.blocchi ? `${Number(b.blocchi.split(" x ")[0]) * b.numero} × 16 kg` : "—"]), [1.6, 1.1, 1, 1.6, 1.8, 1.8]);
+      const tot = bl.reduce((a, b) => a + (b.blocchi ? Number(b.blocchi.split(" x ")[0]) * b.numero : 0), 0);
+      B.push(p(`In totale sono necessari ${tot} blocchi da 16 kg (${it(tot * 16, 0)} kg)${bl.some((b) => !b.blocchi) ? "; per le aste segnate la velocità di progetto supera i valori del catalogo: valutare un'asta più corta o un altro sistema di fissaggio" : ""}.`));
+    } else if (r.ventoKmh == null) B.push(p([dc("velocità del vento di progetto (km/h) in Dati della relazione: l'app sceglie i blocchi dalle tabelle seguenti")]));
+    for (const tb of blocchiTreppiede.tabelle) {
+      const cols = tb.colonne as { altezza: number; materiale?: string; asta: string; sostegno: string; vento: number[] }[];
+      if (!cols.some((c) => asteTreppiede.some((a) => a.codiceOBO === c.asta)) && bl.length) continue;
+      const art = (c: string) => `${c.slice(0, 4)} ${c.slice(4)}`;
+      tabN(`Numero di blocchi in calcestruzzo da 16 kg – ${tb.titolo} (catalogo OBO)`, ["Altezza asta (m)", ...cols.map((c) => it(c.altezza, 1) + (c.materiale ? ` ${c.materiale}` : "")), "Blocchi"], [
+        ["Asta – Art. n.", ...cols.map((c) => art(c.asta)), ""],
+        ["Treppiede – Art. n.", ...cols.map((c) => art(c.sostegno)), ""],
+        ...blocchiTreppiede.blocchi.map((bk, i2) => [i2 === 0 ? "Velocità del vento (km/h)" : "", ...cols.map((c) => String(c.vento[i2] ?? "")), [{ t: bk, b: true }]] as Testo[]),
+      ], [2.6, ...cols.map(() => 1), 1.6]);
+      { const b = B.pop()!; B.push(b.tipo === "tabella" ? { ...b, dimensione: cols.length > 5 ? 7.5 : 8.5, evidenziaColonna: cols.findIndex((c) => asteTreppiede.some((a) => a.codiceOBO === c.asta)) + 1 || undefined } as Blocco : b); }
+    }
   }
-  B.push(
-  );
   fig(piantaCopertura(corpi, x.conduttori, x.aste), "Pianta schematica della copertura con captatori, conduttori e calate (dal modello di progetto; il disegno esecutivo è nelle tavole allegate)");
   B.push(
     p("I captatori saranno collegati al sistema disperdente attraverso un insieme di calate posizionate lungo il perimetro dell'edificio. Le aste sono posizionate nelle vicinanze delle calate per ridurre al minimo le correnti vaganti sul tetto dell'edificio ed evitare quindi accoppiamenti elettrici indesiderati. Nelle planimetrie allegate è possibile individuare la posizione esatta di tutto il sistema dei captatori; i tipologici del capitolo 14 dettagliano i collegamenti."));
   B.push(h2("13.2 Calate"));
+  { const fc = fraseCalate(r, nCalate); if (fc) B.push(p(fc)); }
   if (nCalate) {
     B.push(tab(["Elemento", "Valore"], [
       ["Numero di calate", String(nCalate)], ["Perimetro della struttura", `${it(per, 1)} m`],
@@ -613,9 +683,13 @@ export function relazioneTecnica(x: IngressoRelazione): Documento {
       ...(calate.length ? [["Lunghezza totale delle calate", `${it(calate.reduce((a, c) => a + lunghezza(c), 0), 1)} m`] as Testo[]] : x.risultati.calate ? [["Lunghezza conduttori di calata", `${it(x.risultati.calate.lunghezzaConduttori, 1)} m`] as Testo[]] : []),
     ], [5, 7]));
     if (per > 0 && per / nCalate > dist * 1.001) B.push(p([{ t: "La distanza media supera quella tipica: ", b: true }, dc("aumentare le calate o motivare (componenti naturali, calate esistenti nella struttura)")]));
+  } else if (r.calateNumero != null) {
+    B.push(tab(["Elemento", "Valore"], [["Calate esistenti", String(r.calateNumero)], ["Interasse rilevato", r.calateInterasse != null ? `${it(r.calateInterasse, 1)} m` : per > 0 ? `${it(per / r.calateNumero, 1)} m (medio sul perimetro)` : "—"], [`Distanza preferenziale (LPL ${lpl}, Tab. 5)`, `${dist} m`]], [5, 7]));
+    const intx = r.calateInterasse ?? (per > 0 ? per / r.calateNumero : 0);
+    if (intx > dist * 1.25) B.push(p([{ t: `L'interasse delle calate esistenti supera di oltre il 25 % il valore preferenziale: `, b: true }, dc("integrare con nuove calate o motivare")]));
   } else B.push(p([dc("numero e posizione delle calate (esistenti o di progetto)")]));
   // separazione
-  const ki = x.separazione.ki ?? KI[lpl], kc = kcSemplificato(Math.max(1, nCalate || 1));
+  const ki = x.separazione.ki ?? KI[lpl], kc = kcSemplificato(Math.max(1, nCalate || r.calateNumero || 1));
   const km = { ...KM, ...(x.separazione.kmSolido ? { solido: x.separazione.kmSolido } : {}) };
   const esiti = verificaPunti(x.separazione.punti, ki, kc, km);
   B.push(h2("13.3 Distanza di separazione"),
@@ -641,6 +715,8 @@ export function relazioneTecnica(x: IngressoRelazione): Documento {
     if (t?.l1 != null) righeT.push([[{ t: "Lunghezza minima l" }, { t: "1", sub: true }, { t: " (resistività del terreno)" }], `${it(t.l1)} m`]);
     if (re != null) righeT.push([[{ t: "Raggio equivalente r" }, { t: "e", sub: true }], `${it(re, 1)} m`]);
     B.push(p("Il sistema di dispersori disperde nel terreno la corrente di fulmine senza sovratensioni pericolose. È unico per l'LPS e per l'impianto elettrico ed è collegato al collettore principale di terra; i dispersori di edifici vicini sono preferibilmente collegati tra loro in un unico sistema disperdente."), tab(["Elemento", "Valore"], righeT, [5, 7]));
+  } else if (r.terraEsistente !== "nessuno") {
+    B.push(p(`L'impianto di protezione è collegato all'impianto di terra esistente${r.terraEsistente === "anello" ? ", costituito da un anello (dispersore di tipo B)" : r.terraEsistente === "fondazione" ? ", costituito dal dispersore di fondazione" : r.terraEsistente === "picchetti" ? ", costituito da dispersori a picchetto (tipo A)" : ", costituito da anelli e picchetti"}${r.terraCollegataAltri ? " e collegato ai dispersori degli edifici vicini in modo da formare un unico sistema disperdente" : ""}. Prima del collegamento vanno verificate la continuità e la resistenza di terra.`));
   } else B.push(p([dc("impianto di terra esistente o di progetto (tipo, anelli, collegamenti, misure di resistenza)")]));
   { const rhos = [100, 500, 1000, 1500, 2000, 2500, 3000];
     tabN("Lunghezza minima l1 del dispersore in funzione della resistività del terreno (CEI EN IEC 62305-3:2026-10, 5.4.2)", ["Resistività ρ (Ωm)", ...rhos.map(String)], LIVELLI.map((l) => [`Classe ${l} (m)`, ...rhos.map((rho) => it(l1Norma(l, rho), 1))]), [3, 1, 1, 1, 1, 1, 1, 1]);
@@ -650,7 +726,7 @@ export function relazioneTecnica(x: IngressoRelazione): Documento {
   B.push(h2("13.5 Protezione degli impianti interni (SPD)"),
     p("Le linee metalliche entranti (energia, telecomunicazioni, dati) sono collegate all'impianto equipotenziale all'ingresso nella struttura, direttamente o tramite SPD, per evitare scariche pericolose e proteggere gli impianti interni secondo la CEI EN IEC 62305-4:2026-10."));
   if (x.risultati.spd?.dispositivi.length) B.push(p(x.risultati.spd.descrizione), tab(["Art. No", "Descrizione", "Quantità"], x.risultati.spd.dispositivi.map((s) => [s.codice, s.descrizione, String(s.quantita)]), [2, 8, 1.5]));
-  else B.push(p([dc(`SPD previsti per le linee entranti (livello ${lpl}) o SPD esistenti`)]));
+  else B.push(p(r.spdEsistenti === "si" ? `Sulle linee entranti sono presenti SPD: ne va verificato il coordinamento con l'LPS di classe ${lpl} (SPD di tipo 1 per la corrente di fulmine all'ingresso delle linee).` : r.spdEsistenti === "da-verificare" ? `La presenza e l'idoneità degli SPD sulle linee entranti sono da verificare; con l'LPS di classe ${lpl} all'ingresso delle linee metalliche servono SPD di tipo 1 dimensionati per la corrente di fulmine.` : `All'ingresso delle linee metalliche si prevede l'installazione di SPD di tipo 1 dimensionati per la corrente di fulmine dell'LPL ${lpl}, coordinati con gli SPD a valle secondo la CEI EN IEC 62305-4:2026-10.`));
 
   // ---------- 14 tipologici
   const gruppi = new Map<string, { p: ParticolareLib; righe: RigaComputo[] }>();
@@ -690,18 +766,20 @@ export function relazioneTecnica(x: IngressoRelazione): Documento {
   B.push(h1("17. Valori NG – NSG (CEI EN IEC 62305 – CEI EN IEC 62858)"),
     tab(["", ""], [
       [[...pedice("N", "G")], `${it(d.densita)} fulmini/(anno·km²)`],
-      [[...pedice("N", "SG")], `${it(k * d.densita)} punti/(anno·km²)`],
+      [[...pedice("N", "SG")], `${it(r.nsgAttestato ?? k * d.densita)} punti/(anno·km²)`],
       ["Latitudine", typeof d.lat === "number" ? `${d.lat.toFixed(6).replace(".", ",")}° N` : [dc("latitudine")]],
       ["Longitudine", typeof d.lon === "number" ? `${d.lon.toFixed(6).replace(".", ",")}° E` : [dc("longitudine")]],
     ], [4, 8]),
     p("I valori di NG (numero medio di fulmini a terra all'anno e al kilometro quadrato) e NSG (numero medio dei punti di impatto a terra all'anno e al kilometro quadrato) sono riferiti alle coordinate geografiche della struttura (WGS84) e sono riportati nell'attestato rilasciato dal fornitore dei dati secondo la CEI EN IEC 62858, allegato in originale alla presente relazione con le sue condizioni d'uso e la sua validità temporale."),
-    p([{ t: "Attestato: " }, dc("fornitore, numero e data dell'attestato NG/NSG")]),
+    p([{ t: "Attestato: " }, ...(r.ngFornitore ? [{ t: `${r.ngFornitore}${r.ngData ? ` – ${r.ngData}` : ""}` }] : [dc("fornitore, numero e data dell'attestato NG/NSG")])]),
   );
 
   B.push(h1("18. Allegati"), el("Attestato dei valori NG e NSG (CEI EN IEC 62858)", "Disegni di posizionamento del sistema di captazione e delle calate (DWG/DXF)", "Schede dei particolari costruttivi OBO", "Elenco materiale (Excel)"),
     p("Calcoli di supporto alla progettazione eseguiti con OBO Hub · Progettazione LPS (CEI EN IEC 62305:2026-10). Il documento va verificato, completato nelle parti evidenziate e firmato da un tecnico abilitato.", { dimensione: 9, spazioPrima: 12 }),
     p([{ t: `${r.luogo || "Rivoli"}, ${dataLunga(x.data)}` }], { spazioPrima: 18 }),
-    p([{ t: "Il tecnico  " }, dc("nome, albo e firma")], { allinea: "destra", spazioPrima: 12 }),
+    p([{ t: "Il tecnico", b: true }], { allinea: "destra", spazioPrima: 12, spazioDopo: 2 }),
+    p(r.tecnico ? [{ t: r.tecnico + (r.albo ? `\n${r.albo}` : "") }] : [dc("nome e iscrizione all'albo")], { allinea: "destra", spazioDopo: 30 }),
+    p("______________________________", { allinea: "destra" }),
   );
 
   return {
