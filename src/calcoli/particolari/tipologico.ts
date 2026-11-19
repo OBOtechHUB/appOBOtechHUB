@@ -241,11 +241,11 @@ export function disegnoDaComponenti(componenti: { codiceOBO: string | null; desc
   const conduttori = componenti.filter((c) => ruoloDi(c.descrizione) === "conduttore");
   const altri = componenti.filter((c) => ruoloDi(c.descrizione) !== "conduttore");
   const passo = Math.min(160, (d.larghezza - 120) / Math.max(1, altri.length - 1 || 1));
-  d.blocchi.push({ id: "s1", tipo: "copertura", x: d.larghezza / 2, y: 400, rot: 0, scala: Math.max(1, (d.larghezza - 60) / 300), codiceOBO: "", descrizione: "", quantita: 1, unita: "fisso" });
+  d.blocchi.push({ id: "s1", tipo: "copertura", x: d.larghezza / 2, y: 400, rot: 0, scala: Math.max(1, (d.larghezza - 60) / 300), codiceOBO: "", descrizione: "", quantita: 1, unita: "fisso", vista: "simbolo", larghezzaObo: 140 });
   altri.forEach((c, i) => {
     const tipo = tipoDaDescrizione(c.descrizione), m = SIMBOLI[tipo].mezzo[1];
     const unita = (UNITA_QUANTITA as readonly string[]).includes(c.unitaQuantita) ? (c.unitaQuantita as UnitaQuantita) : SIMBOLI[tipo].unita;
-    d.blocchi.push({ id: `b${i + 1}`, tipo, x: 60 + i * passo, y: 385 - m, rot: 0, scala: 1, codiceOBO: c.codiceOBO ?? "", descrizione: c.descrizione, quantita: c.quantita, unita });
+    d.blocchi.push({ id: `b${i + 1}`, tipo, x: 60 + i * passo, y: 385 - m, rot: 0, scala: 1, codiceOBO: c.codiceOBO ?? "", descrizione: c.descrizione, quantita: c.quantita, unita, vista: "simbolo", larghezzaObo: 140 });
   });
   const cond = conduttori[0];
   for (let i = 1; i < altri.length; i++) d.collegamenti.push({ id: `k${i}`, da: `b${i}`, a: `b${i + 1}`, tipo: "conduttore", ortogonale: false, codiceOBO: i === 1 && cond ? cond.codiceOBO ?? "" : "", descrizione: i === 1 && cond ? cond.descrizione : "", quantita: i === 1 && cond ? cond.quantita : 0, unita: i === 1 && cond && (UNITA_QUANTITA as readonly string[]).includes(cond.unitaQuantita) ? (cond.unitaQuantita as UnitaQuantita) : "per_m", testo: "" });
