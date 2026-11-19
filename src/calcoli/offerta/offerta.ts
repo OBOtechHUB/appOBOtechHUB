@@ -81,7 +81,7 @@ export function documentoOfferta(x: IngressoOfferta): Documento {
       [[{ t: "Validità", b: true }], `${x.o.validitaGiorni} giorni (fino al ${dataLunga(scadenza)})`],
     ], [3.5, 12.5]),
     p("Facendo seguito alla Vostra richiesta, Vi sottoponiamo la nostra migliore offerta per la fornitura dei materiali OBO del sistema di protezione contro i fulmini, secondo il computo del progetto.", { allinea: "giustificato", spazioPrima: 8 }),
-    tab(["Pos.", "Codice", "Descrizione", "Q.tà", "Listino", "Sconto", "Netto unit.", "Totale"], righe, [1, 1.8, 5.6, 1.6, 1.6, 1.4, 1.6, 1.8], { dimensione: 8, evidenziaRighe: [righe.length - 1] }),
+    tab(["Pos.", "Codice", "Descrizione", "Q.tà", "Listino", "Sconto", "Netto unit.", "Totale"], righe, [0.9, 1.6, 5.1, 1.6, 1.6, 1.3, 1.7, 2.2], { dimensione: 8, evidenziaRighe: [righe.length - 1] }),
     p([{ t: `Totale a listino ${euro(t.listino)} · sconto medio ${it(t.sconto, 1)} % · ` }, { t: `totale netto ${euro(t.netto)}`, b: true }, { t: " (IVA esclusa)." }], { spazioPrima: 6 }),
     ...(t.mancanti ? [p([{ t: `${t.mancanti} articoli senza prezzo di listino: quotazione su richiesta.`, i: true }], { dimensione: 9 })] : []),
     h2("Condizioni"),

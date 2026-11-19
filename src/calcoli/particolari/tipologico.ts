@@ -223,7 +223,7 @@ export function componentiTipologico(d: DisegnoTip): { componenti: ComponenteTip
 /** Tipo di blocco suggerito per un componente del catalogo (dalla descrizione). */
 export function tipoDaDescrizione(descrizione: string): TipoBlocco {
   const d = descrizione.toLowerCase();
-  if (/treppiede|stativ/.test(d)) return "treppiede";
+  if (/treppiede|stativ/.test(d) && !/\basta\b/.test(d)) return "treppiede";
   if (/blocco cls|basamento|fangfix|f-fix/.test(d)) return "blocco-cls";
   if (/fungo/.test(d)) return "punta";
   if (/colmo/.test(d)) return "supporto-colmo";
@@ -240,12 +240,14 @@ export function disegnoDaComponenti(componenti: { codiceOBO: string | null; desc
   const d = disegnoVuoto();
   const conduttori = componenti.filter((c) => ruoloDi(c.descrizione) === "conduttore");
   const altri = componenti.filter((c) => ruoloDi(c.descrizione) !== "conduttore");
-  const passo = Math.min(160, (d.larghezza - 120) / Math.max(1, altri.length - 1 || 1));
-  d.blocchi.push({ id: "s1", tipo: "copertura", x: d.larghezza / 2, y: 400, rot: 0, scala: Math.max(1, (d.larghezza - 60) / 300), codiceOBO: "", descrizione: "", quantita: 1, unita: "fisso", vista: "simbolo", larghezzaObo: 140 });
+  const n = altri.length, sc = n <= 2 ? 1.5 : n <= 4 ? 1.25 : 1;
+  const passo = n > 1 ? Math.min(220, (d.larghezza - 160) / (n - 1)) : 0, x0 = d.larghezza / 2 - (passo * (n - 1)) / 2;
+  d.blocchi.push({ id: "s1", tipo: "copertura", x: d.larghezza / 2, y: 430, rot: 0, scala: Math.max(1, (d.larghezza - 60) / 300), codiceOBO: "", descrizione: "", quantita: 1, unita: "fisso", vista: "simbolo", larghezzaObo: 140 });
+  const tetto = 430 - 18 * Math.max(1, (d.larghezza - 60) / 300);
   altri.forEach((c, i) => {
-    const tipo = tipoDaDescrizione(c.descrizione), m = SIMBOLI[tipo].mezzo[1];
+    const tipo = tipoDaDescrizione(c.descrizione), m = SIMBOLI[tipo].mezzo[1] * sc;
     const unita = (UNITA_QUANTITA as readonly string[]).includes(c.unitaQuantita) ? (c.unitaQuantita as UnitaQuantita) : SIMBOLI[tipo].unita;
-    d.blocchi.push({ id: `b${i + 1}`, tipo, x: 60 + i * passo, y: 385 - m, rot: 0, scala: 1, codiceOBO: c.codiceOBO ?? "", descrizione: c.descrizione, quantita: c.quantita, unita, vista: "simbolo", larghezzaObo: 140 });
+    d.blocchi.push({ id: `b${i + 1}`, tipo, x: x0 + i * passo, y: tetto - m, rot: 0, scala: sc, codiceOBO: c.codiceOBO ?? "", descrizione: c.descrizione, quantita: c.quantita, unita, vista: "simbolo", larghezzaObo: 140 });
   });
   const cond = conduttori[0];
   for (let i = 1; i < altri.length; i++) d.collegamenti.push({ id: `k${i}`, da: `b${i}`, a: `b${i + 1}`, tipo: "conduttore", ortogonale: false, codiceOBO: i === 1 && cond ? cond.codiceOBO ?? "" : "", descrizione: i === 1 && cond ? cond.descrizione : "", quantita: i === 1 && cond ? cond.quantita : 0, unita: i === 1 && cond && (UNITA_QUANTITA as readonly string[]).includes(cond.unitaQuantita) ? (cond.unitaQuantita as UnitaQuantita) : "per_m", testo: "" });
