@@ -2,6 +2,23 @@
   "nota": "Registro degli aggiornamenti di Progettazione LPS. Una voce per aggiornamento, la più recente per prima (app: lps). Viene mostrato nella barra \"Aggiorna app\", nel riquadro Novità e nella pagina Novità di OBO Hub.",
   "aggiornamenti": [
     {
+      "id": "2026-11-19-lps-6",
+      "data": "2026-11-19",
+      "app": "lps",
+      "titolo": "Relazione tecnica in Word sul format OBO",
+      "voci": [
+        "In Computo materiali c'è \"Relazione tecnica (Word)\": crea la relazione sul format OBO (copertina, premessa, norme 2024, valutazione del rischio con i valori calcolati, captazione, calate, distanza di separazione, terra, SPD, tipologici con Art. No e quantità, elenco materiale, verifiche, allegati)",
+        "Committente, provincia, destinazione d'uso e testo del sopralluogo si scrivono in \"Dati della relazione\" e restano nel progetto",
+        "Le parti che l'app non conosce sono evidenziate in giallo nel documento, da completare in Word"
+      ],
+      "titolo_en": "Technical report in Word (OBO format)",
+      "voci_en": [
+        "Bill of materials has \"Technical report (Word)\": creates the report in the OBO format with the calculated values",
+        "Client, province, use and site survey text are saved in the project",
+        "Parts the app does not know are highlighted in yellow in the document"
+      ]
+    },
+    {
       "id": "2026-11-19-lps-5",
       "data": "2026-11-19",
       "app": "lps",

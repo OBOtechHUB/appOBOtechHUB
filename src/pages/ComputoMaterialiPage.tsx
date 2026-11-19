@@ -20,6 +20,7 @@ import {righeProposta} from "@/lib/computoProposta";
 import {RiferimentoParticolare} from "@/components/particolari/RiferimentoParticolare";
 import { libreriaAttiva, type ParticolareLib } from "@/calcoli/particolari/allinea";
 import { codiciComputo } from "@/calcoli/materiali/codiciComputo";
+import { RelazioneTecnica } from "@/components/progetto/RelazioneTecnica";
 
 export function ComputoMaterialiPage() {
   const {user}=useAuth();
@@ -57,6 +58,7 @@ export function ComputoMaterialiPage() {
       {download && <Button onClick={() => scarica(download.blob, download.nome)}><Download />Scarica {download.nome.endsWith("pdf") ? "PDF" : "Excel"}</Button>}
     </div>
     {errore && <p role="alert" className="mt-3 text-sm text-destructive">{errore}</p>}
+    <RelazioneTecnica righe={righe} mancanti={generato.mancanti} particolari={lib} />
     {generato.mancanti.length > 0 && <div className="mt-5 border-l-4 border-accent bg-secondary px-4 py-3"><h2 className="font-semibold">Computo incompleto</h2><p className="mt-1 text-sm text-muted-foreground">Dati mancanti: {generato.mancanti.join(", ")}. Le righe manuali non sostituiscono i risultati di progetto.</p></div>}
     <section className="mt-6 border-t pt-5"><h2 className="font-display text-lg font-semibold">Parametri di computo</h2>
       <div className="mt-3 grid gap-4 sm:grid-cols-3">
