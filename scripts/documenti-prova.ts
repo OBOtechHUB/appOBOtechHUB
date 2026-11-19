@@ -1,6 +1,6 @@
 /**
  * Genera tutti i documenti dal progetto di prova completo (src/calcoli/prova/progettoProva.ts):
- * relazione tecnica, dichiarazione di conformità, verbale di prima verifica, piano delle verifiche,
+ * relazione tecnica (italiano e inglese), dichiarazione di conformità, verbale di prima verifica, piano delle verifiche,
  * offerta (Word ed Excel), tipologico disegnato (SVG/PNG) e tavola CAD (DXF).
  * Uso: bun scripts/documenti-prova.ts <cartella> [listino.json]
  * I grafici si convertono con rsvg-convert se presente; il listino vero (JSON del foglio METEL) è facoltativo.
@@ -37,6 +37,7 @@ async function salva(nome: string, doc: Documento) {
 const e = progettoProva();
 e.immagini = { logo };
 await salva("01-Relazione-tecnica-LPS.docx", relazioneTecnica(e));
+await salva("01b-LPS-technical-report-EN.docx", relazioneTecnica({ ...e, dati: { ...e.dati, lingua: "en" } }));
 
 const { bloccoImmagine } = await import("@/calcoli/relazione/relazioneTecnica");
 const x: IngressoDocumenti = {

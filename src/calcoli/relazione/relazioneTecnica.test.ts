@@ -64,3 +64,19 @@ describe("relazione tecnica", () => {
     expect(s).toContain("NUMPAGES");
   });
 });
+
+describe("relazione in inglese", () => {
+  it("traduce testi, tabelle, numeri e figure", async () => {
+    const { numeroEn, traduciTesto } = await import("./traduzione");
+    expect(numeroEn("1,5")).toBe("1.5"); expect(numeroEn("1.250,5")).toBe("1,250.5"); expect(numeroEn("5.2.3")).toBe("5.2.3");
+    expect(traduciTesto("Figura 3 – ")).toBe("Figure 3 – ");
+    expect(traduciTesto("COMUNE DI GRUGLIASCO")).toBe("MUNICIPALITY OF GRUGLIASCO");
+    const e = esempio(); e.dati = { ...e.dati, lingua: "en" };
+    const doc = relazioneTecnica(e), t = testoDocumento(doc);
+    for (const s of ["Introduction", "Lightning risk assessment", "Rolling sphere radius R (m)", "Down-conductors", "Bill of materials", "MUNICIPALITY OF GRUGLIASCO", "class IV LPS"]) expect(t).toContain(s);
+    expect(t).not.toContain("Valutazione del rischio fulminazione");
+    expect(doc.pagina?.pag).toBe("Page");
+    const svg = doc.blocchi.filter((b) => b.tipo === "immagine").map((b) => (b.tipo === "immagine" ? b.svg : "")).join("");
+    expect(svg).toContain("without protection");
+  });
+});

@@ -30,6 +30,7 @@ import { NOME_TIPO, blocchiPerVento, fraseCalate, fraseIntervento, fraseSoluzion
 import { schemaBlocchi } from "./grafici";
 import { disegnoDaComponenti, disegnoSchema, svgTipologico, type IndiceDisegniObo } from "@/calcoli/particolari/tipologico";
 import { ruoloDi } from "@/calcoli/particolari/allinea";
+import { traduciDocumento } from "./traduzione";
 import { barreLog, curvaCorrente, flussoValutazione, graficoSeparazione, graficoSfera, piantaCopertura, schemaSorgenti } from "./grafici";
 
 export type Lpl = "I" | "II" | "III" | "IV";
@@ -814,7 +815,7 @@ export function relazioneTecnica(x: IngressoRelazione): Documento {
     p("______________________________", { allinea: "destra" }),
   );
 
-  return {
+  const documento: Documento = {
     titolo: `Relazione LPS – ${titolo || d.comune || "progetto"}`,
     intestazione: `${titolo || "Relazione tecnica LPS"}${d.comune ? ` – ${d.comune}` : ""} · Relazione impianto di protezione dalle scariche atmosferiche${rev ? ` · Rev. ${rev}` : ""}`,
     piede: [
@@ -824,6 +825,7 @@ export function relazioneTecnica(x: IngressoRelazione): Documento {
     ],
     blocchi: B,
   };
+  return r.lingua === "en" ? traduciDocumento(documento) : documento;
 }
 
 /** RT usato (per i controlli esterni). */

@@ -29,7 +29,7 @@ const rf = (f: string) => `<w:rFonts w:ascii="${f}" w:hAnsi="${f}" w:eastAsia="$
 /** Colori dello standard OBO (Brand Portal: OBO Orange e colori secondari). */
 export const OBO = { arancio: "F39B00", sec1: "282A31", sec2: "41525D", sec3: "7694A4", sec4: "C5D9DE", sec5: "E4EBED", eco: "A9C8A0" } as const;
 
-export interface Documento { blocchi: Blocco[]; intestazione?: string; piede?: Testo[]; titolo?: string; autore?: string }
+export interface Documento { blocchi: Blocco[]; intestazione?: string; piede?: Testo[]; titolo?: string; autore?: string; /** etichette del numero di pagina nel piè di pagina (default "Pag." e "di") */ pagina?: { pag: string; di: string } }
 
 const esc = (s: string) => s.replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]!)).replace(/[\u0000-\u0008\u000b\u000c\u000e-\u001f]/g, "");
 const runs = (t: Testo): Run[] => (typeof t === "string" ? [{ t }] : t);
@@ -179,7 +179,7 @@ const campo = (istr: string) => `<w:r><w:fldChar w:fldCharType="begin"/></w:r><w
 /** Crea il file .docx. */
 export function creaDocx(doc: Documento, data = new Date()): Uint8Array<ArrayBuffer> {
   const piede = (doc.piede ?? []).map((r) => paragrafo(r, { stile: "Piede" })).join("")
-    + `<w:p><w:pPr><w:pStyle w:val="Piede"/><w:jc w:val="right"/></w:pPr><w:r><w:t xml:space="preserve">Pag. </w:t></w:r>${campo("PAGE")}<w:r><w:t xml:space="preserve"> di </w:t></w:r>${campo("NUMPAGES")}</w:p>`;
+    + `<w:p><w:pPr><w:pStyle w:val="Piede"/><w:jc w:val="right"/></w:pPr><w:r><w:t xml:space="preserve">${esc(doc.pagina?.pag ?? "Pag.")} </w:t></w:r>${campo("PAGE")}<w:r><w:t xml:space="preserve"> ${esc(doc.pagina?.di ?? "di")} </w:t></w:r>${campo("NUMPAGES")}</w:p>`;
   const intest = doc.intestazione ? `<w:p><w:pPr><w:pStyle w:val="Piede"/><w:pBdr><w:bottom w:val="single" w:sz="4" w:space="2" w:color="F39B00"/></w:pBdr><w:jc w:val="right"/></w:pPr>${run({ t: doc.intestazione })}</w:p>` : "<w:p/>";
   const documento = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <w:document ${NS}><w:body>${corpo(doc.blocchi)}<w:sectPr><w:headerReference w:type="default" r:id="rIdH"/><w:footerReference w:type="default" r:id="rIdF"/><w:headerReference w:type="first" r:id="rIdH1"/><w:footerReference w:type="first" r:id="rIdF"/><w:pgSz w:w="11906" w:h="16838"/><w:pgMar w:top="1418" w:right="1134" w:bottom="1418" w:left="1134" w:header="567" w:footer="454" w:gutter="0"/><w:titlePg/></w:sectPr></w:body></w:document>`;

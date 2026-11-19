@@ -169,7 +169,7 @@ export function RelazioneTecnica({ righe, mancanti, particolari }: { righe: Riga
         comuneUfficiale: auto.comune ? { nome: auto.comune.nome, provincia: auto.comune.provincia } : undefined,
         creditoStemma: stemmaAuto && !stemmaAuto.pubblicoDominio ? stemmaAuto.credito : undefined,
       }), svgPng, schedaPng);
-      const nome = `Relazione-LPS-${(d.nomeProgetto || d.comune || "progetto").replace(/[^\w.-]+/g, "_")}${s.revisioni.at(-1) ? `-Rev${s.revisioni.at(-1)!.rev}` : ""}.docx`;
+      const nome = `${r.lingua === "en" ? "LPS-Report" : "Relazione-LPS"}-${(d.nomeProgetto || d.comune || "progetto").replace(/[^\w.-]+/g, "_")}${s.revisioni.at(-1) ? `-Rev${s.revisioni.at(-1)!.rev}` : ""}.docx`;
       const blob = new Blob([creaDocx(doc)], { type: "application/vnd.openxmlformats-officedocument.wordprocessingml.document" });
       setFile({ blob, nome }); void archiviaDocumento(blob, nome);
       setMancano(daCompletare(doc));
@@ -190,6 +190,7 @@ export function RelazioneTecnica({ righe, mancanti, particolari }: { righe: Riga
     {aperto && <div className="mt-4 grid gap-3 sm:grid-cols-2">
       <Gruppo titolo="Opera e committente">
         {CAMPI.map((f) => <Campo key={f.k} etichetta={f.etichetta}><input className={inputCls} value={r[f.k]} maxLength={f.k === "destinazione" ? 500 : 200} placeholder={f.segnaposto} onChange={(e) => cambia(f.k, e.target.value)} /></Campo>)}
+        {sel("lingua", "Lingua della relazione", [["it", "Italiano"], ["en", "English (traduzione automatica dei testi della relazione)"]])}
         {sel("tipoIntervento", "Tipo di intervento", [["nuovo", "Nuovo impianto"], ["adeguamento", "Adeguamento dell'impianto esistente"], ["integrazione", "Integrazione con calate, terra e SPD esistenti"]])}
         {spunta("valutazioneEconomica", "Il committente ha chiesto la valutazione economica")}
       </Gruppo>
