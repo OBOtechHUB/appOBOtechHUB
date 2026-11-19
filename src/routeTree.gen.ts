@@ -31,6 +31,8 @@ import { Route as DownloadCadRouteImport } from './routes/download-cad'
 import { Route as Edificio3dRouteImport } from './routes/edificio-3d'
 import { Route as GuidaRouteImport } from './routes/guida'
 import { Route as ParticolariRouteImport } from './routes/particolari'
+import { Route as CruscottoRouteImport } from './routes/cruscotto'
+import { Route as RichiesteRouteImport } from './routes/richieste'
 import { Route as LicenzeRouteImport } from './routes/licenze'
 import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
@@ -148,6 +150,16 @@ const ParticolariRoute = ParticolariRouteImport.update({
   path: '/particolari',
   getParentRoute: () => rootRouteImport,
 } as any)
+const CruscottoRoute = CruscottoRouteImport.update({
+  id: '/cruscotto',
+  path: '/cruscotto',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RichiesteRoute = RichiesteRouteImport.update({
+  id: '/richieste',
+  path: '/richieste',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const LicenzeRoute = LicenzeRouteImport.update({
   id: '/licenze',
   path: '/licenze',
@@ -206,6 +218,8 @@ export interface FileRoutesByFullPath {
   '/edificio-3d': typeof Edificio3dRoute
   '/guida': typeof GuidaRoute
   '/particolari': typeof ParticolariRoute
+  '/cruscotto': typeof CruscottoRoute
+  '/richieste': typeof RichiesteRoute
   '/licenze': typeof LicenzeRoute
   '/privacy': typeof PrivacyRoute
   '/reset-password': typeof ResetPasswordRoute
@@ -236,6 +250,8 @@ export interface FileRoutesByTo {
   '/edificio-3d': typeof Edificio3dRoute
   '/guida': typeof GuidaRoute
   '/particolari': typeof ParticolariRoute
+  '/cruscotto': typeof CruscottoRoute
+  '/richieste': typeof RichiesteRoute
   '/licenze': typeof LicenzeRoute
   '/privacy': typeof PrivacyRoute
   '/reset-password': typeof ResetPasswordRoute
@@ -268,6 +284,8 @@ export interface FileRoutesById {
   '/edificio-3d': typeof Edificio3dRoute
   '/guida': typeof GuidaRoute
   '/particolari': typeof ParticolariRoute
+  '/cruscotto': typeof CruscottoRoute
+  '/richieste': typeof RichiesteRoute
   '/licenze': typeof LicenzeRoute
   '/privacy': typeof PrivacyRoute
   '/reset-password': typeof ResetPasswordRoute
@@ -300,6 +318,8 @@ export interface FileRouteTypes {
     | '/edificio-3d'
     | '/guida'
     | '/particolari'
+    | '/cruscotto'
+    | '/richieste'
     | '/licenze'
     | '/privacy'
     | '/reset-password'
@@ -330,6 +350,8 @@ export interface FileRouteTypes {
     | '/edificio-3d'
     | '/guida'
     | '/particolari'
+    | '/cruscotto'
+    | '/richieste'
     | '/licenze'
     | '/privacy'
     | '/reset-password'
@@ -361,6 +383,8 @@ export interface FileRouteTypes {
     | '/edificio-3d'
     | '/guida'
     | '/particolari'
+    | '/cruscotto'
+    | '/richieste'
     | '/licenze'
     | '/privacy'
     | '/reset-password'
@@ -393,6 +417,8 @@ export interface RootRouteChildren {
   Edificio3dRoute: typeof Edificio3dRoute
   GuidaRoute: typeof GuidaRoute
   ParticolariRoute: typeof ParticolariRoute
+  CruscottoRoute: typeof CruscottoRoute
+  RichiesteRoute: typeof RichiesteRoute
   LicenzeRoute: typeof LicenzeRoute
   PrivacyRoute: typeof PrivacyRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
@@ -556,6 +582,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ParticolariRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/cruscotto': {
+      id: '/cruscotto'
+      path: '/cruscotto'
+      fullPath: '/cruscotto'
+      preLoaderRoute: typeof CruscottoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/richieste': {
+      id: '/richieste'
+      path: '/richieste'
+      fullPath: '/richieste'
+      preLoaderRoute: typeof RichiesteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/licenze': {
       id: '/licenze'
       path: '/licenze'
@@ -644,6 +684,8 @@ const rootRouteChildren: RootRouteChildren = {
   Edificio3dRoute: Edificio3dRoute,
   GuidaRoute: GuidaRoute,
   ParticolariRoute: ParticolariRoute,
+  CruscottoRoute: CruscottoRoute,
+  RichiesteRoute: RichiesteRoute,
   LicenzeRoute: LicenzeRoute,
   PrivacyRoute: PrivacyRoute,
   ResetPasswordRoute: ResetPasswordRoute,
