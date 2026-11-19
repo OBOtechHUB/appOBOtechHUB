@@ -2,6 +2,60 @@
   "nota": "Registro degli aggiornamenti di Progettazione LPS. Una voce per aggiornamento, la più recente per prima (app: lps). Viene mostrato nella barra \"Aggiorna app\", nel riquadro Novità e nella pagina Novità di OBO Hub.",
   "aggiornamenti": [
     {
+      "id": "2026-11-19-lps-21",
+      "data": "2026-11-19",
+      "app": "lps",
+      "titolo": "Prova notturna di tutti i documenti",
+      "voci": [
+        "Ogni notte l'app genera relazione (italiano e inglese), dichiarazione, verbale, piano delle verifiche, offerta, tipologico e tavola DXF da un progetto di prova completo e ne controlla i file; se qualcosa si rompe arriva un avviso"
+      ],
+      "titolo_en": "Nightly test of all documents",
+      "voci_en": [
+        "Every night the app generates the report (Italian and English), declaration, record, inspection plan, offer, detail and DXF sheet from a complete test project and checks the files; if something breaks a warning is sent"
+      ]
+    },
+    {
+      "id": "2026-11-19-lps-20",
+      "data": "2026-11-19",
+      "app": "lps",
+      "titolo": "Relazione tecnica in inglese",
+      "voci": [
+        "In \"Dati della relazione\" si sceglie la lingua: la relazione in inglese traduce testi, tabelle, grafici, numeri e piè di pagina; nomi e descrizioni degli articoli restano come sono"
+      ],
+      "titolo_en": "Technical report in English",
+      "voci_en": [
+        "In \"Report data\" choose the language: the English report translates texts, tables, charts, numbers and footer; names and article descriptions stay as they are"
+      ]
+    },
+    {
+      "id": "2026-11-19-lps-19",
+      "data": "2026-11-19",
+      "app": "lps",
+      "titolo": "Cruscotto di direzione",
+      "voci": [
+        "Per gli amministratori (menu Amministrazione): progetti creati e modificati, revisioni emesse e giorni alla Rev. A, aste OBO prescritte, richieste e ore della Mappa carichi, per mese, trimestre o anno, con CSV"
+      ],
+      "titolo_en": "Management dashboard",
+      "voci_en": [
+        "For administrators (Administration menu): projects created and modified, revisions issued and days to Rev. A, OBO rods specified, requests and Workload map hours, by month, quarter or year, with CSV"
+      ]
+    },
+    {
+      "id": "2026-11-19-lps-18",
+      "data": "2026-11-19",
+      "app": "lps",
+      "titolo": "Richieste all'ufficio tecnico",
+      "voci": [
+        "Nuova pagina Richieste: si apre una richiesta (cliente, comune, tipo, priorità, scadenza, ore stimate), il tecnico la prende in carico e crea il progetto LPS collegato; niente si cancella, una richiesta si annulla",
+        "In Mappa carichi le stesse richieste si mettono in mappa con le ore stimate"
+      ],
+      "titolo_en": "Requests to the technical office",
+      "voci_en": [
+        "New Requests page: open a request (client, municipality, type, priority, deadline, estimated hours), the engineer takes it on and creates the linked LPS project; nothing is deleted, a request is cancelled",
+        "In the Workload map the same requests are added to the map with the estimated hours"
+      ]
+    },
+    {
       "id": "2026-11-19-lps-17",
       "data": "2026-11-19",
       "app": "lps",
