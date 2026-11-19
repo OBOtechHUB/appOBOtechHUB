@@ -30,7 +30,7 @@ const report: string[] = [];
 async function salva(nome: string, doc: Documento) {
   const d = rsvg ? await rasterizza(doc, converti) : doc;
   writeFileSync(`${out}/${nome}`, creaDocx(d));
-  const gialli = (testoDocumento(d).match(/\[DA COMPLETARE: [^\]]+\]/g) ?? []).length;
+  const gialli = (testoDocumento(d).match(/\[(DA COMPLETARE|TO BE COMPLETED): [^\]]+\]/g) ?? []).length;
   report.push(`${nome}: ${d.blocchi.length} blocchi, ${gialli} parti da completare`);
 }
 

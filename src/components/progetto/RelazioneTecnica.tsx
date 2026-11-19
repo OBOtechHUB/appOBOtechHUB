@@ -95,7 +95,7 @@ const SINO = [["no", "No"], ["si", "Sì"], ["da-verificare", "Da verificare"]] a
 /** Testi evidenziati "[DA COMPLETARE …]" rimasti nella relazione. */
 export function daCompletare(doc: Documento): string[] {
   const out = new Set<string>();
-  const vedi = (t: Testo) => { if (typeof t !== "string") for (const r of t) if (r.daCompletare) out.add(r.t.replace(/^\[DA COMPLETARE: /, "").replace(/\]$/, "")); };
+  const vedi = (t: Testo) => { if (typeof t !== "string") for (const r of t) if (r.daCompletare) out.add(r.t.replace(/^\[(DA COMPLETARE|TO BE COMPLETED): /, "").replace(/\]$/, "")); };
   for (const b of doc.blocchi) {
     if (b.tipo === "par") vedi(b.testo);
     else if (b.tipo === "elenco") b.voci.forEach(vedi);
