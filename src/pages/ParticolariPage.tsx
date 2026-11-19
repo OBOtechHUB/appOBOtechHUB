@@ -12,6 +12,7 @@ import {SchedaParticolare} from "@/components/particolari/SchedaParticolare";
 import {AnteprimaDisegno} from "@/components/particolari/AnteprimaDisegno";
 import {CodiceObo} from "@/components/prodotti/CodiceObo";
 import {EditorTipologico,type DatiSalvataggio} from "@/components/particolari/EditorTipologico";
+import {useDisegniObo} from "@/lib/disegniObo";
 import {componentiTipologico,disegnoDaComponenti,disegnoSchema,svgTipologico,type DisegnoTip} from "@/calcoli/particolari/tipologico";
 
 type Componente=Particolare["componenti"][number]&{nota?:string};
@@ -19,7 +20,7 @@ type Scheda=Omit<Particolare,"componenti"|"condizioni">&{riferimento?:string;con
 const ordine=["captazione","raccordo","impianti_tetto","terra","calata"] as const;
 const grezzi=base as unknown as Scheda[];
 
-export function ParticolariPage(){const s=useEsteso(),{user}=useAuth(),verificati=useVerificati();const [categoria,setCategoria]=useState("");const [cerca,setCerca]=useState("");const rif=useSearch({strict:false}) as {rif?:string};const [selId,setSelId]=useState<string|null>(null);const [disegna,setDisegna]=useState<{n:number;iniziale?:DisegnoTip;dati?:Partial<DatiSalvataggio>;id?:string}|null>(null);const [editor,setEditor]=useState<string|null>(null);const [msg,setMsg]=useState("");const [schedaId,setSchedaId]=useState<string|null>(null);
+export function ParticolariPage(){const obo=useDisegniObo();const s=useEsteso(),{user}=useAuth(),verificati=useVerificati();const [categoria,setCategoria]=useState("");const [cerca,setCerca]=useState("");const rif=useSearch({strict:false}) as {rif?:string};const [selId,setSelId]=useState<string|null>(null);const [disegna,setDisegna]=useState<{n:number;iniziale?:DisegnoTip;dati?:Partial<DatiSalvataggio>;id?:string}|null>(null);const [editor,setEditor]=useState<string|null>(null);const [msg,setMsg]=useState("");const [schedaId,setSchedaId]=useState<string|null>(null);
   const lista=useMemo<Scheda[]>(()=>{const salvati=new Map(s.particolari.map((p)=>[p.id,p]));const ids=new Set(grezzi.map((p)=>p.id));
     const daBase=grezzi.map((g):Scheda=>{const p=salvati.get(g.id);return p?{...g,...p,riferimento:g.riferimento??"",condizioni:{...p.condizioni,...(g.condizioni.applicazione?{applicazione:g.condizioni.applicazione}:{})},componenti:p.componenti.map((c,i)=>({...c,...(g.componenti[i]?.nota?{nota:g.componenti[i]?.nota}:{})}))}:g;});
     const personali=s.particolari.filter((p)=>!ids.has(p.id)&&!/ESEMPIO/i.test(p.nome)) as Scheda[];return [...daBase,...personali].map((p)=>verificati.includes(p.id)?{...p,verificato:true}:p);},[s.particolari,verificati]);
@@ -30,7 +31,7 @@ export function ParticolariPage(){const s=useEsteso(),{user}=useAuth(),verificat
   const scheda=lista.find((p)=>p.id===schedaId)??null;
   const dettaglio=(sel:Scheda)=><section id={`dettaglio-${sel.id}`} className="mb-4 rounded-lg border-[0.8px] border-primary bg-background p-4"><div className="flex flex-wrap items-center gap-3"><h3 className="text-[1.3rem] font-medium">{sel.nome}</h3>{!sel.verificato&&<span className="rounded bg-accent px-2 py-0.5 text-xs text-accent-foreground">Da verificare</span>}</div>
       <p className="mt-1 font-mono text-sm text-muted-foreground">Riferimento OBO: {sel.riferimento??"—"}</p>
-      {sel.disegno?<img className="mt-3 w-full max-w-2xl rounded border bg-white" alt={`Disegno del tipologico ${sel.nome}`} src={`data:image/svg+xml;charset=utf-8,${encodeURIComponent(svgTipologico(sel.disegno,{legenda:true}))}`}/>:<AnteprimaDisegno immagine={(sel as {immagine?:string|null}).immagine} titolo={sel.nome}/>}
+      {sel.disegno?<div role="img" aria-label={`Disegno del tipologico ${sel.nome}`} className="mt-3 w-full max-w-2xl overflow-hidden rounded border bg-white [&>svg]:h-auto [&>svg]:w-full" dangerouslySetInnerHTML={{__html:svgTipologico(sel.disegno,{legenda:true,obo})}}/>:<AnteprimaDisegno immagine={(sel as {immagine?:string|null}).immagine} titolo={sel.nome}/>}
       <dl className="mt-3 grid gap-2 text-sm sm:grid-cols-3"><div><dt className="text-muted-foreground">Elemento</dt><dd>{sel.condizioni.elemento}</dd></div><div><dt className="text-muted-foreground">Tipo</dt><dd>{sel.condizioni.tipo}</dd></div><div><dt className="text-muted-foreground">Applicazione</dt><dd>{sel.condizioni.applicazione??"—"}</dd></div></dl>
       <div className="mt-4 overflow-x-auto"><table className="w-full min-w-[640px] text-sm"><thead><tr className="border-b text-left">{["Codice","Descrizione","Quantità","Unità","Nota"].map((h)=><th key={h} className="p-2">{h}</th>)}</tr></thead><tbody>{sel.componenti.map((c,i)=><tr key={i} className="border-b"><td className="p-2"><CodiceObo codice={c.codiceOBO}/></td><td className="p-2">{c.descrizione}</td><td className="p-2 font-mono">{c.quantita}</td><td className="p-2">{c.unitaQuantita}</td><td className="p-2 text-muted-foreground">{c.nota??""}</td></tr>)}</tbody></table></div>
       {sel.note&&<p className="mt-3 text-sm">{sel.note}</p>}

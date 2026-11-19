@@ -21,6 +21,8 @@ export const bloccoSchema = z.object({
   rot: z.number().finite().default(0), scala: z.number().finite().min(0.2).max(10).default(1),
   codiceOBO: z.string().max(40).default(""), descrizione: z.string().max(300).default(""),
   quantita: z.number().finite().nonnegative().default(1), unita: z.enum(UNITA_QUANTITA).default("fisso"),
+  /** "obo": al posto del simbolo il disegno 2D ufficiale del prodotto (public/obo-disegni), largo `larghezzaObo` unità */
+  vista: z.enum(["simbolo", "obo"]).default("simbolo"), larghezzaObo: z.number().finite().min(20).max(1500).default(140),
 });
 export const collegamentoSchema = z.object({
   id: z.string().max(40), da: z.string().max(40), a: z.string().max(40),
@@ -68,72 +70,92 @@ const tratteggio = (x: number, y: number, w: number, h: number, passo = 10) => {
   return s;
 };
 
+// colori dei materiali (stile tecnico OBO: linee scure, superfici in toni neutri)
+const MET = "#AEB6BD", MET_L = "#E3E7EA", MET_S = "#7E8890", CLS = "#D5D3CC", CLS_S = "#B9B6AD", PLA = "#5A5F66", CU = "#C98A5E", CU_L = "#E8B48E", ZN = "#C7CDD2";
+const P = (d: string, f = "none", w = 1.6) => `<path d="${d}" fill="${f}" stroke="currentColor" stroke-width="${w}" stroke-linejoin="round"/>`;
+const RR = (x: number, y: number, w: number, h: number, f: string, r = 0, sw = 1.6) => `<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="${r}" fill="${f}" stroke="currentColor" stroke-width="${sw}"/>`;
+/** tondo metallico verticale con riflesso */
+const tondoV = (x: number, y1: number, y2: number, r: number, f = MET, l = MET_L) => RR(x - r, y1, 2 * r, y2 - y1, f, 0, 1.4) + `<rect x="${x - r * 0.45}" y="${y1 + 2}" width="${r * 0.45}" height="${Math.max(0, y2 - y1 - 4)}" fill="${l}"/>`;
+/** blocco in 3D (fronte, faccia superiore e laterale) */
+const blocco3d = (x: number, y: number, w: number, h: number, p: number, f = CLS, s2 = CLS_S) => P(`M${x},${y} h${w} v${h} h${-w} Z`, f) + P(`M${x},${y} l${p},${-p * 0.6} h${w} l${-p},${p * 0.6} Z`, MET_L) + P(`M${x + w},${y} l${p},${-p * 0.6} v${h} l${-p},${p * 0.6} Z`, s2);
+/** vite: testa esagonale vista di lato */
+const vite = (x: number, y: number) => RR(x - 5, y - 3, 10, 6, ZN, 1, 1.2) + `<line x1="${x - 1.7}" y1="${y - 3}" x2="${x - 1.7}" y2="${y + 3}" stroke="currentColor" stroke-width="0.8"/><line x1="${x + 1.7}" y1="${y - 3}" x2="${x + 1.7}" y2="${y + 3}" stroke="currentColor" stroke-width="0.8"/>`;
+const tratteggioMattoni = (x: number, y: number, w: number, h: number) => { let s = ""; for (let r = 0, yy = y; yy < y + h; r++, yy += 12) { s += `<line x1="${x}" y1="${yy}" x2="${x + w}" y2="${yy}" stroke="currentColor" stroke-width="0.6" opacity="0.55"/>`; for (let xx = x + (r % 2 ? 0 : 12); xx < x + w; xx += 24) s += `<line x1="${xx}" y1="${yy}" x2="${xx}" y2="${Math.min(y + h, yy + 12)}" stroke="currentColor" stroke-width="0.6" opacity="0.55"/>`; } return s; };
+const terra = (x: number, y: number, w: number, h: number) => { let s = ""; for (let i = 0; i < w / 9; i++) for (let j = 0; j < h / 9; j++) if ((i * 7 + j * 3) % 5 < 2) s += `<circle cx="${x + 4 + i * 9 + (j % 2) * 4}" cy="${y + 4 + j * 9}" r="1.1" fill="currentColor" opacity="0.45"/>`; return s; };
+
 export const SIMBOLI: Record<TipoBlocco, Simbolo> = {
-  asta: { nome: "Asta di captazione", categoria: "Captazione", unita: "per_asta", ruolo: "asta", mezzo: [8, 90], porte: [[0, -90], [0, 40], [0, 90]],
-    forme: L("0,-90 0,90", 4) + L("-4,-82 0,-92 4,-82", 2) + R(-6, 70, 12, 20) },
-  treppiede: { nome: "Treppiede con blocchi", categoria: "Captazione", unita: "per_asta", ruolo: "accessorio", mezzo: [60, 40], porte: [[0, -40], [0, 0]],
-    forme: L("0,-40 -50,30", 3) + L("0,-40 50,30", 3) + L("0,-40 0,30", 3) + R(-60, 30, 30, 10, "currentColor") + R(30, 30, 30, 10, "currentColor") + R(-15, 30, 30, 10, "currentColor") },
-  punta: { nome: "Punta / captatore a fungo", categoria: "Captazione", unita: "per_punta", ruolo: "asta", mezzo: [14, 24], porte: [[0, 24], [0, -24]],
-    forme: L("0,-24 0,24", 3) + `<path d="M-12,-8 Q0,-30 12,-8 Z" fill="none" stroke="currentColor" stroke-width="2"/>` },
-  "supporto-piano": { nome: "Supporto conduttore tetto piano", categoria: "Collegamenti", unita: "per_m", ruolo: "supporto", mezzo: [28, 18], porte: [[0, -14], [-28, -14], [28, -14]],
-    forme: `<path d="M-28,18 L-18,-2 L18,-2 L28,18 Z" fill="none" stroke="currentColor" stroke-width="2"/>` + R(-6, -16, 12, 14) + C(0, -14, 4) },
-  "supporto-parete": { nome: "Supporto conduttore a parete", categoria: "Collegamenti", unita: "per_m", ruolo: "supporto", mezzo: [20, 14], porte: [[18, 0], [18, -14], [18, 14]],
-    forme: R(-20, -14, 6, 28, "currentColor") + L("-14,0 12,0", 3) + C(16, 0, 5) },
-  "supporto-colmo": { nome: "Supporto conduttore per colmo", categoria: "Collegamenti", unita: "per_m", ruolo: "supporto", mezzo: [24, 18], porte: [[0, -16], [-24, -16], [24, -16]],
-    forme: L("-24,18 0,0 24,18", 3) + L("0,0 0,-12", 3) + C(0, -16, 4) },
-  morsetto: { nome: "Morsetto / connettore", categoria: "Collegamenti", unita: "per_punto", ruolo: "connettore", mezzo: [12, 12], porte: [[0, 0], [-12, 0], [12, 0], [0, -12], [0, 12]],
-    forme: R(-12, -12, 24, 24) + L("-12,-12 12,12", 1.5) + L("-12,12 12,-12", 1.5) },
-  giunto: { nome: "Giunto di sezionamento", categoria: "Collegamenti", unita: "per_calata", ruolo: "sezionamento", mezzo: [14, 22], porte: [[0, -22], [0, 22]],
-    forme: R(-14, -14, 28, 28) + L("0,-22 0,-6", 3) + L("0,6 0,22", 3) + C(0, -6, 3, "currentColor") + C(0, 6, 3, "currentColor") },
-  compensatore: { nome: "Compensatore di dilatazione", categoria: "Collegamenti", unita: "per_compensatore", ruolo: "compensatore", mezzo: [30, 18], porte: [[-30, 0], [30, 0]],
-    forme: `<path d="M-30,0 L-14,0 C-14,-24 14,-24 14,0 L30,0" fill="none" stroke="currentColor" stroke-width="3"/>` },
-  picchetto: { nome: "Picchetto / dispersore", categoria: "Terra", unita: "per_picchetto", ruolo: "picchetto", mezzo: [8, 70], porte: [[0, -70], [0, -60]],
-    forme: L("0,-70 0,62", 4) + L("-5,62 0,72 5,62", 2) + R(-8, -66, 16, 10) },
-  collettore: { nome: "Collettore equipotenziale", categoria: "Terra", unita: "fisso", ruolo: "connettore", mezzo: [50, 12], porte: [[-40, 12], [-20, 12], [0, 12], [20, 12], [40, 12]],
-    forme: R(-50, -8, 100, 16) + [-40, -20, 0, 20, 40].map((x) => C(x, 0, 3, "currentColor")).join("") },
-  targhetta: { nome: "Targhetta di identificazione", categoria: "Accessori", unita: "per_calata", ruolo: "targhetta", mezzo: [18, 12], porte: [[0, 12]],
-    forme: R(-18, -12, 36, 24) + `<text x="0" y="5" font-size="12" text-anchor="middle" fill="currentColor" font-family="Arial">C1</text>` },
-  tubo: { nome: "Tubo di protezione calata", categoria: "Accessori", unita: "per_calata", ruolo: "accessorio", mezzo: [8, 50], porte: [[0, -50], [0, 50]],
-    forme: R(-8, -50, 16, 100) + L("0,-50 0,50", 1) },
+  asta: { nome: "Asta di captazione", categoria: "Captazione", unita: "per_asta", ruolo: "asta", mezzo: [12, 100], porte: [[0, -100], [0, 40], [0, 100]],
+    forme: tondoV(0, -84, 92, 4) + P("M-4,-84 L0,-100 L4,-84 Z", MET) + RR(-9, 62, 18, 30, MET_S, 2) + `<rect x="-6" y="64" width="3" height="26" fill="${MET_L}"/>` + vite(12, 70) + vite(12, 84) },
+  treppiede: { nome: "Treppiede con blocchi in cls", categoria: "Captazione", unita: "per_asta", ruolo: "accessorio", mezzo: [72, 50], porte: [[0, -50], [0, -20]],
+    forme: P("M-3,-40 L-58,20 L-52,22 L3,-36 Z", MET) + P("M3,-40 L58,20 L52,22 L-3,-36 Z", MET) + tondoV(0, -40, 22, 3) + RR(-10, -50, 20, 16, MET_S, 2) + vite(14, -42)
+      + blocco3d(-72, 22, 34, 14, 8) + blocco3d(38, 22, 34, 14, 8) + blocco3d(-16, 26, 32, 12, 6) },
+  punta: { nome: "Captatore a fungo / punta", categoria: "Captazione", unita: "per_punta", ruolo: "asta", mezzo: [16, 28], porte: [[0, 28], [0, -28]],
+    forme: tondoV(0, -14, 28, 3) + P("M-15,-10 Q0,-34 15,-10 Z", MET) + `<path d="M-9,-13 Q0,-27 6,-16" fill="none" stroke="${MET_L}" stroke-width="2.5"/>` },
+  "supporto-piano": { nome: "Supporto conduttore per tetto piano (165 MBG)", categoria: "Collegamenti", unita: "per_m", ruolo: "supporto", mezzo: [32, 22], porte: [[0, -16], [-32, -16], [32, -16]],
+    forme: P("M-30,22 L-22,2 L22,2 L30,22 Z", CLS) + P("M-22,2 L-16,-2 L16,-2 L22,2 Z", MET_L) + P("M-7,-2 L-7,-12 Q-7,-22 0,-22 Q7,-22 7,-12 L7,-2 Z", PLA) + `<circle cx="0" cy="-15" r="4.5" fill="${MET}" stroke="currentColor" stroke-width="1.2"/><circle cx="-1.2" cy="-16.2" r="1.4" fill="${MET_L}"/>` },
+  "supporto-parete": { nome: "Supporto conduttore a parete", categoria: "Collegamenti", unita: "per_m", ruolo: "supporto", mezzo: [24, 16], porte: [[20, 0], [20, -16], [20, 16]],
+    forme: RR(-24, -12, 7, 24, ZN, 1) + P("M-17,-3 L10,-3 L10,3 L-17,3 Z", ZN) + P("M10,-9 Q22,-9 22,0 Q22,9 10,9 Z", PLA) + `<circle cx="16" cy="0" r="4.5" fill="${MET}" stroke="currentColor" stroke-width="1.2"/>` + vite(-20, -16) },
+  "supporto-colmo": { nome: "Supporto conduttore per colmo", categoria: "Collegamenti", unita: "per_m", ruolo: "supporto", mezzo: [28, 22], porte: [[0, -18], [-28, -18], [28, -18]],
+    forme: P("M-28,22 Q-14,4 0,2 Q14,4 28,22 L22,22 Q12,10 0,9 Q-12,10 -22,22 Z", "#B5654A") + P("M-2,2 L-2,-10 L2,-10 L2,2 Z", ZN) + P("M-7,-10 Q-7,-24 0,-24 Q7,-24 7,-10 Z", PLA) + `<circle cx="0" cy="-17" r="4.5" fill="${MET}" stroke="currentColor" stroke-width="1.2"/>` },
+  morsetto: { nome: "Morsetto di connessione (249)", categoria: "Collegamenti", unita: "per_punto", ruolo: "connettore", mezzo: [16, 16], porte: [[0, 0], [-16, 0], [16, 0], [0, -16], [0, 16]],
+    forme: RR(-14, -14, 28, 28, ZN, 3) + RR(-10, -10, 20, 20, MET_L, 2, 1) + `<polygon points="-5,-3 0,-6 5,-3 5,3 0,6 -5,3" fill="${MET}" stroke="currentColor" stroke-width="1.2"/><circle cx="0" cy="0" r="1.6" fill="currentColor"/>` },
+  giunto: { nome: "Giunto di sezionamento (233)", categoria: "Collegamenti", unita: "per_calata", ruolo: "sezionamento", mezzo: [16, 26], porte: [[0, -26], [0, 26]],
+    forme: RR(-14, -16, 28, 32, ZN, 2) + `<rect x="-11" y="-13" width="5" height="26" fill="${MET_L}"/>` + vite(0, -7) + vite(0, 7) + tondoV(0, -26, -16, 3.5) + tondoV(0, 16, 26, 3.5) },
+  compensatore: { nome: "Compensatore di dilatazione", categoria: "Collegamenti", unita: "per_compensatore", ruolo: "compensatore", mezzo: [34, 22], porte: [[-34, 0], [34, 0]],
+    forme: `<path d="M-34,0 L-16,0 C-16,-28 16,-28 16,0 L34,0" fill="none" stroke="currentColor" stroke-width="8" stroke-linecap="round"/><path d="M-34,0 L-16,0 C-16,-28 16,-28 16,0 L34,0" fill="none" stroke="${MET}" stroke-width="5" stroke-linecap="round" stroke-dasharray="2 2"/>` + RR(-20, -5, 8, 10, ZN, 1) + RR(12, -5, 8, 10, ZN, 1) },
+  picchetto: { nome: "Picchetto di terra (219)", categoria: "Terra", unita: "per_picchetto", ruolo: "picchetto", mezzo: [12, 80], porte: [[0, -80], [0, -66]],
+    forme: tondoV(0, -76, 66, 5, ZN) + P("M-5,66 L0,80 L5,66 Z", ZN) + RR(-7, -80, 14, 6, MET_S, 1) + RR(-11, -70, 22, 12, ZN, 2) + vite(14, -64) },
+  collettore: { nome: "Collettore equipotenziale (1801)", categoria: "Terra", unita: "fisso", ruolo: "connettore", mezzo: [56, 16], porte: [[-40, 14], [-20, 14], [0, 14], [20, 14], [40, 14]],
+    forme: RR(-56, -12, 112, 8, PLA, 2) + RR(-50, -6, 100, 12, CU, 1) + `<rect x="-48" y="-5" width="96" height="3" fill="${CU_L}"/>` + [-40, -20, 0, 20, 40].map((x) => vite(x, -9)).join("") },
+  targhetta: { nome: "Targhetta di identificazione calata", categoria: "Accessori", unita: "per_calata", ruolo: "targhetta", mezzo: [22, 14], porte: [[0, 14]],
+    forme: RR(-22, -14, 44, 28, "#F2F2EE", 3) + `<circle cx="-16" cy="-8" r="1.5" fill="currentColor"/><circle cx="16" cy="-8" r="1.5" fill="currentColor"/><text x="0" y="6" font-size="12" font-weight="bold" text-anchor="middle" fill="currentColor" font-family="Arial">C1</text>` },
+  tubo: { nome: "Tubo di protezione della calata", categoria: "Accessori", unita: "per_calata", ruolo: "accessorio", mezzo: [10, 60], porte: [[0, -60], [0, 60]],
+    forme: RR(-9, -60, 18, 120, "#9AA4AC", 3) + `<rect x="-6" y="-57" width="4" height="114" fill="${MET_L}" opacity="0.8"/>` + RR(-11, -40, 22, 6, ZN, 1) + RR(-11, 30, 22, 6, ZN, 1) },
   putrella: { nome: "Putrella / profilo metallico", categoria: "Struttura", unita: "fisso", mezzo: [30, 40], porte: [[0, -40], [-30, -40], [30, -40], [0, 40]],
-    forme: `<path d="M-30,-40 H30 V-32 H5 V32 H30 V40 H-30 V32 H-5 V-32 H-30 Z" fill="none" stroke="currentColor" stroke-width="2"/>` },
-  parapetto: { nome: "Parapetto / ringhiera", categoria: "Struttura", unita: "fisso", mezzo: [60, 50], porte: [[-60, -50], [0, -50], [60, -50]],
-    forme: L("-60,-50 60,-50", 4) + [-60, -20, 20, 60].map((x) => L(`${x},-50 ${x},50`, 2)).join("") + L("-60,0 60,0", 1.5) },
-  copertura: { nome: "Copertura piana (solaio)", categoria: "Struttura", unita: "fisso", mezzo: [150, 15], porte: [[-150, -15], [-75, -15], [0, -15], [75, -15], [150, -15]],
-    forme: R(-150, -15, 300, 30) + tratteggio(-150, -15, 300, 30) },
-  parete: { nome: "Parete / muratura", categoria: "Struttura", unita: "fisso", mezzo: [15, 120], porte: [[15, -120], [15, -60], [15, 0], [15, 60], [15, 120]],
-    forme: R(-15, -120, 30, 240) + tratteggio(-15, -120, 30, 240) },
-  terreno: { nome: "Terreno", categoria: "Struttura", unita: "fisso", mezzo: [150, 10], porte: [[-150, -10], [-75, -10], [0, -10], [75, -10], [150, -10]],
-    forme: L("-150,-10 150,-10", 3) + Array.from({ length: 20 }, (_, i) => L(`${-150 + i * 15},-10 ${-160 + i * 15},4`, 1)).join("") },
-  "blocco-cls": { nome: "Blocco in calcestruzzo", categoria: "Accessori", unita: "per_asta", ruolo: "accessorio", mezzo: [30, 12], porte: [[0, -12]],
-    forme: R(-30, -12, 60, 24, "none") + tratteggio(-30, -12, 60, 24, 8) },
-  spd: { nome: "Limitatore di sovratensione (SPD)", categoria: "Accessori", unita: "fisso", ruolo: "accessorio", mezzo: [14, 24], porte: [[0, -24], [0, 24]],
-    forme: R(-14, -18, 28, 36) + L("0,-24 0,-18", 2) + L("0,18 0,24", 2) + L("-6,-8 4,0 -4,0 6,8", 2) },
+    forme: P("M-30,-40 H30 V-32 H5 V32 H30 V40 H-30 V32 H-5 V-32 H-30 Z", MET) + `<rect x="-3" y="-30" width="2" height="60" fill="${MET_L}"/>` },
+  parapetto: { nome: "Parapetto / ringhiera metallica", categoria: "Struttura", unita: "fisso", mezzo: [64, 52], porte: [[-60, -50], [0, -50], [60, -50]],
+    forme: RR(-64, -54, 128, 8, MET, 4) + [-56, -18, 18, 56].map((x) => tondoV(x, -46, 52, 3.5)).join("") + RR(-60, -2, 120, 5, MET, 2) },
+  copertura: { nome: "Copertura piana (solaio con impermeabilizzazione)", categoria: "Struttura", unita: "fisso", mezzo: [150, 18], porte: [[-150, -18], [-75, -18], [0, -18], [75, -18], [150, -18]],
+    forme: RR(-150, -18, 300, 6, "#3E4248", 0, 1) + RR(-150, -12, 300, 30, CLS) + tratteggio(-150, -12, 300, 30) },
+  parete: { nome: "Parete in muratura", categoria: "Struttura", unita: "fisso", mezzo: [16, 120], porte: [[16, -120], [16, -60], [16, 0], [16, 60], [16, 120]],
+    forme: RR(-16, -120, 32, 240, "#E2D4C4") + tratteggioMattoni(-16, -120, 32, 240) },
+  terreno: { nome: "Terreno", categoria: "Struttura", unita: "fisso", mezzo: [150, 22], porte: [[-150, -22], [-75, -22], [0, -22], [75, -22], [150, -22]],
+    forme: `<rect x="-150" y="-22" width="300" height="44" fill="#E7DFD1"/>` + terra(-150, -20, 300, 42) + L("-150,-22 150,-22", 2.5) },
+  "blocco-cls": { nome: "Blocco in calcestruzzo", categoria: "Accessori", unita: "per_asta", ruolo: "accessorio", mezzo: [34, 18], porte: [[0, -16]],
+    forme: blocco3d(-34, -6, 60, 22, 10) },
+  spd: { nome: "Limitatore di sovratensione (SPD)", categoria: "Accessori", unita: "fisso", ruolo: "accessorio", mezzo: [16, 30], porte: [[0, -30], [0, 30]],
+    forme: RR(-16, -26, 32, 52, "#EDEDE8", 3) + RR(-12, -10, 24, 20, "#E26B2B", 2, 1) + `<rect x="-10" y="16" width="20" height="5" fill="#3BA55C"/>` + vite(-8, -20) + vite(8, -20) + vite(-8, 22) + vite(8, 22) + L("0,-30 0,-26", 2) + L("0,26 0,30", 2) },
 };
 export const CATEGORIE_SIMBOLI = ["Captazione", "Collegamenti", "Terra", "Accessori", "Struttura"] as const;
 
 // ------------------------------------------------------------------ geometria
 const rad = (g: number) => (g * Math.PI) / 180;
+/** punti di collegamento relativi al centro: quelli del simbolo o, per i disegni OBO, centro e metà dei lati */
+function porte(b: BloccoTip, ind?: IndiceDisegniObo | null): [number, number][] {
+  const o = disegnoObo(b, ind);
+  if (o) return [[0, 0], [0, -o.h / 2], [0, o.h / 2], [-o.w / 2, 0], [o.w / 2, 0]].map(([x, y]) => [x! / b.scala, y! / b.scala] as [number, number]);
+  return SIMBOLI[b.tipo].porte;
+}
 /** posizione assoluta di una porta del blocco */
-export function portaAssoluta(b: BloccoTip, i: number): [number, number] {
-  const [px, py] = SIMBOLI[b.tipo].porte[i] ?? [0, 0];
+export function portaAssoluta(b: BloccoTip, i: number, ind?: IndiceDisegniObo | null): [number, number] {
+  const [px, py] = porte(b, ind)[i] ?? [0, 0];
   const c = Math.cos(rad(b.rot)), s = Math.sin(rad(b.rot)), k = b.scala;
   return [b.x + (px * c - py * s) * k, b.y + (px * s + py * c) * k];
 }
 /** coppia di porte più vicine tra due blocchi */
-export function porteCollegamento(a: BloccoTip, b: BloccoTip): [[number, number], [number, number]] {
+export function porteCollegamento(a: BloccoTip, b: BloccoTip, ind?: IndiceDisegniObo | null): [[number, number], [number, number]] {
   let best: [[number, number], [number, number]] = [[a.x, a.y], [b.x, b.y]], dMin = Infinity;
-  SIMBOLI[a.tipo].porte.forEach((_, i) => SIMBOLI[b.tipo].porte.forEach((__, j) => {
-    const p = portaAssoluta(a, i), q = portaAssoluta(b, j), d = Math.hypot(p[0] - q[0], p[1] - q[1]);
+  porte(a, ind).forEach((_, i) => porte(b, ind).forEach((__, j) => {
+    const p = portaAssoluta(a, i, ind), q = portaAssoluta(b, j, ind), d = Math.hypot(p[0] - q[0], p[1] - q[1]);
     if (d < dMin) { dMin = d; best = [p, q]; }
   }));
   return best;
 }
 /** percorso del collegamento: diretto o a L (prima orizzontale) */
-export function percorso(c: CollegamentoTip, blocchi: BloccoTip[]): [number, number][] | null {
+export function percorso(c: CollegamentoTip, blocchi: BloccoTip[], ind?: IndiceDisegniObo | null): [number, number][] | null {
   const a = blocchi.find((b) => b.id === c.da), b = blocchi.find((x) => x.id === c.a);
   if (!a || !b) return null;
-  const [p, q] = porteCollegamento(a, b);
+  const [p, q] = porteCollegamento(a, b, ind);
   if (c.ortogonale && c.tipo !== "quota" && Math.abs(p[0] - q[0]) > 0.5 && Math.abs(p[1] - q[1]) > 0.5) return [p, [q[0], p[1]], q];
   return [p, q];
 }
@@ -145,6 +167,32 @@ export function quota(p: [number, number], q: [number, number], off = 26) {
   const mx = (a[0] + b[0]) / 2 + nx * 6, my = (a[1] + b[1]) / 2 + ny * 6;
   const f = (x: [number, number]) => `${r1(x[0])},${r1(x[1])}`;
   return { linea: `${f(a)} ${f(b)}`, estensioni: [`${f(p)} ${r1(a[0] + nx * 4)},${r1(a[1] + ny * 4)}`, `${f(q)} ${r1(b[0] + nx * 4)},${r1(b[1] + ny * 4)}`] as [string, string], tx: r1(mx), ty: r1(my), ang: r1(ang) };
+}
+/** Indice dei disegni 2D OBO copiati nell'app (public/obo-disegni/indice.json). */
+export interface IndiceDisegniObo { base: string; codici: Record<string, string>; disegni: Record<string, { w: number; h: number }> }
+/** Disegno OBO del blocco (se scelto e disponibile): file, larghezza e altezza in unità di disegno. */
+export function disegnoObo(b: BloccoTip, ind?: IndiceDisegniObo | null): { href: string; w: number; h: number } | null {
+  if (b.vista !== "obo" || !ind || !b.codiceOBO) return null;
+  const file = ind.codici[b.codiceOBO.trim()], dim = file ? ind.disegni[file] : undefined;
+  if (!file || !dim || !dim.w) return null;
+  const w = b.larghezzaObo * b.scala; return { href: ind.base + file, w, h: (w * dim.h) / dim.w };
+}
+/** mezza larghezza e mezza altezza effettive del blocco (simbolo o disegno OBO) */
+export function ingombro(b: BloccoTip, ind?: IndiceDisegniObo | null): [number, number] {
+  const o = disegnoObo(b, ind); if (o) return [o.w / 2, o.h / 2];
+  const m = SIMBOLI[b.tipo].mezzo; return [m[0] * b.scala, m[1] * b.scala];
+}
+/** markup del blocco: disegno OBO (immagine) o simbolo vettoriale */
+export function markupBlocco(b: BloccoTip, ind?: IndiceDisegniObo | null): string {
+  const o = disegnoObo(b, ind);
+  if (o) return `<g transform="translate(${r1(b.x)} ${r1(b.y)}) rotate(${b.rot})"><image href="${esc(o.href)}" x="${r1(-o.w / 2)}" y="${r1(-o.h / 2)}" width="${r1(o.w)}" height="${r1(o.h)}" preserveAspectRatio="xMidYMid meet"/></g>`;
+  return `<g transform="${trasformazione(b)}" color="${STRUTTURA.has(b.tipo) ? "#41525D" : "#282A31"}">${SIMBOLI[b.tipo].forme}</g>`;
+}
+/** conduttore disegnato come tondo o piatto metallico (contorno scuro, corpo metallico, riflesso) */
+export function markupConduttore(pts: string, tipo: "conduttore" | "piatto" | "linea"): string {
+  if (tipo === "linea") return `<polyline points="${pts}" fill="none" stroke="#41525D" stroke-width="1" stroke-dasharray="6 4"/>`;
+  const w = tipo === "piatto" ? 9 : 7;
+  return `<polyline points="${pts}" fill="none" stroke="#3A3F45" stroke-width="${w}" stroke-linejoin="round" stroke-linecap="round"/><polyline points="${pts}" fill="none" stroke="#AEB6BD" stroke-width="${w - 2.6}" stroke-linejoin="round" stroke-linecap="round"/><polyline points="${pts}" fill="none" stroke="#E8ECEF" stroke-width="${tipo === "piatto" ? 1.2 : 1.6}" stroke-linejoin="round" stroke-linecap="round" transform="translate(-0.8 -1.2)"/>`;
 }
 export const trasformazione = (b: BloccoTip) => `translate(${r1(b.x)} ${r1(b.y)}) rotate(${b.rot}) scale(${b.scala})`;
 const r1 = (v: number) => Math.round(v * 10) / 10;
@@ -210,7 +258,7 @@ const esc = (s: string) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replac
 const ARANCIO = "#F39B00", SCURO = "#282A31", MEDIO = "#41525D", CHIARO = "#E4EBED";
 
 /** SVG del tipologico con richiami e, se `legenda`, tabella dei componenti sotto il disegno. */
-export function svgTipologico(d: DisegnoTip, opz: { titolo?: string; legenda?: boolean } = {}): string {
+export function svgTipologico(d: DisegnoTip, opz: { titolo?: string; legenda?: boolean; obo?: IndiceDisegniObo | null } = {}): string {
   const { componenti, richiami } = componentiTipologico(d);
   const W = d.larghezza, H = d.altezza;
   const righeLeg = opz.legenda ? componenti.length : 0;
@@ -220,18 +268,19 @@ export function svgTipologico(d: DisegnoTip, opz: { titolo?: string; legenda?: b
   out.push(`<rect x="0" y="${-hTit}" width="${W}" height="${H + hTit + hLeg}" fill="#fff"/>`);
   if (opz.titolo) out.push(`<rect x="0" y="${-hTit}" width="${W}" height="${hTit - 4}" fill="${SCURO}"/><rect x="0" y="-4" width="${W}" height="3" fill="${ARANCIO}"/><text x="12" y="${-hTit + 21}" font-size="15" font-weight="bold" fill="#fff">${esc(opz.titolo)}</text>`);
   for (const c of d.collegamenti) {
-    const pts = percorso(c, d.blocchi); if (!pts) continue;
+    const pts = percorso(c, d.blocchi, opz.obo); if (!pts) continue;
     const s = pts.map((p) => `${r1(p[0])},${r1(p[1])}`).join(" ");
     if (c.tipo === "quota") {
       const q2 = quota(pts[0]!, pts[pts.length - 1]!);
       out.push(`<g color="${MEDIO}"><polyline points="${q2.estensioni[0]}" fill="none" stroke="currentColor" stroke-width="0.8"/><polyline points="${q2.estensioni[1]}" fill="none" stroke="currentColor" stroke-width="0.8"/><polyline points="${q2.linea}" fill="none" stroke="currentColor" stroke-width="1" marker-start="url(#fr)" marker-end="url(#fr)"/><text x="${q2.tx}" y="${q2.ty}" font-size="12" text-anchor="middle" fill="currentColor" transform="rotate(${q2.ang} ${q2.tx} ${q2.ty})">${esc(c.testo || "")}</text></g>`);
-    } else out.push(`<polyline points="${s}" fill="none" stroke="${c.tipo === "linea" ? MEDIO : SCURO}" stroke-width="${c.tipo === "linea" ? 1 : c.tipo === "piatto" ? 6 : 4}" stroke-linejoin="round" stroke-linecap="round"${c.tipo === "linea" ? ' stroke-dasharray="6 4"' : ""}/>`);
+    } else out.push(markupConduttore(s, c.tipo));
   }
-  for (const b of d.blocchi) out.push(`<g transform="${trasformazione(b)}" color="${STRUTTURA.has(b.tipo) ? MEDIO : SCURO}">${SIMBOLI[b.tipo].forme}</g>`);
+  // prima la struttura, poi i componenti
+  for (const b of [...d.blocchi.filter((x) => STRUTTURA.has(x.tipo)), ...d.blocchi.filter((x) => !STRUTTURA.has(x.tipo))]) out.push(markupBlocco(b, opz.obo));
   for (const t of d.testi) out.push(`<text x="${r1(t.x)}" y="${r1(t.y)}" font-size="${t.dim}" fill="${SCURO}">${esc(t.t)}</text>`);
   // richiami: pallino arancio con numero, linea di richiamo verso il blocco (una volta per numero e per elemento)
-  for (const b of d.blocchi) { const n = richiami.get(b.id); if (n) out.push(richiamo(b.x + SIMBOLI[b.tipo].mezzo[0] * b.scala + 18, b.y - SIMBOLI[b.tipo].mezzo[1] * b.scala * 0.5 - 14, b.x + SIMBOLI[b.tipo].mezzo[0] * b.scala * 0.6, b.y - SIMBOLI[b.tipo].mezzo[1] * b.scala * 0.3, n)); }
-  for (const c of d.collegamenti) { const n = richiami.get(c.id); const pts = percorso(c, d.blocchi); if (n && pts) { const [p, q] = [pts[0]!, pts[1]!]; const mx = (p[0] + q[0]) / 2, my = (p[1] + q[1]) / 2; out.push(richiamo(mx + 22, my - 26, mx, my, n)); } }
+  for (const b of d.blocchi) { const n = richiami.get(b.id); if (n) { const [mx, my] = ingombro(b, opz.obo); out.push(richiamo(b.x + mx + 18, b.y - my * 0.5 - 14, b.x + mx * 0.6, b.y - my * 0.3, n)); } }
+  for (const c of d.collegamenti) { const n = richiami.get(c.id); const pts = percorso(c, d.blocchi, opz.obo); if (n && pts) { const [p, q] = [pts[0]!, pts[1]!]; const mx = (p[0] + q[0]) / 2, my = (p[1] + q[1]) / 2; out.push(richiamo(mx + 22, my - 26, mx, my, n)); } }
   if (righeLeg) {
     let y = H + 10;
     out.push(`<rect x="10" y="${y}" width="${W - 20}" height="22" fill="${MEDIO}"/><text x="18" y="${y + 15}" font-size="12" font-weight="bold" fill="#fff">Pos.</text><text x="62" y="${y + 15}" font-size="12" font-weight="bold" fill="#fff">Codice OBO</text><text x="160" y="${y + 15}" font-size="12" font-weight="bold" fill="#fff">Descrizione</text><text x="${W - 18}" y="${y + 15}" font-size="12" font-weight="bold" fill="#fff" text-anchor="end">Quantità</text>`);

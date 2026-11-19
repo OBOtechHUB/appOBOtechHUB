@@ -8,11 +8,12 @@ import { Button } from "@/components/ui/button";
 import { Campo, inputCls } from "@/components/Campo";
 import { useCatalogoObo, trovaArticolo } from "@/lib/catalogoObo";
 import {
-  CATEGORIE_SIMBOLI, NOMI_UNITA, SIMBOLI, STRUTTURA, TIPI_BLOCCO, UNITA_QUANTITA, componentiTipologico, disegnoVuoto, percorso, quota, svgTipologico, trasformazione,
+  CATEGORIE_SIMBOLI, NOMI_UNITA, SIMBOLI, STRUTTURA, TIPI_BLOCCO, UNITA_QUANTITA, componentiTipologico, disegnoObo, disegnoVuoto, ingombro, markupBlocco, markupConduttore, percorso, quota, svgTipologico, tipoDaDescrizione,
   type BloccoTip, type CollegamentoTip, type DisegnoTip, type TestoTip, type TipoBlocco, type UnitaQuantita,
 } from "@/calcoli/particolari/tipologico";
 import { scarica } from "@/lib/esportazioni";
 import { svgPng } from "@/components/progetto/RelazioneTecnica";
+import { incorporaImmagini, useDisegniObo } from "@/lib/disegniObo";
 
 export interface DatiSalvataggio { nome: string; categoria: "captazione" | "calata" | "raccordo" | "terra" | "impianti_tetto"; elemento: string; tipo: string; note: string }
 type Modo = "sposta" | "collega" | "quota" | "testo";
@@ -31,6 +32,8 @@ export function EditorTipologico({ iniziale, datiIniziali, onSalva, onChiudi }: 
   const svgRef = useRef<SVGSVGElement>(null);
   const trascina = useRef<{ id: string; k: "b" | "t"; dx: number; dy: number; prima: DisegnoTip; mosso: boolean } | null>(null);
   const { catalogo } = useCatalogoObo();
+  const obo = useDisegniObo();
+  const [codiceNuovo, setCodiceNuovo] = useState("");
   const { componenti, richiami } = useMemo(() => componentiTipologico(d), [d]);
 
   /** modifica con annullamento */
@@ -65,8 +68,16 @@ export function EditorTipologico({ iniziale, datiIniziali, onSalva, onChiudi }: 
   const aggiungiBlocco = (tipo: TipoBlocco) => {
     const s = SIMBOLI[tipo], id = nuovoId("b");
     const larga = STRUTTURA.has(tipo) && (tipo === "copertura" || tipo === "terreno");
-    const b: BloccoTip = { id, tipo, x: snap(d.larghezza / 2 + (d.blocchi.length % 5) * 20 - 40), y: larga ? snap(d.altezza - 60) : snap(d.altezza / 2 + (d.blocchi.length % 4) * 15 - 30), rot: 0, scala: larga ? Math.max(1, Math.round(((d.larghezza - 60) / 300) * 10) / 10) : 1, codiceOBO: "", descrizione: "", quantita: 1, unita: s.unita };
+    const b: BloccoTip = { id, tipo, x: snap(d.larghezza / 2 + (d.blocchi.length % 5) * 20 - 40), y: larga ? snap(d.altezza - 60) : snap(d.altezza / 2 + (d.blocchi.length % 4) * 15 - 30), rot: 0, scala: larga ? Math.max(1, Math.round(((d.larghezza - 60) / 300) * 10) / 10) : 1, codiceOBO: "", descrizione: "", quantita: 1, unita: s.unita, vista: "simbolo", larghezzaObo: 140 };
     cambia((x) => ({ ...x, blocchi: [...x.blocchi, b] })); setSel({ k: "b", id }); setModo("sposta");
+  };
+  /** blocco da codice OBO: tipo dal nome del catalogo, disegno ufficiale OBO se disponibile */
+  const aggiungiDaCodice = () => {
+    const codice = codiceNuovo.trim(); if (!codice) return;
+    const a = catalogo ? trovaArticolo(catalogo, codice) : null, nome = a ? `${a.prodotto.nome}${a.variante ? ` ${a.variante.valori.join(" ")}` : ""}` : "";
+    const tipo = tipoDaDescrizione(nome || codice), id = nuovoId("b");
+    const b: BloccoTip = { id, tipo, x: snap(d.larghezza / 2), y: snap(d.altezza / 2), rot: 0, scala: 1, codiceOBO: codice, descrizione: nome, quantita: 1, unita: SIMBOLI[tipo].unita, vista: obo?.codici[codice] ? "obo" : "simbolo", larghezzaObo: 140 };
+    cambia((x) => ({ ...x, blocchi: [...x.blocchi, b] })); setSel({ k: "b", id }); setModo("sposta"); setCodiceNuovo("");
   };
   const giuBlocco = (e: PE<SVGGElement>, b: BloccoTip) => {
     e.stopPropagation();
@@ -110,8 +121,8 @@ export function EditorTipologico({ iniziale, datiIniziali, onSalva, onChiudi }: 
   const codiceBlur = (codice: string, descr: string, set: (p: { descrizione: string }) => void) => { if (!descr.trim()) { const n = nomeCatalogo(codice); if (n) set({ descrizione: n }); } };
 
   async function esporta(formato: "svg" | "png") {
-    const svg = svgTipologico(d, { titolo: dati.nome || "Tipologico", legenda: true }), nome = (dati.nome || "tipologico").replace(/[^\w.-]+/g, "_");
-    if (formato === "svg") scarica(new Blob([svg], { type: "image/svg+xml" }), `${nome}.svg`);
+    const svg = svgTipologico(d, { titolo: dati.nome || "Tipologico", legenda: true, obo }), nome = (dati.nome || "tipologico").replace(/[^\w.-]+/g, "_");
+    if (formato === "svg") scarica(new Blob([await incorporaImmagini(svg)], { type: "image/svg+xml" }), `${nome}.svg`);
     else { const w = Number(svg.match(/width="(\d+)"/)?.[1] ?? 800); { const png = await svgPng(svg, (w / 96) * 2.54 * 1.5); scarica(new Blob([new Uint8Array(png)], { type: "image/png" }), `${nome}.png`); } }
   }
   async function salva() {
@@ -143,6 +154,9 @@ export function EditorTipologico({ iniziale, datiIniziali, onSalva, onChiudi }: 
     </div>
     <div className="mt-3 grid gap-3 lg:grid-cols-[11rem_1fr_16rem]">
       <div className="max-h-[34rem] space-y-3 overflow-y-auto pr-1" aria-label="Blocchi">
+        <div><p className="mb-1 text-xs font-semibold uppercase text-muted-foreground">Da codice OBO</p>
+          <div className="flex gap-1"><input className={`${inputCls} py-1 text-sm`} value={codiceNuovo} maxLength={40} placeholder="es. 5218700" aria-label="Codice OBO del blocco" onChange={(e) => setCodiceNuovo(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter") aggiungiDaCodice(); }} /><Button type="button" size="sm" onClick={aggiungiDaCodice}>+</Button></div>
+          <p className="mt-1 text-[11px] leading-tight text-muted-foreground">Usa il disegno ufficiale OBO del prodotto, se presente.</p></div>
         {CATEGORIE_SIMBOLI.map((cat) => <div key={cat}><p className="mb-1 text-xs font-semibold uppercase text-muted-foreground">{cat}</p>
           <div className="grid grid-cols-2 gap-1 lg:grid-cols-1">{TIPI_BLOCCO.filter((t) => SIMBOLI[t].categoria === cat).map((t) => { const s = SIMBOLI[t], m = Math.max(s.mezzo[0], s.mezzo[1]) + 6;
             return <button key={t} type="button" onClick={() => aggiungiBlocco(t)} className="flex items-center gap-2 rounded border px-1.5 py-1 text-left text-xs hover:border-accent hover:bg-accent/10" title={`Aggiungi: ${s.nome}`}>
@@ -154,18 +168,16 @@ export function EditorTipologico({ iniziale, datiIniziali, onSalva, onChiudi }: 
           <defs><pattern id="griglia-tip" width="20" height="20" patternUnits="userSpaceOnUse"><path d="M20,0 L0,0 0,20" fill="none" stroke="#E4EBED" strokeWidth="1" /></pattern>
             <marker id="fr-ed" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0,2 L10,5 L0,8 z" fill="#41525D" /></marker></defs>
           <rect width={d.larghezza} height={d.altezza} fill="url(#griglia-tip)" />
-          {d.collegamenti.map((c) => { const pts = percorso(c, d.blocchi); if (!pts) return null; const s = pts.map((p) => p.join(",")).join(" "), attivo = sel?.k === "c" && sel.id === c.id;
+          {d.collegamenti.map((c) => { const pts = percorso(c, d.blocchi, obo); if (!pts) return null; const s = pts.map((p) => p.join(",")).join(" "), attivo = sel?.k === "c" && sel.id === c.id;
             const onDown = (e: PE<SVGGElement>) => { e.stopPropagation(); setSel({ k: "c", id: c.id }); };
             if (c.tipo === "quota") { const q = quota(pts[0]!, pts[pts.length - 1]!);
               return <g key={c.id} onPointerDown={onDown} className="cursor-pointer" color={attivo ? "#F39B00" : "#41525D"}><polyline points={q.linea} fill="none" stroke="transparent" strokeWidth="14" /><polyline points={q.estensioni[0]} fill="none" stroke="currentColor" strokeWidth="0.8" /><polyline points={q.estensioni[1]} fill="none" stroke="currentColor" strokeWidth="0.8" /><polyline points={q.linea} fill="none" stroke="currentColor" strokeWidth="1" markerStart="url(#fr-ed)" markerEnd="url(#fr-ed)" /><text x={q.tx} y={q.ty} fontSize="12" textAnchor="middle" fill="currentColor" transform={`rotate(${q.ang} ${q.tx} ${q.ty})`}>{c.testo}</text></g>; }
-            return <g key={c.id} onPointerDown={onDown} className="cursor-pointer"><polyline points={s} fill="none" stroke="transparent" strokeWidth="14" /><polyline points={s} fill="none" stroke={attivo ? "#F39B00" : c.tipo === "linea" ? "#41525D" : "#282A31"} strokeWidth={c.tipo === "linea" ? 1 : c.tipo === "piatto" ? 6 : 4} strokeDasharray={c.tipo === "linea" ? "6 4" : undefined} strokeLinejoin="round" strokeLinecap="round" /></g>; })}
-          {d.blocchi.map((b) => { const s = SIMBOLI[b.tipo], attivo = sel?.k === "b" && sel.id === b.id, n = richiami.get(b.id);
+            return <g key={c.id} onPointerDown={onDown} className="cursor-pointer"><polyline points={s} fill="none" stroke="transparent" strokeWidth="14" /><g dangerouslySetInnerHTML={{ __html: markupConduttore(s, c.tipo === "quota" ? "linea" : c.tipo) }} />{attivo && <polyline points={s} fill="none" stroke="#F39B00" strokeWidth="2" strokeDasharray="5 4" />}</g>; })}
+          {[...d.blocchi.filter((x) => STRUTTURA.has(x.tipo)), ...d.blocchi.filter((x) => !STRUTTURA.has(x.tipo))].map((b) => { const [mx, my] = ingombro(b, obo), attivo = sel?.k === "b" && sel.id === b.id, n = richiami.get(b.id);
             return <g key={b.id} onPointerDown={(e) => giuBlocco(e, b)} className={modo === "sposta" ? "cursor-move" : "cursor-pointer"}>
-              <g transform={trasformazione(b)} color={attivo || primo === b.id ? "#F39B00" : STRUTTURA.has(b.tipo) ? "#41525D" : "#282A31"}>
-                <rect x={-s.mezzo[0] - 4} y={-s.mezzo[1] - 4} width={2 * s.mezzo[0] + 8} height={2 * s.mezzo[1] + 8} fill="transparent" stroke={attivo ? "#F39B00" : "none"} strokeDasharray="4 3" />
-                <g dangerouslySetInnerHTML={{ __html: s.forme }} />
-              </g>
-              {n && <g pointerEvents="none"><circle cx={b.x + s.mezzo[0] * b.scala + 14} cy={b.y - s.mezzo[1] * b.scala * 0.5 - 10} r="9" fill="#F39B00" /><text x={b.x + s.mezzo[0] * b.scala + 14} y={b.y - s.mezzo[1] * b.scala * 0.5 - 6} fontSize="10" fontWeight="bold" fill="#fff" textAnchor="middle">{n}</text></g>}
+              <g dangerouslySetInnerHTML={{ __html: markupBlocco(b, obo) }} />
+              <rect x={b.x - mx - 4} y={b.y - my - 4} width={2 * mx + 8} height={2 * my + 8} fill="transparent" stroke={attivo || primo === b.id ? "#F39B00" : "none"} strokeWidth="1.5" strokeDasharray="5 4" transform={`rotate(${b.rot} ${b.x} ${b.y})`} />
+              {n && <g pointerEvents="none"><circle cx={b.x + mx + 14} cy={b.y - my * 0.5 - 10} r="9" fill="#F39B00" /><text x={b.x + mx + 14} y={b.y - my * 0.5 - 6} fontSize="10" fontWeight="bold" fill="#fff" textAnchor="middle">{n}</text></g>}
             </g>; })}
           {d.testi.map((t) => <text key={t.id} x={t.x} y={t.y} fontSize={t.dim} fill={sel?.k === "t" && sel.id === t.id ? "#F39B00" : "#282A31"} className="cursor-move" onPointerDown={(e) => giuTesto(e, t)}>{t.t}</text>)}
         </svg>
@@ -181,6 +193,11 @@ export function EditorTipologico({ iniziale, datiIniziali, onSalva, onChiudi }: 
           <Campo etichetta="Tipo di blocco"><select className={inputCls} value={bSel.tipo} onChange={(e) => setB({ tipo: e.target.value as TipoBlocco })}>{TIPI_BLOCCO.map((t) => <option key={t} value={t}>{SIMBOLI[t].nome}</option>)}</select></Campo>
           <Campo etichetta="Codice OBO"><input className={inputCls} value={bSel.codiceOBO} maxLength={40} placeholder={STRUTTURA.has(bSel.tipo) ? "(struttura: nessun codice)" : "es. 5402864"} onChange={(e) => setB({ codiceOBO: e.target.value.trim() })} onBlur={(e) => codiceBlur(e.target.value, bSel.descrizione, setB)} /></Campo>
           {nomeCatalogo(bSel.codiceOBO) && <p className="text-xs text-muted-foreground">Catalogo: {nomeCatalogo(bSel.codiceOBO)}</p>}
+          {obo?.codici[bSel.codiceOBO.trim()] && <div className="grid gap-1 rounded border bg-muted/30 p-2">
+            <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={bSel.vista === "obo"} onChange={(e) => setB({ vista: e.target.checked ? "obo" : "simbolo" })} />Disegno ufficiale OBO del prodotto</label>
+            {bSel.vista === "obo" && <label className="flex items-center gap-2 text-xs">Larghezza <input className={`${inputCls} w-20 py-0.5 text-sm`} inputMode="numeric" value={bSel.larghezzaObo} onChange={(e) => { const v = Number(e.target.value); if (v >= 20 && v <= 1500) setB({ larghezzaObo: v }); }} /></label>}
+          </div>}
+          {bSel.vista === "obo" && !disegnoObo(bSel, obo) && <p className="text-xs text-muted-foreground">Disegno OBO non disponibile per questo codice: si usa il simbolo.</p>}
           <Campo etichetta="Descrizione"><input className={inputCls} value={bSel.descrizione} maxLength={300} placeholder={SIMBOLI[bSel.tipo].nome} onChange={(e) => setB({ descrizione: e.target.value })} /></Campo>
           <div className="grid grid-cols-2 gap-2"><Campo etichetta="Quantità"><input className={inputCls} inputMode="decimal" value={bSel.quantita} onChange={(e) => { const v = Number(e.target.value.replace(",", ".")); if (Number.isFinite(v) && v >= 0) setB({ quantita: v }); }} /></Campo>
             <Campo etichetta="Scala"><input className={inputCls} inputMode="decimal" value={bSel.scala} onChange={(e) => { const v = Number(e.target.value.replace(",", ".")); if (v >= 0.2 && v <= 10) setB({ scala: v }); }} /></Campo></div>

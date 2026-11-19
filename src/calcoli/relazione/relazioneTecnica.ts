@@ -28,7 +28,7 @@ import { l1Norma } from "@/calcoli/terra/proponiTerra";
 import blocchiTreppiede from "@/dati/captazione/blocchiTreppiede.json";
 import { NOME_TIPO, blocchiPerVento, fraseCalate, fraseIntervento, fraseSoluzione, frasiStatoDiFatto, tipoAsta, verificaCorpi, type InfoArticolo, type TipoAsta } from "./testiProgetto";
 import { schemaBlocchi } from "./grafici";
-import { disegnoDaComponenti, disegnoSchema, svgTipologico } from "@/calcoli/particolari/tipologico";
+import { disegnoDaComponenti, disegnoSchema, svgTipologico, type IndiceDisegniObo } from "@/calcoli/particolari/tipologico";
 import { barreLog, curvaCorrente, flussoValutazione, graficoSeparazione, graficoSfera, piantaCopertura, schemaSorgenti } from "./grafici";
 
 export type Lpl = "I" | "II" | "III" | "IV";
@@ -98,6 +98,8 @@ export interface IngressoRelazione {
   comuneUfficiale?: { nome: string; provincia: string } | undefined;
   /** autore e licenza dello stemma scaricato, riportati negli allegati quando la licenza lo chiede */
   creditoStemma?: string | undefined;
+  /** disegni 2D OBO copiati nell'app, per i tipologici disegnati con i blocchi OBO */
+  disegniObo?: IndiceDisegniObo | null | undefined;
   data: Date;
 }
 
@@ -763,7 +765,7 @@ export function relazioneTecnica(x: IngressoRelazione): Documento {
       // disegno: tipologico disegnato nell'app, scheda PDF dell'archivio, altrimenti schema indicativo dai componenti
       const dis = pa.disegno ? disegnoSchema.safeParse(pa.disegno) : null;
       if (dis?.success && dis.data.blocchi.length) {
-        const svg = svgTipologico(dis.data, { legenda: true }), w = Number(svg.match(/width="(\d+)"/)?.[1] ?? 800), h = Number(svg.match(/height="(\d+)"/)?.[1] ?? 500);
+        const svg = svgTipologico(dis.data, { legenda: true, obo: x.disegniObo ?? null }), w = Number(svg.match(/width="(\d+)"/)?.[1] ?? 800), h = Number(svg.match(/height="(\d+)"/)?.[1] ?? 500);
         B.push({ tipo: "immagine", svg, larghezza: 16, altezza: Math.round((16 * h / w) * 100) / 100 }, p([{ t: `Figura ${++nFig} – `, b: true }, { t: `Tipologico ${n}: ${pa.nome ?? pa.id}` }], { allinea: "centro", dimensione: 9 }));
       } else if (pa.immagine) {
         B.push({ tipo: "immagine", svg: "", pdf: pa.immagine, larghezza: 16, altezza: 11, mancante: `scheda ${pa.immagine} non trovata nell'archivio dei particolari: inserire il disegno del tipologico` });

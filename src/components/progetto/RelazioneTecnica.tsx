@@ -14,6 +14,7 @@ import { creaDocx, rasterizza, type Documento, type ImmaginePdf, type Testo } fr
 import { caricaCatalogoObo, trovaArticolo } from "@/lib/catalogoObo";
 import type { InfoArticolo } from "@/calcoli/relazione/testiProgetto";
 import { trovaSchedaPdf } from "@/lib/schedeParticolari";
+import { caricaDisegniObo, incorporaImmagini } from "@/lib/disegniObo";
 import { stemmaDelComune, type ComuneTrovato, type StemmaComune } from "@/lib/stemmaComune";
 
 /** Prima pagina della scheda PDF di un particolare (archivio privato dei particolari) come PNG. */
@@ -39,7 +40,8 @@ async function schedaPng(file: string): Promise<ImmaginePdf | null> {
 }
 
 /** SVG → PNG a 200 dpi con il canvas del browser. */
-export async function svgPng(svg: string, larghezzaCm: number): Promise<Uint8Array> {
+export async function svgPng(svgIn: string, larghezzaCm: number): Promise<Uint8Array> {
+  const svg = svgIn.includes("<image ") ? await incorporaImmagini(svgIn) : svgIn;
   const url = URL.createObjectURL(new Blob([svg], { type: "image/svg+xml" }));
   try {
     const img = new Image();
@@ -162,6 +164,7 @@ export function RelazioneTecnica({ righe, mancanti, particolari }: { righe: Riga
           logoCommittente: logoComm ? await preparaImmagine(logoComm, false, 800) : undefined,
           foto: await Promise.all(foto.map(async (f) => ({ img: await preparaImmagine(f.file, true), didascalia: f.didascalia }))),
         },
+        disegniObo: await caricaDisegniObo(),
         comuneUfficiale: auto.comune ? { nome: auto.comune.nome, provincia: auto.comune.provincia } : undefined,
         creditoStemma: stemmaAuto && !stemmaAuto.pubblicoDominio ? stemmaAuto.credito : undefined,
       }), svgPng, schedaPng);

@@ -44,3 +44,16 @@ describe("tipologici disegnati", () => {
     expect(p.disegno?.blocchi.length).toBe(nd.blocchi.length);
   });
 });
+
+describe("blocchi con il disegno OBO", () => {
+  it("usa l'immagine del prodotto quando è scelta e disponibile", async () => {
+    const { disegnoObo, markupBlocco, ingombro } = await import("./tipologico");
+    const ind = { base: "obo-disegni/", codici: { "5218700": "5218700.jpg" }, disegni: { "5218700.jpg": { w: 400, h: 200 } } };
+    const b = disegnoSchema.parse({ blocchi: [{ id: "x", tipo: "supporto-piano", x: 100, y: 100, codiceOBO: "5218700", vista: "obo", larghezzaObo: 120 }] }).blocchi[0]!;
+    expect(disegnoObo(b, ind)).toEqual({ href: "obo-disegni/5218700.jpg", w: 120, h: 60 });
+    expect(markupBlocco(b, ind)).toContain('<image href="obo-disegni/5218700.jpg"');
+    expect(ingombro(b, ind)).toEqual([60, 30]);
+    expect(markupBlocco({ ...b, vista: "simbolo" }, ind)).not.toContain("<image");
+    expect(disegnoObo({ ...b, codiceOBO: "0000000" }, ind)).toBeNull();
+  });
+});
