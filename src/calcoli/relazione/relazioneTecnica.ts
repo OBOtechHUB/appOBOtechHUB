@@ -21,7 +21,11 @@ import { KI, KM, NOMI_MATERIALE, kcSemplificato, perimetro, verificaPunti, type 
 import parametriLPL from "@/dati/captazione/parametriLPL.json";
 import distanzaCalate from "@/dati/calate/distanzaCalate.json";
 import fattori from "@/dati/rischio/fattorePosizione.json";
-import { NOMI_CONFIGURAZIONI, NOMI_MATERIALI, SEZIONI_CAPTATORI_CALATE, SEZIONI_EQUIPOTENZIALI } from "@/calcoli/norma/strumenti";
+import { DIMENSIONI_DISPERSORI, NOMI_CONFIGURAZIONI, NOMI_MATERIALI, SEZIONI_CAPTATORI_CALATE, SEZIONI_EQUIPOTENZIALI, SPESSORI_LASTRE } from "@/calcoli/norma/strumenti";
+import { PLPS, PEB, PSPD } from "@/calcoli/rischio/rischioR1";
+import { CORRENTE_LPL } from "@/calcoli/spd/sceltaSpd";
+import { l1Norma } from "@/calcoli/terra/proponiTerra";
+import { barreLog, curvaCorrente, graficoSeparazione, graficoSfera, piantaCopertura, schemaSorgenti } from "./grafici";
 
 export type Lpl = "I" | "II" | "III" | "IV";
 
@@ -108,6 +112,16 @@ export function relazioneTecnica(x: IngressoRelazione): Documento {
   const corpi = x.modello.corpi;
   const par = parametriLPL as unknown as Record<string, { raggio: number; latoMaglia: number }>;
   const R = par[lpl]!.raggio;
+  let nFig = 0, nTab = 0;
+  /** figura numerata: SVG (larghezza in px → 16 cm) con didascalia */
+  const fig = (svgTesto: string | null, didascalia: string, cm = 16) => {
+    if (!svgTesto) return;
+    const w = Number(svgTesto.match(/width="(\d+)"/)?.[1] ?? 900), h = Number(svgTesto.match(/height="(\d+)"/)?.[1] ?? 400);
+    B.push({ tipo: "immagine", svg: svgTesto, larghezza: cm, altezza: Math.round((cm * h / w) * 100) / 100 }, p([{ t: `Figura ${++nFig} – `, b: true }, { t: didascalia }], { allinea: "centro", dimensione: 9 }));
+  };
+  /** tabella numerata con titolo sopra */
+  const tabN = (titoloT: string, ...a: Parameters<typeof tab>) => B.push(p([{ t: `Tabella ${++nTab} – `, b: true }, { t: titoloT }], { dimensione: 9, spazioDopo: 2 }), tab(...a));
+  const evid = (b: Blocco, righe: number[]): Blocco => (b.tipo === "tabella" ? { ...b, evidenziaRighe: righe } : b);
   const destinazione: Run[] = r.destinazione ? [{ t: r.destinazione }] : [dc("destinazione d'uso")];
   const committente: Run[] = r.committente ? [{ t: r.committente, b: true }] : [dc("committente")];
   const indirizzoComm: Run[] = r.indirizzoCommittente || r.cittaCommittente ? [{ t: [r.indirizzoCommittente, r.cittaCommittente].filter(Boolean).join("\n") }] : [dc("indirizzo del committente")];
@@ -202,6 +216,9 @@ export function relazioneTecnica(x: IngressoRelazione): Documento {
     h2("6.1 Sorgente di rischio, S"),
     p("La corrente di fulmine è la principale sorgente di danno. Le sorgenti sono distinte in base al punto d'impatto del fulmine."),
     el("S1 – Fulmine sulla struttura.", "S2 – Fulmine in prossimità della struttura.", "S3 – Fulmine su una linea.", "S4 – Fulmine in prossimità di una linea."),
+  );
+  fig(schemaSorgenti(), "Sorgenti di danno in base al punto d'impatto del fulmine (schema)");
+  B.push(
     h2("6.2 Tipo di danno, D"),
     p("Un fulmine può causare danni in funzione delle caratteristiche dell'oggetto da proteggere. Nelle pratiche applicazioni della determinazione del rischio è utile distinguere tra i tre tipi principali di danno che possono manifestarsi come conseguenza di una fulminazione:"),
     el("D1 – Danno ad esseri viventi per elettrocuzione.", "D2 – Danno materiale.", "D3 – Guasto di impianti elettrici ed elettronici."),
@@ -218,6 +235,13 @@ export function relazioneTecnica(x: IngressoRelazione): Documento {
     el([{ t: "rischio tollerabile per perdita di vite umane e per danno materiale: RT = 10" }, { t: "-5", sup: true }, { t: " anni" }, { t: "-1", sup: true }, { t: "." }]),
     p("Per il guasto degli impianti interni si confronta la frequenza del danno F con la frequenza tollerabile FT:"),
     el([{ t: "FT = 0,1 anni" }, { t: "-1", sup: true }, { t: " per impianti interni critici per la sicurezza o per il servizio;" }], [{ t: "FT = 1 anni" }, { t: "-1", sup: true }, { t: " negli altri casi, salvo valore diverso stabilito dal proprietario della struttura." }]),
+  );
+  tabN("Valori tollerabili (CEI EN IEC 62305-2:2024)", ["Grandezza", "Valore tollerabile", "Applicazione"], [
+    [[{ t: "RT" }], [{ t: "10" }, { t: "-5", sup: true }, { t: " anni" }, { t: "-1", sup: true }], "Rischio R = RL1 + RL2 di ogni zona"],
+    [[{ t: "FT" }], [{ t: "0,1 anni" }, { t: "-1", sup: true }], "Frequenza del danno con impianti interni critici"],
+    [[{ t: "FT" }], [{ t: "1 anni" }, { t: "-1", sup: true }], "Frequenza del danno negli altri casi"],
+  ], [2, 3, 6]);
+  B.push(
     h2("6.6 Componenti di rischio per tipo di perdita"),
     p("Per ogni tipo di perdita (e per la frequenza del danno), nella tabella seguente sono riportate le componenti che vi contribuiscono:"),
     tab(["Sorgente", "S1", "S1", "S1", "S2", "S3", "S3", "S3", "S4"], [
@@ -320,11 +344,15 @@ export function relazioneTecnica(x: IngressoRelazione): Documento {
     p("L'idoneità dell'LPS deve essere verificata in conformità alla norma CEI EN IEC 62305-2:2024."),
     h2("7.1 Impianto di captazione"),
     p("Il posizionamento del sistema di captatori è considerato adeguato quando la struttura che deve essere protetta risulta interamente all'interno del volume protetto dal sistema di captatori. L'impianto di captazione secondo il metodo della sfera rotolante (integrato, dove serve, dal metodo della maglia) prevede l'installazione di una rete di captatori secondo lo schema seguente:"),
-    tab(["Criteri di intercettazione", "I", "II", "III", "IV"], [
+  );
+  tabN("Parametri della corrente di fulmine e criteri di intercettazione per LPL (CEI EN IEC 62305-1 e -3:2024)", ["Criteri di intercettazione", "I", "II", "III", "IV"], [
+      ["Massimo valore della corrente di picco I (kA)", ...LIVELLI.map((l) => String(CORRENTE_LPL[l]))],
       ["Minimo valore della corrente di picco I (kA)", ...LIVELLI.map((l) => String(IMIN[l]))],
       ["Raggio della sfera rotolante R (m)", ...LIVELLI.map((l) => String(par[l]!.raggio))],
       [[{ t: "Lato maglia W" }, { t: "m", sub: true }, { t: " (m)" }], ...LIVELLI.map((l) => `${par[l]!.latoMaglia} × ${par[l]!.latoMaglia}`)],
-    ], [5, 1.5, 1.5, 1.5, 1.5], col),
+    ], [5, 1.5, 1.5, 1.5, 1.5], col);
+  fig(curvaCorrente(lpl, IMIN[lpl], CORRENTE_LPL[lpl]), `Probabilità che il valore di picco della corrente di fulmine superi I (valori della CEI EN IEC 62305-1:2024, Tab. A.3) con i limiti dell'LPL ${lpl}`);
+  B.push(
     p(`Per il presente progetto (LPL ${lpl}, colonna evidenziata): raggio della sfera rotolante ${R} m, lato della maglia ${par[lpl]!.latoMaglia} m.`, { grassetto: true }),
     p("La norma CEI EN IEC 62305-1:2024 definisce i valori minimi dei parametri del fulmine e i relativi raggi massimi della sfera rotolante corrispondenti ai diversi livelli di protezione in funzione non della carica, ma della corrente di fulmine."),
     p("Data una carica elettrica (la testa del futuro fulmine) in un mezzo dielettrico omogeneo, la sfera con il centro sulla stessa carica è il luogo geometrico dei punti che hanno la stessa probabilità di scarica. Il raggio della sfera è funzione, oltre che della probabilità di scarica, anche del valore della carica:"),
@@ -334,7 +362,10 @@ export function relazioneTecnica(x: IngressoRelazione): Documento {
     p("Tutti i punti toccati dalla sfera sono quelli che per primi sarebbero oggetto di fulminazione e come tali devono essere protetti con un captatore che, toccato per primo dalla sfera, diventa il punto di impatto del fulmine. Tra due captatori la sfera penetra verso la copertura per una profondità p che dipende dal raggio R e dalla distanza d tra i captatori:"),
     p([{ t: "p = R − √(R² − (d/2)²)" }], { formula: true }),
     p("I componenti naturali costituiti da elementi metallici che sono parte integrante della struttura e che non possono essere modificati facilmente possono essere usati come elementi dell'LPS. Se adeguatamente dimensionati, possono essere usati come componenti naturali del sistema di captatori e, quindi, entrare a far parte dell'LPS i seguenti elementi di una struttura:"),
-    el("lastre metalliche di copertura, con gli spessori minimi della CEI EN IEC 62305-3:2024;", "componenti metallici costruttivi di tetti (capriate metalliche, ecc.) al di sotto di una copertura non metallica, purché sia accettabile il danneggiamento di quest'ultima;", "parti metalliche come gronde, ornamenti, ringhiere;", "tubazioni e serbatoi metallici sul tetto."),
+    el("lastre metalliche di copertura, con gli spessori minimi della tabella seguente;", "componenti metallici costruttivi di tetti (capriate metalliche, ecc.) al di sotto di una copertura non metallica, purché sia accettabile il danneggiamento di quest'ultima;", "parti metalliche come gronde, ornamenti, ringhiere;", "tubazioni e serbatoi metallici sul tetto."),
+  );
+  tabN("Spessore minimo di lastre e tubazioni metalliche usate come captatori naturali (CEI EN IEC 62305-3:2024, Tab. 3)", ["Materiale", "Spessore t (mm) – senza perforazione", "Spessore t' (mm) – perforazione ammessa"], SPESSORI_LASTRE.map((z) => [NOMI_MATERIALI[z.materiale], z.t != null ? it(z.t) : "—", it(z.t1)]), [4, 4, 4]);
+  B.push(p("t: spessore che evita la perforazione o il surriscaldamento nel punto d'impatto, richiesto se sotto la lastra c'è materiale infiammabile; t': spessore minimo quando la perforazione è accettabile.", { dimensione: 8.5 }),
     p("Solo strutture più alte di 60 m possono essere interessate dalla fulminazione anche sulle facciate: in questo caso va protetta anche la parte alta delle facciate."),
     p("La ripartizione della corrente di fulmine sui captatori dipende dal tipo e dal numero degli stessi così come dal numero totale e dal sistema delle calate e dei dispersori. Il punto di impatto è sempre interessato dalla corrente totale indipendentemente dal tipo di captatore e da tutto il resto. Pertanto, un captatore che è colpito da fulmine viene percorso dalla corrente totale; questa corrente poi si ripartisce lungo il sistema secondo il numero di nodi che incontra lungo il percorso verso il dispersore di terra. Per il dimensionamento dei conduttori va fatto necessariamente riferimento al caso più gravoso."),
     p("Nell'installazione dei captatori deve essere mantenuta una distanza minima rispetto a corpi metallici, impianti elettrici, di telecomunicazione e di segnale. Quando la corrente di fulmine percorre l'LPS si manifestano infatti delle cadute di tensione longitudinali che sollecitano l'eventuale isolamento tra detto elemento e le parti che lo circondano."),
@@ -351,7 +382,9 @@ export function relazioneTecnica(x: IngressoRelazione): Documento {
     p("Se la corrente di fulmine è ripartita su diverse calate, è intuitivo comprendere che il rischio di scariche laterali e di disturbi elettromagnetici all'interno della struttura si riduce. Per ridurre la probabilità che la corrente di fulmine attraverso l'LPS provochi un danno, è quindi opportuno che le calate siano disposte in modo parallelo e simmetrico e che le lunghezze dei percorsi siano ridotte al minimo."),
     p("A seconda della struttura (ad esempio portoni, prefabbricati in calcestruzzo) le distanze tra le varie calate possono variare. In ogni caso deve essere rispettato il numero minimo delle calate necessarie, a seconda della classe di LPS."),
     p("Nella norma CEI EN IEC 62305-3:2024 (Tab. 5) vengono elencate le distanze tipiche tra calate e conduttori ad anello, a seconda della classe di LPS:"),
-    tab(["Classe di LPS", "I", "II", "III", "IV"], [["Distanza tipica (m)", ...LIVELLI.map((l) => String((distanzaCalate as unknown as Record<string, { distanzaTipica: number }>)[l]?.distanzaTipica ?? "—"))]], [5, 1.5, 1.5, 1.5, 1.5], col),
+  );
+  tabN("Distanze tipiche tra le calate e tra i conduttori ad anello (CEI EN IEC 62305-3:2024, Tab. 5)", ["Classe di LPS", "I", "II", "III", "IV"], [["Distanza tipica (m)", ...LIVELLI.map((l) => String((distanzaCalate as unknown as Record<string, { distanzaTipica: number }>)[l]?.distanzaTipica ?? "—"))]], [5, 1.5, 1.5, 1.5, 1.5], col);
+  B.push(
     p("La disposizione delle calate deve essere tale che:"),
     el("gli impianti di protezione ad aste abbiano almeno una calata in corrispondenza di ogni asta;", "gli impianti di protezione a funi abbiano almeno una calata in corrispondenza di entrambe le estremità di ogni fune;", `gli impianti di protezione a maglia abbiano calate periferiche, con un minimo di 2, disposte con il passo della tabella precedente (${dist} m per LPL ${lpl}) misurato lungo il perimetro.`),
     p("Le calate devono essere interconnesse fra loro mediante conduttori ad anello, preferibilmente chiusi, alla base della struttura e a intervalli in altezza indicativamente pari alla distanza tipica della tabella precedente."),
@@ -362,10 +395,15 @@ export function relazioneTecnica(x: IngressoRelazione): Documento {
   const rame = SEZIONI_EQUIPOTENZIALI.rame;
   B.push(h2("7.3 Materiali e dimensioni minime per organi di captazione e di calata"),
     p("I materiali, le configurazioni, le minime sezioni dei conduttori e delle aste dei captatori sono definiti dalla Tabella 7 della norma CEI EN IEC 62305-3:2024, di cui si riportano i valori principali:"),
-    tab(["Materiale", "Configurazione", "Sezione minima (mm²)"], SEZIONI_CAPTATORI_CALATE.filter((z) => ["rame", "alluminio", "acciaio-zincato", "acciaio-inox"].includes(z.materiale)).map((z) => [NOMI_MATERIALI[z.materiale], NOMI_CONFIGURAZIONI[z.configurazione], String(z.sezione)]), [4, 5, 2]),
+  );
+  tabN("Materiale, configurazione e sezione minima di captatori, aste e calate (CEI EN IEC 62305-3:2024, Tab. 7)", ["Materiale", "Configurazione", "Sezione minima (mm²)"], SEZIONI_CAPTATORI_CALATE.filter((z) => ["rame", "alluminio", "acciaio-zincato", "acciaio-inox"].includes(z.materiale)).map((z) => [NOMI_MATERIALI[z.materiale], NOMI_CONFIGURAZIONI[z.configurazione], String(z.sezione)]), [4, 5, 2]);
+  B.push(
     p([{ t: "Verranno utilizzati per gli organi di captazione e di calata conduttori tondi in alluminio o in acciaio zincato a caldo da 50 mm² (diametro 8 mm)" }, ...(() => { const m = [...new Set(x.conduttori.filter((c) => c.tipo !== "terra").map((c) => [c.materiale, c.sezione ? `${c.sezione}${/^\d+$/.test(c.sezione) ? " mm²" : ""}` : ""].filter(Boolean).join(" ")).filter(Boolean))]; return m.length ? [{ t: `; nel progetto: ${m.join(", ")}` }] : []; })(), { t: "." }]),
     p("Questi requisiti risultano dalla conduttività elettrica dei materiali utilizzati per condurre la corrente di fulmine (aumento di temperatura) e dalle sollecitazioni meccaniche durante l'utilizzo."),
     p("Quando si utilizza un tondino Ø 8 mm come punta di captazione, è ammessa un'altezza libera massima di 0,5 m. La limitazione dell'altezza per il tondino Ø 10 mm è di 1 m di lunghezza libera."),
+  );
+  tabN("Sezione minima dei conduttori equipotenziali (CEI EN IEC 62305-3:2024, Tab. 9 e 10)", ["Materiale", "Tra le barre equipotenziali o verso terra (mm²)", "Verso le masse metalliche interne (mm²)"], (["rame", "alluminio", "acciaio"] as const).map((m) => [m.charAt(0).toUpperCase() + m.slice(1), String(SEZIONI_EQUIPOTENZIALI[m].traBarre), String(SEZIONI_EQUIPOTENZIALI[m].corpiInterni)]), [3, 5, 5]);
+  B.push(
     p(`Secondo le Tabelle 9 e 10 della norma CEI EN IEC 62305-3:2024, la sezione minima richiesta per un conduttore di collegamento tra barre equipotenziali, o verso l'impianto di terra, è ${rame.traBarre} mm² in rame (${SEZIONI_EQUIPOTENZIALI.alluminio.traBarre} mm² in alluminio, ${SEZIONI_EQUIPOTENZIALI.acciaio.traBarre} mm² in acciaio); verso le masse metalliche interne è ${rame.corpiInterni} mm² in rame. Sarebbe quindi possibile utilizzare un cavo in rame isolato in PVC NYY 1 × 16 mm², provato con corrente impulsiva di 100 kA (10/350 µs), come calata oppure come conduttore fuori terra e interrato.`),
   );
 
@@ -407,6 +445,8 @@ export function relazioneTecnica(x: IngressoRelazione): Documento {
       ["Posizione relativa (CD)", pos ? `${pos.descrizione} (CD = ${it(pos.valore)})` : "—"],
     ], [4, 8]),
   );
+  tabN("Fattore di posizione CD (CEI EN IEC 62305-2:2024, Tab. A.1) – riga del progetto evidenziata", ["Posizione relativa della struttura", "CD"], fattori.map((f) => [f.descrizione, it(f.valore)]), [9, 2]);
+  { const b = B.pop()!; B.push(evid(b, [fattori.findIndex((f) => f.id === d.posizioneId)])); }
   corpi.forEach((c, i) => {
     const xs = c.impronta.map((q) => q[0]), ys = c.impronta.map((q) => q[1]);
     const a = Math.max(...xs) - Math.min(...xs), b = Math.max(...ys) - Math.min(...ys);
@@ -448,10 +488,34 @@ export function relazioneTecnica(x: IngressoRelazione): Documento {
       ], [7, 4]));
     if (st.linee.length) B.push(h3("Linee entranti"), tab(["Linea", "Lunghezza (m)", "Posa CI", "Ambiente CE", "Tipo CT", "Ingresso / schermatura"], st.linee.map((l: Linea) => [l.nome, it(l.sezioni?.length ? l.sezioni.reduce((a, s) => a + s.lunghezza, 0) : l.lunghezza, 0), it(l.posa), it(l.ambiente), it(l.tipo), CONNESSIONI.find((c) => c.id === l.connessione)?.nome ?? (l.schermata ? "Schermata" : "Non schermata")]), [2, 1.4, 1, 1.2, 1, 4]));
     B.push(h3("Zone della struttura"), tab(["Zona", "Presenza (h/anno)", "Pavimento rt", "Rischio incendio rf", "Protezione incendio rp", "Categoria di perdita", "Misure contatto"], zone.map((z) => [z.nome, it(z.oreAnno, 0), PAVIMENTO.find((o) => o.valore === z.rt)?.nome ?? it(z.rt, 5), RISCHIO_INCENDIO.find((o) => o.id === z.rfId)?.nome ?? z.rfId, PROTEZIONE_INCENDIO.find((o) => o.valore === z.rp)?.nome ?? it(z.rp), (CATEGORIE.find((c) => c.id === z.categoria)?.nome ?? z.categoria).replace(/ \(.*\)$/, ""), MISURE_CONTATTO.find((o) => o.valore === z.misureContatto)?.nome ?? it(z.misureContatto, 3)]), [2, 1.3, 1.6, 2, 2, 1.6, 2]));
+    const usati = <T,>(lista: T[], usa: (o: T) => boolean) => lista.map((o, i) => (usa(o) ? i : -1)).filter((i) => i >= 0);
+    B.push(h3("Coefficienti adottati (righe evidenziate)"));
+    tabN("Categorie di perdita e perdite tipiche LF, LO (CEI EN IEC 62305-2:2024, Tab. C.2)", ["Categoria della struttura", "LF", "LO"], CATEGORIE.map((c) => [c.nome, sci(c.LF), sci(c.LO)]), [8, 1.6, 1.6]);
+    { const b = B.pop()!; B.push(evid(b, usati(CATEGORIE, (c) => zone.some((z) => z.categoria === c.id || z.categoriaL2 === c.id)))); }
+    tabN("Fattore di riduzione per rischio d'incendio o di esplosione rf (Tab. B.6)", ["Rischio", "rf"], RISCHIO_INCENDIO.map((o) => [o.nome, sci(o.valore)]), [8, 2]);
+    { const b = B.pop()!; B.push(evid(b, usati(RISCHIO_INCENDIO, (o) => zone.some((z) => z.rfId === o.id)))); }
+    tabN("Fattore di riduzione per le misure antincendio rp (Tab. B.5)", ["Misure", "rp"], PROTEZIONE_INCENDIO.map((o) => [o.nome, it(o.valore)]), [8, 2]);
+    { const b = B.pop()!; B.push(evid(b, usati(PROTEZIONE_INCENDIO, (o) => zone.some((z) => z.rp === o.valore)))); }
+    tabN("Fattore di riduzione in funzione del tipo di superficie rt (Tab. B.2)", ["Superficie del suolo o del pavimento", "rt"], PAVIMENTO.map((o) => [o.nome, sci(o.valore)]), [8, 2]);
+    { const b = B.pop()!; B.push(evid(b, usati(PAVIMENTO, (o) => zone.some((z) => z.rt === o.valore)))); }
+    tabN("Probabilità per le misure contro le tensioni di contatto e di passo (Tab. B.1)", ["Misura di protezione", "Valore"], MISURE_CONTATTO.map((o) => [o.nome, sci(o.valore)]), [8, 2]);
+    { const b = B.pop()!; B.push(evid(b, usati(MISURE_CONTATTO, (o) => zone.some((z) => z.misureContatto === o.valore)))); }
+    const CL: ClasseLps[] = ["nessuno", "IV", "III", "II", "I"];
+    tabN("Probabilità PLPS, PEB e PSPD in funzione della classe di LPS e del livello degli SPD (Tab. B.3, B.13, B.7 e B.8)", ["Classe / livello", ...CL.map((c) => (c === "nessuno" ? "Nessuno" : c))], [
+      ["PLPS (struttura protetta da LPS)", ...CL.map((c) => it(PLPS[c], 3))], ["PEB (SPD per il collegamento equipotenziale)", ...CL.map((c) => it(PEB[c], 3))], ["PSPD (sistema coordinato di SPD)", ...CL.map((c) => it(PSPD[c], 3))],
+    ], [5, 1.4, 1.2, 1.2, 1.2, 1.2], CL.indexOf(lpl) + 1);
     const righeEsito = (es: EsitoStruttura): Testo[][] => es.zone.map((z) => [z.zona.nome, sci(z.RL1), sci(z.RL2), [...sci(z.R), { t: z.conforme ? "  ≤ RT" : "  > RT", b: true }], sci(z.F), [...sci(z.FT), { t: z.frequenzaConforme ? "  F ≤ FT" : "  F > FT", b: true }]]);
     const comp = (es: EsitoStruttura) => tab(["Zona", "RA", "RB", "RC", "RM", "RU", "RV", "RW", "RZ"], es.zone.map((z) => [z.zona.nome, sci(z.componenti.RA + z.componenti.RAD), sci(z.componenti.RB), sci(z.componenti.RC), sci(z.componenti.RM), sci(z.componenti.RU), sci(z.componenti.RV), sci(z.componenti.RW), sci(z.componenti.RZ)]), [1.6, 1, 1, 1, 1, 1, 1, 1, 1]);
     B.push(h2("12.2 Rischio della struttura senza misure di protezione"), tab(["Zona", "RL1", "RL2", "R", "F", "FT"], righeEsito(esitoSenza), [2.4, 1.6, 1.6, 2.2, 1.6, 2.2]), h3("Componenti di rischio"), comp(esitoSenza),
       h2(`12.3 Rischio della struttura con le misure di progetto (LPS e SPD di livello ${lpl})`), tab(["Zona", "RL1", "RL2", "R", "F", "FT"], righeEsito(esitoCon), [2.4, 1.6, 1.6, 2.2, 1.6, 2.2]), h3("Componenti di rischio"), comp(esitoCon));
+    B.push(h3("Confronto grafico"));
+    fig(barreLog({ categorie: esitoSenza.zone.map((z) => z.zona.nome), serie: [{ nome: "senza protezione", valori: esitoSenza.zone.map((z) => z.R) }, { nome: `con LPS e SPD di livello ${lpl}`, valori: esitoCon.zone.map((z) => z.R) }], soglia: { valore: RT, etichetta: "RT = 10⁻⁵" }, asseY: "rischio R (1/anno)" }), "Rischio R di ogni zona senza e con le misure di protezione, confrontato con RT (scala logaritmica)");
+    const peggiore = esitoSenza.zone.reduce((a, z, i) => (z.R > (esitoSenza!.zone[a]?.R ?? 0) ? i : a), 0);
+    const zs = esitoSenza.zone[peggiore]!, zc = esitoCon.zone[peggiore]!;
+    const NOMI_C = ["RA", "RB", "RC", "RM", "RU", "RV", "RW", "RZ"] as const;
+    const val = (z: typeof zs) => NOMI_C.map((k) => (k === "RA" ? z.componenti.RA + z.componenti.RAD : z.componenti[k]));
+    fig(barreLog({ categorie: [...NOMI_C], serie: [{ nome: "senza protezione", valori: val(zs) }, { nome: `con LPS e SPD di livello ${lpl}`, valori: val(zc) }], soglia: { valore: RT, etichetta: "RT = 10⁻⁵" }, asseY: "componente di rischio (1/anno)" }), `Componenti di rischio della zona «${zs.zona.nome}» senza e con le misure di protezione (scala logaritmica)`);
+    fig(barreLog({ categorie: esitoSenza.zone.map((z) => z.zona.nome), serie: [{ nome: "F senza protezione", valori: esitoSenza.zone.map((z) => z.F) }, { nome: `F con SPD di livello ${lpl}`, valori: esitoCon.zone.map((z) => z.F) }], soglia: { valore: Math.min(...esitoCon.zone.map((z) => z.FT)), etichetta: `FT = ${it(Math.min(...esitoCon.zone.map((z) => z.FT)), 2)}` }, asseY: "frequenza del danno F (1/anno)" }), "Frequenza del danno agli impianti interni F di ogni zona, confrontata con FT (scala logaritmica)");
     const caso = esitoSenza.conforme && esitoSenza.frequenzaConforme ? 1 : esitoCon.conforme && esitoCon.frequenzaConforme ? 2 : 3;
     B.push(h2("12.4 Esito"),
       p([{ t: caso === 1 ? "Caso 1 – la struttura è autoprotetta: non sono necessarie misure di protezione." : caso === 2 ? `Caso 2 – con un LPS di classe ${lpl} e un sistema di SPD di livello ${lpl} la struttura è protetta.` : `Caso 3 – con le misure di livello ${lpl} la struttura NON risulta protetta: servono ulteriori misure.`, b: true }]),
@@ -487,11 +551,17 @@ export function relazioneTecnica(x: IngressoRelazione): Documento {
   }
   B.push(p(`Con un LPS di classe ${lpl} la sfera rotolante di riferimento ha raggio ${R} m. La profondità di penetrazione della sfera tra due captatori in funzione della loro distanza (diagonale della figura replicata) è:`),
     tab(["Distanza tra i captatori d (m)", ...[10, 15, 20, 25, 30, 35, 40].map(String)], [["Penetrazione p (m)", ...[10, 15, 20, 25, 30, 35, 40].map((dd) => it(penetrazione(R, dd), 2))]], [3.5, 1, 1, 1, 1, 1, 1, 1]),
+  );
+  fig(graficoSfera(R, dMax > 0 ? dMax : null), `Profondità di penetrazione della sfera rotolante (R = ${R} m) in funzione della distanza tra i captatori e schema in sezione`);
+  B.push(
     ...(dMax > 0 ? [p(`Nel progetto la distanza massima tra un'asta e la più vicina è di ${it(dMax, 1)} m: la sfera penetra di circa ${it(penetrazione(R, dMax), 2)} m (lungo la diagonale tra quattro aste la penetrazione è maggiore e va verificata sui disegni).`)] : []),
     p([{ t: "Sul tetto dell'edificio viene mantenuta un'altezza da difendere di: " }, dc("altezze massime degli impianti da proteggere per ogni zona della copertura"), { t: ". Sarà prevista una distanza di sicurezza di almeno 1 m tra l'altezza massima da proteggere e il punto di massima penetrazione della sfera rotolante." }]),
   );
   if (ver) B.push(tab(["Verifica della captazione", "Valore"], [["Superficie protetta dalla sfera rotolante", `${it(ver.areaProtettaSfera, 1)} m²`], ["Superficie protetta dalla maglia", `${it(ver.areaProtettaMaglia, 1)} m²`], ["Superficie esposta", `${it(ver.areaEsposta, 1)} m²`], ["Maglie conformi", `${ver.maglie.filter((m) => m.conforme).length} su ${ver.maglie.length}`]], [6, 5]), ...(ver.areaEsposta > 0.5 ? [p([{ t: `Attenzione: ${it(ver.areaEsposta, 1)} m² di copertura risultano esposti. `, b: true }, dc("integrare la captazione o motivare")])] : []));
   B.push(p([{ t: "Aste su treppiede: in funzione della valutazione del carico di vento è necessario scegliere il numero di blocchi in calcestruzzo per sostenere l'asta (tabella del costruttore: velocità del vento e altezza dell'asta). Va inoltre considerato il peso della struttura che sostiene l'asta (asta, treppiede, blocchi). " }, dc("velocità del vento di progetto, numero di blocchi e pesi")]),
+  );
+  fig(piantaCopertura(corpi, x.conduttori, x.aste), "Pianta schematica della copertura con captatori, conduttori e calate (dal modello di progetto; il disegno esecutivo è nelle tavole allegate)");
+  B.push(
     p("I captatori saranno collegati al sistema disperdente attraverso un insieme di calate posizionate lungo il perimetro dell'edificio. Le aste sono posizionate nelle vicinanze delle calate per ridurre al minimo le correnti vaganti sul tetto dell'edificio ed evitare quindi accoppiamenti elettrici indesiderati. Nelle planimetrie allegate è possibile individuare la posizione esatta di tutto il sistema dei captatori; i tipologici del capitolo 14 dettagliano i collegamenti."));
   B.push(h2("13.2 Calate"));
   if (nCalate) {
@@ -511,6 +581,9 @@ export function relazioneTecnica(x: IngressoRelazione): Documento {
     p([{ t: "s = (k" }, { t: "i", sub: true }, { t: " × k" }, { t: "c", sub: true }, { t: " / k" }, { t: "m", sub: true }, { t: ") × l" }], { formula: true }),
     p(`con ki = ${it(ki, 3)} (LPL ${lpl}), kc = ${it(kc, 3)} (${nCalate || 1} calate), km = 1 in aria e ${it(km.solido, 2)} in materiale solido; l è la lunghezza lungo l'LPS dal punto considerato al più vicino collegamento equipotenziale.`),
   );
+  tabN("Coefficiente ki in funzione della classe di LPS (CEI EN IEC 62305-3:2024, Tab. 11)", ["Classe di LPS", "I", "II", "III", "IV"], [["ki", ...LIVELLI.map((l) => it(KI[l], 2))]], [5, 1.5, 1.5, 1.5, 1.5], col);
+  tabN("Coefficiente km in funzione del materiale isolante (CEI EN IEC 62305-3:2024, Tab. 12)", ["Materiale", "km"], (Object.keys(KM) as (keyof typeof KM)[]).map((m) => [NOMI_MATERIALE[m], it(km[m], 2)]), [9, 2]);
+  if (esiti.length || nCalate) fig(graficoSeparazione(ki, kc, km.solido, esiti.map((e) => ({ l: e.l, d: e.d, conforme: e.conforme, nome: e.descrizione || e.id }))), "Distanza di separazione richiesta in funzione di l e distanze effettive dei punti verificati");
   if (esiti.length) B.push(tab(["Punto", "Materiale", "l (m)", "s richiesta (m)", "d effettiva (m)", "Esito"], esiti.map((e) => [e.descrizione || e.id, NOMI_MATERIALE[e.materiale].replace(/ \(.*\)$/, ""), it(e.l, 2), it(e.s, 3), it(e.d, 3), e.conforme ? "Conforme" : [{ t: "Non conforme: collegare o isolare", b: true }]]), [3, 2.5, 1, 1.5, 1.5, 1.8]));
   else B.push(p([dc("punti critici (impianti in copertura, parti metalliche) con la distanza effettiva")]));
   // terra
@@ -527,6 +600,10 @@ export function relazioneTecnica(x: IngressoRelazione): Documento {
     if (re != null) righeT.push([[{ t: "Raggio equivalente r" }, { t: "e", sub: true }], `${it(re, 1)} m`]);
     B.push(p("Il sistema di dispersori disperde nel terreno la corrente di fulmine senza sovratensioni pericolose. È unico per l'LPS e per l'impianto elettrico ed è collegato al collettore principale di terra; i dispersori di edifici vicini sono preferibilmente collegati tra loro in un unico sistema disperdente."), tab(["Elemento", "Valore"], righeT, [5, 7]));
   } else B.push(p([dc("impianto di terra esistente o di progetto (tipo, anelli, collegamenti, misure di resistenza)")]));
+  { const rhos = [100, 500, 1000, 1500, 2000, 2500, 3000];
+    tabN("Lunghezza minima l1 del dispersore in funzione della resistività del terreno (CEI EN IEC 62305-3:2024, 5.4.2)", ["Resistività ρ (Ωm)", ...rhos.map(String)], LIVELLI.map((l) => [`Classe ${l} (m)`, ...rhos.map((rho) => it(l1Norma(l, rho), 1))]), [3, 1, 1, 1, 1, 1, 1, 1]);
+    const b = B.pop()!; B.push(evid(b, [LIVELLI.indexOf(lpl)])); }
+  tabN("Dimensioni minime dei dispersori (CEI EN IEC 62305-3:2024, Tab. 8)", ["Materiale", "Configurazione", "Diametro (mm)", "Sezione (mm²)", "Piastra (mm)"], DIMENSIONI_DISPERSORI.map((z) => [NOMI_MATERIALI[z.materiale], NOMI_CONFIGURAZIONI[z.configurazione], z.diametro != null ? String(z.diametro) : "—", z.sezione != null ? String(z.sezione) : "—", z.piastra ?? "—"]), [3, 3, 1.4, 1.4, 3]);
   // SPD
   B.push(h2("13.5 Protezione degli impianti interni (SPD)"),
     p("Le linee metalliche entranti (energia, telecomunicazioni, dati) sono collegate all'impianto equipotenziale all'ingresso nella struttura, direttamente o tramite SPD, per evitare scariche pericolose e proteggere gli impianti interni secondo la CEI EN IEC 62305-4:2024."));
@@ -547,7 +624,7 @@ export function relazioneTecnica(x: IngressoRelazione): Documento {
       for (const rr of righe) { const kk = `${rr.codice}|${rr.unita}`; const u = unite.get(kk); if (u) u.q += rr.quantita; else unite.set(kk, { codice: rr.codice, descrizione: rr.descrizione, q: rr.quantita, unita: rr.unita }); }
       B.push(h3(`Tipologico ${n} – ${pa.nome ?? pa.id}`), p(`Riferimento OBO: ${pa.id}`, { dimensione: 9, spazioDopo: 2 }),
         tab(["Art. No", "Tipo │ DESCRIZIONE", "Qty TOT (m / pz)", "Qty tipico"], [...unite.values()].map((u) => [[{ t: u.codice || "—", b: true }], u.descrizione.replace(/ – /, " │ "), `${it(u.q)} ${u.unita}`, tipica(u.codice)]), [1.6, 6.5, 1.8, 1.6]),
-        p([{ t: `Figura ${n} – ` }, dc(`disegno del tipologico ${pa.id} (scheda OBO)`)], { dimensione: 9 }));
+        p([{ t: `Figura ${++nFig} – `, b: true }, dc(`disegno del tipologico ${pa.id} (scheda OBO)`)], { dimensione: 9 }));
     }
   } else B.push(p([dc("nessun particolare costruttivo collegato alle righe del computo")]));
 

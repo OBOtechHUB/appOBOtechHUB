@@ -2,6 +2,21 @@
   "nota": "Registro degli aggiornamenti di Progettazione LPS. Una voce per aggiornamento, la più recente per prima (app: lps). Viene mostrato nella barra \"Aggiorna app\", nel riquadro Novità e nella pagina Novità di OBO Hub.",
   "aggiornamenti": [
     {
+      "id": "2026-11-19-lps-7",
+      "data": "2026-11-19",
+      "app": "lps",
+      "titolo": "Relazione tecnica con grafici e tabelle della norma",
+      "voci": [
+        "La relazione Word ha ora grafici disegnati con i dati del progetto: sorgenti di danno, probabilità della corrente di fulmine con il campo dell'LPL, rischio e frequenza del danno di ogni zona confrontati con RT e FT, componenti di rischio, penetrazione della sfera rotolante con schema in sezione, pianta della copertura con aste, conduttori e calate, distanza di separazione",
+        "Tabelle numerate con i valori della CEI EN IEC 62305:2024 e la riga o colonna del progetto evidenziata: parametri del fulmine, spessori delle lastre, distanze delle calate, sezioni minime, conduttori equipotenziali, fattore CD, perdite LF/LO, rf, rp, rt, misure di contatto, PLPS/PEB/PSPD, ki, km, lunghezza l1 dei dispersori, dimensioni dei dispersori"
+      ],
+      "titolo_en": "Technical report with charts and standard tables",
+      "voci_en": [
+        "The Word report now includes charts drawn from the project data (risk, rolling sphere, roof plan, separation distance)",
+        "Numbered tables with the values of IEC 62305:2024 and the project row or column highlighted"
+      ]
+    },
+    {
       "id": "2026-11-19-lps-6",
       "data": "2026-11-19",
       "app": "lps",

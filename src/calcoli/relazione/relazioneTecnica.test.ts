@@ -31,6 +31,16 @@ describe("relazione tecnica", () => {
     expect(sci(1.234e-5).map((r) => r.t).join("")).toBe("1,23 × 10-5");
     expect(sci(0.5).map((r) => r.t).join("")).toBe("0,5");
   });
+  it("aggiunge grafici e tabelle numerate", () => {
+    const doc = relazioneTecnica(esempio());
+    const img = doc.blocchi.filter((b) => b.tipo === "immagine");
+    expect(img.length).toBeGreaterThanOrEqual(7);
+    for (const b of img) if (b.tipo === "immagine") expect(b.svg.startsWith("<svg")).toBe(true);
+    const t = testoDocumento(doc);
+    expect(t).toContain("Tabella 1 – ");
+    expect(t).toContain("Fattore di posizione CD");
+    expect(t).toContain("Lunghezza minima l1");
+  });
   it("crea un file Word valido", () => {
     const zip = creaDocx(relazioneTecnica(esempio()));
     const s = new TextDecoder().decode(zip);

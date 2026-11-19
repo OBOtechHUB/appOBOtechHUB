@@ -10,7 +10,23 @@ import { useComputo, useDatiEdificio } from "@/lib/progettoStore";
 import { aggiornaEsteso, leggiAttivo, useEsteso } from "@/lib/statoProgetto";
 import { leggiStato, strutturaRischio } from "@/lib/statoRischio";
 import { relazioneTecnica, datiRelazioneVuoti, type DatiRelazione } from "@/calcoli/relazione/relazioneTecnica";
-import { creaDocx } from "@/lib/docx";
+import { creaDocx, rasterizza } from "@/lib/docx";
+
+/** SVG → PNG a 200 dpi con il canvas del browser. */
+async function svgPng(svg: string, larghezzaCm: number): Promise<Uint8Array> {
+  const url = URL.createObjectURL(new Blob([svg], { type: "image/svg+xml" }));
+  try {
+    const img = new Image();
+    await new Promise<void>((ok, ko) => { img.onload = () => ok(); img.onerror = () => ko(new Error("Grafico non disegnato.")); img.src = url; });
+    const w = Math.round((larghezzaCm / 2.54) * 200), h = Math.round(w * (img.naturalHeight || img.height) / (img.naturalWidth || img.width));
+    const cv = document.createElement("canvas"); cv.width = w; cv.height = h;
+    const ctx = cv.getContext("2d"); if (!ctx) throw new Error("Canvas non disponibile.");
+    ctx.fillStyle = "#fff"; ctx.fillRect(0, 0, w, h); ctx.drawImage(img, 0, 0, w, h);
+    const blob = await new Promise<Blob | null>((ok) => cv.toBlob(ok, "image/png"));
+    if (!blob) throw new Error("Grafico non convertito.");
+    return new Uint8Array(await blob.arrayBuffer());
+  } finally { URL.revokeObjectURL(url); }
+}
 import { scarica } from "@/lib/esportazioni";
 import type { RigaComputo } from "@/calcoli/materiali/tipi";
 import type { ParticolareLib } from "@/calcoli/particolari/allinea";
@@ -31,28 +47,30 @@ export function RelazioneTecnica({ righe, mancanti, particolari }: { righe: Riga
   const [aperto, setAperto] = useState(false), [file, setFile] = useState<{ blob: Blob; nome: string } | null>(null), [errore, setErrore] = useState("");
   const cambia = (k: keyof DatiRelazione, v: string) => { setFile(null); aggiornaEsteso({ relazione: { ...r, [k]: v } }); };
 
-  function crea() {
-    setErrore(""); setFile(null);
+  const [occupato, setOccupato] = useState(false);
+  async function crea() {
+    setErrore(""); setFile(null); setOccupato(true);
     try {
       let rischio = null;
       if (s.datiRischio) { const stato = leggiStato(s.datiRischio); rischio = { struttura: strutturaRischio(d, stato), zone: stato.zone }; }
-      const doc = relazioneTecnica({
+      const doc = await rasterizza(relazioneTecnica({
         edificio: d, codice: leggiAttivo()?.codice || undefined, revisioni: s.revisioni, lplDisegno: s.lpl,
         modello: s.modello, aste: s.aste, conduttori: s.conduttori, picchetti: s.picchetti, terra: s.terra,
         separazione: s.separazione, rischio, risultati: c.risultati, righe, mancanti, particolari, dati: r, data: new Date(),
-      });
+      }), svgPng);
       const nome = `Relazione-LPS-${(d.nomeProgetto || d.comune || "progetto").replace(/[^\w.-]+/g, "_")}${s.revisioni.at(-1) ? `-Rev${s.revisioni.at(-1)!.rev}` : ""}.docx`;
       setFile({ blob: new Blob([creaDocx(doc)], { type: "application/vnd.openxmlformats-officedocument.wordprocessingml.document" }), nome });
     } catch (e) { setErrore(e instanceof Error ? e.message : "Relazione non creata."); }
+    finally { setOccupato(false); }
   }
 
   return <section className="mt-6 rounded-lg border p-4" aria-labelledby="h-relazione">
     <div className="flex flex-wrap items-center justify-between gap-2">
       <div><h2 id="h-relazione" className="font-display text-lg font-semibold">Relazione tecnica (Word)</h2>
-        <p className="text-sm text-muted-foreground">Sul format OBO: premessa, norme 2024, valutazione del rischio con i valori calcolati, captazione, calate, separazione, terra, SPD, tipologici e elenco materiale. Le parti da scrivere a mano sono evidenziate in giallo.</p></div>
+        <p className="text-sm text-muted-foreground">Sul format OBO: premessa, norme 2024, valutazione del rischio con i valori calcolati, captazione, calate, separazione, terra, SPD, tipologici e elenco materiale, con grafici del progetto (rischio, sfera rotolante, pianta, separazione) e tabelle dei valori della norma. Le parti da scrivere a mano sono evidenziate in giallo.</p></div>
       <div className="flex flex-wrap gap-2">
         <Button type="button" variant="outline" onClick={() => setAperto(!aperto)} aria-expanded={aperto}>{aperto ? "Chiudi i dati" : "Dati della relazione"}</Button>
-        <Button type="button" onClick={crea}><FileText />Crea relazione</Button>
+        <Button type="button" disabled={occupato} onClick={() => void crea()}><FileText />{occupato ? "Preparazione…" : "Crea relazione"}</Button>
         {file && <Button type="button" onClick={() => scarica(file.blob, file.nome)}><Download />Scarica Word</Button>}
       </div>
     </div>
