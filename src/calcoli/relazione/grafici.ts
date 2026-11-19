@@ -5,7 +5,8 @@
  */
 import type { Conduttore, Asta, Corpo } from "@/calcoli/edificio/tipi";
 
-const F = "font-family=\"Arial, Helvetica, sans-serif\"";
+// carattere OBO (Nimbus Sans) se installato sul PC, altrimenti Arial
+const F = "font-family=\"NimbusSanL-Reg, 'Nimbus Sans L', 'Nimbus Sans', Arial, Helvetica, sans-serif\"";
 // colori dello standard OBO (arancio d'accento e secondari); rosso solo per soglie e non conformità
 const ARANCIO = "#F39B00", BLU = "#41525D", GRIGIO = "#7694A4", VERDE = "#5E8C53", ROSSO = "#C62828", SCURO = "#282A31";
 const esc = (s: string) => s.replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]!));
