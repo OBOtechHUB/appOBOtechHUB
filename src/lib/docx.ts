@@ -11,7 +11,7 @@ export type Testo = string | Run[];
 export type Blocco =
   | { tipo: "titolo"; livello: 1 | 2 | 3; testo: string }
   | { tipo: "par"; testo: Testo; allinea?: "sinistra" | "centro" | "destra" | "giustificato"; dimensione?: number; grassetto?: boolean; spazioPrima?: number; spazioDopo?: number; formula?: boolean; conSuccessivo?: boolean }
-  | { tipo: "elenco"; voci: Testo[] }
+  | { tipo: "elenco"; voci: Testo[]; numerato?: boolean }
   | { tipo: "tabella"; intestazione: Testo[]; righe: Testo[][]; larghezze?: number[]; evidenziaColonna?: number; evidenziaRighe?: number[]; dimensione?: number }
   | { tipo: "immagine"; svg: string; larghezza: number; altezza: number; png?: Uint8Array; jpeg?: boolean; pdf?: string; mancante?: string; allinea?: "sinistra" | "centro" | "destra" }
   | { tipo: "sommario"; titolo: string }
@@ -52,11 +52,11 @@ function run(r: Run, base: { b?: boolean; dim?: number; colore?: string } = {}):
 
 const ALLINEA = { sinistra: "left", centro: "center", destra: "right", giustificato: "both" } as const;
 
-function paragrafo(t: Testo, o: { stile?: string; allinea?: keyof typeof ALLINEA; dim?: number; b?: boolean; prima?: number; dopo?: number; numero?: boolean; keepNext?: boolean; colore?: string } = {}): string {
+function paragrafo(t: Testo, o: { stile?: string; allinea?: keyof typeof ALLINEA; dim?: number; b?: boolean; prima?: number; dopo?: number; numero?: number; keepNext?: boolean; colore?: string } = {}): string {
   const ppr = [
     o.stile ? `<w:pStyle w:val="${o.stile}"/>` : "",
     o.keepNext ? "<w:keepNext/>" : "",
-    o.numero ? '<w:numPr><w:ilvl w:val="0"/><w:numId w:val="1"/></w:numPr>' : "",
+    o.numero ? `<w:numPr><w:ilvl w:val="0"/><w:numId w:val="${o.numero}"/></w:numPr>` : "",
     o.prima != null || o.dopo != null ? `<w:spacing${o.prima != null ? ` w:before="${o.prima * 20}"` : ""}${o.dopo != null ? ` w:after="${o.dopo * 20}"` : ""}/>` : "",
     o.allinea ? `<w:jc w:val="${ALLINEA[o.allinea]}"/>` : "",
   ].join("");
@@ -125,7 +125,7 @@ function fascia(b: Extract<Blocco, { tipo: "fascia" }>): string {
 }
 
 function corpo(blocchi: Blocco[]): string {
-  let img = 0, cap = 0;
+  let img = 0, cap = 0, num = 1;
   return blocchi.map((b) => {
     switch (b.tipo) {
       case "titolo": {
@@ -135,7 +135,11 @@ function corpo(blocchi: Blocco[]): string {
         return x.replace("</w:pPr>", `</w:pPr><w:bookmarkStart w:id="${cap}" w:name="_Toc${cap}"/>`).replace(/<\/w:p>$/, `<w:bookmarkEnd w:id="${cap}"/></w:p>`);
       }
       case "par": return paragrafo(b.testo, { ...(b.formula ? { stile: "Formula" } : {}), ...(b.allinea ? { allinea: b.allinea } : {}), ...(b.dimensione ? { dim: b.dimensione } : {}), ...(b.grassetto ? { b: true } : {}), ...(b.spazioPrima != null ? { prima: b.spazioPrima } : {}), ...(b.spazioDopo != null ? { dopo: b.spazioDopo } : {}), ...(b.conSuccessivo ? { keepNext: true } : {}) });
-      case "elenco": return b.voci.map((v) => paragrafo(v, { stile: "Elenco", numero: true })).join("");
+      case "elenco": {
+        // elenchi puntati: numId 1; elenchi numerati: un numId per elenco, così ognuno riparte da 1
+        const id = b.numerato ? ++num : 1;
+        return b.voci.map((v) => paragrafo(v, { stile: b.numerato ? "ElencoNumerato" : "Elenco", numero: id })).join("");
+      }
       case "tabella": return tabella(b);
       case "immagine": return immagine(b, b.png ? ++img : 0);
       case "sommario": return sommario(b.titolo, blocchi);
@@ -156,14 +160,19 @@ const STILI = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <w:style w:type="paragraph" w:styleId="Titolo3"><w:name w:val="heading 3"/><w:basedOn w:val="Normale"/><w:next w:val="Normale"/><w:qFormat/><w:pPr><w:keepNext/><w:spacing w:before="180" w:after="80"/><w:jc w:val="left"/><w:outlineLvl w:val="2"/></w:pPr><w:rPr>${rf(CARATTERI.grassetto)}<w:b/><w:color w:val="41525D"/><w:sz w:val="20"/><w:szCs w:val="20"/></w:rPr></w:style>
 <w:style w:type="paragraph" w:styleId="TitoloSommario"><w:name w:val="TOC Heading"/><w:basedOn w:val="Normale"/><w:next w:val="Normale"/><w:pPr><w:pBdr><w:bottom w:val="single" w:sz="12" w:space="3" w:color="F39B00"/></w:pBdr><w:spacing w:before="120" w:after="240"/><w:jc w:val="left"/></w:pPr><w:rPr>${rf(CARATTERI.titolo)}<w:b/><w:caps/><w:color w:val="282A31"/><w:sz w:val="28"/><w:szCs w:val="28"/></w:rPr></w:style>
 <w:style w:type="paragraph" w:styleId="Sommario1"><w:name w:val="toc 1"/><w:basedOn w:val="Normale"/><w:next w:val="Normale"/><w:pPr><w:tabs><w:tab w:val="right" w:leader="dot" w:pos="9628"/></w:tabs><w:spacing w:before="60" w:after="60"/><w:jc w:val="left"/></w:pPr><w:rPr><w:sz w:val="21"/><w:szCs w:val="21"/></w:rPr></w:style>
-<w:style w:type="paragraph" w:styleId="Elenco"><w:name w:val="List Paragraph"/><w:basedOn w:val="Normale"/><w:pPr><w:spacing w:after="40"/><w:ind w:left="567" w:hanging="283"/><w:jc w:val="left"/></w:pPr></w:style>
+<w:style w:type="paragraph" w:styleId="Elenco"><w:name w:val="List Paragraph"/><w:basedOn w:val="Normale"/><w:pPr><w:spacing w:before="20" w:after="60" w:line="260" w:lineRule="auto"/><w:ind w:left="567" w:hanging="284"/><w:jc w:val="left"/></w:pPr></w:style>
+<w:style w:type="paragraph" w:styleId="ElencoNumerato"><w:name w:val="List Number"/><w:basedOn w:val="Normale"/><w:pPr><w:spacing w:before="20" w:after="60" w:line="260" w:lineRule="auto"/><w:ind w:left="567" w:hanging="340"/><w:jc w:val="left"/></w:pPr></w:style>
 <w:style w:type="paragraph" w:styleId="Tabella"><w:name w:val="Table Text"/><w:basedOn w:val="Normale"/><w:pPr><w:spacing w:before="20" w:after="20" w:line="240" w:lineRule="auto"/><w:jc w:val="left"/></w:pPr><w:rPr><w:sz w:val="18"/><w:szCs w:val="18"/></w:rPr></w:style>
 <w:style w:type="paragraph" w:styleId="Formula"><w:name w:val="Formula"/><w:basedOn w:val="Normale"/><w:pPr><w:spacing w:before="80" w:after="120"/><w:jc w:val="center"/></w:pPr><w:rPr><w:b/><w:i/><w:color w:val="282A31"/></w:rPr></w:style>
 <w:style w:type="paragraph" w:styleId="Piede"><w:name w:val="footer"/><w:basedOn w:val="Normale"/><w:pPr><w:spacing w:after="0" w:line="220" w:lineRule="auto"/><w:jc w:val="center"/></w:pPr><w:rPr>${rf(CARATTERI.leggero)}<w:sz w:val="14"/><w:szCs w:val="14"/><w:color w:val="41525D"/></w:rPr></w:style>
 </w:styles>`;
 
-const NUMERAZIONE = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<w:numbering ${NS}><w:abstractNum w:abstractNumId="0"><w:multiLevelType w:val="singleLevel"/><w:lvl w:ilvl="0"><w:start w:val="1"/><w:numFmt w:val="bullet"/><w:lvlText w:val="–"/><w:lvlJc w:val="left"/><w:pPr><w:ind w:left="567" w:hanging="283"/></w:pPr></w:lvl></w:abstractNum><w:num w:numId="1"><w:abstractNumId w:val="0"/></w:num></w:numbering>`;
+/** Punti elenco OBO: quadratino arancio; elenchi numerati 1. 2. 3. in grigio-blu scuro. */
+function numerazione(numerati: number): string {
+  const nums = Array.from({ length: numerati }, (_, k) => `<w:num w:numId="${k + 2}"><w:abstractNumId w:val="1"/><w:lvlOverride w:ilvl="0"><w:startOverride w:val="1"/></w:lvlOverride></w:num>`).join("");
+  return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<w:numbering ${NS}><w:abstractNum w:abstractNumId="0"><w:multiLevelType w:val="singleLevel"/><w:lvl w:ilvl="0"><w:start w:val="1"/><w:numFmt w:val="bullet"/><w:lvlText w:val="■"/><w:lvlJc w:val="left"/><w:pPr><w:tabs><w:tab w:val="num" w:pos="567"/></w:tabs><w:ind w:left="567" w:hanging="284"/></w:pPr><w:rPr><w:rFonts w:ascii="Arial" w:hAnsi="Arial" w:cs="Arial"/><w:color w:val="${OBO.arancio}"/><w:sz w:val="14"/><w:szCs w:val="14"/></w:rPr></w:lvl></w:abstractNum><w:abstractNum w:abstractNumId="1"><w:multiLevelType w:val="singleLevel"/><w:lvl w:ilvl="0"><w:start w:val="1"/><w:numFmt w:val="decimal"/><w:lvlText w:val="%1."/><w:lvlJc w:val="left"/><w:pPr><w:tabs><w:tab w:val="num" w:pos="567"/></w:tabs><w:ind w:left="567" w:hanging="340"/></w:pPr><w:rPr>${rf(CARATTERI.grassetto)}<w:b/><w:color w:val="${OBO.sec2}"/></w:rPr></w:lvl></w:abstractNum><w:num w:numId="1"><w:abstractNumId w:val="0"/></w:num>${nums}</w:numbering>`;
+}
 
 const campo = (istr: string) => `<w:r><w:fldChar w:fldCharType="begin"/></w:r><w:r><w:instrText xml:space="preserve"> ${istr} </w:instrText></w:r><w:r><w:fldChar w:fldCharType="separate"/></w:r><w:r><w:t>1</w:t></w:r><w:r><w:fldChar w:fldCharType="end"/></w:r>`;
 
@@ -188,7 +197,7 @@ export function creaDocx(doc: Documento, data = new Date()): Uint8Array<ArrayBuf
 <Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rIdS" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/><Relationship Id="rIdN" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/numbering" Target="numbering.xml"/><Relationship Id="rIdT" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/settings" Target="settings.xml"/><Relationship Id="rIdC" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/fontTable" Target="fontTable.xml"/><Relationship Id="rIdH" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/header" Target="header1.xml"/><Relationship Id="rIdH1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/header" Target="header2.xml"/><Relationship Id="rIdF" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/footer" Target="footer1.xml"/>${relImg}</Relationships>` },
     { nome: "word/document.xml", dati: documento },
     { nome: "word/styles.xml", dati: STILI },
-    { nome: "word/numbering.xml", dati: NUMERAZIONE },
+    { nome: "word/numbering.xml", dati: numerazione(doc.blocchi.filter((b) => b.tipo === "elenco" && b.numerato).length) },
     { nome: "word/fontTable.xml", dati: `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <w:fonts ${NS}>${Object.values(CARATTERI).map((f) => `<w:font w:name="${f}"><w:altName w:val="Arial"/><w:panose1 w:val="020B0604020202020204"/><w:charset w:val="00"/><w:family w:val="swiss"/><w:pitch w:val="variable"/></w:font>`).join("")}<w:font w:name="Arial"><w:panose1 w:val="020B0604020202020204"/><w:charset w:val="00"/><w:family w:val="swiss"/><w:pitch w:val="variable"/></w:font></w:fonts>` },
     { nome: "word/settings.xml", dati: `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>

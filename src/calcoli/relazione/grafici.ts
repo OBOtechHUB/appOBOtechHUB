@@ -158,7 +158,7 @@ export function schemaSorgenti(): string {
   return svg(W, H, c);
 }
 
-/** Probabilità P che il picco della corrente di fulmine superi I (valori numerici della CEI EN IEC 62305-1:2024, Tab. A.3). */
+/** Probabilità P che il picco della corrente di fulmine superi I (valori numerici della CEI EN IEC 62305-1:2026-10, Tab. A.3). */
 export const PROBABILITA_CORRENTE: [number, number][] = [[3, 0.99], [5, 0.95], [10, 0.91], [20, 0.8], [30, 0.6], [35, 0.5], [40, 0.4], [50, 0.3], [60, 0.2], [80, 0.1], [100, 0.05], [150, 0.02], [200, 0.01]];
 export function curvaCorrente(lpl: string, iMin: number, iMax: number): string {
   const W = 900, H = 380, ml = 70, mr = 30, mt = 30, mb = 60;
@@ -197,6 +197,6 @@ export function flussoValutazione(): string {
   c += freccia(cx + 150, 287, 640, 287, "NO");
   c += box(640, 247, 240, 80, ["Scegliere le misure di protezione:", "LPS, SPD, antincendio,", "misure contro contatto e passo"], "#FDEBCC", ARANCIO);
   c += `<polyline points="760,247 760,171 ${cx + bw / 2 + 10},171" fill="none" stroke="#41525D" stroke-width="1.6" marker-end="url(#p)"/>` + testo(768, 210, "ricalcolare", { size: 11 });
-  c += testo(450, 500, "Procedura di valutazione secondo la CEI EN IEC 62305-2:2024 (schema riassuntivo)", { size: 11, anchor: "middle", colore: "#555" });
+  c += testo(450, 500, "Procedura di valutazione secondo la CEI EN IEC 62305-2:2026-10 (schema riassuntivo)", { size: 11, anchor: "middle", colore: "#555" });
   return svg(W, H, c);
 }

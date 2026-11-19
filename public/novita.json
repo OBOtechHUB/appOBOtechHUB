@@ -2,6 +2,24 @@
   "nota": "Registro degli aggiornamenti di Progettazione LPS. Una voce per aggiornamento, la più recente per prima (app: lps). Viene mostrato nella barra \"Aggiorna app\", nel riquadro Novità e nella pagina Novità di OBO Hub.",
   "aggiornamenti": [
     {
+      "id": "2026-11-19-lps-10",
+      "data": "2026-11-19",
+      "app": "lps",
+      "titolo": "Relazione tecnica aggiornata alla CEI EN IEC 62305:2026-10",
+      "voci": [
+        "La relazione cita l'edizione italiana CEI EN IEC 62305-1…4:2026-10 (IEC 62305:2024); la parte 2 si chiama ora \"Gestione del rischio\"",
+        "Valutazione del rischio secondo la nuova edizione: cause di danno D1T, D1D, D2, D3; perdite L1, L2 e L3 (guasto degli impianti, valutato con la frequenza F); componenti RAT e RAD al posto di RA; frequenza del danno con il fattore Pe; RT e FT come valori rappresentativi di competenza di autorità e proprietario",
+        "LPS aggiornato: fulmini sulle facciate (20 % superiore delle strutture oltre 60 m), posa su tetti combustibili, valori preferenziali della distanza tra le calate con tolleranza del 25 %, calate negli spigoli e nei cortili, note della Tab. 7 (tondo da 6 mm, aste da 9,5 mm, carico del vento)",
+        "Punti elenco nello stile OBO (quadratino arancio) ed elenchi numerati per le procedure"
+      ],
+      "titolo_en": "Technical report updated to IEC 62305:2024 (CEI 2026-10)",
+      "voci_en": [
+        "Risk chapter per the new edition (D1T/D1D, losses L1/L2/L3, RAT/RAD, frequency F with Pe)",
+        "Updated external LPS rules (side flashes, down-conductor spacing, Table 7 notes)",
+        "OBO-style bullet points and numbered procedures"
+      ]
+    },
+    {
       "id": "2026-11-19-lps-9",
       "data": "2026-11-19",
       "app": "lps",

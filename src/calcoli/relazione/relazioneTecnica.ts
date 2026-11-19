@@ -1,10 +1,10 @@
 /**
  * Relazione tecnica dell'impianto di protezione dalle scariche atmosferiche, sul modello della relazione OBO
- * (format di Marco Lo Vetere, novembre 2025) aggiornato all'edizione 2024 della CEI EN IEC 62305.
+ * (format di Marco Lo Vetere, novembre 2025) aggiornato all'edizione CEI EN IEC 62305:2026-10 (IEC 62305:2024).
  *
  * Testo descrittivo: tutto quello del format OBO (stessi capitoli e paragrafi, in due parti: relazione
  * dell'impianto e "Valutazione del rischio e scelta delle misure di protezione"), corretto solo dove
- * l'edizione 2024 cambia le cose (un solo rischio R = RL1 + RL2 e frequenza del danno F al posto di R2, R3, R4;
+ * l'edizione 2026-10 cambia le cose (cause D1T/D1D, perdite L1/L2/L3, un solo rischio R = RL1 + RL2 e frequenza del danno F al posto di R2, R3, R4;
  * EN 50164 sostituita dalla serie EN IEC 62561). Le definizioni sono scritte con parole nostre: nessun testo o
  * figura della norma è copiato, solo valori e riferimenti.
  * Valori del progetto: dai dati e dai calcoli dell'app. Le parti che l'app non conosce (sopralluogo,
@@ -157,7 +157,7 @@ export function relazioneTecnica(x: IngressoRelazione): Documento {
     );
     const dati: Testo[][] = [
       [[{ t: "Committente", b: true }], [...committente, ...(r.indirizzoCommittente || r.cittaCommittente ? [{ t: "\n" + [r.indirizzoCommittente, r.cittaCommittente].filter(Boolean).join(" · ") }] : [{ t: "\n" }, dc("indirizzo del committente")])]],
-      [[{ t: "Norma di riferimento", b: true }], "CEI EN IEC 62305-1/2/3/4:2024"],
+      [[{ t: "Norma di riferimento", b: true }], "CEI EN IEC 62305-1/2/3/4:2026-10"],
       [[{ t: "Livello di protezione", b: true }], `LPL ${lpl} – LPS di classe ${lpl}`],
       [[{ t: "Progetto", b: true }], [x.codice ? `n. ${x.codice}` : "—", rev ? `Rev. ${rev}` : "Bozza"].join(" · ")],
       [[{ t: "Luogo e data", b: true }], `${r.luogo || "Rivoli"}, ${dataLunga(x.data)}`],
@@ -195,10 +195,10 @@ export function relazioneTecnica(x: IngressoRelazione): Documento {
     h2("3.2 Norme di riferimento per verifiche e prove"),
     el("CEI 11-1 (MT)", "CEI 11-48 (sicurezza)", "CEI 64-8/2 (prove)", "CEI 64-8/4", "CEI 64-8/5", "CEI 64-8/6", "CEI 64-14 (guida alle verifiche)"),
     h2("3.3 Norme di riferimento per LPS"),
-    el("CEI EN IEC 62305-1:2024 – Protezione contro i fulmini. Parte 1: Principi generali",
-      "CEI EN IEC 62305-2:2024 – Protezione contro i fulmini. Parte 2: Valutazione del rischio",
-      "CEI EN IEC 62305-3:2024 – Protezione contro i fulmini. Parte 3: Danno materiale alle strutture e pericolo per le persone",
-      "CEI EN IEC 62305-4:2024 – Protezione contro i fulmini. Parte 4: Impianti elettrici ed elettronici nelle strutture",
+    el("CEI EN IEC 62305-1:2026-10 – Protezione contro i fulmini. Parte 1: Principi generali",
+      "CEI EN IEC 62305-2:2026-10 – Protezione contro i fulmini. Parte 2: Gestione del rischio",
+      "CEI EN IEC 62305-3:2026-10 – Protezione contro i fulmini. Parte 3: Danno materiale alle strutture e pericolo per le persone",
+      "CEI EN IEC 62305-4:2026-10 – Protezione contro i fulmini. Parte 4: Impianti elettrici ed elettronici nelle strutture",
       "CEI EN IEC 62561 serie da 1 a 8 – Componenti dei sistemi di protezione contro i fulmini (LPSC, Lightning Protection System Components). Sono gli adeguamenti della norma europea EN alla norma internazionale IEC e sostituiscono la serie CEI EN 50164 (CEI 81-5)",
       "CEI EN IEC 62858 – Densità di fulminazione. Reti di localizzazione fulmini (LLS) – Principi generali",
       "CEI 81-29 – Linee guida per l'applicazione delle norme CEI EN 62305",
@@ -208,7 +208,7 @@ export function relazioneTecnica(x: IngressoRelazione): Documento {
       "DPR 462/01 – Procedimento per la denuncia di installazioni e dispositivi di protezione contro le scariche atmosferiche, di dispositivi di messa a terra di impianti elettrici e di impianti elettrici pericolosi",
       "CEI 64-12 – Guida per l'esecuzione dell'impianto di terra negli edifici per uso residenziale e terziario",
       "CEI 11-37 – Guida per l'esecuzione degli impianti di terra nei sistemi utilizzatori di energia alimentati a tensione maggiore di 1 kV"),
-    p("Le norme CEI EN IEC 62305:2024 sostituiscono l'edizione 2013 (CEI EN 62305, CEI 81-10/1…4). I valori e i metodi riportati nel documento sono quelli dell'edizione 2024.", { dimensione: 9 }),
+    p("Le norme CEI EN IEC 62305-1…4:2026-10, che recepiscono le norme internazionali IEC 62305:2024, sostituiscono l'edizione 2013 (CEI EN 62305, classificazione CEI 81-10). I valori e i metodi riportati nel documento sono quelli dell'edizione 2026-10.", { dimensione: 9 }),
   );
 
   // ---------- 4 Descrizione
@@ -235,131 +235,130 @@ export function relazioneTecnica(x: IngressoRelazione): Documento {
     def("Sistema di SPD", "insieme di SPD scelti, coordinati e installati in modo da ridurre i guasti degli impianti elettrici ed elettronici."),
   ));
 
-  // ---------- 6 Valutazione del rischio (parte generale)
-  const si = (ok: boolean, nota = ""): Testo => (ok ? `SI${nota}` : "NO");
+  // ---------- 6 Valutazione del rischio (parte generale) – CEI EN IEC 62305-2:2026-10 "Gestione del rischio"
+  const si = (ok: boolean, nota = ""): Testo => (ok ? `SI${nota}` : "–");
   B.push(h1("6. Valutazione del rischio fulminazione"),
-    p("La normativa CEI EN IEC 62305-2:2024 specifica una procedura per la valutazione del rischio dovuto a fulminazione e, se necessario, individua le misure di protezione da realizzare per ridurre il rischio a valori non superiori a quello ritenuto tollerabile dalla norma."),
-    h2("6.1 Sorgente di rischio, S"),
-    p("La corrente di fulmine è la principale sorgente di danno. Le sorgenti sono distinte in base al punto d'impatto del fulmine."),
-    el("S1 – Fulmine sulla struttura.", "S2 – Fulmine in prossimità della struttura.", "S3 – Fulmine su una linea.", "S4 – Fulmine in prossimità di una linea."),
+    p("La norma CEI EN IEC 62305-2:2026-10 \"Gestione del rischio\" specifica la procedura per la valutazione del rischio dovuto ai fulmini a terra e della frequenza del danno agli impianti interni e, se necessario, permette la scelta delle misure di protezione che riducono il rischio e la frequenza del danno a valori non superiori a quelli tollerabili."),
+    h2("6.1 Sorgente di danno, S"),
+    p("La corrente di fulmine è la sorgente del danno. Le sorgenti sono distinte in base al punto d'impatto del fulmine rispetto alla struttura considerata:"),
+    el([{ t: "S1", b: true }, { t: " – fulmine sulla struttura;" }], [{ t: "S2", b: true }, { t: " – fulmine in prossimità della struttura;" }], [{ t: "S3", b: true }, { t: " – fulmine su una linea entrante nella struttura;" }], [{ t: "S4", b: true }, { t: " – fulmine in prossimità di una linea entrante nella struttura." }]),
   );
   fig(schemaSorgenti(), "Sorgenti di danno in base al punto d'impatto del fulmine (schema)");
   B.push(
-    h2("6.2 Tipo di danno, D"),
-    p("Un fulmine può causare danni in funzione delle caratteristiche dell'oggetto da proteggere. Nelle pratiche applicazioni della determinazione del rischio è utile distinguere tra i tre tipi principali di danno che possono manifestarsi come conseguenza di una fulminazione:"),
-    el("D1 – Danno ad esseri viventi per elettrocuzione.", "D2 – Danno materiale.", "D3 – Guasto di impianti elettrici ed elettronici."),
+    h2("6.2 Causa di danno, D"),
+    p("Un fulmine può causare danni in funzione delle caratteristiche dell'oggetto da proteggere. L'edizione 2026-10 della norma distingue le seguenti cause di danno:"),
+    el([{ t: "D1T", b: true }, { t: " – danno ad esseri viventi per elettrocuzione dovuta a tensioni di contatto e di passo;" }], [{ t: "D1D", b: true }, { t: " – danno ad esseri viventi colpiti direttamente dal fulmine nelle aree esposte della struttura (coperture, terrazze, aree esterne);" }], [{ t: "D2", b: true }, { t: " – danno materiale (incendio, esplosione, effetti meccanici e chimici);" }], [{ t: "D3", b: true }, { t: " – guasto degli impianti elettrici ed elettronici dovuto agli impulsi del fulmine (LEMP)." }]),
     h2("6.3 Tipo di perdita, L"),
-    p("Ciascun tipo di danno, solo o in combinazione con altri, può produrre diverse perdite conseguenti nell'oggetto da proteggere. Il tipo di perdita che può verificarsi dipende dalle caratteristiche dell'oggetto stesso e dal suo contenuto. L'edizione 2024 della norma considera due tipi di perdita:"),
-    el("L1 – Perdita di vite umane (compreso danno permanente).", "L2 – Perdita per danno materiale (struttura e contenuto, compresi servizi pubblici e patrimonio culturale ospitati nella struttura)."),
-    p("La perdita di servizio pubblico, di patrimonio culturale insostituibile e la perdita economica, che nell'edizione 2013 erano valutate con i rischi R2, R3 e R4, sono ora comprese nella perdita L2 per la parte di danno materiale; il guasto degli impianti interni si valuta con la frequenza del danno F (vedi 6.10)."),
+    p("Ciascuna causa di danno, sola o in combinazione con altre, può produrre diverse perdite nell'oggetto da proteggere. Il tipo di perdita che può verificarsi dipende dalle caratteristiche dell'oggetto stesso e dal suo contenuto:"),
+    el([{ t: "L1", b: true }, { t: " – perdita di vite umane (compreso danno permanente); è conseguenza delle cause D1T, D1D, D2 e, nelle strutture in cui il guasto degli impianti mette in pericolo la vita (strutture a rischio di esplosione, ospedali), anche D3;" }], [{ t: "L2", b: true }, { t: " – perdita dovuta a danni materiali alla struttura e al suo contenuto; è conseguenza della causa D2 e, nelle strutture a rischio di esplosione, anche D3;" }], [{ t: "L3", b: true }, { t: " – perdita dovuta al guasto degli impianti interni (mancata disponibilità dei servizi forniti); è conseguenza della causa D3 e si valuta con la frequenza del danno F." }]),
+    p("Rispetto all'edizione 2013 non si calcolano più i rischi separati R2 (servizio pubblico), R3 (patrimonio culturale) e R4 (perdita economica): la perdita del patrimonio è coperta dalla perdita L2, la perdita di servizio pubblico dalla frequenza del danno F e dalla perdita L2."),
     h2("6.4 Rischio, R"),
-    p("Il rischio R è la misura della probabile perdita media annua. Per la struttura (o per ciascuna sua zona ZS) si valuta un unico rischio, somma dei rischi per i due tipi di perdita:"),
+    p("Il rischio R è la misura della probabile perdita media annua e deve essere valutato con riferimento alla sicurezza delle persone (perdita L1) e della struttura e del suo contenuto (perdita L2). Per la struttura, o per ciascuna sua zona di rischio, si valuta un unico rischio:"),
     p([{ t: "R = R" }, { t: "L1", sub: true }, { t: " + R" }, { t: "L2", sub: true }], { formula: true }),
-    el([{ t: "R" }, { t: "L1", sub: true }, { t: " – rischio di perdita di vite umane (inclusi danni permanenti);" }], [{ t: "R" }, { t: "L2", sub: true }, { t: " – rischio di perdita per danno materiale." }]),
-    h2("6.5 Rischio tollerabile, RT, e frequenza tollerabile, FT"),
-    p("Il valore del rischio tollerabile RT è stabilito dalla norma CEI EN IEC 62305-2:2024:"),
-    el([{ t: "rischio tollerabile per perdita di vite umane e per danno materiale: RT = 10" }, { t: "-5", sup: true }, { t: " anni" }, { t: "-1", sup: true }, { t: "." }]),
-    p("Per il guasto degli impianti interni si confronta la frequenza del danno F con la frequenza tollerabile FT:"),
-    el([{ t: "FT = 0,1 anni" }, { t: "-1", sup: true }, { t: " per impianti interni critici per la sicurezza o per il servizio;" }], [{ t: "FT = 1 anni" }, { t: "-1", sup: true }, { t: " negli altri casi, salvo valore diverso stabilito dal proprietario della struttura." }]),
+    el([{ t: "R" }, { t: "L1", sub: true }, { t: " – somma delle componenti di rischio relative alla perdita di vite umane;" }], [{ t: "R" }, { t: "L2", sub: true }, { t: " – somma delle componenti di rischio relative ai danni materiali." }]),
+    h2("6.5 Rischio tollerabile, RT, e frequenza tollerabile del danno, FT"),
+    p("I valori del rischio tollerabile RT sono di competenza delle autorità competenti; i regolamenti nazionali o locali possono fornire indicazioni. In mancanza di indicazioni diverse si adotta il valore rappresentativo utilizzato dalla norma:"),
+    el([{ t: "RT = 10" }, { t: "-5", sup: true }, { t: " anni" }, { t: "-1", sup: true }, { t: " per il rischio R di ogni zona." }]),
+    p("La frequenza tollerabile del danno FT è di competenza delle autorità quando il servizio erogato è di rilevanza pubblica; negli altri casi è stabilita dal proprietario o dal gestore della struttura, in funzione della criticità degli impianti interni. Valori tipici proposti dalla norma:"),
+    el([{ t: "FT = 0,1 anni" }, { t: "-1", sup: true }, { t: " per impianti interni critici nello svolgimento della loro funzione;" }], [{ t: "FT = 1 anni" }, { t: "-1", sup: true }, { t: " per impianti interni non critici." }]),
   );
-  tabN("Valori tollerabili (CEI EN IEC 62305-2:2024)", ["Grandezza", "Valore tollerabile", "Applicazione"], [
+  tabN("Valori tollerabili adottati (valori rappresentativi della CEI EN IEC 62305-2:2026-10)", ["Grandezza", "Valore", "Applicazione"], [
     [[{ t: "RT" }], [{ t: "10" }, { t: "-5", sup: true }, { t: " anni" }, { t: "-1", sup: true }], "Rischio R = RL1 + RL2 di ogni zona"],
     [[{ t: "FT" }], [{ t: "0,1 anni" }, { t: "-1", sup: true }], "Frequenza del danno con impianti interni critici"],
-    [[{ t: "FT" }], [{ t: "1 anni" }, { t: "-1", sup: true }], "Frequenza del danno negli altri casi"],
+    [[{ t: "FT" }], [{ t: "1 anni" }, { t: "-1", sup: true }], "Frequenza del danno con impianti interni non critici"],
   ], [2, 3, 6]);
   B.push(
-    h2("6.6 Componenti di rischio per tipo di perdita"),
+    h2("6.6 Componenti di rischio per sorgente, causa e tipo di perdita"),
     p("Per ogni tipo di perdita (e per la frequenza del danno), nella tabella seguente sono riportate le componenti che vi contribuiscono:"),
-    tab(["Sorgente", "S1", "S1", "S1", "S2", "S3", "S3", "S3", "S4"], [
-      ["Danno", "D1", "D2", "D3", "D3", "D1", "D2", "D3", "D3"],
-      [[{ t: "Componente", b: true }], [{ t: "RA", b: true }], [{ t: "RB", b: true }], [{ t: "RC", b: true }], [{ t: "RM", b: true }], [{ t: "RU", b: true }], [{ t: "RV", b: true }], [{ t: "RW", b: true }], [{ t: "RZ", b: true }]],
-      [[{ t: "R" }, { t: "L1", sub: true }], si(true), si(true), si(true, " (1)"), si(true, " (1)"), si(true), si(true), si(true, " (1)"), si(true, " (1)")],
-      [[{ t: "R" }, { t: "L2", sub: true }], si(false), si(true), si(true, " (2)"), si(true, " (2)"), si(false), si(true), si(true, " (2)"), si(true, " (2)")],
-      ["F", si(false), si(false), "FC", "FM", si(false), si(false), "FW", "FZ"],
-    ], [2, 1, 1, 1.2, 1.2, 1, 1, 1.2, 1.2]),
-    el("(1) Solo nelle strutture con rischio di esplosione, negli ospedali o nelle altre strutture in cui il guasto degli impianti interni provoca immediato pericolo per la vita umana.", "(2) Solo nelle strutture con rischio di esplosione."),
-    p("RA comprende anche la componente per le persone esposte al fulmine diretto in copertura, terrazze o aree esterne della struttura, se presenti.", { dimensione: 9 }),
+  );
+  tabN("Sorgenti, cause di danno e componenti di rischio (CEI EN IEC 62305-2:2026-10, Tab. 1)", ["Sorgente", "S1", "S1", "S1", "S1", "S2", "S3", "S3", "S3", "S4"], [
+    ["Causa", "D1T", "D1D", "D2", "D3", "D3", "D1T", "D2", "D3", "D3"],
+    [[{ t: "Componente", b: true }], [{ t: "RAT", b: true }], [{ t: "RAD", b: true }], [{ t: "RB", b: true }], [{ t: "RC", b: true }], [{ t: "RM", b: true }], [{ t: "RU", b: true }], [{ t: "RV", b: true }], [{ t: "RW", b: true }], [{ t: "RZ", b: true }]],
+    [[{ t: "R" }, { t: "L1", sub: true }], si(true), si(true), si(true), si(true, " (a)"), si(true, " (a)"), si(true), si(true), si(true, " (a)"), si(true, " (a)")],
+    [[{ t: "R" }, { t: "L2", sub: true }], si(false), si(false), si(true), si(true, " (b)"), si(true, " (b)"), si(false), si(true), si(true, " (b)"), si(true, " (b)")],
+    [[{ t: "F (L3)" }], si(false), si(false), si(false), "FC", "FM", si(false), si(false), "FW", "FZ"],
+  ], [1.8, 1, 1, 1, 1.1, 1.1, 1, 1, 1.1, 1.1]);
+  B.push(
+    p("(a) Solo per strutture in cui il guasto degli impianti interni mette in pericolo la vita umana, ad esempio strutture a rischio di esplosione e ospedali.\n(b) Solo per strutture a rischio di esplosione.", { dimensione: 8.5 }),
     h2("6.7 Metodo di valutazione"),
     p("Ai fini della valutazione del rischio si deve provvedere a:"),
-    el("determinare le componenti RA, RB, RC, RM, RU, RV, RW e RZ che lo compongono;", "determinare il corrispondente valore del rischio R;", "confrontare il rischio R con quello tollerabile RT;", "determinare la frequenza del danno F e confrontarla con FT."),
+    { tipo: "elenco", numerato: true, voci: ["suddividere, se necessario, la struttura in zone di rischio e individuare le linee entranti;", "determinare le componenti RAT, RAD, RB, RC, RM, RU, RV, RW e RZ di ogni zona;", "determinare il rischio R = RL1 + RL2 e confrontarlo con il rischio tollerabile RT;", "determinare la frequenza del danno F per le zone con impianti interni e confrontarla con FT."] },
     p("Per ciascuna zona della struttura devono essere effettuati i seguenti passi (vedi anche la figura successiva):"),
-    el("identificazione delle componenti RX che contribuiscono al rischio;", "calcolo della componente di rischio identificata RX;", "calcolo del rischio totale R;", "identificazione del rischio tollerabile RT;", "confronto del rischio R con quello tollerabile RT."),
+    { tipo: "elenco", numerato: true, voci: ["identificazione delle componenti RX che contribuiscono al rischio;", "calcolo della componente di rischio identificata RX;", "calcolo del rischio totale R;", "identificazione del rischio tollerabile RT;", "confronto del rischio R con quello tollerabile RT;", "calcolo della frequenza del danno F e confronto con FT."] },
   );
   fig(flussoValutazione(), "Procedura di valutazione del rischio e scelta delle misure di protezione (schema)");
   B.push(
-    p("Se R ≤ RT la protezione contro il fulmine non è necessaria."),
-    p("Se R > RT devono essere adottate misure di protezione al fine di rendere R ≤ RT in tutte le zone della struttura. Analogamente, se F > FT devono essere adottate misure di protezione degli impianti interni (SPM) al fine di rendere F ≤ FT."),
+    p([{ t: "Se R ≤ RT", b: true }, { t: " la protezione contro il fulmine non è necessaria per ridurre il rischio." }]),
+    p([{ t: "Se R > RT", b: true }, { t: " devono essere adottate misure di protezione al fine di rendere R ≤ RT in tutte le zone della struttura." }]),
+    p([{ t: "Se F > FT", b: true }, { t: " dovrebbero essere adottate misure di protezione degli impianti interni (SPM secondo la CEI EN IEC 62305-4:2026-10 e SPD della serie IEC 61643) al fine di rendere F ≤ FT; se F ≤ FT la protezione può comunque essere opportuna per ridurre la mancata disponibilità dei servizi." }]),
     p("La valutazione della convenienza economica della protezione, prevista dall'edizione 2013 con il rischio R4, non fa più parte della norma; può essere condotta a parte su richiesta del committente."),
     h2("6.8 Componenti di rischio"),
-    p("Le componenti di rischio sono raggruppate secondo la sorgente di danno ed il tipo di danno, come si evince dalla precedente tabella. Ciascuna delle componenti di rischio può essere calcolata mediante la seguente equazione generale:"),
+    p("Le componenti di rischio sono raggruppate secondo la sorgente e la causa di danno, come riportato nella tabella precedente. Ciascuna componente di rischio può essere calcolata mediante la seguente equazione generale:"),
     p([...pedice("R", "X"), { t: " = " }, ...pedice("N", "X"), { t: " × " }, ...pedice("P", "X"), { t: " × " }, ...pedice("L", "X")], { formula: true }),
     p("dove:"),
-    el([...pedice("N", "X"), { t: " è il numero di eventi pericolosi [Allegato A, CEI EN IEC 62305-2:2024];" }], [...pedice("P", "X"), { t: " è la probabilità di danno alla struttura [Allegato B, CEI EN IEC 62305-2:2024];" }], [...pedice("L", "X"), { t: " è la perdita conseguente [Allegato C, CEI EN IEC 62305-2:2024]." }]),
+    el([...pedice("N", "X"), { t: " è il numero di eventi pericolosi all'anno [Allegato A, CEI EN IEC 62305-2:2026-10];" }], [...pedice("P", "X"), { t: " è la probabilità di danno [Allegato B, CEI EN IEC 62305-2:2026-10];" }], [...pedice("L", "X"), { t: " è l'entità della perdita conseguente [Allegato C, CEI EN IEC 62305-2:2026-10]." }]),
   );
-  const ND = (): Testo => [...pedice("N", "D"), { t: " – numero di eventi pericolosi per fulminazione diretta della struttura [Allegato A, CEI EN IEC 62305-2:2024];" }];
-  const NLD = (): Testo => [...pedice("N", "L"), { t: " – numero di eventi pericolosi per fulminazione sul servizio [Allegato A];" }];
+  const ND = (): Testo => [...pedice("N", "D"), { t: " – numero di eventi pericolosi per fulminazione diretta della struttura [Allegato A];" }];
+  const NLD = (): Testo => [...pedice("N", "L"), { t: " – numero di eventi pericolosi per fulminazione sulla linea [Allegato A];" }];
   const NDJ = (): Testo => [...pedice("N", "DJ"), { t: " – numero di eventi pericolosi per fulminazione diretta della struttura adiacente all'estremità della linea [Allegato A];" }];
   const componente = (titoloC: string, testo: string, formula: Run[], dove: Testo[]) => B.push(h3(titoloC), p(testo), p(formula, { formula: true }), p("dove:"), el(...dove));
-  componente("Componente di rischio (danno ad esseri viventi – fulmine sulla struttura), RA",
-    "Componente relativa ai danni ad esseri viventi dovuti a tensioni di contatto e di passo in zone fino a 3 m all'esterno della struttura e, se presenti, alle persone esposte in copertura o nelle aree esterne della struttura. Possono verificarsi perdite di tipo L1 (perdita di vite umane); nelle strutture ad uso agricolo è possibile anche la perdita di animali.",
-    [...pedice("R", "A"), { t: " = " }, ...pedice("N", "D"), { t: " × " }, ...pedice("P", "A"), { t: " × " }, ...pedice("L", "A")],
-    [ND(), [...pedice("P", "A"), { t: " – probabilità di danno ad esseri viventi (fulmine sulla struttura) [Allegato B];" }], [...pedice("L", "A"), { t: " – perdita per danno ad esseri viventi [Allegato C]." }]]);
+  componente("Componente di rischio (danno ad esseri viventi per tensioni di contatto e di passo – fulmine sulla struttura), RAT",
+    "Componente relativa ai danni ad esseri viventi dovuti a tensioni di contatto e di passo all'interno della struttura e nelle zone fino a 3 m all'esterno di essa. Contribuisce alla perdita L1 (perdita di vite umane).",
+    [...pedice("R", "AT"), { t: " = " }, ...pedice("N", "D"), { t: " × " }, ...pedice("P", "AT"), { t: " × " }, ...pedice("L", "AT")],
+    [ND(), [...pedice("P", "AT"), { t: " – probabilità di danno ad esseri viventi per tensioni di contatto e di passo, che tiene conto delle misure di protezione e del tipo di suolo o pavimento [Allegato B];" }], [...pedice("L", "AT"), { t: " – perdita per persone ferite da tensioni di contatto e di passo (LT) [Allegato C]." }]]);
+  componente("Componente di rischio (danno ad esseri viventi colpiti direttamente – fulmine sulla struttura), RAD",
+    "Componente relativa ai danni ad esseri viventi colpiti direttamente dal fulmine nelle aree esposte della struttura (coperture accessibili, terrazze, aree esterne). Contribuisce alla perdita L1. È nulla se nella zona non sono presenti persone esposte.",
+    [...pedice("R", "AD"), { t: " = " }, ...pedice("N", "D"), { t: " × " }, ...pedice("P", "AD"), { t: " × " }, ...pedice("L", "AD")],
+    [ND(), [...pedice("P", "AD"), { t: " – probabilità di danno ad esseri viventi colpiti direttamente nelle aree esposte [Allegato B];" }], [...pedice("L", "AD"), { t: " – perdita per persone ferite da fulmini diretti (LD) [Allegato C]." }]]);
   componente("Componente di rischio (danno materiale alla struttura – fulmine sulla struttura), RB",
-    "Componente relativa ai danni materiali causati da scariche pericolose all'interno della struttura che innescano l'incendio e l'esplosione e che possono essere pericolose anche per l'ambiente. Possono verificarsi perdite di tipo L1 (perdita di vite umane) e L2 (danno materiale alla struttura e al contenuto).",
+    "Componente relativa ai danni materiali causati da scariche pericolose all'interno della struttura che innescano l'incendio e l'esplosione e che possono essere pericolose anche per l'ambiente. Contribuisce alle perdite L1 (perdita di vite umane) e L2 (danno materiale alla struttura e al contenuto).",
     [...pedice("R", "B"), { t: " = " }, ...pedice("N", "D"), { t: " × " }, ...pedice("P", "B"), { t: " × " }, ...pedice("L", "B")],
-    [ND(), [...pedice("P", "B"), { t: " – probabilità di danno materiale in una struttura (fulmine sulla struttura), che tiene conto delle misure antincendio rp e del rischio d'incendio rf [Allegato B];" }], [...pedice("L", "B"), { t: " – perdita per danno materiale in una struttura (fulmine sulla struttura) [Allegato C]." }]]);
+    [ND(), [...pedice("P", "B"), { t: " – probabilità di danno materiale in una struttura (fulmine sulla struttura), che tiene conto della classe dell'LPS, delle misure antincendio rp e del rischio d'incendio rf [Allegato B];" }], [...pedice("L", "B"), { t: " – perdita per danno materiale (LF1 per le persone, LF2 per la struttura e il contenuto) [Allegato C]." }]]);
   componente("Componente di rischio (guasto di impianti interni – fulmine sulla struttura), RC",
-    "Componente relativa al guasto di impianti interni causato dal LEMP (impulso elettromagnetico del fulmine). Entra nel rischio di perdita di vite umane L1 nelle strutture con rischio di esplosione, negli ospedali e nelle altre strutture in cui il guasto degli impianti interni provoca immediato pericolo per la vita umana, e nel rischio L2 nelle strutture con rischio di esplosione. In tutti i casi contribuisce alla frequenza del danno F (FC).",
+    "Componente relativa al guasto di impianti interni causato dal LEMP (impulso elettromagnetico del fulmine). Entra nel rischio di perdita di vite umane L1 nelle strutture in cui il guasto degli impianti interni mette in pericolo la vita (strutture a rischio di esplosione, ospedali) e nel rischio L2 nelle strutture a rischio di esplosione. In tutti i casi contribuisce alla frequenza del danno F (FC).",
     [...pedice("R", "C"), { t: " = " }, ...pedice("N", "D"), { t: " × " }, ...pedice("P", "C"), { t: " × " }, ...pedice("L", "C")],
-    [ND(), [...pedice("P", "C"), { t: " – probabilità di guasto di un impianto interno (fulmine sulla struttura) [Allegato B];" }], [...pedice("L", "C"), { t: " – perdita per guasto di un impianto interno (fulmine sulla struttura) [Allegato C]." }]]);
+    [ND(), [...pedice("P", "C"), { t: " – probabilità di guasto di un impianto interno (fulmine sulla struttura), che tiene conto del sistema di SPD coordinati [Allegato B];" }], [...pedice("L", "C"), { t: " – perdita per guasto di un impianto interno (LO1, LO2) [Allegato C]." }]]);
   componente("Componente di rischio (guasto di impianti interni – fulmine in prossimità della struttura), RM",
-    "Componente relativa al guasto di impianti interni causato dal LEMP (impulso elettromagnetico del fulmine) di un fulmine che cade vicino alla struttura. Vale quanto detto per RC; contribuisce alla frequenza del danno F (FM).",
+    "Componente relativa al guasto di impianti interni causato dal LEMP di un fulmine che cade in prossimità della struttura. Vale quanto detto per RC; contribuisce alla frequenza del danno F (FM).",
     [...pedice("R", "M"), { t: " = " }, ...pedice("N", "M"), { t: " × " }, ...pedice("P", "M"), { t: " × " }, ...pedice("L", "M")],
-    [[...pedice("N", "M"), { t: " – numero di eventi pericolosi per fulminazione in prossimità della struttura [Allegato A];" }], [...pedice("P", "M"), { t: " – probabilità di guasto di un impianto interno (fulmine in prossimità della struttura) [Allegato B];" }], [...pedice("L", "M"), { t: " – perdita per guasto di un impianto interno (fulmine in prossimità della struttura) [Allegato C]." }]]);
-  componente("Componente di rischio (danno ad esseri viventi – fulmine sul servizio connesso), RU",
-    "Componente relativa ai danni ad esseri viventi dovuti a tensioni di contatto all'interno della struttura causate dalla corrente di fulmine iniettata nella linea entrante. Possono verificarsi perdite di tipo L1 (perdita di vite umane); nelle strutture ad uso agricolo è possibile anche la perdita di animali.",
+    [[...pedice("N", "M"), { t: " – numero di eventi pericolosi per fulminazione in prossimità della struttura [Allegato A];" }], [...pedice("P", "M"), { t: " – probabilità di guasto di un impianto interno (fulmine in prossimità della struttura) [Allegato B];" }], [...pedice("L", "M"), { t: " – perdita per guasto di un impianto interno [Allegato C]." }]]);
+  componente("Componente di rischio (danno ad esseri viventi – fulmine su una linea entrante), RU",
+    "Componente relativa ai danni ad esseri viventi dovuti a tensioni di contatto all'interno della struttura causate dalla corrente di fulmine iniettata nella linea entrante. Contribuisce alla perdita L1.",
     [...pedice("R", "U"), { t: " = (" }, ...pedice("N", "L"), { t: " + " }, ...pedice("N", "DJ"), { t: ") × " }, ...pedice("P", "U"), { t: " × " }, ...pedice("L", "U")],
-    [NLD(), NDJ(), [...pedice("P", "U"), { t: " – probabilità di danno ad esseri viventi (fulmine sul servizio connesso) [Allegato B];" }], [...pedice("L", "U"), { t: " – perdita per danni ad esseri viventi (fulmine sul servizio) [Allegato C]." }]]);
-  componente("Componente di rischio (danno materiale alla struttura – fulmine sul servizio connesso), RV",
-    "Componente relativa ai danni materiali (incendio o esplosione innescati da scariche pericolose fra installazioni esterne e parti metalliche, generalmente nel punto d'ingresso della linea nella struttura) dovuti alla corrente di fulmine trasmessa attraverso il servizio entrante. Possono verificarsi perdite di tipo L1 (perdita di vite umane) e L2 (danno materiale).",
+    [NLD(), NDJ(), [...pedice("P", "U"), { t: " – probabilità di danno ad esseri viventi (fulmine sulla linea), che tiene conto degli SPD per il collegamento equipotenziale [Allegato B];" }], [...pedice("L", "U"), { t: " – perdita per persone ferite da tensioni di contatto (LT) [Allegato C]." }]]);
+  componente("Componente di rischio (danno materiale alla struttura – fulmine su una linea entrante), RV",
+    "Componente relativa ai danni materiali (incendio o esplosione innescati da scariche pericolose fra installazioni esterne e parti metalliche, generalmente nel punto d'ingresso della linea nella struttura) dovuti alla corrente di fulmine trasmessa attraverso la linea entrante. Contribuisce alle perdite L1 e L2.",
     [...pedice("R", "V"), { t: " = (" }, ...pedice("N", "L"), { t: " + " }, ...pedice("N", "DJ"), { t: ") × " }, ...pedice("P", "V"), { t: " × " }, ...pedice("L", "V")],
-    [NLD(), NDJ(), [...pedice("P", "V"), { t: " – probabilità di danno materiale nella struttura (fulmine sul servizio connesso) [Allegato B];" }], [...pedice("L", "V"), { t: " – perdita per danno materiale in una struttura (fulmine sul servizio) [Allegato C]." }]]);
-  componente("Componente di rischio (guasto di impianti interni – fulmine sul servizio connesso), RW",
+    [NLD(), NDJ(), [...pedice("P", "V"), { t: " – probabilità di danno materiale nella struttura (fulmine sulla linea) [Allegato B];" }], [...pedice("L", "V"), { t: " – perdita per danno materiale (LF1, LF2) [Allegato C]." }]]);
+  componente("Componente di rischio (guasto di impianti interni – fulmine su una linea entrante), RW",
     "Componente relativa al guasto di impianti interni causato da sovratensioni trasmesse dalla linea alla struttura. Vale quanto detto per RC riguardo alle perdite L1 e L2; contribuisce alla frequenza del danno F (FW).",
     [...pedice("R", "W"), { t: " = (" }, ...pedice("N", "L"), { t: " + " }, ...pedice("N", "DJ"), { t: ") × " }, ...pedice("P", "W"), { t: " × " }, ...pedice("L", "W")],
-    [NLD(), NDJ(), [...pedice("P", "W"), { t: " – probabilità di guasto di un impianto interno (fulmine sul servizio connesso) [Allegato B];" }], [...pedice("L", "W"), { t: " – perdita per guasto di un impianto interno (fulmine sul servizio) [Allegato C]." }]]);
-  componente("Componente di rischio (guasto di impianti interni – fulmine in prossimità di un servizio connesso), RZ",
+    [NLD(), NDJ(), [...pedice("P", "W"), { t: " – probabilità di guasto di un impianto interno (fulmine sulla linea) [Allegato B];" }], [...pedice("L", "W"), { t: " – perdita per guasto di un impianto interno [Allegato C]." }]]);
+  componente("Componente di rischio (guasto di impianti interni – fulmine in prossimità di una linea entrante), RZ",
     "Componente relativa al guasto di impianti interni causato da sovratensioni indotte sulla linea e trasmesse alla struttura. Vale quanto detto per RC riguardo alle perdite L1 e L2; contribuisce alla frequenza del danno F (FZ).",
     [...pedice("R", "Z"), { t: " = " }, ...pedice("N", "I"), { t: " × " }, ...pedice("P", "Z"), { t: " × " }, ...pedice("L", "Z")],
-    [[...pedice("N", "I"), { t: " – numero di eventi pericolosi per fulminazione in prossimità del servizio [Allegato A];" }], [...pedice("P", "Z"), { t: " – probabilità di guasto di un impianto interno (fulmine in prossimità del servizio) [Allegato B];" }], [...pedice("L", "Z"), { t: " – perdita per guasto di un impianto interno (fulmine in prossimità del servizio) [Allegato C]." }]]);
-  const elencoComp = (): Testo[] => [
-    "RA – componente di rischio (danno ad esseri viventi – fulmine sulla struttura);", "RB – componente di rischio (danno materiale alla struttura – fulmine sulla struttura);",
-    "RC – componente di rischio (guasto di impianti interni – fulmine sulla struttura);", "RM – componente di rischio (guasto di impianti interni – fulmine in prossimità della struttura);",
-    "RU – componente di rischio (danno ad esseri viventi – fulmine sul servizio connesso);", "RV – componente di rischio (danno materiale alla struttura – fulmine sul servizio connesso);",
-    "RW – componente di rischio (guasto di impianti interni – fulmine sul servizio connesso);", "RZ – componente di rischio (guasto di impianti interni – fulmine in prossimità di un servizio connesso).",
-  ];
+    [[...pedice("N", "I"), { t: " – numero di eventi pericolosi per fulminazione in prossimità della linea [Allegato A];" }], [...pedice("P", "Z"), { t: " – probabilità di guasto di un impianto interno (fulmine in prossimità della linea) [Allegato B];" }], [...pedice("L", "Z"), { t: " – perdita per guasto di un impianto interno [Allegato C]." }]]);
   B.push(h2("6.9 Determinazione del rischio, R"),
-    p("Il rischio di perdita di vite umane è determinato come somma delle componenti di rischio precedentemente definite:"),
-    p([{ t: "R" }, { t: "L1", sub: true }, { t: " = RA + RB + RC" }, { t: "(1)", sup: true }, { t: " + RM" }, { t: "(1)", sup: true }, { t: " + RU + RV + RW" }, { t: "(1)", sup: true }, { t: " + RZ" }, { t: "(1)", sup: true }], { formula: true }),
-    p("(1) Nel caso di strutture con rischio di esplosione, di ospedali o di altre strutture in cui guasti di impianti interni provocano immediato pericolo per la vita umana.", { dimensione: 9 }),
-    p("Il rischio di perdita per danno materiale è determinato dalla formula:"),
-    p([{ t: "R" }, { t: "L2", sub: true }, { t: " = RB + RC" }, { t: "(2)", sup: true }, { t: " + RM" }, { t: "(2)", sup: true }, { t: " + RV + RW" }, { t: "(2)", sup: true }, { t: " + RZ" }, { t: "(2)", sup: true }], { formula: true }),
-    p("(2) Solo nelle strutture con rischio di esplosione.", { dimensione: 9 }),
-    p([{ t: "Il rischio della zona è R = R" }, { t: "L1", sub: true }, { t: " + R" }, { t: "L2", sub: true }, { t: ". Se il danno può coinvolgere l'ambiente circostante (esplosione, fumi tossici, inquinamento) si aggiungono le componenti dell'Allegato E della norma. Dove:" }]),
-    el(...elencoComp()),
+    p("Il rischio relativo alla perdita di vite umane è determinato come somma delle componenti di rischio precedentemente definite:"),
+    p([{ t: "R" }, { t: "L1", sub: true }, { t: " = RAT + RAD + RB + RC" }, { t: "(a)", sup: true }, { t: " + RM" }, { t: "(a)", sup: true }, { t: " + RU + RV + RW" }, { t: "(a)", sup: true }, { t: " + RZ" }, { t: "(a)", sup: true }], { formula: true }),
+    p("(a) Solo per strutture in cui il guasto degli impianti interni mette in pericolo la vita umana (strutture a rischio di esplosione, ospedali).", { dimensione: 9 }),
+    p("Il rischio relativo ai danni materiali alla struttura e al suo contenuto è determinato dalla formula:"),
+    p([{ t: "R" }, { t: "L2", sub: true }, { t: " = RB + RC" }, { t: "(b)", sup: true }, { t: " + RM" }, { t: "(b)", sup: true }, { t: " + RV + RW" }, { t: "(b)", sup: true }, { t: " + RZ" }, { t: "(b)", sup: true }], { formula: true }),
+    p("(b) Solo per strutture a rischio di esplosione.", { dimensione: 9 }),
+    p([{ t: "Il rischio della zona è R = R" }, { t: "L1", sub: true }, { t: " + R" }, { t: "L2", sub: true }, { t: ". Se il danno può coinvolgere l'ambiente o le strutture circostanti (esplosione, rilascio di sostanze pericolose) si considerano anche le indicazioni dell'Allegato E della norma." }]),
     h2("6.10 Determinazione della frequenza del danno, F"),
-    p("La frequenza del danno agli impianti interni, che sostituisce la valutazione dei rischi di perdita di servizio pubblico (R2) e di perdita economica (R4) dell'edizione 2013, è data dalla formula:"),
+    p("La frequenza del danno F (perdita L3) si valuta per gli impianti interni o le apparecchiature che il proprietario vuole proteggere, in ciascuna zona dove sono presenti; sostituisce la valutazione dei rischi di perdita di servizio pubblico (R2) e di perdita economica (R4) dell'edizione 2013:"),
     p([{ t: "F = F" }, { t: "C", sub: true }, { t: " + F" }, { t: "M", sub: true }, { t: " + F" }, { t: "W", sub: true }, { t: " + F" }, { t: "Z", sub: true }], { formula: true }),
-    p("dove:"),
-    el([...pedice("F", "C"), { t: " = ND × PC – guasto degli impianti interni per fulmine sulla struttura;" }], [...pedice("F", "M"), { t: " = NM × PM – guasto per fulmine in prossimità della struttura;" }], [...pedice("F", "W"), { t: " = (NL + NDJ) × PW – guasto per fulmine sul servizio connesso;" }], [...pedice("F", "Z"), { t: " = NI × PZ – guasto per fulmine in prossimità del servizio." }]),
+    p("dove (CEI EN IEC 62305-2:2026-10, Tab. 4):"),
+    el([...pedice("F", "C"), { t: " = ND × PC × Pe – guasto degli impianti interni per fulmine sulla struttura;" }], [...pedice("F", "M"), { t: " = NM × PM × Pe – guasto per fulmine in prossimità della struttura;" }], [...pedice("F", "W"), { t: " = (NL + NDJ) × PW × Pe – guasto per fulmine su una linea entrante;" }], [...pedice("F", "Z"), { t: " = NI × PZ × Pe – guasto per fulmine in prossimità di una linea entrante;" }], [{ t: "Pe – fattore che tiene conto del tempo di presenza delle apparecchiature nella zona (te/8 760)." }]),
     h2("6.11 Esito della valutazione"),
-    p("Una volta noti i valori di rischio e di frequenza del danno per la struttura bisogna verificare che essi siano inferiori ai valori tollerabili."),
-    p([{ t: "Caso 1 – Struttura autoprotetta", b: true }]),
-    p("Se per ogni zona i valori calcolati sono inferiori a RT e FT e non sono state adottate misure di protezione, la struttura oggetto di verifica può considerarsi \"Autoprotetta\"."),
-    p([{ t: "Caso 2 – Struttura protetta", b: true }]),
-    p("Se per ogni zona i valori calcolati sono inferiori a RT e FT e sono state adottate misure di protezione, la struttura oggetto di verifica può considerarsi \"Protetta\"."),
-    p([{ t: "Caso 3 – Struttura NON protetta", b: true }]),
-    p("Se almeno un valore calcolato è superiore al rispettivo valore tollerabile devono essere adottate misure di protezione al fine di renderlo inferiore."),
+    p("Una volta noti i valori di rischio e di frequenza del danno per la struttura bisogna verificare che essi siano non superiori ai valori tollerabili."),
+    p([{ t: "Caso 1 – Struttura autoprotetta", b: true, colore: OBO.sec2 }]),
+    p("Se per ogni zona R ≤ RT e F ≤ FT senza misure di protezione, la struttura oggetto di verifica può considerarsi \"autoprotetta\"."),
+    p([{ t: "Caso 2 – Struttura protetta", b: true, colore: OBO.sec2 }]),
+    p("Se per ogni zona R ≤ RT e F ≤ FT con le misure di protezione adottate, la struttura oggetto di verifica può considerarsi \"protetta\"."),
+    p([{ t: "Caso 3 – Struttura NON protetta", b: true, colore: OBO.sec2 }]),
+    p("Se in almeno una zona R > RT o F > FT devono essere adottate ulteriori misure di protezione al fine di riportare i valori entro quelli tollerabili."),
   );
 
   // ---------- 7 LPS esterno
@@ -369,21 +368,21 @@ export function relazioneTecnica(x: IngressoRelazione): Documento {
     p("L'LPS esterno ha come ruolo fondamentale quello di intercettare i fulmini prima che entrino nella struttura. La corrente associata al fenomeno di fulminazione, quando esso interessa una struttura metallica collegata a terra, è costretta a fluire sulla stessa fino al terreno; si può dunque assumere in prima approssimazione che l'LPS svolga la funzione di disperdere la corrente di fulmine nel terreno, evitando così che si verifichino danni di tipo meccanico o chimico e scariche pericolose che possano innescare incendi."),
     p("L'impianto di protezione contro i fulmini LPS si compone essenzialmente di:"),
     el("un impianto esterno, costituito da captatori (che intercettano i fulmini diretti sulla struttura);", "calate (che conducono a terra senza danni la corrente di fulmine);", "dispersori (che disperdono a terra tale corrente)."),
-    p("Forma, sezione e dimensioni dei conduttori e delle maglie dei captatori, dei conduttori di discesa e del numero dei dispersori si riferiscono alla norma CEI EN IEC 62305-3:2024 e ai componenti della serie CEI EN IEC 62561."),
-    p("L'idoneità dell'LPS deve essere verificata in conformità alla norma CEI EN IEC 62305-2:2024."),
+    p("Forma, sezione e dimensioni dei conduttori e delle maglie dei captatori, dei conduttori di discesa e del numero dei dispersori si riferiscono alla norma CEI EN IEC 62305-3:2026-10 e ai componenti della serie CEI EN IEC 62561."),
+    p("L'idoneità dell'LPS deve essere verificata in conformità alla norma CEI EN IEC 62305-2:2026-10."),
     h2("7.1 Impianto di captazione"),
     p("Il posizionamento del sistema di captatori è considerato adeguato quando la struttura che deve essere protetta risulta interamente all'interno del volume protetto dal sistema di captatori. L'impianto di captazione secondo il metodo della sfera rotolante (integrato, dove serve, dal metodo della maglia) prevede l'installazione di una rete di captatori secondo lo schema seguente:"),
   );
-  tabN("Parametri della corrente di fulmine e criteri di intercettazione per LPL (CEI EN IEC 62305-1 e -3:2024)", ["Criteri di intercettazione", "I", "II", "III", "IV"], [
+  tabN("Parametri della corrente di fulmine e criteri di intercettazione per LPL (CEI EN IEC 62305-1:2026-10, Tab. 3 e 4; CEI EN IEC 62305-3:2026-10, Tab. 2)", ["Criteri di intercettazione", "I", "II", "III", "IV"], [
       ["Massimo valore della corrente di picco I (kA)", ...LIVELLI.map((l) => String(CORRENTE_LPL[l]))],
       ["Minimo valore della corrente di picco I (kA)", ...LIVELLI.map((l) => String(IMIN[l]))],
       ["Raggio della sfera rotolante R (m)", ...LIVELLI.map((l) => String(par[l]!.raggio))],
       [[{ t: "Lato maglia W" }, { t: "m", sub: true }, { t: " (m)" }], ...LIVELLI.map((l) => `${par[l]!.latoMaglia} × ${par[l]!.latoMaglia}`)],
     ], [5, 1.5, 1.5, 1.5, 1.5], col);
-  fig(curvaCorrente(lpl, IMIN[lpl], CORRENTE_LPL[lpl]), `Probabilità che il valore di picco della corrente di fulmine superi I (valori della CEI EN IEC 62305-1:2024, Tab. A.3) con i limiti dell'LPL ${lpl}`);
+  fig(curvaCorrente(lpl, IMIN[lpl], CORRENTE_LPL[lpl]), `Probabilità che il valore di picco della corrente di fulmine superi I (valori della CEI EN IEC 62305-1:2026-10, Tab. A.3) con i limiti dell'LPL ${lpl}`);
   B.push(
     p(`Per il presente progetto (LPL ${lpl}, colonna evidenziata): raggio della sfera rotolante ${R} m, lato della maglia ${par[lpl]!.latoMaglia} m.`, { grassetto: true }),
-    p("La norma CEI EN IEC 62305-1:2024 definisce i valori minimi dei parametri del fulmine e i relativi raggi massimi della sfera rotolante corrispondenti ai diversi livelli di protezione in funzione non della carica, ma della corrente di fulmine."),
+    p("La norma CEI EN IEC 62305-1:2026-10 definisce i valori minimi dei parametri del fulmine e i relativi raggi massimi della sfera rotolante corrispondenti ai diversi livelli di protezione in funzione non della carica, ma della corrente di fulmine."),
     p("Data una carica elettrica (la testa del futuro fulmine) in un mezzo dielettrico omogeneo, la sfera con il centro sulla stessa carica è il luogo geometrico dei punti che hanno la stessa probabilità di scarica. Il raggio della sfera è funzione, oltre che della probabilità di scarica, anche del valore della carica:"),
     p("R = f(Pr, Q)", { formula: true }),
     el("R – raggio della sfera;", "Pr – probabilità di scarica;", "Q – carica elettrica."),
@@ -393,14 +392,15 @@ export function relazioneTecnica(x: IngressoRelazione): Documento {
     p("I componenti naturali costituiti da elementi metallici che sono parte integrante della struttura e che non possono essere modificati facilmente possono essere usati come elementi dell'LPS. Se adeguatamente dimensionati, possono essere usati come componenti naturali del sistema di captatori e, quindi, entrare a far parte dell'LPS i seguenti elementi di una struttura:"),
     el("lastre metalliche di copertura, con gli spessori minimi della tabella seguente;", "componenti metallici costruttivi di tetti (capriate metalliche, ecc.) al di sotto di una copertura non metallica, purché sia accettabile il danneggiamento di quest'ultima;", "parti metalliche come gronde, ornamenti, ringhiere;", "tubazioni e serbatoi metallici sul tetto."),
   );
-  tabN("Spessore minimo di lastre e tubazioni metalliche usate come captatori naturali (CEI EN IEC 62305-3:2024, Tab. 3)", ["Materiale", "Spessore t (mm) – senza perforazione", "Spessore t' (mm) – perforazione ammessa"], SPESSORI_LASTRE.map((z) => [NOMI_MATERIALI[z.materiale], z.t != null ? it(z.t) : "—", it(z.t1)]), [4, 4, 4]);
+  tabN("Spessore minimo di lastre e tubazioni metalliche usate come captatori naturali (CEI EN IEC 62305-3:2026-10, Tab. 3)", ["Materiale", "Spessore t (mm) – senza perforazione", "Spessore t' (mm) – perforazione ammessa"], SPESSORI_LASTRE.map((z) => [NOMI_MATERIALI[z.materiale], z.t != null ? it(z.t) : "—", it(z.t1)]), [4, 4, 4]);
   B.push(p("t: spessore che evita la perforazione o il surriscaldamento nel punto d'impatto, richiesto se sotto la lastra c'è materiale infiammabile; t': spessore minimo quando la perforazione è accettabile.", { dimensione: 8.5 }),
-    p("Solo strutture più alte di 60 m possono essere interessate dalla fulminazione anche sulle facciate: in questo caso va protetta anche la parte alta delle facciate."),
+    p("Gli impatti laterali sulle facciate sono considerati trascurabili per strutture fino a 60 m di altezza dal suolo; anche in questo caso, però, possono essere a rischio gli elementi che sporgono in modo significativo dalla facciata (balconi, telecamere, antenne). Su strutture più alte di 60 m il sistema di captatori deve proteggere anche le sporgenze e le apparecchiature sulle superfici verticali della parte sommitale, tipicamente il 20 % superiore dell'altezza; per le parti di questo 20 % che non superano i 60 m dal suolo la protezione della superficie verticale è facoltativa (CEI EN IEC 62305-3:2026-10, 5.2.3)."),
+    p("Se il tetto è di materiale non combustibile (classi A1, A2) i captatori possono essere appoggiati sulla copertura; se è di materiale normalmente combustibile possono esservi posati solo se il loro riscaldamento al passaggio della corrente di fulmine non è pericoloso per il materiale; con materiali facilmente infiammabili va mantenuta un'adeguata distanza tra copertura e conduttori (5.2.4)."),
     p("La ripartizione della corrente di fulmine sui captatori dipende dal tipo e dal numero degli stessi così come dal numero totale e dal sistema delle calate e dei dispersori. Il punto di impatto è sempre interessato dalla corrente totale indipendentemente dal tipo di captatore e da tutto il resto. Pertanto, un captatore che è colpito da fulmine viene percorso dalla corrente totale; questa corrente poi si ripartisce lungo il sistema secondo il numero di nodi che incontra lungo il percorso verso il dispersore di terra. Per il dimensionamento dei conduttori va fatto necessariamente riferimento al caso più gravoso."),
     p("Nell'installazione dei captatori deve essere mantenuta una distanza minima rispetto a corpi metallici, impianti elettrici, di telecomunicazione e di segnale. Quando la corrente di fulmine percorre l'LPS si manifestano infatti delle cadute di tensione longitudinali che sollecitano l'eventuale isolamento tra detto elemento e le parti che lo circondano."),
     p("Per evitare l'equipotenzializzazione, soluzione da percorrere se non si hanno alternative, occorre prevedere una base del captatore isolante sufficiente a garantire il rispetto della distanza di sicurezza dielettrica, un captatore isolato (es. isFang con conduttore isCon) o un maggiore numero di calate."),
-    p("Il calcolo della distanza minima di sicurezza (distanza di separazione s) deve essere condotto facendo riferimento al primo punto equipotenziale con uno dei metodi indicati dalla norma CEI EN IEC 62305-3:2024 (vedi capitolo 13)."),
-    p("Va inoltre ricordato che sui tetti piani durante i temporali è previsto un certo accumulo di acqua: per non perdere di efficacia, il sistema di captatori deve essere installato al di sopra del massimo livello probabile dell'acqua. La distanza degli ancoraggi generalmente deve essere pari a 1 m, oppure 0,5 m per nastri, conduttori cordati e massicci non in tiro, conduttori verticali oltre 20 m o conduttori orizzontali su superfici verticali."),
+    p("Il calcolo della distanza minima di sicurezza (distanza di separazione s) deve essere condotto facendo riferimento al primo punto equipotenziale con uno dei metodi indicati dalla norma CEI EN IEC 62305-3:2026-10 (vedi capitolo 13)."),
+    p("Va inoltre ricordato che sui tetti piani durante i temporali è previsto un certo accumulo di acqua: per non perdere di efficacia, il sistema di captatori deve essere installato al di sopra del massimo livello probabile dell'acqua. I conduttori e le aste dell'LPS devono essere fissati meccanicamente in modo sicuro, così da resistere alle sollecitazioni dovute al vento, agli agenti atmosferici e ai lavori eseguiti sulla copertura; la distanza tra gli elementi di fissaggio va scelta in funzione del tipo di conduttore (indicativamente 1 m) e ridotta quando si usano conduttori di sezione ridotta."),
   );
   const dist = (distanzaCalate as unknown as Record<string, { distanzaTipica: number }>)[lpl]?.distanzaTipica ?? 0;
   B.push(h2("7.2 Calate"),
@@ -409,31 +409,31 @@ export function relazioneTecnica(x: IngressoRelazione): Documento {
     el("equipotenzializzare, quando la distanza con le parti conduttrici della struttura non garantisce la tenuta dielettrica (mancato rispetto della distanza di sicurezza);", "distribuire la corrente di fulmine tra le calate stesse per mezzo di conduttori ad anello (conduttori disposti ad anello attorno alla struttura che interconnettono le calate per favorire la ripartizione della corrente di fulmine fra esse)."),
     p("Il numero di calate dipende dalla dimensione perimetrale del tetto. La disposizione delle calate deve essere eseguita in modo che, partendo dagli angoli della struttura, le calate siano distribuite il più uniformemente possibile su tutto il perimetro, in modo da costituire la continuazione dei conduttori dal sistema di captazione e da assicurare il più breve e più diretto percorso fino a terra."),
     p("Se la corrente di fulmine è ripartita su diverse calate, è intuitivo comprendere che il rischio di scariche laterali e di disturbi elettromagnetici all'interno della struttura si riduce. Per ridurre la probabilità che la corrente di fulmine attraverso l'LPS provochi un danno, è quindi opportuno che le calate siano disposte in modo parallelo e simmetrico e che le lunghezze dei percorsi siano ridotte al minimo."),
-    p("A seconda della struttura (ad esempio portoni, prefabbricati in calcestruzzo) le distanze tra le varie calate possono variare. In ogni caso deve essere rispettato il numero minimo delle calate necessarie, a seconda della classe di LPS."),
-    p("Nella norma CEI EN IEC 62305-3:2024 (Tab. 5) vengono elencate le distanze tipiche tra calate e conduttori ad anello, a seconda della classe di LPS:"),
+    p("Il numero di calate di un LPS non isolato non deve essere inferiore a due. A seconda della struttura (ad esempio portoni, prefabbricati in calcestruzzo) le distanze tra le varie calate possono variare: è accettabile una variazione del 25 % della spaziatura, a patto che il valore medio rispetti la Tabella 5. Se su un lato non è possibile installare calate, quelle mancanti si dispongono come calate addizionali sugli altri lati, a distanza tra loro non inferiore a un terzo dei valori della tabella. Nei cortili con perimetro maggiore di 30 m dovrebbero essere installate calate."),
+    p("Nella norma CEI EN IEC 62305-3:2026-10 (Tab. 5) sono indicati i valori preferenziali della distanza tra le calate in funzione della classe dell'LPS:"),
   );
-  tabN("Distanze tipiche tra le calate e tra i conduttori ad anello (CEI EN IEC 62305-3:2024, Tab. 5)", ["Classe di LPS", "I", "II", "III", "IV"], [["Distanza tipica (m)", ...LIVELLI.map((l) => String((distanzaCalate as unknown as Record<string, { distanzaTipica: number }>)[l]?.distanzaTipica ?? "—"))]], [5, 1.5, 1.5, 1.5, 1.5], col);
+  tabN("Valori preferenziali della distanza tra le calate in funzione della classe dell'LPS (CEI EN IEC 62305-3:2026-10, Tab. 5)", ["Classe dell'LPS", "I", "II", "III", "IV"], [["Distanza (m)", ...LIVELLI.map((l) => String((distanzaCalate as unknown as Record<string, { distanzaTipica: number }>)[l]?.distanzaTipica ?? "—"))]], [5, 1.5, 1.5, 1.5, 1.5], col);
   B.push(
     p("La disposizione delle calate deve essere tale che:"),
     el("gli impianti di protezione ad aste abbiano almeno una calata in corrispondenza di ogni asta;", "gli impianti di protezione a funi abbiano almeno una calata in corrispondenza di entrambe le estremità di ogni fune;", `gli impianti di protezione a maglia abbiano calate periferiche, con un minimo di 2, disposte con il passo della tabella precedente (${dist} m per LPL ${lpl}) misurato lungo il perimetro.`),
-    p("Le calate devono essere interconnesse fra loro mediante conduttori ad anello, preferibilmente chiusi, alla base della struttura e a intervalli in altezza indicativamente pari alla distanza tipica della tabella precedente."),
+    p("Se possibile, deve essere installata una calata in corrispondenza di ogni spigolo della struttura. La ripartizione della corrente migliora aumentando non solo il numero di calate ma anche quello dei conduttori ad anello che le interconnettono; la disposizione di calate e anelli influenza il valore della distanza di separazione (vedi 13.3)."),
     p("Le calate devono, per quanto possibile, essere disposte in prosecuzione diretta degli organi di captazione e, per impianti di protezione a maglia, in corrispondenza di nodi, vicino agli spigoli ed equidistanti fra loro."),
-    p("Le calate devono essere collocate possibilmente distanti da porte e finestre ed essere disposte il più possibile lungo percorsi rettilinei. Ogni calata deve avere un punto di sezionamento per le misure, salvo che si utilizzino calate naturali."),
+    p("Le calate devono essere installate il più possibile diritte e verticali, possibilmente distanti da porte e finestre e dagli impianti interni; se si formano anse, la distanza tra due punti qualsiasi dell'ansa non deve essere inferiore alla distanza di separazione. Le calate, anche se isolate, non devono essere installate all'interno di grondaie o pluviali. Ogni calata deve avere un giunto di sezionamento per le misure, salvo che si utilizzino calate naturali."),
     p("Nei punti di incrocio con le calate, i pluviali in metallo devono essere collegati con le calate. I pluviali in metallo, anche se non utilizzati come calate, sono da collegare alla base con il sistema equipotenziale oppure con l'impianto di terra."),
   );
   const rame = SEZIONI_EQUIPOTENZIALI.rame;
   B.push(h2("7.3 Materiali e dimensioni minime per organi di captazione e di calata"),
-    p("I materiali, le configurazioni, le minime sezioni dei conduttori e delle aste dei captatori sono definiti dalla Tabella 7 della norma CEI EN IEC 62305-3:2024, di cui si riportano i valori principali:"),
+    p("I materiali, le configurazioni, le minime sezioni dei conduttori e delle aste dei captatori sono definiti dalla Tabella 7 della norma CEI EN IEC 62305-3:2026-10, di cui si riportano i valori principali:"),
   );
-  tabN("Materiale, configurazione e sezione minima di captatori, aste e calate (CEI EN IEC 62305-3:2024, Tab. 7)", ["Materiale", "Configurazione", "Sezione minima (mm²)"], SEZIONI_CAPTATORI_CALATE.filter((z) => ["rame", "alluminio", "acciaio-zincato", "acciaio-inox"].includes(z.materiale)).map((z) => [NOMI_MATERIALI[z.materiale], NOMI_CONFIGURAZIONI[z.configurazione], String(z.sezione)]), [4, 5, 2]);
+  tabN("Materiale, configurazione e sezione minima di captatori, aste e calate (CEI EN IEC 62305-3:2026-10, Tab. 7)", ["Materiale", "Configurazione", "Sezione minima (mm²)"], SEZIONI_CAPTATORI_CALATE.filter((z) => ["rame", "alluminio", "acciaio-zincato", "acciaio-inox"].includes(z.materiale)).map((z) => [NOMI_MATERIALI[z.materiale], NOMI_CONFIGURAZIONI[z.configurazione], String(z.sezione)]), [4, 5, 2]);
   B.push(
     p([{ t: "Verranno utilizzati per gli organi di captazione e di calata conduttori tondi in alluminio o in acciaio zincato a caldo da 50 mm² (diametro 8 mm)" }, ...(() => { const m = [...new Set(x.conduttori.filter((c) => c.tipo !== "terra").map((c) => [c.materiale, c.sezione ? `${c.sezione}${/^\d+$/.test(c.sezione) ? " mm²" : ""}` : ""].filter(Boolean).join(" ")).filter(Boolean))]; return m.length ? [{ t: `; nel progetto: ${m.join(", ")}` }] : []; })(), { t: "." }]),
     p("Questi requisiti risultano dalla conduttività elettrica dei materiali utilizzati per condurre la corrente di fulmine (aumento di temperatura) e dalle sollecitazioni meccaniche durante l'utilizzo."),
-    p("Quando si utilizza un tondino Ø 8 mm come punta di captazione, è ammessa un'altezza libera massima di 0,5 m. La limitazione dell'altezza per il tondino Ø 10 mm è di 1 m di lunghezza libera."),
+    p("Secondo le note della Tabella 7: la sezione di 50 mm² (Ø 8 mm) può essere ridotta a 28 mm² (Ø 6 mm) dove la resistenza meccanica non è un requisito essenziale, riducendo in questo caso la distanza tra gli elementi di fissaggio; per le aste di captazione per cui il carico del vento non è critico si può utilizzare un'asta di Ø 9,5 mm lunga 1 m. Nel dimensionamento delle aste di captazione si deve tenere conto delle condizioni ambientali, in particolare del carico di vento previsto. Le caratteristiche meccaniche, elettriche e di resistenza alla corrosione devono soddisfare la CEI EN IEC 62561-2."),
   );
-  tabN("Sezione minima dei conduttori equipotenziali (CEI EN IEC 62305-3:2024, Tab. 9 e 10)", ["Materiale", "Tra le barre equipotenziali o verso terra (mm²)", "Verso le masse metalliche interne (mm²)"], (["rame", "alluminio", "acciaio"] as const).map((m) => [m.charAt(0).toUpperCase() + m.slice(1), String(SEZIONI_EQUIPOTENZIALI[m].traBarre), String(SEZIONI_EQUIPOTENZIALI[m].corpiInterni)]), [3, 5, 5]);
+  tabN("Sezione minima dei conduttori equipotenziali (CEI EN IEC 62305-3:2026-10, Tab. 9 e 10)", ["Materiale", "Tra le barre equipotenziali o verso terra (mm²)", "Verso le masse metalliche interne (mm²)"], (["rame", "alluminio", "acciaio"] as const).map((m) => [m.charAt(0).toUpperCase() + m.slice(1), String(SEZIONI_EQUIPOTENZIALI[m].traBarre), String(SEZIONI_EQUIPOTENZIALI[m].corpiInterni)]), [3, 5, 5]);
   B.push(
-    p(`Secondo le Tabelle 9 e 10 della norma CEI EN IEC 62305-3:2024, la sezione minima richiesta per un conduttore di collegamento tra barre equipotenziali, o verso l'impianto di terra, è ${rame.traBarre} mm² in rame (${SEZIONI_EQUIPOTENZIALI.alluminio.traBarre} mm² in alluminio, ${SEZIONI_EQUIPOTENZIALI.acciaio.traBarre} mm² in acciaio); verso le masse metalliche interne è ${rame.corpiInterni} mm² in rame. Sarebbe quindi possibile utilizzare un cavo in rame isolato in PVC NYY 1 × 16 mm², provato con corrente impulsiva di 100 kA (10/350 µs), come calata oppure come conduttore fuori terra e interrato.`),
+    p(`Secondo le Tabelle 9 e 10 della norma CEI EN IEC 62305-3:2026-10, la sezione minima richiesta per un conduttore di collegamento tra barre equipotenziali, o verso l'impianto di terra, è ${rame.traBarre} mm² in rame (${SEZIONI_EQUIPOTENZIALI.alluminio.traBarre} mm² in alluminio, ${SEZIONI_EQUIPOTENZIALI.acciaio.traBarre} mm² in acciaio); verso le masse metalliche interne è ${rame.corpiInterni} mm² in rame. Sarebbe quindi possibile utilizzare un cavo in rame isolato in PVC NYY 1 × 16 mm², provato con corrente impulsiva di 100 kA (10/350 µs), come calata oppure come conduttore fuori terra e interrato.`),
   );
 
   // =====================================================================================
@@ -447,7 +447,7 @@ export function relazioneTecnica(x: IngressoRelazione): Documento {
     el("la relazione sulla valutazione dei rischi dovuti al fulmine;", "la scelta delle misure di protezione da adottare ove necessarie, coordinate con il risultato della verifica."),
     h1("9. Norme tecniche di riferimento"),
     p("Questo documento è stato elaborato con riferimento alle seguenti norme:"),
-    el("CEI EN IEC 62305-1:2024 – \"Protezione contro i fulmini. Parte 1: Principi generali\";", "CEI EN IEC 62305-2:2024 – \"Protezione contro i fulmini. Parte 2: Valutazione del rischio\";", "CEI EN IEC 62305-3:2024 – \"Protezione contro i fulmini. Parte 3: Danno materiale alle strutture e pericolo per le persone\";", "CEI EN IEC 62305-4:2024 – \"Protezione contro i fulmini. Parte 4: Impianti elettrici ed elettronici nelle strutture\";", "CEI 81-29 – \"Linee guida per l'applicazione delle norme CEI EN 62305\";", "CEI EN IEC 62858 – \"Densità di fulminazione. Reti di localizzazione fulmini (LLS) – Principi generali\"."),
+    el("CEI EN IEC 62305-1:2026-10 – \"Protezione contro i fulmini. Parte 1: Principi generali\";", "CEI EN IEC 62305-2:2026-10 – \"Protezione contro i fulmini. Parte 2: Gestione del rischio\";", "CEI EN IEC 62305-3:2026-10 – \"Protezione contro i fulmini. Parte 3: Danno materiale alle strutture e pericolo per le persone\";", "CEI EN IEC 62305-4:2026-10 – \"Protezione contro i fulmini. Parte 4: Impianti elettrici ed elettronici nelle strutture\";", "CEI 81-29 – \"Linee guida per l'applicazione delle norme CEI EN 62305\";", "CEI EN IEC 62858 – \"Densità di fulminazione. Reti di localizzazione fulmini (LLS) – Principi generali\"."),
   );
 
   // densità
@@ -455,7 +455,7 @@ export function relazioneTecnica(x: IngressoRelazione): Documento {
   B.push(h1("10. Densità annua di fulmini a terra"),
     p("La densità annua di fulmini a terra al kilometro quadrato nella posizione in cui è ubicata la struttura vale:"),
     p([{ t: `NG = ${it(d.densita)}  –  NSG = ${it(k * d.densita)}`, b: true, i: true }, { t: "  fulmini/(anno·km²)", i: true }], { allinea: "centro" }),
-    p([{ t: `NSG è la densità dei punti di impatto al suolo; se il fornitore dei dati non indica il rapporto k = NSG/NG si assume k = 2 (CEI EN IEC 62305-2:2024, A.1). Nel progetto k = ${it(k)}. I valori sono quelli dell'attestato allegato (capitolo 17). ` }, dc("verificare NG e NSG con l'attestato")]),
+    p([{ t: `NSG è la densità dei punti di impatto al suolo; se il fornitore dei dati non indica il rapporto k = NSG/NG si assume k = 2 (CEI EN IEC 62305-2:2026-10, A.1). Nel progetto k = ${it(k)}. I valori sono quelli dell'attestato allegato (capitolo 17). ` }, dc("verificare NG e NSG con l'attestato")]),
   );
 
   // struttura
@@ -464,7 +464,7 @@ export function relazioneTecnica(x: IngressoRelazione): Documento {
     p([{ t: "La struttura che si vuole proteggere coincide con " }, ...(titolo ? [{ t: `«${titolo}»` }] : [dc("edifici da proteggere")]), { t: ", rappresentata nei disegni allegati." }]),
     p("La struttura e le sue zone sono state definite tenuto conto di:"),
     el("compartimenti antincendio esistenti e/o che sarebbe opportuno realizzare;", "eventuali locali già protetti (e/o che sarebbe opportuno proteggere specificamente) contro il LEMP (impulso elettromagnetico);", "i tipi di superficie del suolo all'esterno della struttura, i tipi di pavimentazione interni ad essa e l'eventuale presenza di persone;", "le altre caratteristiche della struttura e, in particolare, il lay-out degli impianti interni e le misure di protezione esistenti."),
-    p("Pertanto, ai sensi dell'Allegato A della norma CEI EN IEC 62305-2:2024, le dimensioni e le caratteristiche della struttura da considerare sono quelle dell'edificio stesso:"),
+    p("Pertanto, ai sensi dell'Allegato A della norma CEI EN IEC 62305-2:2026-10, le dimensioni e le caratteristiche della struttura da considerare sono quelle dell'edificio stesso:"),
     tab(["Dato", "Valore"], [
       ["Ubicazione", [[d.comune, r.provincia ? `(${r.provincia})` : ""].filter(Boolean).join(" "), d.indirizzo ?? ""].filter(Boolean).join(", ") || "—"],
       ...(typeof d.lat === "number" && typeof d.lon === "number" ? [["Coordinate (WGS84)", `${d.lat.toFixed(6).replace(".", ",")}° N, ${d.lon.toFixed(6).replace(".", ",")}° E`] as Testo[]] : []),
@@ -474,7 +474,7 @@ export function relazioneTecnica(x: IngressoRelazione): Documento {
       ["Posizione relativa (CD)", pos ? `${pos.descrizione} (CD = ${it(pos.valore)})` : "—"],
     ], [4, 8]),
   );
-  tabN("Fattore di posizione CD (CEI EN IEC 62305-2:2024, Tab. A.1) – riga del progetto evidenziata", ["Posizione relativa della struttura", "CD"], fattori.map((f) => [f.descrizione, it(f.valore)]), [9, 2]);
+  tabN("Fattore di posizione CD (CEI EN IEC 62305-2:2026-10, Tab. A.1) – riga del progetto evidenziata", ["Posizione relativa della struttura", "CD"], fattori.map((f) => [f.descrizione, it(f.valore)]), [9, 2]);
   { const b = B.pop()!; B.push(evid(b, [fattori.findIndex((f) => f.id === d.posizioneId)])); }
   corpi.forEach((c, i) => {
     const xs = c.impronta.map((q) => q[0]), ys = c.impronta.map((q) => q[1]);
@@ -489,8 +489,8 @@ export function relazioneTecnica(x: IngressoRelazione): Documento {
   B.push(h1("12. Dati iniziali e valutazione del rischio"),
     p([{ t: "La destinazione d'uso prevalente della struttura è: " }, ...destinazione, { t: "." }]),
     p("In relazione anche alla sua destinazione d'uso, la struttura può essere soggetta a:"),
-    el("perdita di vite umane (L1);", "perdita per danno materiale (L2);", "guasto degli impianti interni (frequenza del danno F)."),
-    p("In accordo con la norma CEI EN IEC 62305-2:2024, per valutare la necessità della protezione contro il fulmine devono pertanto essere calcolati il rischio R = RL1 + RL2 e la frequenza del danno F per ogni zona della struttura."),
+    el("perdita di vite umane (L1);", "perdita dovuta a danni materiali alla struttura e al contenuto (L2);", "perdita dovuta al guasto degli impianti interni (L3), valutata con la frequenza del danno F."),
+    p("In accordo con la norma CEI EN IEC 62305-2:2026-10, per valutare la necessità della protezione contro il fulmine devono pertanto essere calcolati il rischio R = RL1 + RL2 e la frequenza del danno F per ogni zona della struttura."),
     p("Le valutazioni di natura economica, volte ad accertare la convenienza dell'adozione delle misure di protezione, non sono state condotte perché non richieste dal Committente."),
   );
   let esitoSenza: EsitoStruttura | null = null, esitoCon: EsitoStruttura | null = null, minimo: ClasseLps | null = null;
@@ -521,7 +521,7 @@ export function relazioneTecnica(x: IngressoRelazione): Documento {
     B.push(h3("Zone della struttura"), tab(["Zona", "Presenza (h/anno)", "Pavimento rt", "Rischio incendio rf", "Protezione incendio rp", "Categoria di perdita", "Misure contatto"], zone.map((z) => [z.nome, it(z.oreAnno, 0), PAVIMENTO.find((o) => o.valore === z.rt)?.nome ?? it(z.rt, 5), RISCHIO_INCENDIO.find((o) => o.id === z.rfId)?.nome ?? z.rfId, PROTEZIONE_INCENDIO.find((o) => o.valore === z.rp)?.nome ?? it(z.rp), (CATEGORIE.find((c) => c.id === z.categoria)?.nome ?? z.categoria).replace(/ \(.*\)$/, ""), MISURE_CONTATTO.find((o) => o.valore === z.misureContatto)?.nome ?? it(z.misureContatto, 3)]), [2, 1.3, 1.6, 2, 2, 1.6, 2]));
     const usati = <T,>(lista: T[], usa: (o: T) => boolean) => lista.map((o, i) => (usa(o) ? i : -1)).filter((i) => i >= 0);
     B.push(h3("Coefficienti adottati (righe evidenziate)"));
-    tabN("Categorie di perdita e perdite tipiche LF, LO (CEI EN IEC 62305-2:2024, Tab. C.2)", ["Categoria della struttura", "LF", "LO"], CATEGORIE.map((c) => [c.nome, sci(c.LF), sci(c.LO)]), [8, 1.6, 1.6]);
+    tabN("Categorie di perdita e perdite tipiche LF, LO (CEI EN IEC 62305-2:2026-10, Tab. C.2)", ["Categoria della struttura", "LF", "LO"], CATEGORIE.map((c) => [c.nome, sci(c.LF), sci(c.LO)]), [8, 1.6, 1.6]);
     { const b = B.pop()!; B.push(evid(b, usati(CATEGORIE, (c) => zone.some((z) => z.categoria === c.id || z.categoriaL2 === c.id)))); }
     tabN("Fattore di riduzione per rischio d'incendio o di esplosione rf (Tab. B.6)", ["Rischio", "rf"], RISCHIO_INCENDIO.map((o) => [o.nome, sci(o.valore)]), [8, 2]);
     { const b = B.pop()!; B.push(evid(b, usati(RISCHIO_INCENDIO, (o) => zone.some((z) => z.rfId === o.id)))); }
@@ -536,22 +536,22 @@ export function relazioneTecnica(x: IngressoRelazione): Documento {
       ["PLPS (struttura protetta da LPS)", ...CL.map((c) => it(PLPS[c], 3))], ["PEB (SPD per il collegamento equipotenziale)", ...CL.map((c) => it(PEB[c], 3))], ["PSPD (sistema coordinato di SPD)", ...CL.map((c) => it(PSPD[c], 3))],
     ], [5, 1.4, 1.2, 1.2, 1.2, 1.2], CL.indexOf(lpl) + 1);
     const righeEsito = (es: EsitoStruttura): Testo[][] => es.zone.map((z) => [z.zona.nome, sci(z.RL1), sci(z.RL2), [...sci(z.R), { t: z.conforme ? "  ≤ RT" : "  > RT", b: true }], sci(z.F), [...sci(z.FT), { t: z.frequenzaConforme ? "  F ≤ FT" : "  F > FT", b: true }]]);
-    const comp = (es: EsitoStruttura) => tab(["Zona", "RA", "RB", "RC", "RM", "RU", "RV", "RW", "RZ"], es.zone.map((z) => [z.zona.nome, sci(z.componenti.RA + z.componenti.RAD), sci(z.componenti.RB), sci(z.componenti.RC), sci(z.componenti.RM), sci(z.componenti.RU), sci(z.componenti.RV), sci(z.componenti.RW), sci(z.componenti.RZ)]), [1.6, 1, 1, 1, 1, 1, 1, 1, 1]);
+    const comp = (es: EsitoStruttura) => tab(["Zona", "RAT", "RAD", "RB", "RC", "RM", "RU", "RV", "RW", "RZ"], es.zone.map((z) => [z.zona.nome, sci(z.componenti.RA), sci(z.componenti.RAD), sci(z.componenti.RB), sci(z.componenti.RC), sci(z.componenti.RM), sci(z.componenti.RU), sci(z.componenti.RV), sci(z.componenti.RW), sci(z.componenti.RZ)]), [1.6, 1, 1, 1, 1, 1, 1, 1, 1, 1]);
     B.push(h2("12.2 Rischio della struttura senza misure di protezione"), tab(["Zona", "RL1", "RL2", "R", "F", "FT"], righeEsito(esitoSenza), [2.4, 1.6, 1.6, 2.2, 1.6, 2.2]), h3("Componenti di rischio"), comp(esitoSenza),
       h2(`12.3 Rischio della struttura con le misure di progetto (LPS e SPD di livello ${lpl})`), tab(["Zona", "RL1", "RL2", "R", "F", "FT"], righeEsito(esitoCon), [2.4, 1.6, 1.6, 2.2, 1.6, 2.2]), h3("Componenti di rischio"), comp(esitoCon));
     B.push(h3("Confronto grafico"));
     fig(barreLog({ categorie: esitoSenza.zone.map((z) => z.zona.nome), serie: [{ nome: "senza protezione", valori: esitoSenza.zone.map((z) => z.R) }, { nome: `con LPS e SPD di livello ${lpl}`, valori: esitoCon.zone.map((z) => z.R) }], soglia: { valore: RT, etichetta: "RT = 10⁻⁵" }, asseY: "rischio R (1/anno)" }), "Rischio R di ogni zona senza e con le misure di protezione, confrontato con RT (scala logaritmica)");
     const peggiore = esitoSenza.zone.reduce((a, z, i) => (z.R > (esitoSenza!.zone[a]?.R ?? 0) ? i : a), 0);
     const zs = esitoSenza.zone[peggiore]!, zc = esitoCon.zone[peggiore]!;
-    const NOMI_C = ["RA", "RB", "RC", "RM", "RU", "RV", "RW", "RZ"] as const;
-    const val = (z: typeof zs) => NOMI_C.map((k) => (k === "RA" ? z.componenti.RA + z.componenti.RAD : z.componenti[k]));
+    const NOMI_C = ["RAT", "RAD", "RB", "RC", "RM", "RU", "RV", "RW", "RZ"] as const;
+    const val = (z: typeof zs) => NOMI_C.map((k) => (k === "RAT" ? z.componenti.RA : z.componenti[k]));
     fig(barreLog({ categorie: [...NOMI_C], serie: [{ nome: "senza protezione", valori: val(zs) }, { nome: `con LPS e SPD di livello ${lpl}`, valori: val(zc) }], soglia: { valore: RT, etichetta: "RT = 10⁻⁵" }, asseY: "componente di rischio (1/anno)" }), `Componenti di rischio della zona «${zs.zona.nome}» senza e con le misure di protezione (scala logaritmica)`);
     fig(barreLog({ categorie: esitoSenza.zone.map((z) => z.zona.nome), serie: [{ nome: "F senza protezione", valori: esitoSenza.zone.map((z) => z.F) }, { nome: `F con SPD di livello ${lpl}`, valori: esitoCon.zone.map((z) => z.F) }], soglia: { valore: Math.min(...esitoCon.zone.map((z) => z.FT)), etichetta: `FT = ${it(Math.min(...esitoCon.zone.map((z) => z.FT)), 2)}` }, asseY: "frequenza del danno F (1/anno)" }), "Frequenza del danno agli impianti interni F di ogni zona, confrontata con FT (scala logaritmica)");
     const caso = esitoSenza.conforme && esitoSenza.frequenzaConforme ? 1 : esitoCon.conforme && esitoCon.frequenzaConforme ? 2 : 3;
     B.push(h2("12.4 Esito"),
       p([{ t: caso === 1 ? "Caso 1 – la struttura è autoprotetta: non sono necessarie misure di protezione." : caso === 2 ? `Caso 2 – con un LPS di classe ${lpl} e un sistema di SPD di livello ${lpl} la struttura è protetta.` : `Caso 3 – con le misure di livello ${lpl} la struttura NON risulta protetta: servono ulteriori misure.`, b: true }]),
       p(minimo ? `La protezione minima che rende R ≤ RT in tutte le zone è: ${nomeProtezione(minimo)}.${minimo !== "nessuno" && LIVELLI.indexOf(minimo as Lpl) < LIVELLI.indexOf(lpl) ? " Il livello di progetto è inferiore a quello minimo e va rivisto." : ""}` : "Nessuna combinazione di LPS e SPD dello stesso livello porta R ≤ RT: servono altre misure (antincendio, schermature, misure contro le tensioni di contatto e di passo)."),
-      ...(!esitoCon.frequenzaConforme ? [p("La frequenza del danno F supera FT: vanno previste misure SPM (sistema coordinato di SPD, schermature, percorsi dei cavi) secondo la CEI EN IEC 62305-4:2024.")] : []),
+      ...(!esitoCon.frequenzaConforme ? [p("La frequenza del danno F supera FT: vanno previste misure SPM (sistema coordinato di SPD, schermature, percorsi dei cavi) secondo la CEI EN IEC 62305-4:2026-10.")] : []),
     );
   } else {
     B.push(p([{ t: x.risultati.rischio ? `Livello di protezione da valutazione: ${x.risultati.rischio.lpl} (${x.risultati.rischio.esito}). ` : "" }, dc(`valutazione del rischio non compilata nell'app (pagina Rischio). Livello di progetto dichiarato: LPL ${lpl}`)]));
@@ -619,12 +619,12 @@ export function relazioneTecnica(x: IngressoRelazione): Documento {
   const km = { ...KM, ...(x.separazione.kmSolido ? { solido: x.separazione.kmSolido } : {}) };
   const esiti = verificaPunti(x.separazione.punti, ki, kc, km);
   B.push(h2("13.3 Distanza di separazione"),
-    p("Tra l'LPS e le parti metalliche o gli impianti interni deve essere rispettata la distanza di separazione s, calcolata con il metodo semplificato della CEI EN IEC 62305-3:2024:"),
+    p("Tra l'LPS e le parti metalliche o gli impianti interni deve essere rispettata la distanza di separazione s, calcolata con il metodo semplificato della CEI EN IEC 62305-3:2026-10:"),
     p([{ t: "s = (k" }, { t: "i", sub: true }, { t: " × k" }, { t: "c", sub: true }, { t: " / k" }, { t: "m", sub: true }, { t: ") × l" }], { formula: true }),
     p(`con ki = ${it(ki, 3)} (LPL ${lpl}), kc = ${it(kc, 3)} (${nCalate || 1} calate), km = 1 in aria e ${it(km.solido, 2)} in materiale solido; l è la lunghezza lungo l'LPS dal punto considerato al più vicino collegamento equipotenziale.`),
   );
-  tabN("Coefficiente ki in funzione della classe di LPS (CEI EN IEC 62305-3:2024, Tab. 11)", ["Classe di LPS", "I", "II", "III", "IV"], [["ki", ...LIVELLI.map((l) => it(KI[l], 2))]], [5, 1.5, 1.5, 1.5, 1.5], col);
-  tabN("Coefficiente km in funzione del materiale isolante (CEI EN IEC 62305-3:2024, Tab. 12)", ["Materiale", "km"], (Object.keys(KM) as (keyof typeof KM)[]).map((m) => [NOMI_MATERIALE[m], it(km[m], 2)]), [9, 2]);
+  tabN("Coefficiente ki in funzione della classe di LPS (CEI EN IEC 62305-3:2026-10, Tab. 11)", ["Classe di LPS", "I", "II", "III", "IV"], [["ki", ...LIVELLI.map((l) => it(KI[l], 2))]], [5, 1.5, 1.5, 1.5, 1.5], col);
+  tabN("Coefficiente km in funzione del materiale isolante (CEI EN IEC 62305-3:2026-10, Tab. 12)", ["Materiale", "km"], (Object.keys(KM) as (keyof typeof KM)[]).map((m) => [NOMI_MATERIALE[m], it(km[m], 2)]), [9, 2]);
   if (esiti.length || nCalate) fig(graficoSeparazione(ki, kc, km.solido, esiti.map((e) => ({ l: e.l, d: e.d, conforme: e.conforme, nome: e.descrizione || e.id }))), "Distanza di separazione richiesta in funzione di l e distanze effettive dei punti verificati");
   if (esiti.length) B.push(tab(["Punto", "Materiale", "l (m)", "s richiesta (m)", "d effettiva (m)", "Esito"], esiti.map((e) => [e.descrizione || e.id, NOMI_MATERIALE[e.materiale].replace(/ \(.*\)$/, ""), it(e.l, 2), it(e.s, 3), it(e.d, 3), e.conforme ? "Conforme" : [{ t: "Non conforme: collegare o isolare", b: true }]]), [3, 2.5, 1, 1.5, 1.5, 1.8]));
   else B.push(p([dc("punti critici (impianti in copertura, parti metalliche) con la distanza effettiva")]));
@@ -643,12 +643,12 @@ export function relazioneTecnica(x: IngressoRelazione): Documento {
     B.push(p("Il sistema di dispersori disperde nel terreno la corrente di fulmine senza sovratensioni pericolose. È unico per l'LPS e per l'impianto elettrico ed è collegato al collettore principale di terra; i dispersori di edifici vicini sono preferibilmente collegati tra loro in un unico sistema disperdente."), tab(["Elemento", "Valore"], righeT, [5, 7]));
   } else B.push(p([dc("impianto di terra esistente o di progetto (tipo, anelli, collegamenti, misure di resistenza)")]));
   { const rhos = [100, 500, 1000, 1500, 2000, 2500, 3000];
-    tabN("Lunghezza minima l1 del dispersore in funzione della resistività del terreno (CEI EN IEC 62305-3:2024, 5.4.2)", ["Resistività ρ (Ωm)", ...rhos.map(String)], LIVELLI.map((l) => [`Classe ${l} (m)`, ...rhos.map((rho) => it(l1Norma(l, rho), 1))]), [3, 1, 1, 1, 1, 1, 1, 1]);
+    tabN("Lunghezza minima l1 del dispersore in funzione della resistività del terreno (CEI EN IEC 62305-3:2026-10, 5.4.2)", ["Resistività ρ (Ωm)", ...rhos.map(String)], LIVELLI.map((l) => [`Classe ${l} (m)`, ...rhos.map((rho) => it(l1Norma(l, rho), 1))]), [3, 1, 1, 1, 1, 1, 1, 1]);
     const b = B.pop()!; B.push(evid(b, [LIVELLI.indexOf(lpl)])); }
-  tabN("Dimensioni minime dei dispersori (CEI EN IEC 62305-3:2024, Tab. 8)", ["Materiale", "Configurazione", "Diametro (mm)", "Sezione (mm²)", "Piastra (mm)"], DIMENSIONI_DISPERSORI.map((z) => [NOMI_MATERIALI[z.materiale], NOMI_CONFIGURAZIONI[z.configurazione], z.diametro != null ? String(z.diametro) : "—", z.sezione != null ? String(z.sezione) : "—", z.piastra ?? "—"]), [3, 3, 1.4, 1.4, 3]);
+  tabN("Dimensioni minime dei dispersori (CEI EN IEC 62305-3:2026-10, Tab. 8)", ["Materiale", "Configurazione", "Diametro (mm)", "Sezione (mm²)", "Piastra (mm)"], DIMENSIONI_DISPERSORI.map((z) => [NOMI_MATERIALI[z.materiale], NOMI_CONFIGURAZIONI[z.configurazione], z.diametro != null ? String(z.diametro) : "—", z.sezione != null ? String(z.sezione) : "—", z.piastra ?? "—"]), [3, 3, 1.4, 1.4, 3]);
   // SPD
   B.push(h2("13.5 Protezione degli impianti interni (SPD)"),
-    p("Le linee metalliche entranti (energia, telecomunicazioni, dati) sono collegate all'impianto equipotenziale all'ingresso nella struttura, direttamente o tramite SPD, per evitare scariche pericolose e proteggere gli impianti interni secondo la CEI EN IEC 62305-4:2024."));
+    p("Le linee metalliche entranti (energia, telecomunicazioni, dati) sono collegate all'impianto equipotenziale all'ingresso nella struttura, direttamente o tramite SPD, per evitare scariche pericolose e proteggere gli impianti interni secondo la CEI EN IEC 62305-4:2026-10."));
   if (x.risultati.spd?.dispositivi.length) B.push(p(x.risultati.spd.descrizione), tab(["Art. No", "Descrizione", "Quantità"], x.risultati.spd.dispositivi.map((s) => [s.codice, s.descrizione, String(s.quantita)]), [2, 8, 1.5]));
   else B.push(p([dc(`SPD previsti per le linee entranti (livello ${lpl}) o SPD esistenti`)]));
 
@@ -684,7 +684,7 @@ export function relazioneTecnica(x: IngressoRelazione): Documento {
 
   // ---------- 16 verifiche
   B.push(h1("16. Verifiche e manutenzione"),
-    p("Al termine dei lavori l'installatore rilascia la dichiarazione di conformità ai sensi del D.M. 37/2008. L'impianto è soggetto alla denuncia e alle verifiche periodiche previste dal D.P.R. 462/2001. L'LPS deve essere esaminato a vista periodicamente e verificato in modo completo secondo il piano di manutenzione della CEI EN IEC 62305-3:2024, e comunque dopo ogni fulminazione accertata o modifica della struttura."));
+    p("Al termine dei lavori l'installatore rilascia la dichiarazione di conformità ai sensi del D.M. 37/2008. L'impianto è soggetto alla denuncia e alle verifiche periodiche previste dal D.P.R. 462/2001. L'LPS deve essere esaminato a vista periodicamente e verificato in modo completo secondo il piano di manutenzione della CEI EN IEC 62305-3:2026-10, e comunque dopo ogni fulminazione accertata o modifica della struttura."));
 
   // ---------- 17 NG-NSG
   B.push(h1("17. Valori NG – NSG (CEI EN IEC 62305 – CEI EN IEC 62858)"),
@@ -699,7 +699,7 @@ export function relazioneTecnica(x: IngressoRelazione): Documento {
   );
 
   B.push(h1("18. Allegati"), el("Attestato dei valori NG e NSG (CEI EN IEC 62858)", "Disegni di posizionamento del sistema di captazione e delle calate (DWG/DXF)", "Schede dei particolari costruttivi OBO", "Elenco materiale (Excel)"),
-    p("Calcoli di supporto alla progettazione eseguiti con OBO Hub · Progettazione LPS (CEI EN IEC 62305:2024). Il documento va verificato, completato nelle parti evidenziate e firmato da un tecnico abilitato.", { dimensione: 9, spazioPrima: 12 }),
+    p("Calcoli di supporto alla progettazione eseguiti con OBO Hub · Progettazione LPS (CEI EN IEC 62305:2026-10). Il documento va verificato, completato nelle parti evidenziate e firmato da un tecnico abilitato.", { dimensione: 9, spazioPrima: 12 }),
     p([{ t: `${r.luogo || "Rivoli"}, ${dataLunga(x.data)}` }], { spazioPrima: 18 }),
     p([{ t: "Il tecnico  " }, dc("nome, albo e firma")], { allinea: "destra", spazioPrima: 12 }),
   );
