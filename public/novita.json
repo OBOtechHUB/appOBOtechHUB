@@ -2,6 +2,23 @@
   "nota": "Registro degli aggiornamenti di Progettazione LPS. Una voce per aggiornamento, la più recente per prima (app: lps). Viene mostrato nella barra \"Aggiorna app\", nel riquadro Novità e nella pagina Novità di OBO Hub.",
   "aggiornamenti": [
     {
+      "id": "2026-11-19-lps-12",
+      "data": "2026-11-19",
+      "app": "lps",
+      "titolo": "Stemma e provincia del Comune in automatico nella relazione",
+      "voci": [
+        "La copertina della relazione usa lo stemma del Comune indicato nei dati dell'edificio, cercato da solo su Wikidata e Wikimedia Commons, con l'anteprima in \"Dati della relazione\"",
+        "Anche il nome ufficiale del Comune e la provincia si compilano da soli; fra Comuni omonimi vale la provincia scritta o, se manca, la posizione del progetto",
+        "Uno stemma caricato a mano ha sempre la precedenza; se la licenza lo chiede, autore e licenza dello stemma sono riportati negli allegati"
+      ],
+      "titolo_en": "Municipality coat of arms and province filled in automatically in the report",
+      "voci_en": [
+        "The report cover uses the coat of arms of the municipality entered in the building data, found automatically on Wikidata and Wikimedia Commons, with a preview in \"Report data\"",
+        "The official municipality name and province are filled in too; among municipalities with the same name, the province entered or the project location decides",
+        "A coat of arms uploaded by hand always takes priority; where the licence requires it, author and licence are listed in the report attachments"
+      ]
+    },
+    {
       "id": "2026-11-19-lps-11",
       "data": "2026-11-19",
       "app": "lps",

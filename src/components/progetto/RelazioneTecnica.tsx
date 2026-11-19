@@ -2,7 +2,7 @@
  * Relazione tecnica in Word sul format OBO (calcoli/relazione/relazioneTecnica.ts).
  * I dati che l'app non calcola (committente, provincia, sopralluogo…) si scrivono qui e restano nel progetto.
  */
-import { useState, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { FileText, Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Campo, inputCls } from "@/components/Campo";
@@ -14,6 +14,7 @@ import { creaDocx, rasterizza, type Documento, type ImmaginePdf, type Testo } fr
 import { caricaCatalogoObo, trovaArticolo } from "@/lib/catalogoObo";
 import type { InfoArticolo } from "@/calcoli/relazione/testiProgetto";
 import { trovaSchedaPdf } from "@/lib/schedeParticolari";
+import { stemmaDelComune, type ComuneTrovato, type StemmaComune } from "@/lib/stemmaComune";
 
 /** Prima pagina della scheda PDF di un particolare (archivio privato dei particolari) come PNG. */
 async function schedaPng(file: string): Promise<ImmaginePdf | null> {
@@ -126,6 +127,25 @@ export function RelazioneTecnica({ righe, mancanti, particolari }: { righe: Riga
   const [occupato, setOccupato] = useState(false);
   // immagini del progetto: restano solo finché la pagina è aperta (non entrano nel salvataggio del progetto)
   const [stemma, setStemma] = useState<File | null>(null), [logoComm, setLogoComm] = useState<File | null>(null), [foto, setFoto] = useState<Foto[]>([]);
+  // stemma e provincia del Comune del progetto, cercati in automatico (Wikidata / Wikimedia Commons)
+  const [auto, setAuto] = useState<{ stato: "vuoto" | "cerco" | "ok" | "nessuno" | "errore"; comune: ComuneTrovato | null; stemma: StemmaComune | null; url: string | null }>({ stato: "vuoto", comune: null, stemma: null, url: null });
+  const [usaAuto, setUsaAuto] = useState(true);
+  const vicino = typeof d.lat === "number" && typeof d.lon === "number" ? { lat: d.lat, lon: d.lon } : null;
+  useEffect(() => {
+    const nome = d.comune.trim();
+    if (nome.length < 2) { setAuto({ stato: "vuoto", comune: null, stemma: null, url: null }); return; }
+    const ctl = new AbortController();
+    let url: string | null = null;
+    const t = setTimeout(() => {
+      setAuto((a) => ({ ...a, stato: "cerco" }));
+      stemmaDelComune(nome, { provincia: r.provincia, vicino, segnale: ctl.signal })
+        .then(({ comune, stemma: st }) => { if (st) url = URL.createObjectURL(st.blob); setAuto({ stato: comune ? "ok" : "nessuno", comune, stemma: st, url }); setFile(null); })
+        .catch(() => { if (!ctl.signal.aborted) setAuto({ stato: "errore", comune: null, stemma: null, url: null }); });
+    }, 700);
+    return () => { clearTimeout(t); ctl.abort(); if (url) URL.revokeObjectURL(url); };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [d.comune, r.provincia, vicino?.lat, vicino?.lon]);
+  const stemmaAuto = usaAuto && !stemma ? auto.stemma : null;
   async function crea() {
     setErrore(""); setFile(null); setMancano(null); setOccupato(true);
     try {
@@ -138,10 +158,12 @@ export function RelazioneTecnica({ righe, mancanti, particolari }: { righe: Riga
         articoli: await articoliAste(s.aste.map((a) => a.codiceOBO)),
         immagini: {
           logo: await logoObo(),
-          stemma: stemma ? await preparaImmagine(stemma, false, 800) : undefined,
+          stemma: stemma ? await preparaImmagine(stemma, false, 800) : stemmaAuto ? await preparaImmagine(stemmaAuto.blob, false, 800) : undefined,
           logoCommittente: logoComm ? await preparaImmagine(logoComm, false, 800) : undefined,
           foto: await Promise.all(foto.map(async (f) => ({ img: await preparaImmagine(f.file, true), didascalia: f.didascalia }))),
         },
+        comuneUfficiale: auto.comune ? { nome: auto.comune.nome, provincia: auto.comune.provincia } : undefined,
+        creditoStemma: stemmaAuto && !stemmaAuto.pubblicoDominio ? stemmaAuto.credito : undefined,
       }), svgPng, schedaPng);
       const nome = `Relazione-LPS-${(d.nomeProgetto || d.comune || "progetto").replace(/[^\w.-]+/g, "_")}${s.revisioni.at(-1) ? `-Rev${s.revisioni.at(-1)!.rev}` : ""}.docx`;
       setFile({ blob: new Blob([creaDocx(doc)], { type: "application/vnd.openxmlformats-officedocument.wordprocessingml.document" }), nome });
@@ -204,7 +226,28 @@ export function RelazioneTecnica({ righe, mancanti, particolari }: { righe: Riga
         <Campo etichetta="Iscrizione all'albo"><input className={inputCls} value={r.albo} maxLength={200} placeholder="es. Ordine degli Ingegneri di Torino n. …" onChange={(e) => cambia("albo", e.target.value)} /></Campo>
       </Gruppo>
       <Gruppo titolo="Immagini">
-      <Campo etichetta="Stemma del Comune (copertina)"><input type="file" accept="image/png,image/jpeg,image/webp" className="text-sm" onChange={(e) => { setFile(null); setStemma(e.target.files?.[0] ?? null); }} /></Campo>
+      <div className="sm:col-span-2 rounded-md border bg-muted/30 p-3">
+        <p className="text-sm font-medium">Stemma del Comune (copertina)</p>
+        <div className="mt-2 flex flex-wrap items-start gap-3">
+          {auto.url && !stemma && <img src={auto.url} alt={`Stemma del Comune di ${auto.comune?.nome ?? ""}`} className={`h-20 w-auto rounded border bg-white p-1 ${usaAuto ? "" : "opacity-40"}`} />}
+          <div className="grid flex-1 gap-1 text-sm">
+            {auto.stato === "vuoto" && <span className="text-muted-foreground">Indica il Comune nei dati dell'edificio: stemma e provincia si cercano da soli.</span>}
+            {auto.stato === "cerco" && <span className="text-muted-foreground">Cerco lo stemma di {d.comune}…</span>}
+            {auto.stato === "nessuno" && <span className="text-muted-foreground">Nessun Comune italiano trovato per «{d.comune}»: controlla il nome o carica lo stemma.</span>}
+            {auto.stato === "errore" && <span className="text-muted-foreground">Servizio dello stemma non raggiungibile: si può caricare a mano.</span>}
+            {auto.stato === "ok" && auto.comune && <>
+              <span>Comune di <b>{auto.comune.nome}</b>{auto.comune.provincia ? <> · provincia di <b>{auto.comune.provincia}</b>{!r.provincia && " (usata in copertina)"}</> : null}</span>
+              {auto.stemma
+                ? <><label className="flex items-center gap-2"><input type="checkbox" checked={usaAuto} disabled={!!stemma} onChange={(e) => { setFile(null); setUsaAuto(e.target.checked); }} />Usa questo stemma in copertina</label>
+                  <span className="text-xs text-muted-foreground">Da <a className="underline" href={auto.stemma.pagina} target="_blank" rel="noreferrer">Wikimedia Commons</a>{auto.stemma.pubblicoDominio ? " (pubblico dominio)" : ": autore e licenza vengono riportati negli allegati della relazione"}.</span></>
+                : <span className="text-muted-foreground">Stemma non presente su Wikidata: si può caricare a mano.</span>}
+            </>}
+            <label className="mt-1 text-xs text-muted-foreground">Oppure carica uno stemma (ha la precedenza)
+              <input type="file" accept="image/png,image/jpeg,image/webp" className="mt-1 block text-sm" onChange={(e) => { setFile(null); setStemma(e.target.files?.[0] ?? null); }} />
+            </label>
+          </div>
+        </div>
+      </div>
       <Campo etichetta="Logo del committente (copertina)"><input type="file" accept="image/png,image/jpeg,image/webp" className="text-sm" onChange={(e) => { setFile(null); setLogoComm(e.target.files?.[0] ?? null); }} /></Campo>
       <div className="sm:col-span-2">
         <Campo etichetta="Foto del sopralluogo e planimetrie (capitolo 11)"><input type="file" multiple accept="image/png,image/jpeg,image/webp" className="text-sm" onChange={(e) => { setFile(null); const nuove = Array.from(e.target.files ?? []).map((f) => ({ file: f, didascalia: f.name.replace(/\.[^.]+$/, "") })); setFoto((v) => [...v, ...nuove].slice(0, 30)); e.target.value = ""; }} /></Campo>

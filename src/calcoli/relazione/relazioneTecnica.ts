@@ -85,6 +85,10 @@ export interface IngressoRelazione {
   articoli?: Record<string, InfoArticolo> | undefined;
   /** immagini già pronte (PNG o JPEG): logo OBO, stemma del Comune, logo del committente, foto e planimetrie */
   immagini?: { logo?: ImmagineIn | undefined; stemma?: ImmagineIn | undefined; logoCommittente?: ImmagineIn | undefined; foto?: { img: ImmagineIn; didascalia: string }[] | undefined } | undefined;
+  /** Comune riconosciuto (Wikidata): nome ufficiale e provincia, usati quando i dati della relazione non li indicano */
+  comuneUfficiale?: { nome: string; provincia: string } | undefined;
+  /** autore e licenza dello stemma scaricato, riportati negli allegati quando la licenza lo chiede */
+  creditoStemma?: string | undefined;
   data: Date;
 }
 
@@ -167,6 +171,8 @@ export function relazioneTecnica(x: IngressoRelazione): Documento {
   const indirizzoComm: Run[] = r.indirizzoCommittente || r.cittaCommittente ? [{ t: [r.indirizzoCommittente, r.cittaCommittente].filter(Boolean).join("\n") }] : [dc("indirizzo del committente")];
 
   const im = x.immagini ?? {};
+  const comuneNome = x.comuneUfficiale?.nome || d.comune;
+  const provincia = r.provincia || x.comuneUfficiale?.provincia || "";
   // copertina secondo lo standard OBO: logo, fascia in secondario scuro con titolo, barra arancio, dati del progetto
   const copertina = (sottotitolo: string, seconda?: string) => {
     B.push(
@@ -175,8 +181,8 @@ export function relazioneTecnica(x: IngressoRelazione): Documento {
       p([{ t: "Via C. Ferrero 16 · 10098 Rivoli (TO)\nTel. +39 011 9548 811 · tecnico@obo.it · www.obo.it", carattere: "leggero" }], { allinea: "destra", dimensione: 8.5, spazioDopo: im.stemma ? 10 : 40 }),
       ...(im.stemma ? [bloccoImmagine(im.stemma, 2.4, "centro", 3)] : []),
       { tipo: "fascia", colore: OBO.sec1, altezza: 7.2, righe: [
-        { testo: d.comune ? [{ t: `COMUNE DI ${d.comune.toUpperCase()}`, carattere: "condensato" }] : [dc("comune")], dimensione: 12, grassetto: true, colore: OBO.sec4 },
-        { testo: r.provincia ? [{ t: `PROVINCIA DI ${r.provincia.toUpperCase()}`, carattere: "condensatoLeggero" }] : [dc("provincia")], dimensione: 11, colore: OBO.sec4 },
+        { testo: comuneNome ? [{ t: `COMUNE DI ${comuneNome.toUpperCase()}`, carattere: "condensato" }] : [dc("comune")], dimensione: 12, grassetto: true, colore: OBO.sec4 },
+        { testo: provincia ? [{ t: `PROVINCIA DI ${provincia.toUpperCase()}`, carattere: "condensatoLeggero" }] : [dc("provincia")], dimensione: 11, colore: OBO.sec4 },
         { testo: " ", dimensione: 8 },
         { testo: titolo ? [{ t: titolo.toUpperCase(), carattere: "condensato" }] : [dc("titolo dell'opera")], dimensione: 15, grassetto: true, colore: OBO.arancio },
         { testo: [{ t: sottotitolo, carattere: "condensato" }], dimensione: 24, grassetto: true },
@@ -208,7 +214,7 @@ export function relazioneTecnica(x: IngressoRelazione): Documento {
 
   // ---------- 1 Premessa
   B.push(h1("1. Premessa"),
-    p([{ t: "Scopo del presente documento è la descrizione (ai sensi del D.M. 22 gennaio 2008, n. 37) della realizzazione dell'impianto di protezione dalle scariche atmosferiche per la struttura " }, ...(titolo ? [{ t: `denominata «${titolo}»` }] : [dc("nome della struttura")]), { t: ` ubicata a ${d.comune || "…"}${r.provincia ? ` (${r.provincia})` : ""}${d.indirizzo ? `, ${d.indirizzo},` : ""} e destinata a: ` }, ...destinazione, { t: "." }]),
+    p([{ t: "Scopo del presente documento è la descrizione (ai sensi del D.M. 22 gennaio 2008, n. 37) della realizzazione dell'impianto di protezione dalle scariche atmosferiche per la struttura " }, ...(titolo ? [{ t: `denominata «${titolo}»` }] : [dc("nome della struttura")]), { t: ` ubicata a ${comuneNome || "…"}${provincia ? ` (${provincia})` : ""}${d.indirizzo ? `, ${d.indirizzo},` : ""} e destinata a: ` }, ...destinazione, { t: "." }]),
     p("Gli impianti elettrici sono stati progettati nell'osservanza delle seguenti leggi, decreti, circolari, Norme CEI e Norme UNI nel loro insieme e con particolare riferimento alle Norme CEI indicate."),
     p("Di conseguenza tutti gli impianti elettrici dovranno essere realizzati in conformità alle Norme CEI, guide incluse, alle norme UNI e nel rispetto di tutta la legislazione vigente alla data di esecuzione delle opere."),
     p("Dovranno essere utilizzati componenti che rispondono alle relative Norme CEI e Norme UNI ed alle tabelle di unificazione CEI-UNEL, ove queste esistano; che hanno marcatura CE e che hanno preferibilmente marchio IMQ e quelli previsti dal D.Lgs. 81/08 e successive modificazioni. I componenti dell'LPS devono essere conformi alla serie CEI EN IEC 62561."),
@@ -496,7 +502,7 @@ export function relazioneTecnica(x: IngressoRelazione): Documento {
     el("compartimenti antincendio esistenti e/o che sarebbe opportuno realizzare;", "eventuali locali già protetti (e/o che sarebbe opportuno proteggere specificamente) contro il LEMP (impulso elettromagnetico);", "i tipi di superficie del suolo all'esterno della struttura, i tipi di pavimentazione interni ad essa e l'eventuale presenza di persone;", "le altre caratteristiche della struttura e, in particolare, il lay-out degli impianti interni e le misure di protezione esistenti."),
     p("Pertanto, ai sensi dell'Allegato A della norma CEI EN IEC 62305-2:2026-10, le dimensioni e le caratteristiche della struttura da considerare sono quelle dell'edificio stesso:"),
     tab(["Dato", "Valore"], [
-      ["Ubicazione", [[d.comune, r.provincia ? `(${r.provincia})` : ""].filter(Boolean).join(" "), d.indirizzo ?? ""].filter(Boolean).join(", ") || "—"],
+      ["Ubicazione", [[comuneNome, provincia ? `(${provincia})` : ""].filter(Boolean).join(" "), d.indirizzo ?? ""].filter(Boolean).join(", ") || "—"],
       ...(typeof d.lat === "number" && typeof d.lon === "number" ? [["Coordinate (WGS84)", `${d.lat.toFixed(6).replace(".", ",")}° N, ${d.lon.toFixed(6).replace(".", ",")}° E`] as Testo[]] : []),
       ["Destinazione d'uso", destinazione],
       ["Dimensioni di ingombro L × W × H", d.L > 0 ? `${it(d.L)} × ${it(d.W)} × ${it(d.H)} m` : [dc("dimensioni")]],
@@ -777,6 +783,7 @@ export function relazioneTecnica(x: IngressoRelazione): Documento {
   );
 
   B.push(h1("18. Allegati"), el("Attestato dei valori NG e NSG (CEI EN IEC 62858)", "Disegni di posizionamento del sistema di captazione e delle calate (DWG/DXF)", "Schede dei particolari costruttivi OBO", "Elenco materiale (Excel)"),
+    ...(x.creditoStemma ? [p(x.creditoStemma, { dimensione: 8, spazioPrima: 8 })] : []),
     p("Calcoli di supporto alla progettazione eseguiti con OBO Hub · Progettazione LPS (CEI EN IEC 62305:2026-10). Il documento va verificato, completato nelle parti evidenziate e firmato da un tecnico abilitato.", { dimensione: 9, spazioPrima: 12 }),
     p([{ t: `${r.luogo || "Rivoli"}, ${dataLunga(x.data)}` }], { spazioPrima: 18 }),
     p([{ t: "Il tecnico", b: true }], { allinea: "destra", spazioPrima: 12, spazioDopo: 2 }),
