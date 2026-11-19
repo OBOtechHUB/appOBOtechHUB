@@ -15,7 +15,7 @@ export type Blocco =
   | { tipo: "tabella"; intestazione: Testo[]; righe: Testo[][]; larghezze?: number[]; evidenziaColonna?: number; dimensione?: number }
   | { tipo: "salto" };
 
-export interface Documento { blocchi: Blocco[]; intestazione?: string; piede?: string[]; titolo?: string; autore?: string }
+export interface Documento { blocchi: Blocco[]; intestazione?: string; piede?: Testo[]; titolo?: string; autore?: string }
 
 const esc = (s: string) => s.replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]!)).replace(/[\u0000-\u0008\u000b\u000c\u000e-\u001f]/g, "");
 const runs = (t: Testo): Run[] => (typeof t === "string" ? [{ t }] : t);

@@ -9,7 +9,7 @@ import { Campo, inputCls } from "@/components/Campo";
 import { useComputo, useDatiEdificio } from "@/lib/progettoStore";
 import { aggiornaEsteso, leggiAttivo, useEsteso } from "@/lib/statoProgetto";
 import { leggiStato, strutturaRischio } from "@/lib/statoRischio";
-import { relazioneTecnica, type DatiRelazione } from "@/calcoli/relazione/relazioneTecnica";
+import { relazioneTecnica, datiRelazioneVuoti, type DatiRelazione } from "@/calcoli/relazione/relazioneTecnica";
 import { creaDocx } from "@/lib/docx";
 import { scarica } from "@/lib/esportazioni";
 import type { RigaComputo } from "@/calcoli/materiali/tipi";
@@ -27,7 +27,7 @@ const CAMPI: { k: keyof DatiRelazione; etichetta: string; segnaposto?: string }[
 
 export function RelazioneTecnica({ righe, mancanti, particolari }: { righe: RigaComputo[]; mancanti: string[]; particolari: readonly ParticolareLib[] }) {
   const d = useDatiEdificio(), c = useComputo(), s = useEsteso();
-  const r = s.relazione;
+  const r: DatiRelazione = { ...datiRelazioneVuoti, ...s.relazione };
   const [aperto, setAperto] = useState(false), [file, setFile] = useState<{ blob: Blob; nome: string } | null>(null), [errore, setErrore] = useState("");
   const cambia = (k: keyof DatiRelazione, v: string) => { setFile(null); aggiornaEsteso({ relazione: { ...r, [k]: v } }); };
 
