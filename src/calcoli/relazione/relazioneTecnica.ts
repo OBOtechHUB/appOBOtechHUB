@@ -25,7 +25,8 @@ import { DIMENSIONI_DISPERSORI, NOMI_CONFIGURAZIONI, NOMI_MATERIALI, SEZIONI_CAP
 import { PLPS, PEB, PSPD } from "@/calcoli/rischio/rischioR1";
 import { CORRENTE_LPL } from "@/calcoli/spd/sceltaSpd";
 import { l1Norma } from "@/calcoli/terra/proponiTerra";
-import { barreLog, curvaCorrente, graficoSeparazione, graficoSfera, piantaCopertura, schemaSorgenti } from "./grafici";
+import blocchiTreppiede from "@/dati/captazione/blocchiTreppiede.json";
+import { barreLog, curvaCorrente, flussoValutazione, graficoSeparazione, graficoSfera, piantaCopertura, schemaSorgenti } from "./grafici";
 
 export type Lpl = "I" | "II" | "III" | "IV";
 
@@ -38,6 +39,13 @@ export interface DatiRelazione {
 }
 export const datiRelazioneVuoti: DatiRelazione = { committente: "", indirizzoCommittente: "", cittaCommittente: "", provincia: "", titoloOpera: "", destinazione: "", luogo: "Rivoli", descrizione: "" };
 
+export interface ImmagineIn { dati: Uint8Array; jpeg: boolean; larghezzaPx: number; altezzaPx: number }
+/** Blocco immagine da un'immagine pronta, larga `cm` (altezza massima `maxH` cm). */
+export function bloccoImmagine(im: ImmagineIn, cm: number, allinea: "sinistra" | "centro" | "destra" = "centro", maxH = 20): Blocco {
+  let w = cm, h = (cm * im.altezzaPx) / Math.max(1, im.larghezzaPx);
+  if (h > maxH) { w = (w * maxH) / h; h = maxH; }
+  return { tipo: "immagine", svg: "", png: im.dati, jpeg: im.jpeg, larghezza: Math.round(w * 100) / 100, altezza: Math.round(h * 100) / 100, allinea };
+}
 export interface IngressoRelazione {
   edificio: { nomeProgetto: string; comune: string; indirizzo?: string | undefined; lat?: number | null | undefined; lon?: number | null | undefined; L: number; W: number; H: number; copertura: string; materiale: string; impiantiTetto: boolean; posizioneId: string; densita: number; lplProgetto: Lpl | null };
   codice?: string | undefined;
@@ -52,6 +60,8 @@ export interface IngressoRelazione {
   risultati: RisultatiModuli; righe: RigaComputo[]; mancanti: string[];
   particolari: readonly ParticolareLib[];
   dati: DatiRelazione;
+  /** immagini già pronte (PNG o JPEG): logo OBO, stemma del Comune, logo del committente, foto e planimetrie */
+  immagini?: { logo?: ImmagineIn | undefined; stemma?: ImmagineIn | undefined; logoCommittente?: ImmagineIn | undefined; foto?: { img: ImmagineIn; didascalia: string }[] | undefined } | undefined;
   data: Date;
 }
 
@@ -120,16 +130,19 @@ export function relazioneTecnica(x: IngressoRelazione): Documento {
     B.push({ tipo: "immagine", svg: svgTesto, larghezza: cm, altezza: Math.round((cm * h / w) * 100) / 100 }, p([{ t: `Figura ${++nFig} – `, b: true }, { t: didascalia }], { allinea: "centro", dimensione: 9 }));
   };
   /** tabella numerata con titolo sopra */
-  const tabN = (titoloT: string, ...a: Parameters<typeof tab>) => B.push(p([{ t: `Tabella ${++nTab} – `, b: true }, { t: titoloT }], { dimensione: 9, spazioDopo: 2 }), tab(...a));
+  const tabN = (titoloT: string, ...a: Parameters<typeof tab>) => B.push(p([{ t: `Tabella ${++nTab} – `, b: true }, { t: titoloT }], { dimensione: 9, spazioDopo: 2, conSuccessivo: true }), tab(...a));
   const evid = (b: Blocco, righe: number[]): Blocco => (b.tipo === "tabella" ? { ...b, evidenziaRighe: righe } : b);
   const destinazione: Run[] = r.destinazione ? [{ t: r.destinazione }] : [dc("destinazione d'uso")];
   const committente: Run[] = r.committente ? [{ t: r.committente, b: true }] : [dc("committente")];
   const indirizzoComm: Run[] = r.indirizzoCommittente || r.cittaCommittente ? [{ t: [r.indirizzoCommittente, r.cittaCommittente].filter(Boolean).join("\n") }] : [dc("indirizzo del committente")];
 
+  const im = x.immagini ?? {};
   const copertina = (sottotitolo: string, seconda?: string) => B.push(
+    ...(im.logo ? [bloccoImmagine(im.logo, 4.2, "sinistra", 3)] : []),
     p([{ t: "OBO Bettermann S.r.l.", b: true }], { allinea: "destra", dimensione: 11, spazioDopo: 0 }),
     p("Via C. Ferrero 16 · 10098 Rivoli (TO)\nTel. +39 011 9548 811\ntecnico@obo.it · www.obo.it", { allinea: "destra", dimensione: 9 }),
-    p("", { spazioPrima: 50 }),
+    p("", { spazioPrima: im.stemma ? 20 : 50 }),
+    ...(im.stemma ? [bloccoImmagine(im.stemma, 2.6, "centro", 3.2)] : []),
     p(d.comune ? `COMUNE DI ${d.comune.toUpperCase()}` : [dc("comune")], { allinea: "centro", grassetto: true, dimensione: 14, spazioDopo: 2 }),
     p(r.provincia ? `PROVINCIA DI ${r.provincia.toUpperCase()}` : [dc("provincia")], { allinea: "centro", grassetto: true, dimensione: 12, spazioDopo: 30 }),
     p(titolo ? titolo.toUpperCase() : [dc("titolo dell'opera")], { allinea: "centro", grassetto: true, dimensione: 16, spazioDopo: 30 }),
@@ -137,6 +150,7 @@ export function relazioneTecnica(x: IngressoRelazione): Documento {
     ...(seconda ? [p(seconda, { allinea: "centro", grassetto: true, dimensione: 13, spazioDopo: 10 })] : []),
     p(`CEI EN IEC 62305:2024 · Livello di protezione (LPL) ${lpl}`, { allinea: "centro", dimensione: 11, spazioDopo: 50 }),
     p("Committente", { allinea: "centro", dimensione: 11, spazioDopo: 4 }),
+    ...(im.logoCommittente ? [bloccoImmagine(im.logoCommittente, 4, "centro", 2)] : []),
     p(committente, { allinea: "centro", dimensione: 13, spazioDopo: 2 }),
     p(indirizzoComm, { allinea: "centro", spazioDopo: 50 }),
     p(`${r.luogo || "Rivoli"}, ${dataLunga(x.data)}`, { allinea: "centro", dimensione: 11 }),
@@ -256,8 +270,11 @@ export function relazioneTecnica(x: IngressoRelazione): Documento {
     h2("6.7 Metodo di valutazione"),
     p("Ai fini della valutazione del rischio si deve provvedere a:"),
     el("determinare le componenti RA, RB, RC, RM, RU, RV, RW e RZ che lo compongono;", "determinare il corrispondente valore del rischio R;", "confrontare il rischio R con quello tollerabile RT;", "determinare la frequenza del danno F e confrontarla con FT."),
-    p("Per ciascuna zona della struttura devono essere effettuati i seguenti passi:"),
+    p("Per ciascuna zona della struttura devono essere effettuati i seguenti passi (vedi anche la figura successiva):"),
     el("identificazione delle componenti RX che contribuiscono al rischio;", "calcolo della componente di rischio identificata RX;", "calcolo del rischio totale R;", "identificazione del rischio tollerabile RT;", "confronto del rischio R con quello tollerabile RT."),
+  );
+  fig(flussoValutazione(), "Procedura di valutazione del rischio e scelta delle misure di protezione (schema)");
+  B.push(
     p("Se R ≤ RT la protezione contro il fulmine non è necessaria."),
     p("Se R > RT devono essere adottate misure di protezione al fine di rendere R ≤ RT in tutte le zone della struttura. Analogamente, se F > FT devono essere adottate misure di protezione degli impianti interni (SPM) al fine di rendere F ≤ FT."),
     p("La valutazione della convenienza economica della protezione, prevista dall'edizione 2013 con il rischio R4, non fa più parte della norma; può essere condotta a parte su richiesta del committente."),
@@ -452,7 +469,9 @@ export function relazioneTecnica(x: IngressoRelazione): Documento {
     const a = Math.max(...xs) - Math.min(...xs), b = Math.max(...ys) - Math.min(...ys);
     B.push(h3(c.nome || `Edificio ${i + 1}`), p(`${c.nome || `L'edificio ${i + 1}`} ha dimensioni planari di ${it(Math.max(a, b), 1)} m × ${it(Math.min(a, b), 1)} m (${c.impronta.length === 4 ? "pianta rettangolare" : `pianta di ${c.impronta.length} lati`}), un'area di ${it(areaPoligono(c.impronta), 0)} m², un perimetro di ${it(perimetro(c.impronta), 1)} m e un'altezza di gronda di ${it(c.quotaBase + c.altezzaGronda, 2)} m${c.tipoTetto === "falde" ? `, con copertura a falde e colmo a ${it(c.quotaBase + c.altezzaColmo, 2)} m` : c.tipoTetto === "piano" ? ", con copertura piana" : ""}.`));
   });
+  const fotoBlocchi = () => { for (const f of im.foto ?? []) { B.push(bloccoImmagine(f.img, 15, "centro", 11)); B.push(p([{ t: `Figura ${++nFig} – `, b: true }, { t: f.didascalia || "Immagine del sopralluogo" }], { allinea: "centro", dimensione: 9 })); } };
   B.push(p(r.descrizione ? r.descrizione : [dc("esito del sopralluogo: impianti e calate esistenti, componenti naturali (ferri d'armatura, parapetti, putrelle, strutture metalliche), collegamenti verificati, impianti in copertura con le loro altezze, fotografie")]));
+  if (im.foto?.length) fotoBlocchi(); else B.push(p([dc("fotografie del sopralluogo e planimetria (si possono aggiungere in \"Dati della relazione\")")]));
 
   // dati iniziali e rischio
   B.push(h1("12. Dati iniziali e valutazione del rischio"),
@@ -558,7 +577,18 @@ export function relazioneTecnica(x: IngressoRelazione): Documento {
     p([{ t: "Sul tetto dell'edificio viene mantenuta un'altezza da difendere di: " }, dc("altezze massime degli impianti da proteggere per ogni zona della copertura"), { t: ". Sarà prevista una distanza di sicurezza di almeno 1 m tra l'altezza massima da proteggere e il punto di massima penetrazione della sfera rotolante." }]),
   );
   if (ver) B.push(tab(["Verifica della captazione", "Valore"], [["Superficie protetta dalla sfera rotolante", `${it(ver.areaProtettaSfera, 1)} m²`], ["Superficie protetta dalla maglia", `${it(ver.areaProtettaMaglia, 1)} m²`], ["Superficie esposta", `${it(ver.areaEsposta, 1)} m²`], ["Maglie conformi", `${ver.maglie.filter((m) => m.conforme).length} su ${ver.maglie.length}`]], [6, 5]), ...(ver.areaEsposta > 0.5 ? [p([{ t: `Attenzione: ${it(ver.areaEsposta, 1)} m² di copertura risultano esposti. `, b: true }, dc("integrare la captazione o motivare")])] : []));
-  B.push(p([{ t: "Aste su treppiede: in funzione della valutazione del carico di vento è necessario scegliere il numero di blocchi in calcestruzzo per sostenere l'asta (tabella del costruttore: velocità del vento e altezza dell'asta). Va inoltre considerato il peso della struttura che sostiene l'asta (asta, treppiede, blocchi). " }, dc("velocità del vento di progetto, numero di blocchi e pesi")]),
+  B.push(p([{ t: "Aste su treppiede: in funzione della valutazione del carico di vento è necessario scegliere il numero di blocchi in calcestruzzo per sostenere l'asta. Nelle tabelle seguenti è possibile incrociare la velocità del vento con l'altezza dell'asta scelta: la velocità indicata è quella massima ammessa con il numero di blocchi della riga. Va inoltre considerato il peso della struttura che sostiene l'asta (asta, treppiede, blocchi). " }, dc("velocità del vento di progetto, numero di blocchi e pesi")]));
+  for (const tb of blocchiTreppiede.tabelle) {
+    const cols = tb.colonne as { altezza: number; materiale?: string; asta: string; sostegno: string; vento: number[] }[];
+    const art = (c: string) => `${c.slice(0, 4)} ${c.slice(4)}`;
+    tabN(`Numero di blocchi in calcestruzzo da 16 kg – ${tb.titolo} (catalogo OBO)`, ["Altezza asta (m)", ...cols.map((c) => it(c.altezza, 1) + (c.materiale ? ` ${c.materiale}` : "")), "Blocchi"], [
+      ["Asta – Art. n.", ...cols.map((c) => art(c.asta)), ""],
+      ["Treppiede – Art. n.", ...cols.map((c) => art(c.sostegno)), ""],
+      ...blocchiTreppiede.blocchi.map((bl, i) => [i === 0 ? "Velocità del vento (km/h)" : "", ...cols.map((c) => String(c.vento[i] ?? "")), [{ t: bl, b: true }]] as Testo[]),
+    ], [2.6, ...cols.map(() => 1), 1.6]);
+    { const b = B.pop()!; B.push(b.tipo === "tabella" ? { ...b, dimensione: cols.length > 5 ? 7.5 : 8.5 } : b); }
+  }
+  B.push(
   );
   fig(piantaCopertura(corpi, x.conduttori, x.aste), "Pianta schematica della copertura con captatori, conduttori e calate (dal modello di progetto; il disegno esecutivo è nelle tavole allegate)");
   B.push(

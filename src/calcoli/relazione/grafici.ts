@@ -174,3 +174,27 @@ export function curvaCorrente(lpl: string, iMin: number, iMax: number): string {
   c += testo((ml + W - mr) / 2, H - mb + 36, "valore di picco della corrente di fulmine I (kA, scala logaritmica)", { size: 12, anchor: "middle" }) + testo(20, (mt + H - mb) / 2, "probabilità P di superamento", { size: 12, anchor: "middle", ruota: -90 });
   return svg(W, H, c);
 }
+
+/** Schema a blocchi della procedura di valutazione del rischio (disegno originale). */
+export function flussoValutazione(): string {
+  const W = 900, H = 520;
+  const box = (x: number, y: number, w: number, h: number, righe: string[], fill = "#f4f6f8", bordo = "#555") =>
+    `<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="8" fill="${fill}" stroke="${bordo}" stroke-width="1.5"/>` + righe.map((r, i) => testo(x + w / 2, y + h / 2 + (i - (righe.length - 1) / 2) * 16 + 4, r, { size: 12, anchor: "middle" })).join("");
+  const freccia = (x1: number, y1: number, x2: number, y2: number, et = "") => `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="#333" stroke-width="1.6" marker-end="url(#p)"/>` + (et ? testo((x1 + x2) / 2 + 6, (y1 + y2) / 2 - 4, et, { size: 11, bold: true }) : "");
+  let c = `<defs><marker id="p" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto"><path d="M0,0 L10,4 L0,8 z" fill="#333"/></marker></defs>`;
+  const cx = 300, bw = 400;
+  c += box(cx - bw / 2, 15, bw, 44, ["Individuare la struttura, le sue zone ZS,", "le linee entranti e gli impianti interni"]);
+  c += freccia(cx, 59, cx, 82);
+  c += box(cx - bw / 2, 82, bw, 44, ["Calcolare N (Allegato A), P (Allegato B)", "e L (Allegato C) per ogni zona"]);
+  c += freccia(cx, 126, cx, 149);
+  c += box(cx - bw / 2, 149, bw, 44, ["Calcolare le componenti RA … RZ,", "R = RL1 + RL2 e la frequenza F"]);
+  c += freccia(cx, 193, cx, 222);
+  c += `<polygon points="${cx},222 ${cx + 150},287 ${cx},352 ${cx - 150},287" fill="#FCE9D9" stroke="${ARANCIO}" stroke-width="1.8"/>` + testo(cx, 283, "R ≤ RT e F ≤ FT", { size: 13, anchor: "middle", bold: true }) + testo(cx, 301, "in ogni zona?", { size: 12, anchor: "middle" });
+  c += freccia(cx, 352, cx, 392, "SÌ");
+  c += box(cx - bw / 2, 392, bw, 50, ["Struttura autoprotetta (senza misure)", "o protetta (con le misure adottate)"], "#E8F5E9", VERDE);
+  c += freccia(cx + 150, 287, 640, 287, "NO");
+  c += box(640, 247, 240, 80, ["Scegliere le misure di protezione:", "LPS, SPD, antincendio,", "misure contro contatto e passo"], "#FFF3E0", ARANCIO);
+  c += `<polyline points="760,247 760,171 ${cx + bw / 2 + 10},171" fill="none" stroke="#333" stroke-width="1.6" marker-end="url(#p)"/>` + testo(768, 210, "ricalcolare", { size: 11 });
+  c += testo(450, 500, "Procedura di valutazione secondo la CEI EN IEC 62305-2:2024 (schema riassuntivo)", { size: 11, anchor: "middle", colore: "#555" });
+  return svg(W, H, c);
+}

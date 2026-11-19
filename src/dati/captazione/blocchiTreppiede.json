@@ -1,0 +1,38 @@
+{
+  "fonte": "Catalogo OBO Bettermann – isFang: numero di blocchi in calcestruzzo (16 kg) in funzione della velocità del vento",
+  "blocchi": ["3 x 16 kg", "6 x 16 kg", "9 x 16 kg", "12 x 16 kg", "15 x 16 kg"],
+  "tabelle": [
+    {
+      "titolo": "Aste di captazione isolate isFang VA e AL",
+      "colonne": [
+        { "altezza": 4, "materiale": "VA", "asta": "5408942", "sostegno": "5408968", "vento": [120, 161, 194, 222, 246] },
+        { "altezza": 6, "materiale": "VA", "asta": "5408946", "sostegno": "5408969", "vento": [94, 122, 145, 165, 182] },
+        { "altezza": 4, "materiale": "AL", "asta": "5408943", "sostegno": "5408966", "vento": [120, 163, 197, 227, 252] },
+        { "altezza": 6, "materiale": "AL", "asta": "5408947", "sostegno": "5408967", "vento": [92, 122, 147, 168, 187] }
+      ]
+    },
+    {
+      "titolo": "Aste di captazione isolate isFang con uscita (conduttore isCon interno)",
+      "colonne": [
+        { "altezza": 4, "asta": "5408938", "sostegno": "5408930", "vento": [110, 148, 178, 204, 227] },
+        { "altezza": 6, "asta": "5408940", "sostegno": "5408932", "vento": [85, 111, 132, 151, 167] },
+        { "altezza": 8, "asta": "5408888", "sostegno": "5408902", "vento": [93, 116, 134, 151, 166] },
+        { "altezza": 10, "asta": "5408890", "sostegno": "5408902", "vento": [82, 102, 119, 133, 146] }
+      ]
+    },
+    {
+      "titolo": "Aste di captazione isFang su treppiede in alluminio",
+      "colonne": [
+        { "altezza": 4, "asta": "5402864", "sostegno": "5408966", "vento": [140, 191, 230, 264, 295] },
+        { "altezza": 4.5, "asta": "5402866", "sostegno": "5408966", "vento": [122, 166, 200, 229, 255] },
+        { "altezza": 5, "asta": "5402868", "sostegno": "5408966", "vento": [108, 146, 176, 202, 225] },
+        { "altezza": 5.5, "asta": "5402870", "sostegno": "5408966", "vento": [97, 131, 158, 181, 201] },
+        { "altezza": 6, "asta": "5402872", "sostegno": "5408967", "vento": [101, 136, 163, 186, 206] },
+        { "altezza": 6.5, "asta": "5402874", "sostegno": "5408967", "vento": [93, 124, 149, 170, 189] },
+        { "altezza": 7, "asta": "5402876", "sostegno": "5408967", "vento": [86, 115, 138, 157, 174] },
+        { "altezza": 7.5, "asta": "5402878", "sostegno": "5408967", "vento": [80, 107, 128, 146, 162] },
+        { "altezza": 8, "asta": "5402880", "sostegno": "5408967", "vento": [76, 100, 120, 136, 151] }
+      ]
+    }
+  ]
+}

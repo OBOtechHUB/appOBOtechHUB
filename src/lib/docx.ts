@@ -10,10 +10,10 @@ export interface Run { t: string; b?: boolean; i?: boolean; sup?: boolean; sub?:
 export type Testo = string | Run[];
 export type Blocco =
   | { tipo: "titolo"; livello: 1 | 2 | 3; testo: string }
-  | { tipo: "par"; testo: Testo; allinea?: "sinistra" | "centro" | "destra" | "giustificato"; dimensione?: number; grassetto?: boolean; spazioPrima?: number; spazioDopo?: number; formula?: boolean }
+  | { tipo: "par"; testo: Testo; allinea?: "sinistra" | "centro" | "destra" | "giustificato"; dimensione?: number; grassetto?: boolean; spazioPrima?: number; spazioDopo?: number; formula?: boolean; conSuccessivo?: boolean }
   | { tipo: "elenco"; voci: Testo[] }
   | { tipo: "tabella"; intestazione: Testo[]; righe: Testo[][]; larghezze?: number[]; evidenziaColonna?: number; evidenziaRighe?: number[]; dimensione?: number }
-  | { tipo: "immagine"; svg: string; larghezza: number; altezza: number; png?: Uint8Array; pdf?: string; mancante?: string }
+  | { tipo: "immagine"; svg: string; larghezza: number; altezza: number; png?: Uint8Array; jpeg?: boolean; pdf?: string; mancante?: string; allinea?: "sinistra" | "centro" | "destra" }
   | { tipo: "salto" };
 
 export interface Documento { blocchi: Blocco[]; intestazione?: string; piede?: Testo[]; titolo?: string; autore?: string }
@@ -71,7 +71,7 @@ const EMU = 360000;
 function immagine(b: Extract<Blocco, { tipo: "immagine" }>, id: number): string {
   if (!b.png) return paragrafo([{ t: "[immagine]", i: true }], { allinea: "centro" });
   const cx = Math.round(b.larghezza * EMU), cy = Math.round(b.altezza * EMU);
-  return `<w:p><w:pPr><w:keepNext/><w:spacing w:before="120" w:after="40"/><w:jc w:val="center"/></w:pPr><w:r><w:drawing><wp:inline distT="0" distB="0" distL="0" distR="0"><wp:extent cx="${cx}" cy="${cy}"/><wp:docPr id="${id}" name="Figura ${id}"/><a:graphic xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main"><a:graphicData uri="http://schemas.openxmlformats.org/drawingml/2006/picture"><pic:pic xmlns:pic="http://schemas.openxmlformats.org/drawingml/2006/picture"><pic:nvPicPr><pic:cNvPr id="${id}" name="img${id}.png"/><pic:cNvPicPr/></pic:nvPicPr><pic:blipFill><a:blip r:embed="rIdImg${id}"/><a:stretch><a:fillRect/></a:stretch></pic:blipFill><pic:spPr><a:xfrm><a:off x="0" y="0"/><a:ext cx="${cx}" cy="${cy}"/></a:xfrm><a:prstGeom prst="rect"><a:avLst/></a:prstGeom></pic:spPr></pic:pic></a:graphicData></a:graphic></wp:inline></w:drawing></w:r></w:p>`;
+  return `<w:p><w:pPr><w:keepNext/><w:spacing w:before="120" w:after="40"/><w:jc w:val="${ALLINEA[b.allinea ?? "centro"]}"/></w:pPr><w:r><w:drawing><wp:inline distT="0" distB="0" distL="0" distR="0"><wp:extent cx="${cx}" cy="${cy}"/><wp:docPr id="${id}" name="Figura ${id}"/><a:graphic xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main"><a:graphicData uri="http://schemas.openxmlformats.org/drawingml/2006/picture"><pic:pic xmlns:pic="http://schemas.openxmlformats.org/drawingml/2006/picture"><pic:nvPicPr><pic:cNvPr id="${id}" name="img${id}.${b.jpeg ? "jpeg" : "png"}"/><pic:cNvPicPr/></pic:nvPicPr><pic:blipFill><a:blip r:embed="rIdImg${id}"/><a:stretch><a:fillRect/></a:stretch></pic:blipFill><pic:spPr><a:xfrm><a:off x="0" y="0"/><a:ext cx="${cx}" cy="${cy}"/></a:xfrm><a:prstGeom prst="rect"><a:avLst/></a:prstGeom></pic:spPr></pic:pic></a:graphicData></a:graphic></wp:inline></w:drawing></w:r></w:p>`;
 }
 
 export type ImmaginePdf = { png: Uint8Array; larghezza: number; altezza: number };
@@ -99,7 +99,7 @@ function corpo(blocchi: Blocco[]): string {
   return blocchi.map((b) => {
     switch (b.tipo) {
       case "titolo": return paragrafo(b.testo, { stile: `Titolo${b.livello}`, keepNext: true });
-      case "par": return paragrafo(b.testo, { ...(b.formula ? { stile: "Formula" } : {}), ...(b.allinea ? { allinea: b.allinea } : {}), ...(b.dimensione ? { dim: b.dimensione } : {}), ...(b.grassetto ? { b: true } : {}), ...(b.spazioPrima != null ? { prima: b.spazioPrima } : {}), ...(b.spazioDopo != null ? { dopo: b.spazioDopo } : {}) });
+      case "par": return paragrafo(b.testo, { ...(b.formula ? { stile: "Formula" } : {}), ...(b.allinea ? { allinea: b.allinea } : {}), ...(b.dimensione ? { dim: b.dimensione } : {}), ...(b.grassetto ? { b: true } : {}), ...(b.spazioPrima != null ? { prima: b.spazioPrima } : {}), ...(b.spazioDopo != null ? { dopo: b.spazioDopo } : {}), ...(b.conSuccessivo ? { keepNext: true } : {}) });
       case "elenco": return b.voci.map((v) => paragrafo(v, { stile: "Elenco", numero: true })).join("");
       case "tabella": return tabella(b);
       case "immagine": return immagine(b, b.png ? ++img : 0);
@@ -136,11 +136,11 @@ export function creaDocx(doc: Documento, data = new Date()): Uint8Array<ArrayBuf
   const documento = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <w:document ${NS}><w:body>${corpo(doc.blocchi)}<w:sectPr><w:headerReference w:type="default" r:id="rIdH"/><w:footerReference w:type="default" r:id="rIdF"/><w:headerReference w:type="first" r:id="rIdH1"/><w:footerReference w:type="first" r:id="rIdF"/><w:pgSz w:w="11906" w:h="16838"/><w:pgMar w:top="1418" w:right="1134" w:bottom="1418" w:left="1134" w:header="567" w:footer="454" w:gutter="0"/><w:titlePg/></w:sectPr></w:body></w:document>`;
   const iso = data.toISOString().replace(/\.\d+Z$/, "Z");
-  const pngs = doc.blocchi.flatMap((b) => (b.tipo === "immagine" && b.png ? [b.png] : []));
-  const relImg = pngs.map((_, i) => `<Relationship Id="rIdImg${i + 1}" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/image" Target="media/img${i + 1}.png"/>`).join("");
+  const pngs = doc.blocchi.flatMap((b) => (b.tipo === "immagine" && b.png ? [{ dati: b.png, ext: b.jpeg ? "jpeg" : "png" }] : []));
+  const relImg = pngs.map((x, i) => `<Relationship Id="rIdImg${i + 1}" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/image" Target="media/img${i + 1}.${x.ext}"/>`).join("");
   return creaZip([
     { nome: "[Content_Types].xml", dati: `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Default Extension="png" ContentType="image/png"/><Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/><Override PartName="/word/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.styles+xml"/><Override PartName="/word/numbering.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.numbering+xml"/><Override PartName="/word/settings.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.settings+xml"/><Override PartName="/word/header1.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.header+xml"/><Override PartName="/word/header2.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.header+xml"/><Override PartName="/word/footer1.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.footer+xml"/><Override PartName="/docProps/core.xml" ContentType="application/vnd.openxmlformats-package.core-properties+xml"/></Types>` },
+<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Default Extension="png" ContentType="image/png"/><Default Extension="jpeg" ContentType="image/jpeg"/><Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/><Override PartName="/word/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.styles+xml"/><Override PartName="/word/numbering.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.numbering+xml"/><Override PartName="/word/settings.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.settings+xml"/><Override PartName="/word/header1.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.header+xml"/><Override PartName="/word/header2.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.header+xml"/><Override PartName="/word/footer1.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.footer+xml"/><Override PartName="/docProps/core.xml" ContentType="application/vnd.openxmlformats-package.core-properties+xml"/></Types>` },
     { nome: "_rels/.rels", dati: `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="word/document.xml"/><Relationship Id="rId2" Type="http://schemas.openxmlformats.org/package/2006/relationships/metadata/core-properties" Target="docProps/core.xml"/></Relationships>` },
     { nome: "docProps/core.xml", dati: `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
@@ -153,7 +153,7 @@ export function creaDocx(doc: Documento, data = new Date()): Uint8Array<ArrayBuf
     { nome: "word/settings.xml", dati: `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <w:settings ${NS}><w:defaultTabStop w:val="709"/><w:updateFields w:val="true"/><w:compat><w:compatSetting w:name="compatibilityMode" w:uri="http://schemas.microsoft.com/office/word" w:val="15"/></w:compat></w:settings>` },
     { nome: "word/header1.xml", dati: `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n<w:hdr ${NS}>${intest}</w:hdr>` },
-    ...pngs.map((png, i) => ({ nome: `word/media/img${i + 1}.png`, dati: png })),
+    ...pngs.map((x, i) => ({ nome: `word/media/img${i + 1}.${x.ext}`, dati: x.dati })),
     { nome: "word/header2.xml", dati: `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n<w:hdr ${NS}><w:p/></w:hdr>` },
     { nome: "word/footer1.xml", dati: `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n<w:ftr ${NS}>${piede}</w:ftr>` },
   ], data);

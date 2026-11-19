@@ -2,6 +2,23 @@
   "nota": "Registro degli aggiornamenti di Progettazione LPS. Una voce per aggiornamento, la più recente per prima (app: lps). Viene mostrato nella barra \"Aggiorna app\", nel riquadro Novità e nella pagina Novità di OBO Hub.",
   "aggiornamenti": [
     {
+      "id": "2026-11-19-lps-8",
+      "data": "2026-11-19",
+      "app": "lps",
+      "titolo": "Relazione tecnica: logo, foto e tabelle dei treppiedi",
+      "voci": [
+        "In copertina c'è il logo OBO; in \"Dati della relazione\" si possono aggiungere lo stemma del Comune, il logo del committente e le foto del sopralluogo o le planimetrie con la didascalia (vanno scelte ogni volta, non si salvano nel progetto)",
+        "Le tabelle dei blocchi in calcestruzzo per le aste isFang su treppiede (velocità del vento e altezza dell'asta) sono nella relazione come tabelle modificabili",
+        "Nuovo schema a blocchi della procedura di valutazione del rischio; i titoli delle tabelle restano sulla stessa pagina della tabella"
+      ],
+      "titolo_en": "Technical report: logo, photos and tripod tables",
+      "voci_en": [
+        "OBO logo on the cover; optional municipality crest, client logo and site photos with captions",
+        "Concrete block tables for isFang tripod rods as editable tables",
+        "New flowchart of the risk assessment procedure"
+      ]
+    },
+    {
       "id": "2026-11-19-lps-7",
       "data": "2026-11-19",
       "app": "lps",
