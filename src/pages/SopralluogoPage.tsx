@@ -152,14 +152,14 @@ export function SopralluogoPage() {
     </Sezione>
 
     <Sezione titolo="Misure per calata">
-      <div className="grid grid-cols-2 gap-2">
+      <div className="grid gap-2 sm:grid-cols-2">
         <Etichetta testo="Data della verifica"><input type="date" className={cls} value={so.dataVerifica} onChange={(e) => setSo({ dataVerifica: e.target.value })} /></Etichetta>
         <Etichetta testo="Verificatore"><input className={cls} value={so.verificatore} maxLength={200} onChange={(e) => setSo({ verificatore: e.target.value })} /></Etichetta>
         <Etichetta testo="Strumenti (modello e matricola)"><input className={cls} value={so.strumenti} maxLength={300} onChange={(e) => setSo({ strumenti: e.target.value })} /></Etichetta>
         <Etichetta testo="Condizioni del terreno"><input className={cls} value={so.condizioni} maxLength={200} placeholder="asciutto, 12 °C" onChange={(e) => setSo({ condizioni: e.target.value })} /></Etichetta>
       </div>
       {!so.calate.length && <Button type="button" variant="outline" onClick={prepCalate}><Plus />Prepara le calate del progetto</Button>}
-      {so.calate.length > 0 && <Button type="button" className="h-12 w-full text-base" onClick={() => setGuidata(Math.max(0, so.calate.findIndex((c) => c.continuita == null || c.resistenza == null)))}><Gauge />Misura guidata con foto dello strumento</Button>}
+      {so.calate.length > 0 && <Button type="button" className="h-auto min-h-12 w-full whitespace-normal py-2 text-base leading-tight" onClick={() => setGuidata(Math.max(0, so.calate.findIndex((c) => c.continuita == null || c.resistenza == null)))}><Gauge />Misura guidata con foto dello strumento</Button>}
       <ul className="space-y-2">{so.calate.map((c, i) => <li key={i} className="rounded-md border p-3">
         <div className="grid grid-cols-[4.5rem_1fr_1fr] items-end gap-2">
           <Etichetta testo="Calata"><input className={cls} value={c.nome} maxLength={20} onChange={(e) => setCalata(i, { nome: e.target.value })} /></Etichetta>
@@ -168,7 +168,7 @@ export function SopralluogoPage() {
         </div>
         <div className="mt-2 flex flex-wrap items-center gap-2 text-sm"><span>Giunto accessibile:</span>
           {([[true, "Sì"], [false, "No"]] as const).map(([v, t]) => <Button key={t} type="button" size="sm" variant={c.giunto === v ? "default" : "outline"} aria-pressed={c.giunto === v} onClick={() => setCalata(i, { giunto: c.giunto === v ? null : v })}>{t}</Button>)}
-          <input className={`${cls} h-9 flex-1`} value={c.note} maxLength={300} placeholder="Note" aria-label={`Note calata ${c.nome}`} onChange={(e) => setCalata(i, { note: e.target.value })} /></div>
+          <input className={`${cls} h-10 basis-full sm:basis-auto sm:flex-1`} value={c.note} maxLength={300} placeholder="Note" aria-label={`Note calata ${c.nome}`} onChange={(e) => setCalata(i, { note: e.target.value })} /></div>
       </li>)}</ul>
       {so.calate.length > 0 && <Button type="button" size="sm" variant="outline" onClick={() => setSo({ calate: [...so.calate, { nome: `C${so.calate.length + 1}`, continuita: null, resistenza: null, giunto: null, note: "" }] })}><Plus />Aggiungi calata</Button>}
       <div className="grid grid-cols-2 gap-2">
@@ -182,7 +182,7 @@ export function SopralluogoPage() {
         <ul className="divide-y">{CHECKLIST.filter((v) => v.sezione === sez).map((v) => { const e = so.esiti[v.id]; return <li key={v.id} className="py-2">
           <p className="text-sm">{v.testo}</p>
           <div className="mt-1 flex flex-wrap gap-1">{(["C", "NC", "NA"] as const).map((k) => <Button key={k} type="button" size="sm" className="min-w-12" variant={e?.esito === k ? (k === "NC" ? "destructive" : "default") : "outline"} aria-pressed={e?.esito === k} onClick={() => { const es = { ...so.esiti }; if (e?.esito === k) delete es[v.id]; else es[v.id] = { esito: k, nota: e?.nota ?? "" }; setSo({ esiti: es }); }}>{k}</Button>)}
-            {e && <input className={`${cls} h-9 flex-1`} value={e.nota} maxLength={300} placeholder="Nota" aria-label={`Nota: ${v.testo}`} onChange={(ev) => setSo({ esiti: { ...so.esiti, [v.id]: { ...e, nota: ev.target.value } } })} />}</div>
+            {e && <input className={`${cls} h-10 basis-full sm:basis-auto sm:flex-1`} value={e.nota} maxLength={300} placeholder="Nota" aria-label={`Nota: ${v.testo}`} onChange={(ev) => setSo({ esiti: { ...so.esiti, [v.id]: { ...e, nota: ev.target.value } } })} />}</div>
         </li>; })}</ul></div>)}
     </Sezione>
 
