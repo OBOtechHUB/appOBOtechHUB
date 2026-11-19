@@ -1,0 +1,9 @@
+name: prova-cors
+on: push
+jobs:
+  c:
+    runs-on: ubuntu-latest
+    steps:
+      - run: |
+          for u in https://www.obo-bettermann.com/out/pictures/master/product/8/5015715_MZ1.jpg https://www.obo-bettermann.com/out/pictures/master/product/1/5015715_PG1.jpg; do
+            echo "== $u"; curl -sS -o /dev/null -D - -H "Origin: https://obotechhub.github.io" "$u" | grep -iE "^HTTP|access-control|content-type|content-length"; done
