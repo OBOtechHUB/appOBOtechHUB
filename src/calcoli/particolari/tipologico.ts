@@ -185,7 +185,7 @@ export function ingombro(b: BloccoTip, ind?: IndiceDisegniObo | null): [number, 
 /** markup del blocco: disegno OBO (immagine) o simbolo vettoriale */
 export function markupBlocco(b: BloccoTip, ind?: IndiceDisegniObo | null): string {
   const o = disegnoObo(b, ind);
-  if (o) return `<g transform="translate(${r1(b.x)} ${r1(b.y)}) rotate(${b.rot})"><image href="${esc(o.href)}" x="${r1(-o.w / 2)}" y="${r1(-o.h / 2)}" width="${r1(o.w)}" height="${r1(o.h)}" preserveAspectRatio="xMidYMid meet"/></g>`;
+  if (o) return `<g transform="translate(${r1(b.x)} ${r1(b.y)}) rotate(${b.rot})"><image href="${esc(o.href)}" x="${r1(-o.w / 2)}" y="${r1(-o.h / 2)}" width="${r1(o.w)}" height="${r1(o.h)}" preserveAspectRatio="xMidYMid meet" style="mix-blend-mode:multiply"/></g>`;
   return `<g transform="${trasformazione(b)}" color="${STRUTTURA.has(b.tipo) ? "#41525D" : "#282A31"}">${SIMBOLI[b.tipo].forme}</g>`;
 }
 /** conduttore disegnato come tondo o piatto metallico (contorno scuro, corpo metallico, riflesso) */

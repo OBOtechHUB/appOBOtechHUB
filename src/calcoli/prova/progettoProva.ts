@@ -29,6 +29,20 @@ export const TIPOLOGICO_PROVA: DisegnoTip = disegnoSchema.parse({
   testi: [{ id: "x", x: 20, y: 30, t: "Sezione tipo – non in scala", dim: 12 }],
 });
 
+/** Lo stesso tipologico con i disegni 2D ufficiali OBO al posto dei simboli (public/obo-disegni). */
+export const TIPOLOGICO_PROVA_OBO: DisegnoTip = disegnoSchema.parse({
+  ...TIPOLOGICO_PROVA, larghezza: 900, altezza: 560,
+  blocchi: [
+    { id: "s", tipo: "copertura", x: 450, y: 500, scala: 2.8 },
+    { id: "par", tipo: "parapetto", x: 815, y: 430 },
+    { id: "a", tipo: "asta", x: 150, y: 215, codiceOBO: "5402864", descrizione: "101 3B-4000 Asta di captazione 4 m", unita: "per_asta", vista: "obo", larghezzaObo: 70 },
+    { id: "t", tipo: "treppiede", x: 175, y: 405, codiceOBO: "5408902", descrizione: "isFang 3B-250-A Treppiede con blocchi in cls", unita: "per_asta", vista: "obo", larghezzaObo: 230 },
+    { id: "m1", tipo: "morsetto", x: 360, y: 250, codiceOBO: "5311519", descrizione: "249 8-10 ALU Connettore Quick", unita: "per_asta", vista: "obo", larghezzaObo: 90 },
+    { id: "p", tipo: "supporto-piano", x: 520, y: 440, codiceOBO: "5218700", descrizione: "165 MBG-8-10 Supporto conduttore tetto", quantita: 1, unita: "per_m", vista: "obo", larghezzaObo: 80 },
+    { id: "c", tipo: "compensatore", x: 680, y: 430, codiceOBO: "5218926", descrizione: "172 AR Giunto di dilatazione", unita: "per_compensatore", vista: "obo", larghezzaObo: 120 },
+  ],
+});
+
 export function progettoProva(): IngressoRelazione {
   const e = esempio();
   e.edificio = { ...e.edificio, nomeProgetto: "Polo scientifico – edificio DA", L: 110, W: 58, H: 16 };
@@ -56,12 +70,13 @@ export function progettoProva(): IngressoRelazione {
     { nome: "Energia BT", lunghezza: 1000, posa: 0.3, ambiente: 0.5, tipo: 1, schermata: false, connessione: "interrata-ns", schermatura: "no", adiacente: null },
     { nome: "Telecomunicazioni", lunghezza: 800, posa: 0.5, ambiente: 0.5, tipo: 1, schermata: true, connessione: "interrata-ns", schermatura: "no", adiacente: null },
   ] }, zone: [ufficio, esterno] } as unknown as IngressoRelazione["rischio"];
-  e.particolari = [...e.particolari, { id: "OBO-TIP-PROVA", nome: "Asta su treppiede e tondo su tetto piano", componenti: [], disegno: TIPOLOGICO_PROVA }];
+  e.particolari = [...e.particolari, { id: "OBO-TIP-PROVA", nome: "Asta su treppiede e tondo su tetto piano", componenti: [], disegno: TIPOLOGICO_PROVA }, { id: "OBO-TIP-PROVA-OBO", nome: "Asta su treppiede e tondo su tetto piano – disegni OBO", componenti: [], disegno: TIPOLOGICO_PROVA_OBO }];
   e.righe = [
     ...e.righe.filter((r) => r.codice),
     { id: "r4", codice: "5218700", descrizione: "165 MBG-8-10 – supporto conduttore tetto piano", categoria: "supporti", unita: "pz", quantita: 260, provenienza: "Captazione · particolare OBO-TIP-PROVA", materiale: "", sezione: "" },
     { id: "r5", codice: "5336457", descrizione: "233 A VA – giunto di sezionamento", categoria: "connessioni", unita: "pz", quantita: 10, provenienza: "Calate", materiale: "", sezione: "" },
     { id: "r7", codice: "5408902", descrizione: "isFang 3B-250-A – treppiede", categoria: "captazione", unita: "pz", quantita: 18, provenienza: "Captazione · particolare OBO-TIP-PROVA", materiale: "", sezione: "" },
+    { id: "r9", codice: "5402864", descrizione: "101 3B-4000 – asta di captazione (tipologico con disegni OBO)", categoria: "captazione", unita: "pz", quantita: 1, provenienza: "Captazione · particolare OBO-TIP-PROVA-OBO", materiale: "", sezione: "" },
     { id: "r8", codice: "5218926", descrizione: "172 AR – giunto di dilatazione", categoria: "connessioni", unita: "pz", quantita: 12, provenienza: "Captazione · particolare OBO-TIP-PROVA", materiale: "", sezione: "" },
     { id: "r6", codice: "5311519", descrizione: "249 8-10 ALU – connettore Quick", categoria: "connessioni", unita: "pz", quantita: 44, provenienza: "Captazione · particolare OBO-TIP-PROVA", materiale: "", sezione: "" },
   ] as IngressoRelazione["righe"];

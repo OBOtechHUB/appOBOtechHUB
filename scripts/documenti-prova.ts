@@ -7,7 +7,7 @@
  */
 import { mkdirSync, writeFileSync, existsSync, readFileSync } from "node:fs";
 import { spawnSync } from "node:child_process";
-import { progettoProva, TIPOLOGICO_PROVA, LISTINO_PROVA, OFFERTA_PROVA } from "@/calcoli/prova/progettoProva";
+import { progettoProva, TIPOLOGICO_PROVA, TIPOLOGICO_PROVA_OBO, LISTINO_PROVA, OFFERTA_PROVA } from "@/calcoli/prova/progettoProva";
 import { relazioneTecnica } from "@/calcoli/relazione/relazioneTecnica";
 import { dichiarazioneConformita, pianoVerifichePeriodiche, verbalePrimaVerifica, type IngressoDocumenti } from "@/calcoli/documenti/documentiImpianto";
 import { documentoOfferta, righeOfferta, totaliOfferta } from "@/calcoli/offerta/offerta";
@@ -19,8 +19,13 @@ import { estesoSchema } from "@/lib/statoProgetto";
 const out = process.argv[2] ?? "documenti-prova";
 mkdirSync(out, { recursive: true });
 const rsvg = spawnSync("rsvg-convert", ["--version"]).status === 0;
-const converti = async (svg: string, w: number) => {
+const cartellaObo = `${process.cwd()}/public/obo-disegni/`;
+const indiceObo = existsSync(`${cartellaObo}indice.json`) ? (() => { const j = JSON.parse(readFileSync(`${cartellaObo}indice.json`, "utf8")); return { base: cartellaObo, codici: j.codici, disegni: j.disegni }; })() : null;
+/** immagini dei disegni OBO incorporate nell'SVG (rsvg non legge file esterni arbitrari) */
+const incorpora = (svg: string) => svg.replace(/href="([^"]+\.jpg)"/g, (m, p: string) => (existsSync(p) ? `href="data:image/jpeg;base64,${readFileSync(p).toString("base64")}"` : m));
+const converti = async (svgIn: string, w: number) => {
   if (!rsvg) return new Uint8Array();
+  const svg = incorpora(svgIn);
   const r = spawnSync("rsvg-convert", ["-w", String(Math.round((w / 2.54) * 200))], { input: svg, maxBuffer: 64 * 1024 * 1024 });
   if (r.status !== 0) throw new Error(String(r.stderr));
   return new Uint8Array(r.stdout);
@@ -35,7 +40,7 @@ async function salva(nome: string, doc: Documento) {
 }
 
 const e = progettoProva();
-e.immagini = { logo };
+e.immagini = { logo }; e.disegniObo = indiceObo;
 await salva("01-Relazione-tecnica-LPS.docx", relazioneTecnica(e));
 await salva("01b-LPS-technical-report-EN.docx", relazioneTecnica({ ...e, dati: { ...e.dati, lingua: "en" } }));
 
@@ -64,6 +69,7 @@ report.push(`Offerta: totale netto ${t.netto.toFixed(2)} €, ${t.mancanti} arti
 const svg = svgTipologico(TIPOLOGICO_PROVA, { titolo: "Tipologico – Asta su treppiede e tondo su tetto piano", legenda: true });
 writeFileSync(`${out}/07-Tipologico.svg`, svg);
 if (rsvg) writeFileSync(`${out}/07-Tipologico.png`, await converti(svg, 30));
+if (indiceObo && rsvg) writeFileSync(`${out}/07b-Tipologico-disegni-OBO.png`, await converti(svgTipologico(TIPOLOGICO_PROVA_OBO, { titolo: "Tipologico – Asta su treppiede e tondo su tetto piano (disegni OBO)", legenda: true, obo: indiceObo }), 30));
 
 const s = estesoSchema.parse({ modello: e.modello, aste: e.aste, conduttori: e.conduttori, lpl: e.lplDisegno, particolari: [], picchetti: e.picchetti.map((p, i) => ({ id: `p${i}`, x: (i % 5) * 20, y: Math.floor(i / 5) * 30, z: 0, lunghezza: p.lunghezza, codiceOBO: "" })) });
 const modCad = await import("@/lib/exportCAD").catch((err: unknown) => { report.push(`Tavola DXF non creata: ${String(err).slice(0, 120)}`); return null; });
