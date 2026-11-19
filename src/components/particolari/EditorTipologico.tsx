@@ -68,7 +68,7 @@ export function EditorTipologico({ iniziale, datiIniziali, onSalva, onChiudi }: 
   const aggiungiBlocco = (tipo: TipoBlocco) => {
     const s = SIMBOLI[tipo], id = nuovoId("b");
     const larga = STRUTTURA.has(tipo) && (tipo === "copertura" || tipo === "terreno");
-    const b: BloccoTip = { id, tipo, x: snap(d.larghezza / 2 + (d.blocchi.length % 5) * 20 - 40), y: larga ? snap(d.altezza - 60) : snap(d.altezza / 2 + (d.blocchi.length % 4) * 15 - 30), rot: 0, scala: larga ? Math.max(1, Math.round(((d.larghezza - 60) / 300) * 10) / 10) : 1, codiceOBO: "", descrizione: "", quantita: 1, unita: s.unita, vista: "simbolo", larghezzaObo: 140 };
+    const b: BloccoTip = { id, tipo, x: larga ? snap(d.larghezza / 2) : snap(d.larghezza / 2 + (d.blocchi.length % 5) * 20 - 40), y: larga ? snap(d.altezza - 60) : snap(d.altezza / 2 + (d.blocchi.length % 4) * 15 - 30), rot: 0, scala: larga ? Math.max(1, Math.round(((d.larghezza - 60) / 300) * 10) / 10) : 1, codiceOBO: "", descrizione: "", quantita: 1, unita: s.unita, vista: "simbolo", larghezzaObo: 140 };
     cambia((x) => ({ ...x, blocchi: [...x.blocchi, b] })); setSel({ k: "b", id }); setModo("sposta");
   };
   /** blocco da codice OBO: tipo dal nome del catalogo, disegno ufficiale OBO se disponibile */
