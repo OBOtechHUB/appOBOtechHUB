@@ -1,4 +1,4 @@
-import { describe, expect, it } from "bun:test";
+import { describe, expect, it } from "vitest";
 import { relazioneTecnica, particolareDiRiga, sci, datiRelazioneVuoti } from "./relazioneTecnica";
 import { creaDocx, testoDocumento } from "@/lib/docx";
 import { esempio } from "./esempioRelazione";
