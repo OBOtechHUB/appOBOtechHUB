@@ -2,6 +2,23 @@
   "nota": "Registro degli aggiornamenti di Progettazione LPS. Una voce per aggiornamento, la più recente per prima (app: lps). Viene mostrato nella barra \"Aggiorna app\", nel riquadro Novità e nella pagina Novità di OBO Hub.",
   "aggiornamenti": [
     {
+      "id": "2026-11-19-lps-24",
+      "data": "2026-11-19",
+      "app": "lps",
+      "titolo": "Sopralluogo semplificato: solo foto e appunti",
+      "voci": [
+        "La pagina Sopralluogo serve per le foto: scegli il tipo (particolare da ricordare, impianto esistente, altro), scatta, aggiungi didascalia e nota; filtri per tipo e appunti del sopralluogo",
+        "Le foto si salvano anche senza rete; quelle segnate \"Metti nella relazione\" vanno nella relazione tecnica",
+        "Tolte dalla pagina misure, checklist, firma e misura guidata; il verbale di prima verifica resta in Computo materiali"
+      ],
+      "titolo_en": "Simplified site survey: photos and notes only",
+      "voci_en": [
+        "The Site survey page is for photos: choose the type (detail to remember, existing system, other), take the photo, add caption and note; filters by type and survey notes",
+        "Photos are saved offline too; those marked \"Add to report\" go into the technical report",
+        "Measurements, checklist, signature and guided measurement removed from the page; the first inspection record stays in Material take-off"
+      ]
+    },
+    {
       "id": "2026-11-19-lps-23",
       "data": "2026-11-19",
       "app": "lps",

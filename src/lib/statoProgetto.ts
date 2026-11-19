@@ -39,7 +39,9 @@ export const relazioneSchema = z.object({
 const numOpz = z.number().finite().nullable().default(null);
 export const sopralluogoSchema = z.object({
   foto: z.array(z.object({ id: z.string().max(60), percorso: z.string().max(300), didascalia: z.string().max(300).default(""), data: z.string().max(40).default(""), lat: z.number().finite().nullable().default(null), lon: z.number().finite().nullable().default(null), inRelazione: z.boolean().default(true),
-    /** foto di una misura: calata e grandezza (continuità / terra) */ calata: z.string().max(20).default(""), misura: z.enum(["", "continuita", "terra", "terra-totale"]).default("") })).max(120).default([]),
+    /** foto di una misura: calata e grandezza (continuità / terra) */ calata: z.string().max(20).default(""), misura: z.enum(["", "continuita", "terra", "terra-totale"]).default(""),
+    /** promemoria: particolare da ricordare, impianto esistente, altro */ categoria: z.enum(["", "particolare", "impianto", "altro"]).default(""), nota: z.string().max(1000).default("") })).max(120).default([]),
+  appunti: z.string().max(5000).default(""),
   dataVerifica: z.string().max(10).default(""), verificatore: z.string().max(200).default(""), strumenti: z.string().max(300).default(""), condizioni: z.string().max(200).default(""),
   calate: z.array(z.object({ nome: z.string().max(20), continuita: numOpz, resistenza: numOpz, giunto: z.boolean().nullable().default(null), note: z.string().max(300).default("") })).max(200).default([]),
   resistenzaTotale: numOpz, metodo: z.string().max(100).default(""),

@@ -123,7 +123,7 @@ export function AppHeader() {
         { etichetta: "Assistente di progetto", to: "/assistente", icona: Compass },
         { etichetta: "Panoramica strumenti", to: "/strumenti", icona: Wrench },
         { etichetta: "Richieste all'ufficio tecnico", to: "/richieste", icona: Inbox },
-        { etichetta: "Sopralluogo (tablet)", to: "/sopralluogo", icona: Camera },
+        { etichetta: "Sopralluogo (foto)", to: "/sopralluogo", icona: Camera },
         { etichetta: "Dati edificio", to: "/dati-edificio", icona: Building2 },
         { etichetta: "Dati normativi", to: "/dati-normativi", icona: SlidersHorizontal },
         { etichetta: "Analisi del rischio", to: "/rischio", icona: ShieldAlert },
