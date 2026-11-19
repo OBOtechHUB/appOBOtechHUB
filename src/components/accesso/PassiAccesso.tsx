@@ -19,20 +19,21 @@ const esci = async () => { try { await supabase.auth.signOut(); } catch { /* nie
 
 /** Nuova password al primo accesso (o dopo una reimpostazione dell'amministratore). */
 export function CambiaPassword() {
+  const profilo = useAccesso().profilo, scaduta = !!profilo?.password_scaduta;
   const [p1, setP1] = useState(""), [p2, setP2] = useState(""), [msg, setMsg] = useState(""), [busy, setBusy] = useState(false);
   async function invia() {
     if (p1.length < 10 || !/[A-Za-z]/.test(p1) || !/\d/.test(p1)) { setMsg("Almeno 10 caratteri, con lettere e numeri."); return; }
     if (p1 !== p2) { setMsg("Le due password non coincidono."); return; }
     setBusy(true); setMsg("");
     const { error } = await supabase.auth.updateUser({ password: p1 });
-    if (error) { setMsg(error.message.includes("different") ? "La nuova password deve essere diversa da quella iniziale." : `Password non aggiornata: ${error.message}`); setBusy(false); return; }
+    if (error) { setMsg(error.message.includes("different") ? (scaduta ? "La nuova password deve essere diversa da quella precedente." : "La nuova password deve essere diversa da quella iniziale.") : `Password non aggiornata: ${error.message}`); setBusy(false); return; }
     await db().rpc("password_cambiata");
     await db().rpc("registra_accesso", { evento: "password_cambiata" });
     await aggiornaAccesso();
     setBusy(false);
   }
   return <Riquadro titolo="Scegli la tua password" icona={KeyRound}>
-    <p className="text-sm">Stai usando la password iniziale comune. Per continuare scegline una personale.</p>
+    <p className="text-sm">{scaduta ? `La password è scaduta: per sicurezza va cambiata ogni ${profilo?.giorni_password || 90} giorni. Scegline una nuova, diversa dalla precedente.` : "Stai usando la password iniziale comune. Per continuare scegline una personale."}</p>
     <form className="space-y-4" onSubmit={(e) => { e.preventDefault(); void invia(); }}>
       <Campo etichetta="Nuova password"><input className={inputCls} type="password" autoComplete="new-password" required minLength={10} value={p1} onChange={(e) => setP1(e.target.value)} /></Campo>
       <Campo etichetta="Ripeti la password"><input className={inputCls} type="password" autoComplete="new-password" required value={p2} onChange={(e) => setP2(e.target.value)} /></Campo>

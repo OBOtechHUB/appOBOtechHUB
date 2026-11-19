@@ -2,6 +2,21 @@
   "nota": "Registro degli aggiornamenti di Progettazione LPS. Una voce per aggiornamento, la più recente per prima (app: lps). Viene mostrato nella barra \"Aggiorna app\", nel riquadro Novità e nella pagina Novità di OBO Hub.",
   "aggiornamenti": [
     {
+      "id": "2026-11-19-lps-5",
+      "data": "2026-11-19",
+      "app": "lps",
+      "titolo": "Cambio password ogni 90 giorni",
+      "voci": [
+        "La password scade dopo 90 giorni dall'ultimo cambio: al primo accesso dopo la scadenza l'app chiede di sceglierne una nuova",
+        "In Amministrazione → Utenti gli amministratori scelgono la scadenza (60, 90, 180 giorni o mai) e vedono la data dell'ultimo cambio di ogni utente"
+      ],
+      "titolo_en": "Password change every 90 days",
+      "voci_en": [
+        "Passwords expire 90 days after the last change: at the first sign-in after expiry the app asks for a new one",
+        "In Administration → Users, admins choose the expiry (60, 90, 180 days or never) and see each user's last change date"
+      ]
+    },
+    {
       "id": "2026-11-19-lps-4",
       "data": "2026-11-19",
       "app": "lps",

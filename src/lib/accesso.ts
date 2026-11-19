@@ -57,7 +57,7 @@ export function percorsoApp(pathname: string): string {
   return (p.replace(/\/+$/, "") || "/");
 }
 
-export interface Profilo { utente: string; email: string; nome: string; azienda: string; ruolo: "utente" | "admin"; stato: "attivo" | "sospeso"; sezioni: string[]; deve_cambiare_password: boolean; ultimo_accesso: string | null; mappa_ruolo?: "admin" | "guest" | "visitor"; mappa_persona?: string; visitatore?: boolean }
+export interface Profilo { utente: string; email: string; nome: string; azienda: string; ruolo: "utente" | "admin"; stato: "attivo" | "sospeso"; sezioni: string[]; deve_cambiare_password: boolean; ultimo_accesso: string | null; password_scaduta?: boolean; password_cambiata_il?: string | null; password_scade_il?: string | null; giorni_password?: number; mappa_ruolo?: "admin" | "guest" | "visitor"; mappa_persona?: string; visitatore?: boolean }
 export type StatoAccesso = "caricamento" | "anonimo" | "non-approvato" | "sospeso" | "cambia-password" | "attiva-authenticator" | "verifica-authenticator" | "abilitato";
 export interface Accesso { stato: StatoAccesso; profilo: Profilo | null; email: string | null }
 
@@ -106,6 +106,12 @@ export async function aggiornaAccesso(): Promise<void> {
   const { data: profilo } = await db().from("accessi_profili").select("*").eq("utente", sessione.user.id).maybeSingle<Profilo>();
   if (!profilo) { imposta({ stato: "non-approvato", profilo: null, email }); return; }
   if (profilo.stato === "sospeso") { imposta({ stato: "sospeso", profilo, email }); return; }
+  // scadenza della password (supabase/scadenza-password.sql): se la funzione non c'è ancora, resta com'era
+  try {
+    const { data: sp, error } = await db().rpc("stato_password");
+    const x = sp as { da_cambiare?: boolean; scaduta?: boolean; scade_il?: string | null; giorni?: number } | null;
+    if (!error && x) Object.assign(profilo, { deve_cambiare_password: !!x.da_cambiare || profilo.deve_cambiare_password, password_scaduta: !!x.scaduta, password_scade_il: x.scade_il ?? null, giorni_password: x.giorni ?? 0 });
+  } catch { /* funzione non ancora installata */ }
   const { data: aal } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
   if (profilo.deve_cambiare_password && aal?.currentLevel !== "aal2" && aal?.nextLevel !== "aal2") { imposta({ stato: "cambia-password", profilo, email }); return; }
   if (aal?.nextLevel === "aal2" && aal.currentLevel !== "aal2") { imposta({ stato: "verifica-authenticator", profilo, email }); return; }

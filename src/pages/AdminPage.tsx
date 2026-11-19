@@ -339,10 +339,11 @@ export function AdminPage() {
         </TabsContent>
 
         <TabsContent value="utenti" className="mt-4">
+          <ScadenzaPassword />
           <div className="overflow-x-auto"><table className="w-full min-w-[1100px] text-sm">
             <thead><tr className="border-b text-left"><th className="p-2">Utente</th><th className="p-2">Ruolo</th><th className="p-2">Stato</th><th className="p-2">App che può usare</th><th className="p-2">Mappa carichi</th><th className="p-2">Authenticator</th><th className="p-2">Ultimo accesso</th><th className="p-2">Azioni</th></tr></thead>
             <tbody>{profili.map((p) => { const me = p.utente === io.profilo?.utente; return <tr key={p.utente} className="border-b align-top">
-              <td className="p-2"><p className="font-semibold">{p.nome || "—"}</p><p className="text-xs text-muted-foreground">{p.email}{p.azienda ? ` · ${p.azienda}` : ""}</p>{p.deve_cambiare_password && <p className="text-xs text-[#9a6200]">deve cambiare la password</p>}</td>
+              <td className="p-2"><p className="font-semibold">{p.nome || "—"}</p><p className="text-xs text-muted-foreground">{p.email}{p.azienda ? ` · ${p.azienda}` : ""}</p>{p.deve_cambiare_password && <p className="text-xs text-[#9a6200]">deve cambiare la password</p>}{p.password_cambiata_il && <p className="text-xs text-muted-foreground">password cambiata il {new Date(p.password_cambiata_il).toLocaleDateString("it-IT")}</p>}</td>
               <td className="p-2"><select aria-label="Ruolo" className="rounded border px-2 py-1" disabled={busy || me} value={p.ruolo} onChange={(e) => void azione(() => gestione("aggiorna", { utente: p.utente, ruolo: e.target.value }), "Ruolo aggiornato.")}><option value="utente">Utente</option><option value="admin">Amministratore</option></select></td>
               <td className="p-2"><Button size="sm" variant={p.stato === "attivo" ? "outline" : "default"} disabled={busy || me} onClick={() => void azione(() => gestione("aggiorna", { utente: p.utente, stato: p.stato === "attivo" ? "sospeso" : "attivo" }), p.stato === "attivo" ? "Utente sospeso." : "Utente riattivato.")}>{p.stato === "attivo" ? "Attivo · sospendi" : "Sospeso · riattiva"}</Button></td>
               <td className="max-w-[300px] p-2 text-xs"><AppUtente ruolo={p.ruolo} sezioni={p.sezioni} />
@@ -417,3 +418,26 @@ export function AdminPage() {
     </main>
   </>;
 }
+
+/** Scadenza della password per tutti (impostazioni_admin, chiave giorni_scadenza_password; supabase/scadenza-password.sql). */
+function ScadenzaPassword() {
+  const [giorni, setGiorni] = useState<string | null>(null), [msg, setMsg] = useState("");
+  useEffect(() => { void db().from("impostazioni_admin").select("valore").eq("chiave", "giorni_scadenza_password").maybeSingle().then(({ data }) => setGiorni((data as { valore?: string } | null)?.valore ?? null)); }, []);
+  async function salva(v: string) {
+    setMsg("");
+    const { error } = await db().from("impostazioni_admin").upsert({ chiave: "giorni_scadenza_password", valore: v });
+    if (error) { setMsg("Non salvato: " + error.message); return; }
+    setGiorni(v); setMsg(v === "0" ? "Scadenza della password disattivata." : `Da ora la password scade dopo ${v} giorni dall'ultimo cambio.`);
+  }
+  return <div className="mb-4 flex flex-wrap items-center gap-3 rounded-lg border-[0.8px] border-bordo-scheda p-3 text-sm">
+    <label htmlFor="scadenza-password" className="font-semibold">Cambio password obbligatorio</label>
+    {giorni === null
+      ? <span className="text-muted-foreground">Per attivarlo esegui supabase/scadenza-password.sql in Supabase.</span>
+      : <select id="scadenza-password" className="rounded border px-2 py-1" value={giorni} onChange={(e) => void salva(e.target.value)}>
+          <option value="60">ogni 60 giorni</option><option value="90">ogni 90 giorni (consigliato)</option><option value="180">ogni 180 giorni</option><option value="0">mai</option>
+        </select>}
+    <span className="text-xs text-muted-foreground">Alla scadenza OBO Hub e Progettazione LPS chiedono una nuova password al primo accesso.</span>
+    {msg && <span role="status">{msg}</span>}
+  </div>;
+}
+
