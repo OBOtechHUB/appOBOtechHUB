@@ -1,0 +1,1 @@
+var e={I:{distanzaTipica:10,distanzaMassima:10},II:{distanzaTipica:10,distanzaMassima:10},III:{distanzaTipica:15,distanzaMassima:15},IV:{distanzaTipica:20,distanzaMassima:20},riferimentoNorma:`CEI EN IEC 62305-3:2024, Tab. 5`};export{e as t};

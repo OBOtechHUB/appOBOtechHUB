@@ -1,0 +1,1 @@
+function e(e,t,n){if(![e,t,n].every(e=>Number.isFinite(e)&&e>=0))throw Error(`Valori non validi: densità, AD e CD devono essere numeri ≥ 0`);return e*t*n*1e-6}export{e as t};
