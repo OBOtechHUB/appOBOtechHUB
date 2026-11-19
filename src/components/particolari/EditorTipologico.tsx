@@ -112,7 +112,7 @@ export function EditorTipologico({ iniziale, datiIniziali, onSalva, onChiudi }: 
   async function esporta(formato: "svg" | "png") {
     const svg = svgTipologico(d, { titolo: dati.nome || "Tipologico", legenda: true }), nome = (dati.nome || "tipologico").replace(/[^\w.-]+/g, "_");
     if (formato === "svg") scarica(new Blob([svg], { type: "image/svg+xml" }), `${nome}.svg`);
-    else { const w = Number(svg.match(/width="(\d+)"/)?.[1] ?? 800); scarica(new Blob([await svgPng(svg, (w / 96) * 2.54 * 1.5)], { type: "image/png" }), `${nome}.png`); }
+    else { const w = Number(svg.match(/width="(\d+)"/)?.[1] ?? 800); { const png = await svgPng(svg, (w / 96) * 2.54 * 1.5); scarica(new Blob([new Uint8Array(png)], { type: "image/png" }), `${nome}.png`); } }
   }
   async function salva() {
     setMsg("");
