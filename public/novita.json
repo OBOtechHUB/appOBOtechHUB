@@ -9,13 +9,15 @@
       "voci": [
         "In copertina c'è il logo OBO; in \"Dati della relazione\" si possono aggiungere lo stemma del Comune, il logo del committente e le foto del sopralluogo o le planimetrie con la didascalia (vanno scelte ogni volta, non si salvano nel progetto)",
         "Le tabelle dei blocchi in calcestruzzo per le aste isFang su treppiede (velocità del vento e altezza dell'asta) sono nella relazione come tabelle modificabili",
-        "Nuovo schema a blocchi della procedura di valutazione del rischio; i titoli delle tabelle restano sulla stessa pagina della tabella"
+        "Nuovo schema a blocchi della procedura di valutazione del rischio; i titoli delle tabelle restano sulla stessa pagina della tabella",
+        "Dopo la copertina c'è il sommario con i capitoli; aprendo il file, Word chiede di aggiornare i campi: rispondendo Sì compaiono i numeri di pagina"
       ],
       "titolo_en": "Technical report: logo, photos and tripod tables",
       "voci_en": [
         "OBO logo on the cover; optional municipality crest, client logo and site photos with captions",
         "Concrete block tables for isFang tripod rods as editable tables",
-        "New flowchart of the risk assessment procedure"
+        "New flowchart of the risk assessment procedure",
+        "Table of contents with the chapters after the cover (Word fills in page numbers when updating fields)"
       ]
     },
     {

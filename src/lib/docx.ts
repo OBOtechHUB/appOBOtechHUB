@@ -14,6 +14,7 @@ export type Blocco =
   | { tipo: "elenco"; voci: Testo[] }
   | { tipo: "tabella"; intestazione: Testo[]; righe: Testo[][]; larghezze?: number[]; evidenziaColonna?: number; evidenziaRighe?: number[]; dimensione?: number }
   | { tipo: "immagine"; svg: string; larghezza: number; altezza: number; png?: Uint8Array; jpeg?: boolean; pdf?: string; mancante?: string; allinea?: "sinistra" | "centro" | "destra" }
+  | { tipo: "sommario"; titolo: string }
   | { tipo: "salto" };
 
 export interface Documento { blocchi: Blocco[]; intestazione?: string; piede?: Testo[]; titolo?: string; autore?: string }
@@ -94,15 +95,28 @@ export async function rasterizza(doc: Documento, converti: (svg: string, larghez
   return { ...doc, blocchi };
 }
 
+/** Sommario come campo TOC di Word (capitoli = titoli di livello 1): Word lo aggiorna con i numeri di pagina all'apertura. */
+function sommario(titolo: string, blocchi: Blocco[]): string {
+  const voci = blocchi.flatMap((b) => (b.tipo === "titolo" && b.livello === 1 ? [b.testo] : []));
+  const voce = (t: string, i: number) => `<w:p><w:pPr><w:pStyle w:val="Sommario1"/></w:pPr>${i === 0 ? '<w:r><w:fldChar w:fldCharType="begin"/></w:r><w:r><w:instrText xml:space="preserve"> TOC \\o "1-1" \\h \\z \\u </w:instrText></w:r><w:r><w:fldChar w:fldCharType="separate"/></w:r>' : ""}${run({ t })}<w:r><w:tab/></w:r><w:r><w:fldChar w:fldCharType="begin"/></w:r><w:r><w:instrText xml:space="preserve"> PAGEREF _Toc${i + 1} \\h </w:instrText></w:r><w:r><w:fldChar w:fldCharType="separate"/></w:r><w:r><w:t></w:t></w:r><w:r><w:fldChar w:fldCharType="end"/></w:r>${i === voci.length - 1 ? '<w:r><w:fldChar w:fldCharType="end"/></w:r>' : ""}</w:p>`;
+  return paragrafo(titolo, { stile: "TitoloSommario" }) + (voci.length ? voci.map(voce).join("") : "") + '<w:p><w:r><w:br w:type="page"/></w:r></w:p>';
+}
+
 function corpo(blocchi: Blocco[]): string {
-  let img = 0;
+  let img = 0, cap = 0;
   return blocchi.map((b) => {
     switch (b.tipo) {
-      case "titolo": return paragrafo(b.testo, { stile: `Titolo${b.livello}`, keepNext: true });
+      case "titolo": {
+        const x = paragrafo(b.testo, { stile: `Titolo${b.livello}`, keepNext: true });
+        if (b.livello !== 1) return x;
+        cap++; // segnalibro per il numero di pagina nel sommario
+        return x.replace("</w:pPr>", `</w:pPr><w:bookmarkStart w:id="${cap}" w:name="_Toc${cap}"/>`).replace(/<\/w:p>$/, `<w:bookmarkEnd w:id="${cap}"/></w:p>`);
+      }
       case "par": return paragrafo(b.testo, { ...(b.formula ? { stile: "Formula" } : {}), ...(b.allinea ? { allinea: b.allinea } : {}), ...(b.dimensione ? { dim: b.dimensione } : {}), ...(b.grassetto ? { b: true } : {}), ...(b.spazioPrima != null ? { prima: b.spazioPrima } : {}), ...(b.spazioDopo != null ? { dopo: b.spazioDopo } : {}), ...(b.conSuccessivo ? { keepNext: true } : {}) });
       case "elenco": return b.voci.map((v) => paragrafo(v, { stile: "Elenco", numero: true })).join("");
       case "tabella": return tabella(b);
       case "immagine": return immagine(b, b.png ? ++img : 0);
+      case "sommario": return sommario(b.titolo, blocchi);
       case "salto": return '<w:p><w:r><w:br w:type="page"/></w:r></w:p>';
     }
   }).join("");
@@ -117,6 +131,8 @@ const STILI = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <w:style w:type="paragraph" w:styleId="Titolo1"><w:name w:val="heading 1"/><w:basedOn w:val="Normale"/><w:next w:val="Normale"/><w:qFormat/><w:pPr><w:keepNext/><w:pBdr><w:bottom w:val="single" w:sz="8" w:space="2" w:color="E5640F"/></w:pBdr><w:spacing w:before="360" w:after="160"/><w:jc w:val="left"/><w:outlineLvl w:val="0"/></w:pPr><w:rPr><w:b/><w:caps/><w:sz w:val="26"/><w:szCs w:val="26"/></w:rPr></w:style>
 <w:style w:type="paragraph" w:styleId="Titolo2"><w:name w:val="heading 2"/><w:basedOn w:val="Normale"/><w:next w:val="Normale"/><w:qFormat/><w:pPr><w:keepNext/><w:spacing w:before="240" w:after="100"/><w:jc w:val="left"/><w:outlineLvl w:val="1"/></w:pPr><w:rPr><w:b/><w:sz w:val="22"/><w:szCs w:val="22"/></w:rPr></w:style>
 <w:style w:type="paragraph" w:styleId="Titolo3"><w:name w:val="heading 3"/><w:basedOn w:val="Normale"/><w:next w:val="Normale"/><w:qFormat/><w:pPr><w:keepNext/><w:spacing w:before="180" w:after="80"/><w:jc w:val="left"/><w:outlineLvl w:val="2"/></w:pPr><w:rPr><w:b/><w:i/><w:sz w:val="20"/><w:szCs w:val="20"/></w:rPr></w:style>
+<w:style w:type="paragraph" w:styleId="TitoloSommario"><w:name w:val="TOC Heading"/><w:basedOn w:val="Normale"/><w:next w:val="Normale"/><w:pPr><w:pBdr><w:bottom w:val="single" w:sz="8" w:space="2" w:color="E5640F"/></w:pBdr><w:spacing w:before="120" w:after="240"/><w:jc w:val="left"/></w:pPr><w:rPr><w:b/><w:caps/><w:sz w:val="26"/><w:szCs w:val="26"/></w:rPr></w:style>
+<w:style w:type="paragraph" w:styleId="Sommario1"><w:name w:val="toc 1"/><w:basedOn w:val="Normale"/><w:next w:val="Normale"/><w:pPr><w:tabs><w:tab w:val="right" w:leader="dot" w:pos="9628"/></w:tabs><w:spacing w:before="60" w:after="60"/><w:jc w:val="left"/></w:pPr><w:rPr><w:sz w:val="21"/><w:szCs w:val="21"/></w:rPr></w:style>
 <w:style w:type="paragraph" w:styleId="Elenco"><w:name w:val="List Paragraph"/><w:basedOn w:val="Normale"/><w:pPr><w:spacing w:after="40"/><w:ind w:left="567" w:hanging="283"/><w:jc w:val="left"/></w:pPr></w:style>
 <w:style w:type="paragraph" w:styleId="Tabella"><w:name w:val="Table Text"/><w:basedOn w:val="Normale"/><w:pPr><w:spacing w:before="20" w:after="20" w:line="240" w:lineRule="auto"/><w:jc w:val="left"/></w:pPr><w:rPr><w:sz w:val="18"/><w:szCs w:val="18"/></w:rPr></w:style>
 <w:style w:type="paragraph" w:styleId="Formula"><w:name w:val="Formula"/><w:basedOn w:val="Normale"/><w:pPr><w:spacing w:before="80" w:after="120"/><w:jc w:val="center"/></w:pPr><w:rPr><w:b/><w:i/></w:rPr></w:style>

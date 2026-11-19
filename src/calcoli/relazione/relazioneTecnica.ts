@@ -163,6 +163,7 @@ export function relazioneTecnica(x: IngressoRelazione): Documento {
   // =====================================================================================
   copertina("Relazione impianto di protezione\ndalle scariche atmosferiche");
   if (x.revisioni.length) B.push(h3("Revisioni del documento"), tab(["Rev.", "Data", "Descrizione", "Autore"], x.revisioni.map((v) => [v.rev, new Date(v.data).toLocaleDateString("it-IT"), v.descrizione, v.autore]), [1, 2, 6, 3]));
+  B.push({ tipo: "sommario", titolo: "Sommario" });
 
   // ---------- 1 Premessa
   B.push(h1("1. Premessa"),
