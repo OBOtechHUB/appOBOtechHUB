@@ -601,7 +601,8 @@ export function relazioneTecnica(x: IngressoRelazione): Documento {
   // ---------- 13 soluzione di progetto
   const capt = x.conduttori.filter((c) => c.tipo === "captazione"), lCapt = capt.reduce((a, c) => a + lunghezza(c), 0);
   const calate = x.conduttori.filter((c) => c.tipo === "calata");
-  const nCalate = calate.length || x.risultati.calate?.numero || 0;
+  // calate del progetto (disegnate o calcolate) oppure, se maggiori, quelle esistenti rilevate al sopralluogo
+  const nCalate = Math.max(calate.length || x.risultati.calate?.numero || 0, r.calateNumero ?? 0);
   const per = corpi.reduce((t, c) => t + perimetro(c.impronta), 0) || (d.L > 0 && d.W > 0 ? 2 * (d.L + d.W) : 0);
   const asteGr = new Map<string, { altezza: number; codice: string; n: number; tipo: TipoAsta }>();
   for (const a of x.aste) { const tp = tipi.get(a.id) ?? "fissa", kk = `${tp}|${a.altezza.toFixed(2)}|${a.codiceOBO}`; const g = asteGr.get(kk); if (g) g.n++; else asteGr.set(kk, { altezza: a.altezza, codice: a.codiceOBO, n: 1, tipo: tp }); }
@@ -678,18 +679,19 @@ export function relazioneTecnica(x: IngressoRelazione): Documento {
   { const fc = fraseCalate(r, nCalate); if (fc) B.push(p(fc)); }
   if (nCalate) {
     B.push(tab(["Elemento", "Valore"], [
-      ["Numero di calate", String(nCalate)], ["Perimetro della struttura", `${it(per, 1)} m`],
+      ["Numero di calate", `${nCalate}${r.calateNumero != null && r.calateNumero >= (calate.length || x.risultati.calate?.numero || 0) ? " (esistenti, da sopralluogo)" : ""}`], ["Perimetro della struttura", `${it(per, 1)} m`],
+      ...(r.calateInterasse != null ? [["Interasse rilevato", `${it(r.calateInterasse, 1)} m`] as Testo[]] : []),
       ["Distanza media tra le calate", per > 0 ? `${it(per / nCalate, 1)} m` : "—"], [`Distanza tipica (LPL ${lpl}, Tab. 5)`, `${dist} m`],
       ...(calate.length ? [["Lunghezza totale delle calate", `${it(calate.reduce((a, c) => a + lunghezza(c), 0), 1)} m`] as Testo[]] : x.risultati.calate ? [["Lunghezza conduttori di calata", `${it(x.risultati.calate.lunghezzaConduttori, 1)} m`] as Testo[]] : []),
     ], [5, 7]));
-    if (per > 0 && per / nCalate > dist * 1.001) B.push(p([{ t: "La distanza media supera quella tipica: ", b: true }, dc("aumentare le calate o motivare (componenti naturali, calate esistenti nella struttura)")]));
+    if (per > 0 && (r.calateInterasse ?? per / nCalate) > dist * 1.25) B.push(p([{ t: "La distanza media supera di oltre il 25 % il valore preferenziale: ", b: true }, dc("aumentare le calate o motivare (componenti naturali, calate esistenti nella struttura)")]));
   } else if (r.calateNumero != null) {
     B.push(tab(["Elemento", "Valore"], [["Calate esistenti", String(r.calateNumero)], ["Interasse rilevato", r.calateInterasse != null ? `${it(r.calateInterasse, 1)} m` : per > 0 ? `${it(per / r.calateNumero, 1)} m (medio sul perimetro)` : "—"], [`Distanza preferenziale (LPL ${lpl}, Tab. 5)`, `${dist} m`]], [5, 7]));
     const intx = r.calateInterasse ?? (per > 0 ? per / r.calateNumero : 0);
     if (intx > dist * 1.25) B.push(p([{ t: `L'interasse delle calate esistenti supera di oltre il 25 % il valore preferenziale: `, b: true }, dc("integrare con nuove calate o motivare")]));
   } else B.push(p([dc("numero e posizione delle calate (esistenti o di progetto)")]));
   // separazione
-  const ki = x.separazione.ki ?? KI[lpl], kc = kcSemplificato(Math.max(1, nCalate || r.calateNumero || 1));
+  const ki = x.separazione.ki ?? KI[lpl], kc = kcSemplificato(Math.max(1, nCalate || 1));
   const km = { ...KM, ...(x.separazione.kmSolido ? { solido: x.separazione.kmSolido } : {}) };
   const esiti = verificaPunti(x.separazione.punti, ki, kc, km);
   B.push(h2("13.3 Distanza di separazione"),
