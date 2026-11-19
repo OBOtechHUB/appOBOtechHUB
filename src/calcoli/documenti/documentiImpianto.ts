@@ -10,6 +10,7 @@
 import type { Blocco, Documento, Run, Testo } from "@/lib/docx";
 import type { Conduttore, Asta } from "@/calcoli/edificio/tipi";
 import type { DatiRelazione } from "@/calcoli/relazione/relazioneTecnica";
+import type { Sopralluogo } from "@/lib/statoProgetto";
 import { CHECKLIST, INTERVALLI_SEVERI, INTERVALLI_TIPICI, aggiungiAnni, type Intervalli } from "@/calcoli/verifiche/verifiche";
 import { PIEDE_OBO, casella, dataIt, dataLunga, dc, el, eln, firma, h1, h2, it, oDc, p, tab, testataObo } from "./stileObo";
 
@@ -23,6 +24,11 @@ export interface IngressoDocumenti {
   dati: DatiRelazione;
   piano: { critico: boolean; intervalli: Intervalli | null };
   logo?: Blocco | undefined;
+  /** dati del sopralluogo da tablet (misure, checklist, SPD, esito) */
+  sopralluogo?: Sopralluogo | undefined;
+  /** firma del verificatore (immagine) e foto del sopralluogo già preparate */
+  firmaVerificatore?: Blocco | undefined;
+  fotoSopralluogo?: { img: Blocco; didascalia: string }[] | undefined;
   data: Date;
 }
 
@@ -93,36 +99,45 @@ export function dichiarazioneConformita(x: IngressoDocumenti): Documento {
 }
 
 // ---------------------------------------------------------------- verbale di prima verifica
+const PIENO = "■";
+const scelta = (v: boolean | null | undefined, si: string, no: string) => (v == null ? `${casella} ${si}  ${casella} ${no}` : v ? `${PIENO} ${si}  ${casella} ${no}` : `${casella} ${si}  ${PIENO} ${no}`);
+const ohm = (v: number | null | undefined) => (v == null ? "" : it(v, 3));
+
 export function verbalePrimaVerifica(x: IngressoDocumenti): Documento {
-  const r = riepilogoImpianto(x);
-  const esiti = `${casella} C   ${casella} NC   ${casella} NA`;
+  const r = riepilogoImpianto(x), so = x.sopralluogo;
+  const esitoTxt = (id: string) => { const e = so?.esiti[id]; return (["C", "NC", "NA"] as const).map((k) => `${e?.esito === k ? PIENO : casella} ${k}`).join("   "); };
   const sezioni = [...new Set(CHECKLIST.map((v) => v.sezione))];
+  const val = (v: string | undefined, cosa: string): Run[] => (v && v.trim() ? [{ t: v.trim() }] : [dc(cosa)]);
   const B: Blocco[] = [
     ...testataObo("Verbale di prima verifica dell'LPS", "CEI EN IEC 62305-3:2026-10 – art. 7 e Allegato D · verifica completa prima della messa in esercizio", x.logo),
     h1("1. Dati dell'impianto"), tabellaImpianto(x),
     tab(["Verifica", "Valore"], [
-      ["Data della verifica", [dc("data")]], ["Verificatore", [dc("nome e qualifica del verificatore")]],
-      ["Strumenti utilizzati", [dc("misuratore di terra, milliohmmetro: modello e matricola")]],
-      ["Condizioni del terreno", [dc("asciutto / umido, temperatura")]],
+      ["Data della verifica", so?.dataVerifica ? dataIt(so.dataVerifica) : [dc("data")]], ["Verificatore", val(so?.verificatore, "nome e qualifica del verificatore")],
+      ["Strumenti utilizzati", val(so?.strumenti, "misuratore di terra, milliohmmetro: modello e matricola")],
+      ["Condizioni del terreno", val(so?.condizioni, "asciutto / umido, temperatura")],
     ], [5, 11]),
     h1("2. Esame a vista e prove"),
     p("Per ogni voce: C = conforme, NC = non conforme (descrivere nelle note), NA = non applicabile.", { dimensione: 9 }),
   ];
-  for (const s of sezioni) B.push(tab([s, "Esito", "Note"], CHECKLIST.filter((v) => v.sezione === s).map((v) => [v.testo, esiti, ""]), [9, 3.5, 3.5], { dimensione: 9 }));
+  for (const s of sezioni) B.push(tab([s, "Esito", "Note"], CHECKLIST.filter((v) => v.sezione === s).map((v) => [v.testo, esitoTxt(v.id), so?.esiti[v.id]?.nota ?? ""]), [9, 3.5, 3.5], { dimensione: 9 }));
+  const calate = so?.calate.length ? so.calate : Array.from({ length: Math.max(r.nCalate, 2) }, (_, i) => ({ nome: `C${i + 1}`, continuita: null, resistenza: null, giunto: null, note: "" }));
+  const spd = so?.spd.length ? so.spd : [{ quadro: "", tipo: "", indicatoreOk: null, collegatoOk: null }, { quadro: "", tipo: "", indicatoreOk: null, collegatoOk: null }];
   B.push(
     h1("3. Misure per calata"),
     p("Continuità misurata tra la captazione e il giunto di sezionamento di ogni calata; resistenza del dispersore a giunto aperto (dispersori di tipo A) e resistenza dell'intero impianto a giunti chiusi.", { allinea: "giustificato" }),
     tab(["Calata", "Continuità (Ω)", "Resistenza di terra (Ω)", "Giunto accessibile", "Note"],
-      Array.from({ length: Math.max(r.nCalate, 2) }, (_, i) => [`C${i + 1}`, "", "", `${casella} sì  ${casella} no`, ""]), [2, 3, 3.5, 3.5, 4], { dimensione: 9 }),
-    tab(["Misura dell'intero impianto", "Valore"], [["Resistenza di terra a giunti chiusi (Ω)", ""], ["Metodo di misura", [dc("voltamperometrico / a pinza / altro")]]], [8, 8]),
+      calate.map((c) => [c.nome, ohm(c.continuita), ohm(c.resistenza), scelta(c.giunto, "sì", "no"), c.note]), [2, 3, 3.5, 3.5, 4], { dimensione: 9 }),
+    tab(["Misura dell'intero impianto", "Valore"], [["Resistenza di terra a giunti chiusi (Ω)", ohm(so?.resistenzaTotale)], ["Metodo di misura", val(so?.metodo, "voltamperometrico / a pinza / altro")]], [8, 8]),
     h1("4. Limitatori di sovratensione (SPD)"),
-    tab(["Quadro / linea", "Tipo e codice OBO", "Stato indicatore", "Collegamento all'equipotenziale"], [["", "", `${casella} ok  ${casella} guasto`, `${casella} ok  ${casella} no`], ["", "", `${casella} ok  ${casella} guasto`, `${casella} ok  ${casella} no`]], [4, 5, 3.5, 3.5], { dimensione: 9 }),
+    tab(["Quadro / linea", "Tipo e codice OBO", "Stato indicatore", "Collegamento all'equipotenziale"], spd.map((x2) => [x2.quadro, x2.tipo, scelta(x2.indicatoreOk, "ok", "guasto"), scelta(x2.collegatoOk, "ok", "no")]), [4, 5, 3.5, 3.5], { dimensione: 9 }),
     h1("5. Esito"),
-    p(`${casella} Impianto conforme al progetto e alla norma: può essere messo in esercizio.`),
-    p(`${casella} Impianto con non conformità da correggere prima della messa in esercizio (vedi note).`),
-    p([{ t: "Note: " }, dc("eventuali osservazioni e prescrizioni")]),
-    ...firma(luogoData(x), "Il verificatore", [dc("nome e firma")]),
+    p(`${so?.esitoFinale === "conforme" ? PIENO : casella} Impianto conforme al progetto e alla norma: può essere messo in esercizio.`),
+    p(`${so?.esitoFinale === "non-conforme" ? PIENO : casella} Impianto con non conformità da correggere prima della messa in esercizio (vedi note).`),
+    p([{ t: "Note: " }, ...(so?.note.trim() ? [{ t: so.note.trim() }] : [dc("eventuali osservazioni e prescrizioni")])]),
   );
+  if (x.firmaVerificatore) B.push(p(luogoData(x), { spazioPrima: 18 }), p([{ t: "Il verificatore", b: true }], { allinea: "destra", spazioPrima: 6, spazioDopo: 2 }), p(val(so?.verificatore, "nome"), { allinea: "destra" }), x.firmaVerificatore, ...(so?.firmatoIl ? [p(`Firmato sul dispositivo il ${new Date(so.firmatoIl).toLocaleString("it-IT")}`, { allinea: "destra", dimensione: 8 })] : []));
+  else B.push(...firma(luogoData(x), "Il verificatore", so?.verificatore ? [{ t: so.verificatore }] : [dc("nome e firma")]));
+  if (x.fotoSopralluogo?.length) { B.push(h1("6. Documentazione fotografica")); for (const f of x.fotoSopralluogo) B.push(f.img, p(f.didascalia || "Foto del sopralluogo", { allinea: "centro", dimensione: 9 })); }
   return { titolo: `Verbale di prima verifica – ${titoloOpera(x) || x.comune || "LPS"}`, intestazione: `Verbale di prima verifica LPS · ${titoloOpera(x) || "impianto"}${x.comune ? ` – ${x.comune}` : ""}`, piede: PIEDE_OBO, blocchi: B };
 }
 

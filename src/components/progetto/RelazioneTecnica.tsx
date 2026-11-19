@@ -16,6 +16,7 @@ import type { InfoArticolo } from "@/calcoli/relazione/testiProgetto";
 import { trovaSchedaPdf } from "@/lib/schedeParticolari";
 import { caricaDisegniObo, incorporaImmagini } from "@/lib/disegniObo";
 import { archiviaDocumento } from "@/lib/archivioDocumenti";
+import { scaricaFoto } from "@/lib/fotoSopralluogo";
 import { stemmaDelComune, type ComuneTrovato, type StemmaComune } from "@/lib/stemmaComune";
 
 /** Prima pagina della scheda PDF di un particolare (archivio privato dei particolari) come PNG. */
@@ -163,7 +164,11 @@ export function RelazioneTecnica({ righe, mancanti, particolari }: { righe: Riga
           logo: await logoObo(),
           stemma: stemma ? await preparaImmagine(stemma, false, 800) : stemmaAuto ? await preparaImmagine(stemmaAuto.blob, false, 800) : undefined,
           logoCommittente: logoComm ? await preparaImmagine(logoComm, false, 800) : undefined,
-          foto: await Promise.all(foto.map(async (f) => ({ img: await preparaImmagine(f.file, true), didascalia: f.didascalia }))),
+          foto: [
+            ...(await Promise.all(foto.map(async (f) => ({ img: await preparaImmagine(f.file, true), didascalia: f.didascalia })))),
+            // foto del sopralluogo da tablet (pagina Sopralluogo), quelle segnate "in relazione"
+            ...(await Promise.all((s.sopralluogo?.foto ?? []).filter((f) => f.inRelazione).map(async (f) => { const b = await scaricaFoto(f.percorso); return b ? { img: await preparaImmagine(b, true), didascalia: f.didascalia } : null; }))).filter((x): x is { img: ImmagineIn; didascalia: string } => !!x),
+          ],
         },
         disegniObo: await caricaDisegniObo(),
         comuneUfficiale: auto.comune ? { nome: auto.comune.nome, provincia: auto.comune.provincia } : undefined,

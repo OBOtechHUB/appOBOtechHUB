@@ -41,3 +41,17 @@ describe("documenti dell'impianto", () => {
     }
   });
 });
+
+describe("verbale con i dati del sopralluogo", () => {
+  it("riporta misure, esiti, SPD ed esito finale", async () => {
+    const { sopralluogoSchema } = await import("@/lib/statoProgetto");
+    const x = ingresso();
+    x.sopralluogo = sopralluogoSchema.parse({ dataVerifica: "2027-02-20", verificatore: "Ing. Rossi", strumenti: "Metrel MI 3290", condizioni: "asciutto",
+      calate: [{ nome: "C1", continuita: 0.12, resistenza: 8.5, giunto: true }, { nome: "C2", continuita: 0.2, resistenza: 9, giunto: false, note: "giunto coperto" }],
+      resistenzaTotale: 1.8, metodo: "voltamperometrico", esiti: { "doc-progetto": { esito: "C" }, "doc-registro": { esito: "NA", nota: "prima verifica" } },
+      spd: [{ quadro: "QG", tipo: "V50", indicatoreOk: true, collegatoOk: true }], esitoFinale: "conforme", note: "Nessuna prescrizione" });
+    const t = testoDocumento(verbalePrimaVerifica(x));
+    for (const s of ["20/02/2027", "Ing. Rossi", "Metrel MI 3290", "0,12", "8,5", "giunto coperto", "1,8", "■ C", "prima verifica", "V50", "■ Impianto conforme", "Nessuna prescrizione"]) expect(t).toContain(s);
+    expect(t).not.toContain("DA COMPLETARE: data");
+  });
+});

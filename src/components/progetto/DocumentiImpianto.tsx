@@ -34,7 +34,7 @@ export function DocumentiImpianto() {
         comune: d.comune, indirizzo: d.indirizzo, nomeProgetto: d.nomeProgetto, codice: leggiAttivo()?.codice || undefined, rev: s.revisioni.at(-1)?.rev,
         lpl: d.lplProgetto ?? s.lpl, aste: s.aste, conduttori: s.conduttori, picchetti: s.picchetti.length,
         tipoTerra: s.terra ? `tipo ${s.terra.tipo}` : undefined, dati: r, piano: s.pianoVerifiche,
-        logo: logo ? bloccoImmagine(logo, 4.2, "sinistra", 3) : undefined, data: new Date(),
+        logo: logo ? bloccoImmagine(logo, 4.2, "sinistra", 3) : undefined, data: new Date(), sopralluogo: s.sopralluogo,
       };
       const doc: Documento = tipo === "dichiarazione" ? dichiarazioneConformita(x) : tipo === "verbale" ? verbalePrimaVerifica(x) : pianoVerifichePeriodiche(x);
       const base = (d.nomeProgetto || d.comune || "progetto").replace(/[^\w.-]+/g, "_");

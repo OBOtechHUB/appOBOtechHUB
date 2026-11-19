@@ -35,12 +35,26 @@ export const relazioneSchema = z.object({
   luogoDiLavoro: z.boolean().default(false), ambienteSevero: z.boolean().default(false), dataMessaEsercizio: z.string().max(10).default(""),
   lingua: z.enum(["it", "en"]).default("it"),
 });
+/** Sopralluogo da tablet: foto (nello storage "sopralluoghi"), misure e checklist del verbale di prima verifica, firma. */
+const numOpz = z.number().finite().nullable().default(null);
+export const sopralluogoSchema = z.object({
+  foto: z.array(z.object({ id: z.string().max(60), percorso: z.string().max(300), didascalia: z.string().max(300).default(""), data: z.string().max(40).default(""), lat: z.number().finite().nullable().default(null), lon: z.number().finite().nullable().default(null), inRelazione: z.boolean().default(true) })).max(60).default([]),
+  dataVerifica: z.string().max(10).default(""), verificatore: z.string().max(200).default(""), strumenti: z.string().max(300).default(""), condizioni: z.string().max(200).default(""),
+  calate: z.array(z.object({ nome: z.string().max(20), continuita: numOpz, resistenza: numOpz, giunto: z.boolean().nullable().default(null), note: z.string().max(300).default("") })).max(200).default([]),
+  resistenzaTotale: numOpz, metodo: z.string().max(100).default(""),
+  esiti: z.record(z.object({ esito: z.enum(["C", "NC", "NA"]), nota: z.string().max(300).default("") })).default({}),
+  spd: z.array(z.object({ quadro: z.string().max(100).default(""), tipo: z.string().max(100).default(""), indicatoreOk: z.boolean().nullable().default(null), collegatoOk: z.boolean().nullable().default(null) })).max(40).default([]),
+  esitoFinale: z.enum(["", "conforme", "non-conforme"]).default(""), note: z.string().max(3000).default(""),
+  /** firma del verificatore: PNG come data URL (max ~150 kB) */
+  firma: z.string().max(200000).default(""), firmatoIl: z.string().max(40).default(""),
+});
+export type Sopralluogo = z.infer<typeof sopralluogoSchema>;
 export const offertaSchema = z.object({
   scontoPercento: z.number().finite().min(0).max(100).default(0), scontiFamiglia: z.record(z.number().finite().min(0).max(100)).default({}),
   prezziManuali: z.record(z.number().finite().nonnegative()).default({}), arrotondaConfezioni: z.boolean().default(true),
   destinatario: z.string().max(300).default(""), riferimento: z.string().max(300).default(""), validitaGiorni: z.number().int().min(1).max(365).default(30), note: z.string().max(5000).default(""),
 });
-export const estesoSchema = z.object({ modello: modelloSchema, aste: z.array(astaSchema).max(1000), conduttori: z.array(conduttoreSchema).max(5000), lpl: z.enum(["I","II","III","IV"]), particolari: z.array(particolareSchema).max(5000), supporti: z.array(componenteSchema).max(50000).default([]), morsetti: z.array(componenteSchema).max(20000).default([]), compensatori: z.array(componenteSchema).max(20000).default([]), distinta: distintaSchema.default([]), picchetti: z.array(picchettoSchema).max(5000).default([]), terra: terraSchema.nullable().default(null), verifiche: z.array(verificaSchema).max(500).default([]), pianoVerifiche: pianoVerificheSchema.default({ critico: false, intervalli: null }), separazione: separazioneSchema.default({ modoKc: "semplificato", ki: null, kmSolido: null, punti: [] }), datiRischio: z.record(z.string(), z.unknown()).nullable().default(null), revisioni: z.array(revisioneSchema).max(500).default([]), emissione: emissioneSchema.default({ stato: "bozza", rev: null, impronta: null }), relazione: relazioneSchema.optional(), offerta: offertaSchema.optional() });
+export const estesoSchema = z.object({ modello: modelloSchema, aste: z.array(astaSchema).max(1000), conduttori: z.array(conduttoreSchema).max(5000), lpl: z.enum(["I","II","III","IV"]), particolari: z.array(particolareSchema).max(5000), supporti: z.array(componenteSchema).max(50000).default([]), morsetti: z.array(componenteSchema).max(20000).default([]), compensatori: z.array(componenteSchema).max(20000).default([]), distinta: distintaSchema.default([]), picchetti: z.array(picchettoSchema).max(5000).default([]), terra: terraSchema.nullable().default(null), verifiche: z.array(verificaSchema).max(500).default([]), pianoVerifiche: pianoVerificheSchema.default({ critico: false, intervalli: null }), separazione: separazioneSchema.default({ modoKc: "semplificato", ki: null, kmSolido: null, punti: [] }), datiRischio: z.record(z.string(), z.unknown()).nullable().default(null), revisioni: z.array(revisioneSchema).max(500).default([]), emissione: emissioneSchema.default({ stato: "bozza", rev: null, impronta: null }), relazione: relazioneSchema.optional(), offerta: offertaSchema.optional(), sopralluogo: sopralluogoSchema.optional() });
 export type StatoEsteso = z.infer<typeof estesoSchema>;
 export const estesoIniziale: StatoEsteso = { modello: {corpi:[]}, aste: [], conduttori: [], lpl:"III", particolari:[], supporti: [], morsetti: [], compensatori: [], distinta: [], picchetti: [], terra: null, verifiche: [], pianoVerifiche: { critico: false, intervalli: null }, separazione: { modoKc: "semplificato", ki: null, kmSolido: null, punti: [] }, datiRischio: null, revisioni: [], emissione: { stato: "bozza", rev: null, impronta: null } };
 let esteso=estesoIniziale, caricato=false;

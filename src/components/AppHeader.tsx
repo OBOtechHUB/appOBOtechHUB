@@ -4,7 +4,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import {
   ArrowDownToLine, ShieldCheck, Box, Boxes, Cpu, ShieldAlert, Building2, Package, ClipboardCheck, Compass, Gauge, ChevronLeft, ClipboardList, Download, FileText, FolderOpen, Info, LogIn, LogOut,
   Languages, LayoutGrid, ZoomIn, ZoomOut, Mail, Moon, Sun, SunMoon, Menu, Ruler, Search, Smartphone, Shield, SlidersHorizontal, User, UserPlus, Wrench, X,
-  BookOpen, Inbox, BarChart3,
+  BookOpen, Inbox, BarChart3, Camera,
 } from "lucide-react";
 import { useAuth } from "@/lib/auth";
 import { NOMI_TEMA, cambiaZoom, impostaTema, useTema, useZoom, type Tema } from "@/lib/tema";
@@ -123,6 +123,7 @@ export function AppHeader() {
         { etichetta: "Assistente di progetto", to: "/assistente", icona: Compass },
         { etichetta: "Panoramica strumenti", to: "/strumenti", icona: Wrench },
         { etichetta: "Richieste all'ufficio tecnico", to: "/richieste", icona: Inbox },
+        { etichetta: "Sopralluogo (tablet)", to: "/sopralluogo", icona: Camera },
         { etichetta: "Dati edificio", to: "/dati-edificio", icona: Building2 },
         { etichetta: "Dati normativi", to: "/dati-normativi", icona: SlidersHorizontal },
         { etichetta: "Analisi del rischio", to: "/rischio", icona: ShieldAlert },

@@ -2,6 +2,21 @@
   "nota": "Registro degli aggiornamenti di Progettazione LPS. Una voce per aggiornamento, la più recente per prima (app: lps). Viene mostrato nella barra \"Aggiorna app\", nel riquadro Novità e nella pagina Novità di OBO Hub.",
   "aggiornamenti": [
     {
+      "id": "2026-11-19-lps-22",
+      "data": "2026-11-19",
+      "app": "lps",
+      "titolo": "Sopralluogo da tablet e telefono",
+      "voci": [
+        "Nuova pagina Sopralluogo: foto con didascalia (anche senza rete, si caricano quando torna), stato di fatto, misure di continuità e di terra per calata, esame a vista C/NC/NA, SPD, esito e firma con il dito o la penna",
+        "Il verbale di prima verifica si compila da solo con misure, esiti, firma e foto; le foto segnate vanno anche nella relazione"
+      ],
+      "titolo_en": "Site survey from tablet and phone",
+      "voci_en": [
+        "New Site survey page: photos with captions (also offline, uploaded when the connection returns), existing conditions, continuity and earth measurements per down-conductor, visual inspection C/NC/NA, SPDs, outcome and finger or pen signature",
+        "The first inspection record fills itself with measurements, results, signature and photos; selected photos also go into the report"
+      ]
+    },
+    {
       "id": "2026-11-19-lps-21",
       "data": "2026-11-19",
       "app": "lps",
