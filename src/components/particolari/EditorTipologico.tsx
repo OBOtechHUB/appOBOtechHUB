@@ -6,6 +6,7 @@ import { useEffect, useMemo, useRef, useState, type PointerEvent as PE } from "r
 import { MousePointer2, Spline, Ruler, Type, Undo2, Redo2, Trash2, Copy, RotateCw, Download, Save, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Campo, inputCls } from "@/components/Campo";
+import { CampoNumero } from "@/components/CampoNumero";
 import { useCatalogoObo, trovaArticolo } from "@/lib/catalogoObo";
 import {
   CATEGORIE_SIMBOLI, NOMI_UNITA, SIMBOLI, STRUTTURA, TIPI_BLOCCO, UNITA_QUANTITA, componentiTipologico, disegnoObo, disegnoVuoto, ingombro, markupBlocco, markupConduttore, percorso, quota, svgTipologico, tipoDaDescrizione,
@@ -199,8 +200,8 @@ export function EditorTipologico({ iniziale, datiIniziali, onSalva, onChiudi }: 
           </div>}
           {bSel.vista === "obo" && !disegnoObo(bSel, obo) && <p className="text-xs text-muted-foreground">Disegno OBO non disponibile per questo codice: si usa il simbolo.</p>}
           <Campo etichetta="Descrizione"><input className={inputCls} value={bSel.descrizione} maxLength={300} placeholder={SIMBOLI[bSel.tipo].nome} onChange={(e) => setB({ descrizione: e.target.value })} /></Campo>
-          <div className="grid grid-cols-2 gap-2"><Campo etichetta="Quantità"><input className={inputCls} inputMode="decimal" value={bSel.quantita} onChange={(e) => { const v = Number(e.target.value.replace(",", ".")); if (Number.isFinite(v) && v >= 0) setB({ quantita: v }); }} /></Campo>
-            <Campo etichetta="Scala"><input className={inputCls} inputMode="decimal" value={bSel.scala} onChange={(e) => { const v = Number(e.target.value.replace(",", ".")); if (v >= 0.2 && v <= 10) setB({ scala: v }); }} /></Campo></div>
+          <div className="grid grid-cols-2 gap-2"><Campo etichetta="Quantità"><CampoNumero className={inputCls} valore={bSel.quantita} min={0} onValore={(v) => setB({ quantita: v ?? 0 })} /></Campo>
+            <Campo etichetta="Scala"><CampoNumero className={inputCls} valore={bSel.scala} min={0.2} max={10} onValore={(v) => { if (v != null) setB({ scala: v }); }} /></Campo></div>
           {unitaSel(bSel.unita, (u) => setB({ unita: u }))}
           <div className="flex flex-wrap gap-2">
             <Button type="button" size="sm" variant="outline" onClick={() => setB({ rot: (bSel.rot + 90) % 360 })}><RotateCw />Ruota</Button>
@@ -217,7 +218,7 @@ export function EditorTipologico({ iniziale, datiIniziali, onSalva, onChiudi }: 
               <Campo etichetta="Codice OBO del conduttore"><input className={inputCls} value={cSel.codiceOBO} maxLength={40} placeholder="es. 5021296" onChange={(e) => setC({ codiceOBO: e.target.value.trim() })} onBlur={(e) => codiceBlur(e.target.value, cSel.descrizione, setC)} /></Campo>
               {nomeCatalogo(cSel.codiceOBO) && <p className="text-xs text-muted-foreground">Catalogo: {nomeCatalogo(cSel.codiceOBO)}</p>}
               <Campo etichetta="Descrizione"><input className={inputCls} value={cSel.descrizione} maxLength={300} placeholder="es. RD 8-ALU conduttore tondo" onChange={(e) => setC({ descrizione: e.target.value })} /></Campo>
-              <Campo etichetta="Quantità"><input className={inputCls} inputMode="decimal" value={cSel.quantita} onChange={(e) => { const v = Number(e.target.value.replace(",", ".")); if (Number.isFinite(v) && v >= 0) setC({ quantita: v }); }} /></Campo>
+              <Campo etichetta="Quantità"><CampoNumero className={inputCls} valore={cSel.quantita} min={0} onValore={(v) => setC({ quantita: v ?? 0 })} /></Campo>
               {unitaSel(cSel.unita, (u) => setC({ unita: u }))}
               <p className="text-xs text-muted-foreground">Un conduttore senza codice né descrizione resta solo nel disegno (non entra nella distinta).</p>
             </>}

@@ -8,6 +8,7 @@ import { useNavigate } from "@tanstack/react-router";
 import { Plus, FolderPlus, FolderOpen, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Campo, inputCls } from "@/components/Campo";
+import { CampoNumero } from "@/components/CampoNumero";
 import { PageTitle } from "@/components/PageTitle";
 import { useAuth } from "@/lib/auth";
 import { useAccesso } from "@/lib/accesso";
@@ -74,7 +75,7 @@ export function RichiestePage() {
         <Campo etichetta="Tipo"><select className={inputCls} value={nuova.tipo} onChange={(e) => setNuova({ ...nuova, tipo: e.target.value as TipoRichiesta })}>{Object.entries(TIPI_RICHIESTA).map(([v, t]) => <option key={v} value={v}>{t}</option>)}</select></Campo>
         <Campo etichetta="Priorità"><select className={inputCls} value={nuova.priorita} onChange={(e) => setNuova({ ...nuova, priorita: e.target.value as NuovaRichiesta["priorita"] })}><option>Alta</option><option>Media</option><option>Bassa</option></select></Campo>
         <div className="grid grid-cols-2 gap-2"><Campo etichetta="Scadenza"><input type="date" className={inputCls} value={nuova.scadenza ?? ""} onChange={(e) => setNuova({ ...nuova, scadenza: e.target.value || null })} /></Campo>
-          <Campo etichetta="Ore stimate"><input className={inputCls} inputMode="decimal" value={nuova.ore_stimate ?? ""} onChange={(e) => { const t = e.target.value.trim(), v = Number(t.replace(",", ".")); setNuova({ ...nuova, ore_stimate: t === "" ? null : Number.isFinite(v) && v >= 0 && v <= 2000 ? v : nuova.ore_stimate }); }} /></Campo></div>
+          <Campo etichetta="Ore stimate"><CampoNumero className={inputCls} valore={nuova.ore_stimate} min={0} max={2000} onValore={(v) => setNuova({ ...nuova, ore_stimate: v })} /></Campo></div>
         <div className="sm:col-span-3"><Campo etichetta="Descrizione"><textarea className={`${inputCls} min-h-20`} value={nuova.descrizione} maxLength={5000} placeholder="Cosa serve, documenti disponibili, contatti…" onChange={(e) => setNuova({ ...nuova, descrizione: e.target.value })} /></Campo></div>
       </div>
       <div className="mt-3 flex gap-2"><Button type="button" disabled={busy || !nuova.cliente.trim()} onClick={() => void azione(async () => { await nuovaRichiesta(nuova); setNuova(null); }, "Richiesta aperta.")}>Apri richiesta</Button><Button type="button" variant="outline" onClick={() => setNuova(null)}>Annulla</Button></div>

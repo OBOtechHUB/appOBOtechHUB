@@ -2,6 +2,23 @@
   "nota": "Registro degli aggiornamenti di Progettazione LPS. Una voce per aggiornamento, la più recente per prima (app: lps). Viene mostrato nella barra \"Aggiorna app\", nel riquadro Novità e nella pagina Novità di OBO Hub.",
   "aggiornamenti": [
     {
+      "id": "2026-11-19-lps-23",
+      "data": "2026-11-19",
+      "app": "lps",
+      "titolo": "Misura guidata con la foto dello strumento",
+      "voci": [
+        "Nel Sopralluogo, \"Misura guidata\": calata per calata l'app indica cosa misurare (continuità, terra, giunto), fai la foto del display dello strumento e il valore si salva con la foto come prova",
+        "Dove il browser lo permette (Chrome su Android) il valore viene letto dalla foto e proposto; altrimenti si scrive guardando la foto",
+        "Pagina provata anche sul telefono; i campi numerici accettano la virgola (anche in Offerta, Richieste ed Editor dei tipologici)"
+      ],
+      "titolo_en": "Guided measurement with a photo of the instrument",
+      "voci_en": [
+        "In Site survey, \"Guided measurement\": down-conductor by down-conductor the app shows what to measure (continuity, earth, test joint), you photograph the instrument display and the value is saved with the photo as evidence",
+        "Where the browser allows it (Chrome on Android) the value is read from the photo and suggested; otherwise type it while looking at the photo",
+        "Page checked on phones too; number fields accept the decimal comma (also in Offer, Requests and the Detail editor)"
+      ]
+    },
+    {
       "id": "2026-11-19-lps-22",
       "data": "2026-11-19",
       "app": "lps",

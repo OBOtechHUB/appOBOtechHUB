@@ -7,6 +7,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Download, FileSpreadsheet, FileText, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Campo, inputCls } from "@/components/Campo";
+import { CampoNumero } from "@/components/CampoNumero";
 import { useDatiEdificio } from "@/lib/progettoStore";
 import { aggiornaEsteso, leggiAttivo, useEsteso } from "@/lib/statoProgetto";
 import { useAuth } from "@/lib/auth";
@@ -81,18 +82,18 @@ export function OffertaMateriali({ righe }: { righe: RigaComputo[] }) {
         <Campo etichetta="Destinatario"><input className={inputCls} value={o.destinatario} maxLength={300} placeholder="es. Elettro Rossi S.r.l." onChange={(e) => aggiorna({ destinatario: e.target.value })} /></Campo>
         <Campo etichetta="Riferimento"><input className={inputCls} value={o.riferimento} maxLength={300} placeholder="es. vs. richiesta del 12/11" onChange={(e) => aggiorna({ riferimento: e.target.value })} /></Campo>
         <Campo etichetta="Validità (giorni)"><input className={inputCls} inputMode="numeric" value={o.validitaGiorni} onChange={(e) => { const v = Math.round(Number(e.target.value)); if (v >= 1 && v <= 365) aggiorna({ validitaGiorni: v }); }} /></Campo>
-        <Campo etichetta="Sconto generale (%)"><input className={inputCls} inputMode="decimal" value={o.scontoPercento} onChange={(e) => { const v = Number(e.target.value.replace(",", ".")); if (v >= 0 && v <= 100) aggiorna({ scontoPercento: v }); }} /></Campo>
+        <Campo etichetta="Sconto generale (%)"><CampoNumero className={inputCls} valore={o.scontoPercento} min={0} max={100} onValore={(v) => aggiorna({ scontoPercento: v ?? 0 })} /></Campo>
         <label className="flex items-center gap-2 self-end text-sm"><input type="checkbox" checked={o.arrotondaConfezioni} onChange={(e) => aggiorna({ arrotondaConfezioni: e.target.checked })} />Arrotonda alle confezioni di vendita</label>
       </div>
       {famiglie.length > 0 && <fieldset className="rounded-md border p-3"><legend className="px-1 text-sm font-semibold">Sconto per famiglia di sconto (vuoto = generale)</legend>
-        <div className="flex flex-wrap gap-3">{famiglie.map((f) => <label key={f} className="flex items-center gap-1 text-sm">{f}<input className={`${inputCls} w-20 py-1`} inputMode="decimal" value={o.scontiFamiglia[f] ?? ""} placeholder={String(o.scontoPercento)} onChange={(e) => { const t = e.target.value.trim(), v = Number(t.replace(",", ".")); const sf = { ...o.scontiFamiglia }; if (t === "") delete sf[f]; else if (v >= 0 && v <= 100) sf[f] = v; else return; aggiorna({ scontiFamiglia: sf }); }} /> %</label>)}</div></fieldset>}
+        <div className="flex flex-wrap gap-3">{famiglie.map((f) => <label key={f} className="flex items-center gap-1 text-sm">{f}<CampoNumero className={`${inputCls} w-20 py-1`} valore={o.scontiFamiglia[f]} placeholder={String(o.scontoPercento)} min={0} max={100} onValore={(v) => { const sf = { ...o.scontiFamiglia }; if (v == null) delete sf[f]; else sf[f] = v; aggiorna({ scontiFamiglia: sf }); }} /> %</label>)}</div></fieldset>}
       <div className="overflow-x-auto"><table className="w-full min-w-[820px] text-sm">
         <thead><tr className="border-b text-left"><th className="p-2">Codice</th><th className="p-2">Descrizione</th><th className="p-2 text-right">Q.tà</th><th className="p-2 text-right">Listino</th><th className="p-2 text-right">Sconto</th><th className="p-2 text-right">Netto unit. (modificabile)</th><th className="p-2 text-right">Totale</th></tr></thead>
         <tbody>{rOff.map((r) => <tr key={r.codice || r.descrizione} className="border-b">
           <td className="p-2 font-mono">{r.codice || "—"}</td><td className="p-2">{r.descrizione}{r.fonte === "mancante" && <span className="ml-1 text-xs text-destructive">(non a listino)</span>}</td>
           <td className="p-2 text-right" title={`Progetto: ${r.quantitaProgetto.toLocaleString("it-IT")} · confezione ${r.confezione}`}>{r.quantita.toLocaleString("it-IT")} {r.unita}</td>
           <td className="p-2 text-right">{euro(r.listino)}</td><td className="p-2 text-right">{r.fonte === "manuale" ? "netto" : `${r.sconto.toLocaleString("it-IT")} %`}</td>
-          <td className="p-2 text-right">{r.codice ? <input className={`${inputCls} w-28 py-1 text-right`} inputMode="decimal" aria-label={`Prezzo netto ${r.codice}`} placeholder={r.netto == null ? "" : r.netto.toFixed(4).replace(".", ",")} value={o.prezziManuali[r.codice] ?? ""} onChange={(e) => { const t = e.target.value.trim(), v = Number(t.replace(",", ".")); const pm = { ...o.prezziManuali }; if (t === "") delete pm[r.codice]; else if (v >= 0) pm[r.codice] = v; else return; aggiorna({ prezziManuali: pm }); }} /> : euro(r.netto)}</td>
+          <td className="p-2 text-right">{r.codice ? <CampoNumero className={`${inputCls} w-28 py-1 text-right`} aria-label={`Prezzo netto ${r.codice}`} placeholder={r.netto == null ? "" : r.netto.toFixed(4).replace(".", ",")} valore={o.prezziManuali[r.codice]} min={0} onValore={(v) => { const pm = { ...o.prezziManuali }; if (v == null) delete pm[r.codice]; else pm[r.codice] = v; aggiorna({ prezziManuali: pm }); }} /> : euro(r.netto)}</td>
           <td className="p-2 text-right">{euro(r.totale)}</td></tr>)}
           <tr className="font-semibold"><td className="p-2" colSpan={3}>Totale netto (IVA esclusa){tot.mancanti ? ` · ${tot.mancanti} articoli senza prezzo` : ""}</td><td className="p-2 text-right">{euro(tot.listino)}</td><td className="p-2 text-right">{tot.sconto.toLocaleString("it-IT")} %</td><td /><td className="p-2 text-right">{euro(tot.netto)}</td></tr>
         </tbody></table></div>

@@ -6,6 +6,7 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { Camera, ImagePlus, CloudUpload, FileCheck2, Download, WifiOff, Wifi, Plus, Eraser, Gauge, X, ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { CampoNumero } from "@/components/CampoNumero";
 import { PageTitle } from "@/components/PageTitle";
 import { useDatiEdificio } from "@/lib/progettoStore";
 import { aggiornaEsteso, leggiAttivo, leggiEsteso, useAttivo, useEsteso, sopralluogoSchema, type Sopralluogo } from "@/lib/statoProgetto";
@@ -21,7 +22,6 @@ import { leggiDisplay, letturaDisponibile, type ValoreLetto } from "@/lib/lettur
 
 const cls = "h-11 w-full rounded-md border border-input bg-background px-3 text-base";
 const vuoto = (): Sopralluogo => sopralluogoSchema.parse({});
-const numero = (t: string) => { const v = Number(t.replace(",", ".")); return t.trim() === "" ? null : Number.isFinite(v) && v >= 0 ? v : undefined; };
 
 function Sezione({ titolo, aperta, children }: { titolo: string; aperta?: boolean; children: ReactNode }) {
   return <details open={aperta} className="group rounded-lg border bg-card"><summary className="cursor-pointer select-none px-4 py-3 text-lg font-semibold marker:text-accent">{titolo}</summary><div className="space-y-3 px-4 pb-4">{children}</div></details>;
@@ -121,8 +121,8 @@ export function SopralluogoPage() {
 
     <Sezione titolo={`Foto (${so.foto.length})`} aperta>
       <div className="grid grid-cols-2 gap-2">
-        <Button type="button" className="h-14 text-base" disabled={occupato} onClick={() => fotoRef.current?.click()}><Camera />Scatta foto</Button>
-        <Button type="button" variant="outline" className="h-14 text-base" disabled={occupato} onClick={() => galleriaRef.current?.click()}><ImagePlus />Dalla galleria</Button>
+        <Button type="button" className="h-14 whitespace-normal px-2 text-base leading-tight" disabled={occupato} onClick={() => fotoRef.current?.click()}><Camera />Scatta foto</Button>
+        <Button type="button" variant="outline" className="h-14 whitespace-normal px-2 text-base leading-tight" disabled={occupato} onClick={() => galleriaRef.current?.click()}><ImagePlus />Dalla galleria</Button>
       </div>
       <input ref={fotoRef} type="file" accept="image/*" capture="environment" className="hidden" onChange={(e) => void aggiungiFoto(e.target.files)} />
       <input ref={galleriaRef} type="file" accept="image/*" multiple className="hidden" onChange={(e) => void aggiungiFoto(e.target.files)} />
@@ -142,13 +142,13 @@ export function SopralluogoPage() {
         ["spdEsistenti", "SPD sulle linee entranti", [["no", "No"], ["si", "Sì"], ["da-verificare", "Da verificare"]]],
       ] as const).map(([k, t, opz]) => <Etichetta key={k} testo={t}><select className={cls} value={String(r[k])} onChange={(e) => setR(k, e.target.value as never)}>{opz.map(([v, l]) => <option key={v} value={v}>{l}</option>)}</select></Etichetta>)}
       <div className="grid grid-cols-2 gap-2">
-        <Etichetta testo="N° calate esistenti"><input className={cls} inputMode="numeric" value={r.calateNumero ?? ""} onChange={(e) => { const v = numero(e.target.value); if (v !== undefined) setR("calateNumero", v == null ? null : Math.round(v)); }} /></Etichetta>
-        <Etichetta testo="Interasse calate (m)"><input className={cls} inputMode="decimal" value={r.calateInterasse ?? ""} onChange={(e) => { const v = numero(e.target.value); if (v !== undefined) setR("calateInterasse", v); }} /></Etichetta>
+        <Etichetta testo="N° calate esistenti"><CampoNumero className={cls} inputMode="numeric" valore={r.calateNumero} onValore={(v) => setR("calateNumero", v == null ? null : Math.round(v))} min={0} max={500} /></Etichetta>
+        <Etichetta testo="Interasse calate (m)"><CampoNumero className={cls} valore={r.calateInterasse} onValore={(v) => setR("calateInterasse", v)} min={0} /></Etichetta>
       </div>
       <label className="flex items-center gap-2 text-sm"><input type="checkbox" className="h-5 w-5" checked={r.terraCollegataAltri} onChange={(e) => setR("terraCollegataAltri", e.target.checked)} />Terra collegata agli edifici vicini</label>
       <label className="flex items-center gap-2 text-sm"><input type="checkbox" className="h-5 w-5" checked={r.coperturaMetallica} onChange={(e) => setR("coperturaMetallica", e.target.checked)} />Copertura metallica</label>
       <Etichetta testo="Impianti in copertura"><input className={cls} value={r.impiantiCopertura} maxLength={500} placeholder="es. UTA, pannelli fotovoltaici, antenne" onChange={(e) => setR("impiantiCopertura", e.target.value)} /></Etichetta>
-      <Etichetta testo="Altezza massima degli impianti (m)"><input className={cls} inputMode="decimal" value={r.altezzaImpianti ?? ""} onChange={(e) => { const v = numero(e.target.value); if (v !== undefined) setR("altezzaImpianti", v); }} /></Etichetta>
+      <Etichetta testo="Altezza massima degli impianti (m)"><CampoNumero className={cls} valore={r.altezzaImpianti} onValore={(v) => setR("altezzaImpianti", v)} min={0} /></Etichetta>
     </Sezione>
 
     <Sezione titolo="Misure per calata">
@@ -163,8 +163,8 @@ export function SopralluogoPage() {
       <ul className="space-y-2">{so.calate.map((c, i) => <li key={i} className="rounded-md border p-3">
         <div className="grid grid-cols-[4.5rem_1fr_1fr] items-end gap-2">
           <Etichetta testo="Calata"><input className={cls} value={c.nome} maxLength={20} onChange={(e) => setCalata(i, { nome: e.target.value })} /></Etichetta>
-          <Etichetta testo="Continuità (Ω)"><input className={cls} inputMode="decimal" value={c.continuita ?? ""} onChange={(e) => { const v = numero(e.target.value); if (v !== undefined) setCalata(i, { continuita: v }); }} /></Etichetta>
-          <Etichetta testo="Terra (Ω)"><input className={cls} inputMode="decimal" value={c.resistenza ?? ""} onChange={(e) => { const v = numero(e.target.value); if (v !== undefined) setCalata(i, { resistenza: v }); }} /></Etichetta>
+          <Etichetta testo="Continuità (Ω)"><CampoNumero className={cls} valore={c.continuita} onValore={(v) => setCalata(i, { continuita: v })} min={0} /></Etichetta>
+          <Etichetta testo="Terra (Ω)"><CampoNumero className={cls} valore={c.resistenza} onValore={(v) => setCalata(i, { resistenza: v })} min={0} /></Etichetta>
         </div>
         <div className="mt-2 flex flex-wrap items-center gap-2 text-sm"><span>Giunto accessibile:</span>
           {([[true, "Sì"], [false, "No"]] as const).map(([v, t]) => <Button key={t} type="button" size="sm" variant={c.giunto === v ? "default" : "outline"} aria-pressed={c.giunto === v} onClick={() => setCalata(i, { giunto: c.giunto === v ? null : v })}>{t}</Button>)}
@@ -172,7 +172,7 @@ export function SopralluogoPage() {
       </li>)}</ul>
       {so.calate.length > 0 && <Button type="button" size="sm" variant="outline" onClick={() => setSo({ calate: [...so.calate, { nome: `C${so.calate.length + 1}`, continuita: null, resistenza: null, giunto: null, note: "" }] })}><Plus />Aggiungi calata</Button>}
       <div className="grid grid-cols-2 gap-2">
-        <Etichetta testo="Terra a giunti chiusi (Ω)"><input className={cls} inputMode="decimal" value={so.resistenzaTotale ?? ""} onChange={(e) => { const v = numero(e.target.value); if (v !== undefined) setSo({ resistenzaTotale: v }); }} /></Etichetta>
+        <Etichetta testo="Terra a giunti chiusi (Ω)"><CampoNumero className={cls} valore={so.resistenzaTotale} onValore={(v) => setSo({ resistenzaTotale: v })} min={0} /></Etichetta>
         <Etichetta testo="Metodo di misura"><input className={cls} value={so.metodo} maxLength={100} placeholder="voltamperometrico, a pinza…" onChange={(e) => setSo({ metodo: e.target.value })} /></Etichetta>
       </div>
     </Sezione>
@@ -197,7 +197,7 @@ export function SopralluogoPage() {
     </Sezione>
 
     <Sezione titolo="Esito e firma">
-      <div className="grid grid-cols-2 gap-2">{([["conforme", "Conforme"], ["non-conforme", "Non conforme"]] as const).map(([v, t]) => <Button key={v} type="button" className="h-12" variant={so.esitoFinale === v ? (v === "conforme" ? "default" : "destructive") : "outline"} aria-pressed={so.esitoFinale === v} onClick={() => setSo({ esitoFinale: so.esitoFinale === v ? "" : v })}>{t}</Button>)}</div>
+      <div className="grid grid-cols-2 gap-2">{([["conforme", "Conforme"], ["non-conforme", "Non conforme"]] as const).map(([v, t]) => <Button key={v} type="button" className="h-12 whitespace-normal px-2 leading-tight" variant={so.esitoFinale === v ? (v === "conforme" ? "default" : "destructive") : "outline"} aria-pressed={so.esitoFinale === v} onClick={() => setSo({ esitoFinale: so.esitoFinale === v ? "" : v })}>{t}</Button>)}</div>
       <Etichetta testo="Note e prescrizioni"><textarea className={`${cls} h-24 py-2`} value={so.note} maxLength={3000} onChange={(e) => setSo({ note: e.target.value })} /></Etichetta>
       <Firma valore={so.firma} onFirma={(firma) => setSo({ firma, firmatoIl: firma ? new Date().toISOString() : "" })} />
     </Sezione>
@@ -207,10 +207,10 @@ export function SopralluogoPage() {
       onCambia={(p) => setCalata(guidata, p)} onFoto={(file, misura) => fotoMisura(file, so.calate[guidata]!.nome, misura)}
       onVai={(i) => setGuidata(i < 0 || i >= so.calate.length ? null : i)} />}
 
-    <div className="sticky bottom-0 -mx-4 flex flex-wrap gap-2 border-t bg-background/95 px-4 py-3 backdrop-blur">
+    {guidata === null && <div className="sticky bottom-0 -mx-4 flex flex-wrap gap-2 border-t bg-background/95 px-4 py-3 backdrop-blur">
       <Button type="button" className="h-12 flex-1" disabled={occupato} onClick={() => void creaVerbale()}><FileCheck2 />{occupato ? "Preparazione…" : "Crea verbale"}</Button>
       {verbale && <Button type="button" variant="outline" className="h-12" onClick={() => scarica(verbale.blob, verbale.nome)}><Download />Scarica</Button>}
-    </div>
+    </div>}
   </main>;
 }
 
@@ -262,7 +262,7 @@ function MisuraGuidata({ indice, totale, calata, foto, anteprime, onCambia, onFo
       <p className="text-sm text-muted-foreground">{istruzione}</p>
       <div className="mt-2 grid grid-cols-[1fr_auto] items-end gap-2">
         <label className="block text-sm"><span className="mb-1 block font-medium">Valore (Ω)</span>
-          <input className="h-14 w-full rounded-md border border-input bg-background px-3 text-2xl tabular-nums" inputMode="decimal" value={valore ?? ""} onChange={(e) => { const v = numero(e.target.value); if (v !== undefined) onCambia(m === "continuita" ? { continuita: v } : { resistenza: v }); }} /></label>
+          <CampoNumero className="h-14 w-full rounded-md border border-input bg-background px-3 text-2xl tabular-nums" valore={valore} min={0} onValore={(v) => onCambia(m === "continuita" ? { continuita: v } : { resistenza: v })} /></label>
         <Button type="button" className="h-14" onClick={() => refs[m].current?.click()}><Camera />Foto</Button>
       </div>
       <input ref={refs[m]} type="file" accept="image/*" capture="environment" className="hidden" onChange={(e) => void scatta(m, e.target.files)} />
@@ -272,7 +272,7 @@ function MisuraGuidata({ indice, totale, calata, foto, anteprime, onCambia, onFo
       {ultima && anteprime[ultima.percorso] && <img src={anteprime[ultima.percorso]} alt={ultima.didascalia} className="mt-2 max-h-56 w-full rounded object-contain" />}
     </section>;
   };
-  return <div className="fixed inset-0 z-50 flex flex-col bg-background" role="dialog" aria-modal="true" aria-label={`Misura della calata ${calata.nome}`}>
+  return <div className="fixed inset-0 z-[70] flex flex-col bg-background" role="dialog" aria-modal="true" aria-label={`Misura della calata ${calata.nome}`}>
     <header className="flex items-center justify-between border-b px-4 py-3">
       <div><p className="text-lg font-semibold">Calata {calata.nome}</p><p className="text-xs text-muted-foreground">{indice + 1} di {totale}</p></div>
       <Button type="button" variant="ghost" onClick={() => onVai(-1)} aria-label="Chiudi"><X /></Button>
@@ -281,7 +281,7 @@ function MisuraGuidata({ indice, totale, calata, foto, anteprime, onCambia, onFo
       {passo("continuita", "1. Continuità", "Con il giunto di sezionamento chiuso, misura la continuità tra la captazione e il giunto della calata.")}
       {passo("terra", "2. Resistenza di terra", "Apri il giunto e misura la resistenza del dispersore della calata (dispersori di tipo A).")}
       <section className="rounded-lg border p-3"><h3 className="text-base font-semibold">3. Giunto e note</h3>
-        <div className="mt-2 flex gap-2">{([[true, "Giunto accessibile"], [false, "Non accessibile"]] as const).map(([v, t]) => <Button key={t} type="button" className="h-12 flex-1" variant={calata.giunto === v ? "default" : "outline"} aria-pressed={calata.giunto === v} onClick={() => onCambia({ giunto: calata.giunto === v ? null : v })}>{t}</Button>)}</div>
+        <div className="mt-2 grid grid-cols-2 gap-2">{([[true, "Giunto accessibile"], [false, "Non accessibile"]] as const).map(([v, t]) => <Button key={t} type="button" className="h-12 whitespace-normal px-2 leading-tight" variant={calata.giunto === v ? "default" : "outline"} aria-pressed={calata.giunto === v} onClick={() => onCambia({ giunto: calata.giunto === v ? null : v })}>{t}</Button>)}</div>
         <input className="mt-2 h-11 w-full rounded-md border border-input bg-background px-3 text-base" value={calata.note} maxLength={300} placeholder="Note (es. giunto coperto, ossidazione)" aria-label="Note" onChange={(e) => onCambia({ note: e.target.value })} />
       </section>
     </div>
