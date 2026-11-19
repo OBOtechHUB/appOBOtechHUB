@@ -28,6 +28,7 @@ import { l1Norma } from "@/calcoli/terra/proponiTerra";
 import blocchiTreppiede from "@/dati/captazione/blocchiTreppiede.json";
 import { NOME_TIPO, blocchiPerVento, fraseCalate, fraseIntervento, fraseSoluzione, frasiStatoDiFatto, tipoAsta, verificaCorpi, type InfoArticolo, type TipoAsta } from "./testiProgetto";
 import { schemaBlocchi } from "./grafici";
+import { disegnoDaComponenti, disegnoSchema, svgTipologico } from "@/calcoli/particolari/tipologico";
 import { barreLog, curvaCorrente, flussoValutazione, graficoSeparazione, graficoSfera, piantaCopertura, schemaSorgenti } from "./grafici";
 
 export type Lpl = "I" | "II" | "III" | "IV";
@@ -759,8 +760,19 @@ export function relazioneTecnica(x: IngressoRelazione): Documento {
       B.push(h3(`Tipologico ${n} – ${pa.nome ?? pa.id}`), p(`Riferimento OBO: ${pa.id}`, { dimensione: 9, spazioDopo: 2 }),
         tab(["Art. No", "Tipo │ DESCRIZIONE", "Qty TOT (m / pz)", "Qty tipico"], [...unite.values()].map((u) => [[{ t: u.codice || "—", b: true }], u.descrizione.replace(/ – /, " │ "), `${it(u.q)} ${u.unita}`, tipica(u.codice)]), [1.6, 6.5, 1.8, 1.6]),
       );
-      if (pa.immagine) B.push({ tipo: "immagine", svg: "", pdf: pa.immagine, larghezza: 16, altezza: 11, mancante: `scheda ${pa.immagine} non trovata nell'archivio dei particolari: inserire il disegno del tipologico` });
-      B.push(p([{ t: `Figura ${++nFig} – `, b: true }, ...(pa.immagine ? [{ t: `Tipologico ${n}: ${pa.nome ?? pa.id} (scheda OBO ${pa.id})` }] : [dc(`disegno del tipologico ${pa.id} (scheda OBO)`)])], { dimensione: 9 }));
+      // disegno: tipologico disegnato nell'app, scheda PDF dell'archivio, altrimenti schema indicativo dai componenti
+      const dis = pa.disegno ? disegnoSchema.safeParse(pa.disegno) : null;
+      if (dis?.success && dis.data.blocchi.length) {
+        const svg = svgTipologico(dis.data, { legenda: true }), w = Number(svg.match(/width="(\d+)"/)?.[1] ?? 800), h = Number(svg.match(/height="(\d+)"/)?.[1] ?? 500);
+        B.push({ tipo: "immagine", svg, larghezza: 16, altezza: Math.round((16 * h / w) * 100) / 100 }, p([{ t: `Figura ${++nFig} – `, b: true }, { t: `Tipologico ${n}: ${pa.nome ?? pa.id}` }], { allinea: "centro", dimensione: 9 }));
+      } else if (pa.immagine) {
+        B.push({ tipo: "immagine", svg: "", pdf: pa.immagine, larghezza: 16, altezza: 11, mancante: `scheda ${pa.immagine} non trovata nell'archivio dei particolari: inserire il disegno del tipologico` });
+        B.push(p([{ t: `Figura ${++nFig} – `, b: true }, { t: `Tipologico ${n}: ${pa.nome ?? pa.id} (scheda OBO ${pa.id})` }], { dimensione: 9 }));
+      } else if (pa.componenti.length) {
+        const auto = disegnoDaComponenti(pa.componenti.map((k) => ({ codiceOBO: k.codiceOBO, descrizione: k.descrizione, quantita: k.quantita ?? 1, unitaQuantita: k.unitaQuantita ?? "fisso" })));
+        const svg = svgTipologico(auto, { legenda: true }), w = Number(svg.match(/width="(\d+)"/)?.[1] ?? 800), h = Number(svg.match(/height="(\d+)"/)?.[1] ?? 500);
+        B.push({ tipo: "immagine", svg, larghezza: 16, altezza: Math.round((16 * h / w) * 100) / 100 }, p([{ t: `Figura ${++nFig} – `, b: true }, { t: `Tipologico ${n}: ${pa.nome ?? pa.id} – schema indicativo dei componenti (si può ridisegnare in Particolari → Disegna)` }], { allinea: "centro", dimensione: 9 }));
+      } else B.push(p([dc(`disegno del tipologico ${pa.id}`)]));
     }
   } else B.push(p([dc("nessun particolare costruttivo collegato alle righe del computo")]));
 
