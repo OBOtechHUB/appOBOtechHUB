@@ -2,6 +2,23 @@
   "nota": "Registro degli aggiornamenti di Progettazione LPS. Una voce per aggiornamento, la più recente per prima (app: lps). Viene mostrato nella barra \"Aggiorna app\", nel riquadro Novità e nella pagina Novità di OBO Hub.",
   "aggiornamenti": [
     {
+      "id": "2026-11-19-lps-9",
+      "data": "2026-11-19",
+      "app": "lps",
+      "titolo": "Relazione tecnica nello stile OBO",
+      "voci": [
+        "La relazione Word usa lo standard del Brand Portal OBO: arancio OBO solo come accento, colori secondari grigio-blu per testi, titoli e tabelle, carattere Arial",
+        "Nuova copertina: logo, fascia scura con Comune, opera e titolo, barra arancio, tabella con committente, norma, livello di protezione, progetto e data, claim \"Building Connections\"",
+        "Tabelle con intestazione scura, righe alternate e valori del progetto evidenziati; grafici negli stessi colori"
+      ],
+      "titolo_en": "Technical report in OBO corporate style",
+      "voci_en": [
+        "The Word report follows the OBO Brand Portal (OBO orange as accent, secondary colours, Arial)",
+        "New cover with dark band, orange bar and project data table",
+        "Tables and charts in the OBO colours"
+      ]
+    },
+    {
       "id": "2026-11-19-lps-8",
       "data": "2026-11-19",
       "app": "lps",

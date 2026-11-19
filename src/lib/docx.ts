@@ -15,18 +15,23 @@ export type Blocco =
   | { tipo: "tabella"; intestazione: Testo[]; righe: Testo[][]; larghezze?: number[]; evidenziaColonna?: number; evidenziaRighe?: number[]; dimensione?: number }
   | { tipo: "immagine"; svg: string; larghezza: number; altezza: number; png?: Uint8Array; jpeg?: boolean; pdf?: string; mancante?: string; allinea?: "sinistra" | "centro" | "destra" }
   | { tipo: "sommario"; titolo: string }
+  /** fascia colorata a tutta larghezza (copertina): righe di testo su fondo `colore`; senza righe = barra sottile */
+  | { tipo: "fascia"; colore: string; righe: { testo: Testo; dimensione?: number; grassetto?: boolean; colore?: string; allinea?: "sinistra" | "centro" | "destra" }[]; altezza?: number }
   | { tipo: "salto" };
+
+/** Colori dello standard OBO (Brand Portal: OBO Orange e colori secondari). */
+export const OBO = { arancio: "F39B00", sec1: "282A31", sec2: "41525D", sec3: "7694A4", sec4: "C5D9DE", sec5: "E4EBED", eco: "A9C8A0" } as const;
 
 export interface Documento { blocchi: Blocco[]; intestazione?: string; piede?: Testo[]; titolo?: string; autore?: string }
 
 const esc = (s: string) => s.replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]!)).replace(/[\u0000-\u0008\u000b\u000c\u000e-\u001f]/g, "");
 const runs = (t: Testo): Run[] => (typeof t === "string" ? [{ t }] : t);
 
-function run(r: Run, base: { b?: boolean; dim?: number } = {}): string {
+function run(r: Run, base: { b?: boolean; dim?: number; colore?: string } = {}): string {
   const p: string[] = [];
   if (r.b || base.b) p.push("<w:b/>");
   if (r.i) p.push("<w:i/>");
-  if (r.colore) p.push(`<w:color w:val="${r.colore}"/>`);
+  if (r.colore || base.colore) p.push(`<w:color w:val="${r.colore ?? base.colore}"/>`);
   if (base.dim) p.push(`<w:sz w:val="${base.dim * 2}"/><w:szCs w:val="${base.dim * 2}"/>`);
   if (r.daCompletare) p.push('<w:highlight w:val="yellow"/>');
   if (r.sup) p.push('<w:vertAlign w:val="superscript"/>');
@@ -38,7 +43,7 @@ function run(r: Run, base: { b?: boolean; dim?: number } = {}): string {
 
 const ALLINEA = { sinistra: "left", centro: "center", destra: "right", giustificato: "both" } as const;
 
-function paragrafo(t: Testo, o: { stile?: string; allinea?: keyof typeof ALLINEA; dim?: number; b?: boolean; prima?: number; dopo?: number; numero?: boolean; keepNext?: boolean } = {}): string {
+function paragrafo(t: Testo, o: { stile?: string; allinea?: keyof typeof ALLINEA; dim?: number; b?: boolean; prima?: number; dopo?: number; numero?: boolean; keepNext?: boolean; colore?: string } = {}): string {
   const ppr = [
     o.stile ? `<w:pStyle w:val="${o.stile}"/>` : "",
     o.keepNext ? "<w:keepNext/>" : "",
@@ -46,7 +51,7 @@ function paragrafo(t: Testo, o: { stile?: string; allinea?: keyof typeof ALLINEA
     o.prima != null || o.dopo != null ? `<w:spacing${o.prima != null ? ` w:before="${o.prima * 20}"` : ""}${o.dopo != null ? ` w:after="${o.dopo * 20}"` : ""}/>` : "",
     o.allinea ? `<w:jc w:val="${ALLINEA[o.allinea]}"/>` : "",
   ].join("");
-  return `<w:p>${ppr ? `<w:pPr>${ppr}</w:pPr>` : ""}${runs(t).map((r) => run(r, { ...(o.b ? { b: true } : {}), ...(o.dim ? { dim: o.dim } : {}) })).join("")}</w:p>`;
+  return `<w:p>${ppr ? `<w:pPr>${ppr}</w:pPr>` : ""}${runs(t).map((r) => run(r, { ...(o.b ? { b: true } : {}), ...(o.dim ? { dim: o.dim } : {}), ...(o.colore ? { colore: o.colore } : {}) })).join("")}</w:p>`;
 }
 
 /** Larghezza utile della pagina A4 con margini di 2 cm, in twip. */
@@ -58,14 +63,16 @@ function tabella(b: Extract<Blocco, { tipo: "tabella" }>): string {
   const tot = pesi.reduce((a, x) => a + x, 0);
   const w = pesi.map((x) => Math.round((x / tot) * UTILE));
   const dim = b.dimensione ?? 9;
-  let evRiga = false;
+  let evRiga = false, pari = false;
+  // standard OBO: intestazione grigio-blu scuro con testo bianco, righe alternate chiare, evidenza in azzurro secondario
   const cella = (t: Testo, i: number, testa: boolean) => {
-    const fill = testa ? "D9D9D9" : b.evidenziaColonna === i || evRiga ? "FCE9D9" : "";
-    return `<w:tc><w:tcPr><w:tcW w:w="${w[i]}" w:type="dxa"/>${fill ? `<w:shd w:val="clear" w:color="auto" w:fill="${fill}"/>` : ""}</w:tcPr>${paragrafo(t, { stile: "Tabella", dim, ...(testa ? { b: true } : {}) })}</w:tc>`;
+    const ev = !testa && (b.evidenziaColonna === i || evRiga);
+    const fill = testa ? OBO.sec2 : ev ? OBO.sec4 : pari ? OBO.sec5 : "";
+    return `<w:tc><w:tcPr><w:tcW w:w="${w[i]}" w:type="dxa"/>${fill ? `<w:shd w:val="clear" w:color="auto" w:fill="${fill}"/>` : ""}<w:vAlign w:val="center"/></w:tcPr>${paragrafo(t, { stile: "Tabella", dim, ...(testa ? { b: true, colore: "FFFFFF" } : ev ? { b: true } : {}) })}</w:tc>`;
   };
   const riga = (r: Testo[], testa: boolean) => `<w:tr>${testa ? '<w:trPr><w:tblHeader/><w:cantSplit/></w:trPr>' : '<w:trPr><w:cantSplit/></w:trPr>'}${Array.from({ length: n }, (_, i) => cella(r[i] ?? "", i, testa)).join("")}</w:tr>`;
-  const bordi = ["top", "left", "bottom", "right", "insideH", "insideV"].map((x) => `<w:${x} w:val="single" w:sz="4" w:space="0" w:color="808080"/>`).join("");
-  return `<w:tbl><w:tblPr><w:tblW w:w="${UTILE}" w:type="dxa"/><w:tblBorders>${bordi}</w:tblBorders><w:tblLayout w:type="fixed"/><w:tblCellMar><w:left w:w="70" w:type="dxa"/><w:right w:w="70" w:type="dxa"/></w:tblCellMar></w:tblPr><w:tblGrid>${w.map((x) => `<w:gridCol w:w="${x}"/>`).join("")}</w:tblGrid>${b.intestazione.length ? riga(b.intestazione, true) : ""}${b.righe.map((r, k) => { evRiga = !!b.evidenziaRighe?.includes(k); const x = riga(r, false); evRiga = false; return x; }).join("")}</w:tbl>${paragrafo("", { dopo: 4 })}`;
+  const bordi = `<w:top w:val="single" w:sz="8" w:space="0" w:color="${OBO.sec2}"/><w:left w:val="nil"/><w:bottom w:val="single" w:sz="8" w:space="0" w:color="${OBO.sec2}"/><w:right w:val="nil"/><w:insideH w:val="single" w:sz="4" w:space="0" w:color="${OBO.sec4}"/><w:insideV w:val="single" w:sz="4" w:space="0" w:color="FFFFFF"/>`;
+  return `<w:tbl><w:tblPr><w:tblW w:w="${UTILE}" w:type="dxa"/><w:tblBorders>${bordi}</w:tblBorders><w:tblLayout w:type="fixed"/><w:tblCellMar><w:top w:w="28" w:type="dxa"/><w:left w:w="85" w:type="dxa"/><w:bottom w:w="28" w:type="dxa"/><w:right w:w="85" w:type="dxa"/></w:tblCellMar></w:tblPr><w:tblGrid>${w.map((x) => `<w:gridCol w:w="${x}"/>`).join("")}</w:tblGrid>${b.intestazione.length ? riga(b.intestazione, true) : ""}${b.righe.map((r, k) => { evRiga = !!b.evidenziaRighe?.includes(k); pari = k % 2 === 1; const x = riga(r, false); evRiga = false; pari = false; return x; }).join("")}</w:tbl>${paragrafo("", { dopo: 4 })}`;
 }
 
 const EMU = 360000;
@@ -102,6 +109,12 @@ function sommario(titolo: string, blocchi: Blocco[]): string {
   return paragrafo(titolo, { stile: "TitoloSommario" }) + (voci.length ? voci.map(voce).join("") : "") + '<w:p><w:r><w:br w:type="page"/></w:r></w:p>';
 }
 
+function fascia(b: Extract<Blocco, { tipo: "fascia" }>): string {
+  const righe = b.righe.length ? b.righe.map((r) => paragrafo(r.testo, { stile: "Tabella", allinea: r.allinea ?? "sinistra", dim: r.dimensione ?? 11, colore: r.colore ?? "FFFFFF", ...(r.grassetto ? { b: true } : {}), dopo: 2 })).join("") : '<w:p><w:pPr><w:spacing w:before="0" w:after="0" w:line="40" w:lineRule="exact"/></w:pPr></w:p>';
+  const h = b.altezza ? `<w:trPr><w:trHeight w:val="${Math.round(b.altezza * 567)}" w:hRule="${b.righe.length ? "atLeast" : "exact"}"/></w:trPr>` : "";
+  return `<w:tbl><w:tblPr><w:tblW w:w="${UTILE}" w:type="dxa"/><w:tblBorders><w:top w:val="nil"/><w:left w:val="nil"/><w:bottom w:val="nil"/><w:right w:val="nil"/><w:insideH w:val="nil"/><w:insideV w:val="nil"/></w:tblBorders><w:tblLayout w:type="fixed"/><w:tblCellMar><w:top w:w="${b.righe.length ? 340 : 0}" w:type="dxa"/><w:left w:w="400" w:type="dxa"/><w:bottom w:w="${b.righe.length ? 340 : 0}" w:type="dxa"/><w:right w:w="400" w:type="dxa"/></w:tblCellMar></w:tblPr><w:tblGrid><w:gridCol w:w="${UTILE}"/></w:tblGrid><w:tr>${h}<w:tc><w:tcPr><w:tcW w:w="${UTILE}" w:type="dxa"/><w:shd w:val="clear" w:color="auto" w:fill="${b.colore}"/><w:vAlign w:val="center"/></w:tcPr>${righe}</w:tc></w:tr></w:tbl>`;
+}
+
 function corpo(blocchi: Blocco[]): string {
   let img = 0, cap = 0;
   return blocchi.map((b) => {
@@ -117,6 +130,7 @@ function corpo(blocchi: Blocco[]): string {
       case "tabella": return tabella(b);
       case "immagine": return immagine(b, b.png ? ++img : 0);
       case "sommario": return sommario(b.titolo, blocchi);
+      case "fascia": return fascia(b);
       case "salto": return '<w:p><w:r><w:br w:type="page"/></w:r></w:p>';
     }
   }).join("");
@@ -126,17 +140,17 @@ const NS = 'xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/mai
 
 const STILI = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <w:styles ${NS}>
-<w:docDefaults><w:rPrDefault><w:rPr><w:rFonts w:ascii="Arial" w:hAnsi="Arial" w:eastAsia="Arial" w:cs="Arial"/><w:sz w:val="20"/><w:szCs w:val="20"/><w:lang w:val="it-IT"/></w:rPr></w:rPrDefault><w:pPrDefault><w:pPr><w:spacing w:after="100" w:line="264" w:lineRule="auto"/><w:jc w:val="both"/></w:pPr></w:pPrDefault></w:docDefaults>
+<w:docDefaults><w:rPrDefault><w:rPr><w:rFonts w:ascii="Arial" w:hAnsi="Arial" w:eastAsia="Arial" w:cs="Arial"/><w:color w:val="282A31"/><w:sz w:val="20"/><w:szCs w:val="20"/><w:lang w:val="it-IT"/></w:rPr></w:rPrDefault><w:pPrDefault><w:pPr><w:spacing w:after="100" w:line="264" w:lineRule="auto"/><w:jc w:val="both"/></w:pPr></w:pPrDefault></w:docDefaults>
 <w:style w:type="paragraph" w:default="1" w:styleId="Normale"><w:name w:val="Normal"/><w:qFormat/></w:style>
-<w:style w:type="paragraph" w:styleId="Titolo1"><w:name w:val="heading 1"/><w:basedOn w:val="Normale"/><w:next w:val="Normale"/><w:qFormat/><w:pPr><w:keepNext/><w:pBdr><w:bottom w:val="single" w:sz="8" w:space="2" w:color="E5640F"/></w:pBdr><w:spacing w:before="360" w:after="160"/><w:jc w:val="left"/><w:outlineLvl w:val="0"/></w:pPr><w:rPr><w:b/><w:caps/><w:sz w:val="26"/><w:szCs w:val="26"/></w:rPr></w:style>
-<w:style w:type="paragraph" w:styleId="Titolo2"><w:name w:val="heading 2"/><w:basedOn w:val="Normale"/><w:next w:val="Normale"/><w:qFormat/><w:pPr><w:keepNext/><w:spacing w:before="240" w:after="100"/><w:jc w:val="left"/><w:outlineLvl w:val="1"/></w:pPr><w:rPr><w:b/><w:sz w:val="22"/><w:szCs w:val="22"/></w:rPr></w:style>
-<w:style w:type="paragraph" w:styleId="Titolo3"><w:name w:val="heading 3"/><w:basedOn w:val="Normale"/><w:next w:val="Normale"/><w:qFormat/><w:pPr><w:keepNext/><w:spacing w:before="180" w:after="80"/><w:jc w:val="left"/><w:outlineLvl w:val="2"/></w:pPr><w:rPr><w:b/><w:i/><w:sz w:val="20"/><w:szCs w:val="20"/></w:rPr></w:style>
-<w:style w:type="paragraph" w:styleId="TitoloSommario"><w:name w:val="TOC Heading"/><w:basedOn w:val="Normale"/><w:next w:val="Normale"/><w:pPr><w:pBdr><w:bottom w:val="single" w:sz="8" w:space="2" w:color="E5640F"/></w:pBdr><w:spacing w:before="120" w:after="240"/><w:jc w:val="left"/></w:pPr><w:rPr><w:b/><w:caps/><w:sz w:val="26"/><w:szCs w:val="26"/></w:rPr></w:style>
+<w:style w:type="paragraph" w:styleId="Titolo1"><w:name w:val="heading 1"/><w:basedOn w:val="Normale"/><w:next w:val="Normale"/><w:qFormat/><w:pPr><w:keepNext/><w:pBdr><w:bottom w:val="single" w:sz="12" w:space="3" w:color="F39B00"/></w:pBdr><w:spacing w:before="360" w:after="160"/><w:jc w:val="left"/><w:outlineLvl w:val="0"/></w:pPr><w:rPr><w:b/><w:caps/><w:color w:val="282A31"/><w:sz w:val="26"/><w:szCs w:val="26"/></w:rPr></w:style>
+<w:style w:type="paragraph" w:styleId="Titolo2"><w:name w:val="heading 2"/><w:basedOn w:val="Normale"/><w:next w:val="Normale"/><w:qFormat/><w:pPr><w:keepNext/><w:spacing w:before="240" w:after="100"/><w:jc w:val="left"/><w:outlineLvl w:val="1"/></w:pPr><w:rPr><w:b/><w:color w:val="41525D"/><w:sz w:val="22"/><w:szCs w:val="22"/></w:rPr></w:style>
+<w:style w:type="paragraph" w:styleId="Titolo3"><w:name w:val="heading 3"/><w:basedOn w:val="Normale"/><w:next w:val="Normale"/><w:qFormat/><w:pPr><w:keepNext/><w:spacing w:before="180" w:after="80"/><w:jc w:val="left"/><w:outlineLvl w:val="2"/></w:pPr><w:rPr><w:b/><w:color w:val="41525D"/><w:sz w:val="20"/><w:szCs w:val="20"/></w:rPr></w:style>
+<w:style w:type="paragraph" w:styleId="TitoloSommario"><w:name w:val="TOC Heading"/><w:basedOn w:val="Normale"/><w:next w:val="Normale"/><w:pPr><w:pBdr><w:bottom w:val="single" w:sz="12" w:space="3" w:color="F39B00"/></w:pBdr><w:spacing w:before="120" w:after="240"/><w:jc w:val="left"/></w:pPr><w:rPr><w:b/><w:caps/><w:color w:val="282A31"/><w:sz w:val="26"/><w:szCs w:val="26"/></w:rPr></w:style>
 <w:style w:type="paragraph" w:styleId="Sommario1"><w:name w:val="toc 1"/><w:basedOn w:val="Normale"/><w:next w:val="Normale"/><w:pPr><w:tabs><w:tab w:val="right" w:leader="dot" w:pos="9628"/></w:tabs><w:spacing w:before="60" w:after="60"/><w:jc w:val="left"/></w:pPr><w:rPr><w:sz w:val="21"/><w:szCs w:val="21"/></w:rPr></w:style>
 <w:style w:type="paragraph" w:styleId="Elenco"><w:name w:val="List Paragraph"/><w:basedOn w:val="Normale"/><w:pPr><w:spacing w:after="40"/><w:ind w:left="567" w:hanging="283"/><w:jc w:val="left"/></w:pPr></w:style>
 <w:style w:type="paragraph" w:styleId="Tabella"><w:name w:val="Table Text"/><w:basedOn w:val="Normale"/><w:pPr><w:spacing w:before="20" w:after="20" w:line="240" w:lineRule="auto"/><w:jc w:val="left"/></w:pPr><w:rPr><w:sz w:val="18"/><w:szCs w:val="18"/></w:rPr></w:style>
-<w:style w:type="paragraph" w:styleId="Formula"><w:name w:val="Formula"/><w:basedOn w:val="Normale"/><w:pPr><w:spacing w:before="80" w:after="120"/><w:jc w:val="center"/></w:pPr><w:rPr><w:b/><w:i/></w:rPr></w:style>
-<w:style w:type="paragraph" w:styleId="Piede"><w:name w:val="footer"/><w:basedOn w:val="Normale"/><w:pPr><w:spacing w:after="0" w:line="220" w:lineRule="auto"/><w:jc w:val="center"/></w:pPr><w:rPr><w:sz w:val="14"/><w:szCs w:val="14"/><w:color w:val="555555"/></w:rPr></w:style>
+<w:style w:type="paragraph" w:styleId="Formula"><w:name w:val="Formula"/><w:basedOn w:val="Normale"/><w:pPr><w:spacing w:before="80" w:after="120"/><w:jc w:val="center"/></w:pPr><w:rPr><w:b/><w:i/><w:color w:val="282A31"/></w:rPr></w:style>
+<w:style w:type="paragraph" w:styleId="Piede"><w:name w:val="footer"/><w:basedOn w:val="Normale"/><w:pPr><w:spacing w:after="0" w:line="220" w:lineRule="auto"/><w:jc w:val="center"/></w:pPr><w:rPr><w:sz w:val="14"/><w:szCs w:val="14"/><w:color w:val="41525D"/></w:rPr></w:style>
 </w:styles>`;
 
 const NUMERAZIONE = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
@@ -148,7 +162,7 @@ const campo = (istr: string) => `<w:r><w:fldChar w:fldCharType="begin"/></w:r><w
 export function creaDocx(doc: Documento, data = new Date()): Uint8Array<ArrayBuffer> {
   const piede = (doc.piede ?? []).map((r) => paragrafo(r, { stile: "Piede" })).join("")
     + `<w:p><w:pPr><w:pStyle w:val="Piede"/><w:jc w:val="right"/></w:pPr><w:r><w:t xml:space="preserve">Pag. </w:t></w:r>${campo("PAGE")}<w:r><w:t xml:space="preserve"> di </w:t></w:r>${campo("NUMPAGES")}</w:p>`;
-  const intest = doc.intestazione ? `<w:p><w:pPr><w:pStyle w:val="Piede"/><w:pBdr><w:bottom w:val="single" w:sz="4" w:space="2" w:color="E5640F"/></w:pBdr><w:jc w:val="right"/></w:pPr>${run({ t: doc.intestazione })}</w:p>` : "<w:p/>";
+  const intest = doc.intestazione ? `<w:p><w:pPr><w:pStyle w:val="Piede"/><w:pBdr><w:bottom w:val="single" w:sz="4" w:space="2" w:color="F39B00"/></w:pBdr><w:jc w:val="right"/></w:pPr>${run({ t: doc.intestazione })}</w:p>` : "<w:p/>";
   const documento = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <w:document ${NS}><w:body>${corpo(doc.blocchi)}<w:sectPr><w:headerReference w:type="default" r:id="rIdH"/><w:footerReference w:type="default" r:id="rIdF"/><w:headerReference w:type="first" r:id="rIdH1"/><w:footerReference w:type="first" r:id="rIdF"/><w:pgSz w:w="11906" w:h="16838"/><w:pgMar w:top="1418" w:right="1134" w:bottom="1418" w:left="1134" w:header="567" w:footer="454" w:gutter="0"/><w:titlePg/></w:sectPr></w:body></w:document>`;
   const iso = data.toISOString().replace(/\.\d+Z$/, "Z");
@@ -178,5 +192,5 @@ export function creaDocx(doc: Documento, data = new Date()): Uint8Array<ArrayBuf
 /** Testo semplice del documento (per le prove e la ricerca). */
 export function testoDocumento(doc: Documento): string {
   const t = (x: Testo) => runs(x).map((r) => r.t).join("");
-  return doc.blocchi.map((b) => b.tipo === "titolo" ? b.testo : b.tipo === "par" ? t(b.testo) : b.tipo === "elenco" ? b.voci.map(t).join("\n") : b.tipo === "tabella" ? [b.intestazione, ...b.righe].map((r) => r.map(t).join(" | ")).join("\n") : "").join("\n");
+  return doc.blocchi.map((b) => b.tipo === "titolo" ? b.testo : b.tipo === "par" ? t(b.testo) : b.tipo === "elenco" ? b.voci.map(t).join("\n") : b.tipo === "tabella" ? [b.intestazione, ...b.righe].map((r) => r.map(t).join(" | ")).join("\n") : b.tipo === "fascia" ? b.righe.map((r) => t(r.testo)).join("\n") : "").join("\n");
 }

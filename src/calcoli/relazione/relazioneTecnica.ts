@@ -11,7 +11,7 @@
  * fotografie, scelte del progettista) restano evidenziate in giallo "[DA COMPLETARE …]".
  * Logica pura: nessun accesso a stato, DOM o rete.
  */
-import type { Blocco, Documento, Run, Testo } from "@/lib/docx";
+import { OBO, type Blocco, type Documento, type Run, type Testo } from "@/lib/docx";
 import type { RigaComputo, RisultatiModuli } from "@/calcoli/materiali/tipi";
 import { categorie } from "@/calcoli/materiali/tipi";
 import type { Asta, Conduttore, ModelloEdificio } from "@/calcoli/edificio/tipi";
@@ -137,26 +137,37 @@ export function relazioneTecnica(x: IngressoRelazione): Documento {
   const indirizzoComm: Run[] = r.indirizzoCommittente || r.cittaCommittente ? [{ t: [r.indirizzoCommittente, r.cittaCommittente].filter(Boolean).join("\n") }] : [dc("indirizzo del committente")];
 
   const im = x.immagini ?? {};
-  const copertina = (sottotitolo: string, seconda?: string) => B.push(
-    ...(im.logo ? [bloccoImmagine(im.logo, 4.2, "sinistra", 3)] : []),
-    p([{ t: "OBO Bettermann S.r.l.", b: true }], { allinea: "destra", dimensione: 11, spazioDopo: 0 }),
-    p("Via C. Ferrero 16 · 10098 Rivoli (TO)\nTel. +39 011 9548 811\ntecnico@obo.it · www.obo.it", { allinea: "destra", dimensione: 9 }),
-    p("", { spazioPrima: im.stemma ? 20 : 50 }),
-    ...(im.stemma ? [bloccoImmagine(im.stemma, 2.6, "centro", 3.2)] : []),
-    p(d.comune ? `COMUNE DI ${d.comune.toUpperCase()}` : [dc("comune")], { allinea: "centro", grassetto: true, dimensione: 14, spazioDopo: 2 }),
-    p(r.provincia ? `PROVINCIA DI ${r.provincia.toUpperCase()}` : [dc("provincia")], { allinea: "centro", grassetto: true, dimensione: 12, spazioDopo: 30 }),
-    p(titolo ? titolo.toUpperCase() : [dc("titolo dell'opera")], { allinea: "centro", grassetto: true, dimensione: 16, spazioDopo: 30 }),
-    p(sottotitolo, { allinea: "centro", grassetto: true, dimensione: 18, spazioDopo: 10 }),
-    ...(seconda ? [p(seconda, { allinea: "centro", grassetto: true, dimensione: 13, spazioDopo: 10 })] : []),
-    p(`CEI EN IEC 62305:2024 · Livello di protezione (LPL) ${lpl}`, { allinea: "centro", dimensione: 11, spazioDopo: 50 }),
-    p("Committente", { allinea: "centro", dimensione: 11, spazioDopo: 4 }),
-    ...(im.logoCommittente ? [bloccoImmagine(im.logoCommittente, 4, "centro", 2)] : []),
-    p(committente, { allinea: "centro", dimensione: 13, spazioDopo: 2 }),
-    p(indirizzoComm, { allinea: "centro", spazioDopo: 50 }),
-    p(`${r.luogo || "Rivoli"}, ${dataLunga(x.data)}`, { allinea: "centro", dimensione: 11 }),
-    p([x.codice ? `Progetto n. ${x.codice}` : "", rev ? `Rev. ${rev}` : "Bozza"].filter(Boolean).join(" · "), { allinea: "centro", dimensione: 9 }),
-    { tipo: "salto" },
-  );
+  // copertina secondo lo standard OBO: logo, fascia in secondario scuro con titolo, barra arancio, dati del progetto
+  const copertina = (sottotitolo: string, seconda?: string) => {
+    B.push(
+      ...(im.logo ? [bloccoImmagine(im.logo, 4.2, "sinistra", 3)] : [p([{ t: "OBO BETTERMANN", b: true, colore: OBO.arancio }], { dimensione: 18 })]),
+      p([{ t: "OBO Bettermann S.r.l.", b: true }], { allinea: "destra", dimensione: 10, spazioDopo: 0 }),
+      p("Via C. Ferrero 16 · 10098 Rivoli (TO)\nTel. +39 011 9548 811 · tecnico@obo.it · www.obo.it", { allinea: "destra", dimensione: 8.5, spazioDopo: im.stemma ? 10 : 40 }),
+      ...(im.stemma ? [bloccoImmagine(im.stemma, 2.4, "centro", 3)] : []),
+      { tipo: "fascia", colore: OBO.sec1, altezza: 7.2, righe: [
+        { testo: d.comune ? `COMUNE DI ${d.comune.toUpperCase()}` : [dc("comune")], dimensione: 11, grassetto: true, colore: OBO.sec4 },
+        { testo: r.provincia ? `PROVINCIA DI ${r.provincia.toUpperCase()}` : [dc("provincia")], dimensione: 9.5, colore: OBO.sec4 },
+        { testo: " ", dimensione: 8 },
+        { testo: titolo ? titolo.toUpperCase() : [dc("titolo dell'opera")], dimensione: 13, grassetto: true, colore: OBO.arancio },
+        { testo: sottotitolo, dimensione: 21, grassetto: true },
+        ...(seconda ? [{ testo: seconda, dimensione: 13, colore: OBO.sec4 }] : []),
+      ] },
+      { tipo: "fascia", colore: OBO.arancio, righe: [], altezza: 0.18 },
+      p("", { spazioDopo: 14 }),
+    );
+    const dati: Testo[][] = [
+      [[{ t: "Committente", b: true }], [...committente, ...(r.indirizzoCommittente || r.cittaCommittente ? [{ t: "\n" + [r.indirizzoCommittente, r.cittaCommittente].filter(Boolean).join(" · ") }] : [{ t: "\n" }, dc("indirizzo del committente")])]],
+      [[{ t: "Norma di riferimento", b: true }], "CEI EN IEC 62305-1/2/3/4:2024"],
+      [[{ t: "Livello di protezione", b: true }], `LPL ${lpl} – LPS di classe ${lpl}`],
+      [[{ t: "Progetto", b: true }], [x.codice ? `n. ${x.codice}` : "—", rev ? `Rev. ${rev}` : "Bozza"].join(" · ")],
+      [[{ t: "Luogo e data", b: true }], `${r.luogo || "Rivoli"}, ${dataLunga(x.data)}`],
+    ];
+    if (im.logoCommittente) B.push(bloccoImmagine(im.logoCommittente, 3.6, "destra", 1.8));
+    B.push({ tipo: "tabella", intestazione: [], righe: dati, larghezze: [3.2, 8.8], dimensione: 10 },
+      p("", { spazioPrima: 30 }),
+      p([{ t: "Building Connections", b: true, colore: OBO.arancio }], { allinea: "destra", dimensione: 12 }),
+      { tipo: "salto" });
+  };
 
   // =====================================================================================
   // PARTE 1 – RELAZIONE IMPIANTO DI PROTEZIONE DALLE SCARICHE ATMOSFERICHE
