@@ -2,6 +2,17 @@
   "nota": "Registro degli aggiornamenti di Progettazione LPS. Una voce per aggiornamento, la più recente per prima (app: lps). Viene mostrato nella barra \"Aggiorna app\", nel riquadro Novità e nella pagina Novità di OBO Hub.",
   "aggiornamenti": [
     {
+      "id": "2026-11-20-lps-25",
+      "data": "2026-11-20",
+      "app": "lps",
+      "titolo": "Barra in alto più pulita e menu a tendina",
+      "voci": [
+        "In alto restano solo Assistente, Progetti, Sopralluogo e Menu",
+        "Il Menu si apre a tendina con effetto sfumato: in cima Cerca, OBO Hub, lingua, tema e dimensione del testo; sotto le pagine divise per sezione",
+        "Da telefono il menu occupa tutta la larghezza, con pulsanti grandi"
+      ]
+    },
+    {
       "id": "2026-11-19-lps-24",
       "data": "2026-11-19",
       "app": "lps",
