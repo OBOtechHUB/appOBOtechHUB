@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type ComponentType } from "react";
+import { useEffect, useState, type ComponentType } from "react";
 import { Link, useNavigate, useRouter, useRouterState } from "@tanstack/react-router";
 import { useQueryClient } from "@tanstack/react-query";
 import {
@@ -17,7 +17,6 @@ import { useAvanzamentoProgetto } from "@/lib/avanzamentoProgetto";
 import { SEZIONE_PAGINA, URL_HUB, esciVisitatore, puoVedere, useAccesso } from "@/lib/accesso";
 import { impostaAttivo, useAttivo } from "@/lib/statoProgetto";
 import { useAzioneInstalla } from "@/components/InstallaApp";
-import { Button } from "@/components/ui/button";
 
 type Icona = ComponentType<{ className?: string; strokeWidth?: number }>;
 type Voce = { etichetta: string; to: string; icona: Icona } | { etichetta: string; azione: () => void; icona: Icona };
@@ -31,29 +30,6 @@ function IconaBarra({ etichetta, icona: I, to, onClick, badge, titolo, nascondiM
   </>;
   if (to) return <Link to={to as "/"} title={titolo ?? etichetta} className={cls} activeProps={{ className: "text-primary" }}>{corpo}</Link>;
   return <button type="button" title={titolo ?? etichetta} aria-expanded={espanso} aria-controls={espanso !== undefined ? "menu-principale" : undefined} onClick={onClick} className={cls}>{corpo}</button>;
-}
-
-/** Testo più piccolo / più grande, sempre in alto (stessa impostazione "obo-zoom" di tutte le app di OBO Hub). */
-function ControlloTesto({ zoom }: { zoom: number }) {
-  const [aperto, setAperto] = useState(false);
-  const rif = useRef<HTMLDivElement>(null);
-  useEffect(() => {
-    if (!aperto) return;
-    const chiudi = (e: MouseEvent | KeyboardEvent) => { if (e instanceof KeyboardEvent ? e.key === "Escape" : !rif.current?.contains(e.target as Node)) setAperto(false); };
-    document.addEventListener("mousedown", chiudi); document.addEventListener("keydown", chiudi);
-    return () => { document.removeEventListener("mousedown", chiudi); document.removeEventListener("keydown", chiudi); };
-  }, [aperto]);
-  return <div ref={rif} className="relative flex">
-    <button type="button" title="Dimensione del testo" aria-expanded={aperto} aria-haspopup="true" onClick={() => setAperto((v) => !v)}
-      className="relative flex min-w-[52px] flex-col items-center justify-center gap-0.5 px-1.5 text-[11px] font-semibold text-foreground hover:text-primary sm:min-w-[72px] sm:px-2 sm:text-sm">
-      <span className="flex h-6 items-end font-semibold leading-none sm:h-7" aria-hidden="true"><span className="text-[13px] sm:text-[15px]">A</span><span className="text-[20px] sm:text-[23px]">A</span></span><span>Testo</span>
-    </button>
-    {aperto && <div role="group" aria-label="Dimensione del testo" className="absolute right-0 top-full z-50 mt-1 flex items-center gap-1 rounded-full border-[0.8px] border-bordo-scheda bg-card p-1 shadow-lg">
-      <Button variant="ghost" size="icon" className="rounded-full" aria-label="Testo più piccolo" disabled={zoom <= 0.85} onClick={() => cambiaZoom(-1)}><ZoomOut strokeWidth={1.5} /></Button>
-      <span className="min-w-12 text-center font-mono text-sm" aria-live="polite">{Math.round(zoom * 100)}%</span>
-      <Button variant="ghost" size="icon" className="rounded-full" aria-label="Testo più grande" disabled={zoom >= 1.45} onClick={() => cambiaZoom(1)}><ZoomIn strokeWidth={1.5} /></Button>
-    </div>}
-  </div>;
 }
 
 /** Barra superiore bianca (Saetta, nome, stato del progetto · icone con etichetta) con filo di avanzamento e menu laterale a sezioni. */
@@ -119,7 +95,6 @@ export function AppHeader() {
     {
       titolo: "Strumenti",
       voci: [
-        { etichetta: "Cerca", azione: () => { setAperto(false); setRicerca(true); }, icona: Search },
         { etichetta: "Assistente di progetto", to: "/assistente", icona: Compass },
         { etichetta: "Panoramica strumenti", to: "/strumenti", icona: Wrench },
         { etichetta: "Richieste all'ufficio tecnico", to: "/richieste", icona: Inbox },
@@ -150,11 +125,6 @@ export function AppHeader() {
     {
       titolo: "Informazioni",
       voci: [
-        { etichetta: `Aspetto: ${NOMI_TEMA[tema]}`, azione: cambiaTema, icona: iconaTema },
-        { etichetta: `Testo più piccolo (${Math.round(zoom * 100)}%)`, azione: () => cambiaZoom(-1), icona: ZoomOut },
-        { etichetta: `Testo più grande (${Math.round(zoom * 100)}%)`, azione: () => cambiaZoom(1), icona: ZoomIn },
-        { etichetta: lingua === "en" ? "Lingua: English → Italiano" : "Lingua: Italiano → English", azione: () => impostaLingua(lingua === "en" ? "it" : "en"), icona: Languages },
-        { etichetta: "OBO Hub · tutte le app", azione: () => { window.location.assign(URL_HUB); }, icona: LayoutGrid },
         ...(installa.stato !== "installata" ? [{ etichetta: "Installa l'app", azione: () => { setAperto(false); installa.avvia(); }, icona: Smartphone }] : []),
         { etichetta: "Termini d'uso", to: "/termini", icona: FileText },
         { etichetta: "Privacy", to: "/privacy", icona: Shield },
@@ -162,8 +132,13 @@ export function AppHeader() {
     },
   ];
 
-  const classeVoce = "flex w-full items-center gap-4 py-3 text-base text-foreground hover:text-primary";
   const home = percorso.replace(/\/+$/, "").endsWith("/Lighting") || percorso === "/" || percorso === "";
+  const sezioniVisibili = sezioni.map((sez) => ({ ...sez, voci: sez.voci.filter((v) => !("to" in v) || visibile(v.to)) })).filter((sez) => sez.voci.length);
+  const ritardo = (i: number) => ({ transitionDelay: aperto ? `${60 + Math.min(i, 24) * 18}ms` : "0ms" });
+  const entrata = `transition-[opacity,transform] duration-300 ease-out ${aperto ? "translate-y-0 opacity-100" : "-translate-y-1.5 opacity-0"}`;
+  const classeVoce = "group flex w-full items-center gap-3 rounded-lg px-2.5 py-2 text-[15px] text-foreground transition-colors hover:bg-primary/10 hover:text-primary";
+  const pastiglia = "flex flex-col items-center justify-center gap-1 rounded-xl border-[0.8px] border-bordo-scheda bg-card px-1 py-2.5 text-xs font-semibold text-foreground transition-[transform,background-color,color] hover:-translate-y-0.5 hover:bg-primary/10 hover:text-primary";
+  let n = 0;
 
   return (
     <>
@@ -180,22 +155,11 @@ export function AppHeader() {
             </span>
           </Link>
           <nav aria-label="Accessi rapidi" className="ml-auto flex items-stretch">
-            <IconaBarra etichetta="OBO Hub" icona={LayoutGrid} titolo="Torna a OBO Hub (tutte le app)" onClick={() => window.location.assign(URL_HUB)} />
-            <ControlloTesto zoom={zoom} />
-            <IconaBarra etichetta={lingua === "en" ? "IT" : "EN"} icona={Languages} titolo={lingua === "en" ? "Passa all'italiano" : "Switch to English"} onClick={() => impostaLingua(lingua === "en" ? "it" : "en")} nascondiMobile />
-            <IconaBarra etichetta={NOMI_TEMA[tema]} icona={iconaTema} titolo="Aspetto: automatico, chiaro o scuro" onClick={cambiaTema} nascondiMobile />
             {abilitato ? <>
               {visibile("/assistente") && <IconaBarra to="/assistente" etichetta="Assistente" icona={Compass} badge={mancanti.length || undefined} titolo={prossimo ? `Prossimo passo: ${prossimo.titolo}` : "Progetto completo"} nascondiMobile />}
-              {visibile("/prodotti") && <IconaBarra to="/prodotti" etichetta="Prodotti" icona={Package} nascondiMobile />}
-              <IconaBarra etichetta="Cerca" icona={Search} onClick={() => setRicerca(true)} nascondiMobile />
               {visibile("/progetti") && !visitatore && <IconaBarra to="/progetti" etichetta="Progetti" icona={ClipboardList} />}
               {!visitatore && <IconaBarra to="/sopralluogo" etichetta="Sopralluogo" icona={Camera} titolo="Sopralluogo: foto di particolari e impianti esistenti" />}
-              {admin && <IconaBarra to="/admin" etichetta="Admin" icona={ShieldCheck} nascondiMobile />}
-              {!visitatore && <IconaBarra to="/profilo" etichetta="Profilo" icona={User} nascondiMobile />}
-            </> : <>
-              <IconaBarra to="/richiesta-accesso" etichetta="Richiedi" icona={UserPlus} nascondiMobile />
-              {accesso.stato === "anonimo" && <IconaBarra to="/auth" etichetta="Accedi" icona={LogIn} />}
-            </>}
+            </> : accesso.stato === "anonimo" && <IconaBarra to="/auth" etichetta="Accedi" icona={LogIn} />}
             <IconaBarra etichetta={aperto ? "Chiudi" : "Menu"} icona={aperto ? X : Menu} onClick={() => setAperto((v) => !v)} espanso={aperto} />
           </nav>
         </div>
@@ -205,26 +169,44 @@ export function AppHeader() {
       </header>
       <RicercaGlobale aperta={ricerca} onChiudi={() => setRicerca(false)} />
 
-      {aperto && <div className="fixed inset-0 top-[67px] z-30 sm:top-[79px]" aria-hidden="true" onClick={() => setAperto(false)} />}
+      <div aria-hidden="true" onClick={() => setAperto(false)}
+        className={`fixed inset-0 top-[67px] z-30 bg-black/30 backdrop-blur-[3px] transition-opacity duration-300 sm:top-[79px] ${aperto ? "opacity-100" : "pointer-events-none opacity-0"}`} />
       <nav
         id="menu-principale"
         aria-label="Menu principale"
-        className={`fixed right-0 top-[67px] z-40 max-h-[calc(100dvh-67px)] sm:top-[79px] sm:max-h-[calc(100dvh-79px)] w-[min(100vw,300px)] overflow-y-auto bg-background px-6 pb-6 pt-4 shadow-[0_8px_24px_rgba(0,0,0,0.18)] transition-transform duration-200 sm:right-4 ${aperto ? "translate-x-0" : "pointer-events-none translate-x-[110%]"}`}
+        aria-hidden={!aperto}
+        inert={!aperto}
+        className={`fixed inset-x-0 top-[67px] z-40 max-h-[calc(100dvh-67px)] origin-top overflow-y-auto overscroll-contain rounded-b-2xl border-[0.8px] border-t-0 border-bordo-scheda bg-background/95 px-4 pb-5 pt-4 shadow-[0_18px_40px_rgba(0,0,0,0.28)] backdrop-blur-md transition-[opacity,transform] duration-300 ease-[cubic-bezier(0.2,0.9,0.3,1.2)] sm:inset-x-auto sm:right-6 sm:top-[84px] sm:max-h-[calc(100dvh-100px)] sm:w-[600px] sm:origin-top-right sm:rounded-2xl sm:border-t-[0.8px] ${aperto ? "translate-y-0 scale-100 opacity-100" : "pointer-events-none -translate-y-3 scale-[0.97] opacity-0"}`}
       >
-        {sezioni.filter((sez) => sez.voci.some((v) => !("to" in v) || visibile(v.to))).map((sez) => (
-          <div key={sez.titolo} className="mt-4 first:mt-2">
-            <p className="text-base font-bold">{sez.titolo}</p>
-            <ul className="mt-1">
-              {sez.voci.filter((v) => !("to" in v) || visibile(v.to)).map((v) => (
-                <li key={v.etichetta}>
-                  {"to" in v
-                    ? <Link to={v.to as "/"} className={classeVoce} activeProps={{ className: "text-primary" }}><v.icona className="size-6 shrink-0" strokeWidth={1.25} />{v.etichetta}</Link>
-                    : <button type="button" onClick={v.azione} className={classeVoce}><v.icona className="size-6 shrink-0" strokeWidth={1.25} />{v.etichetta}</button>}
-                </li>
-              ))}
-            </ul>
+        <div className={`grid grid-cols-5 gap-2 ${entrata}`} style={ritardo(n++)}>
+          <button type="button" className={pastiglia} onClick={() => { setAperto(false); setRicerca(true); }}><Search className="size-5" strokeWidth={1.5} />Cerca</button>
+          <button type="button" className={pastiglia} onClick={() => window.location.assign(URL_HUB)} title="Torna a OBO Hub (tutte le app)"><LayoutGrid className="size-5" strokeWidth={1.5} />OBO Hub</button>
+          <button type="button" className={pastiglia} onClick={() => impostaLingua(lingua === "en" ? "it" : "en")} title={lingua === "en" ? "Passa all'italiano" : "Switch to English"}><Languages className="size-5" strokeWidth={1.5} />{lingua === "en" ? "Italiano" : "English"}</button>
+          <button type="button" className={pastiglia} onClick={cambiaTema} title="Aspetto: automatico, chiaro o scuro">{(() => { const I = iconaTema; return <I className="size-5" strokeWidth={1.5} />; })()}{NOMI_TEMA[tema]}</button>
+          <div className={`${pastiglia} hover:translate-y-0`} role="group" aria-label="Dimensione del testo">
+            <span className="flex items-center gap-1">
+              <button type="button" aria-label="Testo più piccolo" disabled={zoom <= 0.85} onClick={() => cambiaZoom(-1)} className="rounded-full p-0.5 hover:text-primary disabled:opacity-40"><ZoomOut className="size-5" strokeWidth={1.5} /></button>
+              <button type="button" aria-label="Testo più grande" disabled={zoom >= 1.45} onClick={() => cambiaZoom(1)} className="rounded-full p-0.5 hover:text-primary disabled:opacity-40"><ZoomIn className="size-5" strokeWidth={1.5} /></button>
+            </span>
+            <span aria-live="polite">Testo {Math.round(zoom * 100)}%</span>
           </div>
-        ))}
+        </div>
+        <div className="mt-2 grid gap-x-6 sm:grid-cols-2">
+          {sezioniVisibili.map((sez) => (
+            <section key={sez.titolo} className={`mt-3 ${sez.voci.length > 6 ? "sm:col-span-2" : ""} ${entrata}`} style={ritardo(n++)}>
+              <p className="px-2.5 text-[11px] font-bold uppercase tracking-[0.12em] text-muted-foreground">{sez.titolo}</p>
+              <ul className={`mt-1 ${sez.voci.length > 6 ? "sm:grid sm:grid-cols-2 sm:gap-x-6" : ""}`}>
+                {sez.voci.map((v) => (
+                  <li key={v.etichetta}>
+                    {"to" in v
+                      ? <Link to={v.to as "/"} className={classeVoce} activeProps={{ className: "bg-primary/10 text-primary" }}><v.icona className="size-5 shrink-0 transition-transform group-hover:scale-110" strokeWidth={1.4} />{v.etichetta}</Link>
+                      : <button type="button" onClick={v.azione} className={classeVoce}><v.icona className="size-5 shrink-0 transition-transform group-hover:scale-110" strokeWidth={1.4} />{v.etichetta}</button>}
+                  </li>
+                ))}
+              </ul>
+            </section>
+          ))}
+        </div>
       </nav>
       {installa.dialogo}
     </>
