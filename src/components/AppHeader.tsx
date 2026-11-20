@@ -137,7 +137,7 @@ export function AppHeader() {
   const ritardo = (i: number) => ({ transitionDelay: aperto ? `${60 + Math.min(i, 24) * 18}ms` : "0ms" });
   const entrata = `transition-[opacity,transform] duration-300 ease-out ${aperto ? "translate-y-0 opacity-100" : "-translate-y-1.5 opacity-0"}`;
   const classeVoce = "group flex w-full items-center gap-3 rounded-lg px-2.5 py-2 text-[15px] text-foreground transition-colors hover:bg-primary/10 hover:text-primary";
-  const pastiglia = "flex flex-col items-center justify-center gap-1 rounded-xl border-[0.8px] border-bordo-scheda bg-card px-1 py-2.5 text-xs font-semibold text-foreground transition-[transform,background-color,color] hover:-translate-y-0.5 hover:bg-primary/10 hover:text-primary";
+  const pastiglia = "flex flex-col items-center justify-center gap-1 rounded-xl border-[0.8px] border-bordo-scheda bg-card px-1 py-2.5 text-[11px] font-semibold text-foreground transition-[transform,background-color,color] sm:text-xs hover:-translate-y-0.5 hover:bg-primary/10 hover:text-primary";
   let n = 0;
 
   return (
@@ -182,13 +182,13 @@ export function AppHeader() {
           <button type="button" className={pastiglia} onClick={() => { setAperto(false); setRicerca(true); }}><Search className="size-5" strokeWidth={1.5} />Cerca</button>
           <button type="button" className={pastiglia} onClick={() => window.location.assign(URL_HUB)} title="Torna a OBO Hub (tutte le app)"><LayoutGrid className="size-5" strokeWidth={1.5} />OBO Hub</button>
           <button type="button" className={pastiglia} onClick={() => impostaLingua(lingua === "en" ? "it" : "en")} title={lingua === "en" ? "Passa all'italiano" : "Switch to English"}><Languages className="size-5" strokeWidth={1.5} />{lingua === "en" ? "Italiano" : "English"}</button>
-          <button type="button" className={pastiglia} onClick={cambiaTema} title="Aspetto: automatico, chiaro o scuro">{(() => { const I = iconaTema; return <I className="size-5" strokeWidth={1.5} />; })()}{NOMI_TEMA[tema]}</button>
+          <button type="button" className={pastiglia} onClick={cambiaTema} title="Aspetto: automatico, chiaro o scuro">{(() => { const I = iconaTema; return <I className="size-5" strokeWidth={1.5} />; })()}<span>Tema<span className="hidden sm:inline"> · {NOMI_TEMA[tema]}</span></span></button>
           <div className={`${pastiglia} hover:translate-y-0`} role="group" aria-label="Dimensione del testo">
             <span className="flex items-center gap-1">
               <button type="button" aria-label="Testo più piccolo" disabled={zoom <= 0.85} onClick={() => cambiaZoom(-1)} className="rounded-full p-0.5 hover:text-primary disabled:opacity-40"><ZoomOut className="size-5" strokeWidth={1.5} /></button>
               <button type="button" aria-label="Testo più grande" disabled={zoom >= 1.45} onClick={() => cambiaZoom(1)} className="rounded-full p-0.5 hover:text-primary disabled:opacity-40"><ZoomIn className="size-5" strokeWidth={1.5} /></button>
             </span>
-            <span aria-live="polite">Testo {Math.round(zoom * 100)}%</span>
+            <span aria-live="polite">Testo<span className="hidden sm:inline"> {Math.round(zoom * 100)}%</span></span>
           </div>
         </div>
         <div className="mt-2 grid gap-x-6 sm:grid-cols-2">
