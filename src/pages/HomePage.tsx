@@ -25,10 +25,10 @@ export function HomePage() {
   return (
     <>
     <section className="bg-ardesia text-white">
-      <div className="mx-auto grid max-w-5xl gap-8 px-4 py-12 md:grid-cols-[1fr_auto] md:items-end"><div>
-        <h1 className="text-3xl font-bold leading-tight sm:text-4xl">Progettazione LPS – protezione contro i fulmini</h1>
-        <p className="mt-3 max-w-2xl text-lg text-white/90">Dall’edificio al progetto: rischio, protezione esterna e documentazione tecnica secondo CEI EN IEC 62305:2026-10.</p>
-        <div className="mt-6 flex flex-wrap gap-3">
+      <div className="mx-auto grid max-w-5xl gap-4 px-4 py-6 md:grid-cols-[1fr_auto] md:items-end"><div>
+        <h1 className="text-2xl font-bold leading-tight sm:text-3xl">Progettazione LPS – protezione contro i fulmini</h1>
+        <p className="mt-2 max-w-2xl text-base text-white/90">Dall’edificio al progetto: rischio, protezione esterna e documentazione tecnica secondo CEI EN IEC 62305:2026-10.</p>
+        <div className="mt-4 flex flex-wrap gap-3">
           {!user && <Button asChild variant="outline" size="lg"><Link to="/auth">Accedi <ArrowRight strokeWidth={1.5} /></Link></Button>}
           <Button asChild size="lg"><Link to="/assistente">Apri l’assistente di progetto <ArrowRight strokeWidth={1.5} /></Link></Button>
           <PulsanteInstalla />
@@ -37,9 +37,9 @@ export function HomePage() {
       <Saetta saluto chiaro><strong>Ciao, sono Saetta!</strong> Ti accompagno nel progetto dell'LPS, dall'edificio fino al dossier. Apri l'assistente e ti dico da dove partire.</Saetta>
       </div>
     </section>
-    <main className="mx-auto max-w-5xl px-4 py-10">
-      <h2 className="text-[1.7rem] font-medium">Panoramica degli strumenti</h2>
-      <div className="mt-6 grid gap-4 sm:grid-cols-3">{[{titolo:"Valutare il rischio",to:"/dati-edificio",icona:ShieldAlert},{titolo:"Progettare l’LPS",to:"/strumenti",icona:Radio},{titolo:"Disegnare in CAD",to:"/edificio-3d",icona:Building2}].map((p)=><Link key={p.titolo} to={p.to as "/dati-edificio"|"/strumenti"|"/edificio-3d"} className="rounded-lg border-[0.8px] border-bordo-scheda bg-card p-5 transition-colors hover:border-primary"><p.icona className="size-8 text-primary" strokeWidth={1.25}/><h3 className="mt-3 text-[1.3rem] font-medium">{p.titolo}</h3></Link>)}</div>
+    <main className="mx-auto max-w-5xl px-4 py-6">
+      <h2 className="text-[1.35rem] font-medium">Panoramica degli strumenti</h2>
+      <div className="mt-4 grid gap-3 sm:grid-cols-3">{[{titolo:"Valutare il rischio",to:"/dati-edificio",icona:ShieldAlert},{titolo:"Progettare l’LPS",to:"/strumenti",icona:Radio},{titolo:"Disegnare in CAD",to:"/edificio-3d",icona:Building2}].map((p)=><Link key={p.titolo} to={p.to as "/dati-edificio"|"/strumenti"|"/edificio-3d"} className="rounded-lg border-[0.8px] border-bordo-scheda bg-card p-4 transition-colors hover:border-primary"><p.icona className="size-6 text-primary" strokeWidth={1.25}/><h3 className="mt-2 text-[1.1rem] font-medium">{p.titolo}</h3></Link>)}</div>
       <section className="mt-6 border-y py-5" aria-label="Avanzamento progetto">
         <div className="flex flex-wrap justify-between gap-2"><h2 className="font-display font-semibold">Avanzamento progetto</h2><span className="font-mono text-sm">{progresso.completi} / 7 completi · {progresso.percento}%</span></div>
         <progress aria-label="Moduli completi" className="mt-3 h-2 w-full appearance-none overflow-hidden rounded-full bg-muted accent-primary [&::-webkit-progress-bar]:bg-muted [&::-webkit-progress-value]:bg-primary [&::-moz-progress-bar]:bg-primary" value={progresso.completi} max={7} />

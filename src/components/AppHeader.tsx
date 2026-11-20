@@ -23,9 +23,9 @@ type Voce = { etichetta: string; to: string; icona: Icona } | { etichetta: strin
 
 /** Icona con etichetta della barra in alto (come sul sito OBO). */
 function IconaBarra({ etichetta, icona: I, to, onClick, badge, titolo, nascondiMobile, espanso }: { etichetta: string; icona: Icona; to?: string; onClick?: () => void; badge?: number | undefined; titolo?: string; nascondiMobile?: boolean; espanso?: boolean }) {
-  const cls = `relative flex min-w-[52px] flex-col items-center justify-center gap-0.5 px-1.5 text-[11px] font-semibold text-foreground hover:text-primary sm:min-w-[72px] sm:px-2 sm:text-sm ${nascondiMobile ? "hidden md:flex" : "flex"}`;
+  const cls = `relative flex min-w-[46px] flex-col items-center justify-center gap-0.5 px-1 text-[10px] font-semibold text-foreground hover:text-primary sm:min-w-[60px] sm:px-1.5 sm:text-xs ${nascondiMobile ? "hidden md:flex" : "flex"}`;
   const corpo = <>
-    <span className="relative"><I className="size-6 sm:size-7" strokeWidth={1.5} />{badge ? <span className="absolute -right-2 -top-1.5 flex min-w-4 items-center justify-center rounded-full bg-primary px-1 text-[10px] font-bold leading-4 text-white">{badge}</span> : null}</span>
+    <span className="relative"><I className="size-5 sm:size-[22px]" strokeWidth={1.5} />{badge ? <span className="absolute -right-2 -top-1.5 flex min-w-4 items-center justify-center rounded-full bg-primary px-1 text-[10px] font-bold leading-4 text-white">{badge}</span> : null}</span>
     <span>{etichetta}</span>
   </>;
   if (to) return <Link to={to as "/"} title={titolo ?? etichetta} className={cls} activeProps={{ className: "text-primary" }}>{corpo}</Link>;
@@ -143,14 +143,14 @@ export function AppHeader() {
   return (
     <>
       <header className="sticky top-0 z-40 bg-background shadow-[0_2px_14px_rgba(0,0,0,0.07)]">
-        <div className="mx-auto flex h-16 max-w-6xl items-center gap-2 px-3 sm:h-[76px] sm:gap-3 sm:px-6">
+        <div className="mx-auto flex h-[52px] max-w-6xl items-center gap-2 px-3 sm:h-14 sm:gap-3 sm:px-6">
           {!home && <button type="button" aria-label="Indietro" onClick={() => router.history.back()} className="-ml-1 flex size-9 shrink-0 items-center justify-center text-foreground hover:text-primary sm:hidden">
             <ChevronLeft className="size-7" strokeWidth={1.5} />
           </button>}
           <Link to="/" aria-label="Progettazione LPS – home" className="flex min-w-0 items-center gap-2">
-            <SaettaFigura className="h-10 w-8 shrink-0 sm:h-12 sm:w-10" />
+            <SaettaFigura className="h-8 w-7 shrink-0 sm:h-9 sm:w-8" />
             <span className="hidden min-w-0 sm:block">
-              <span className="block whitespace-nowrap text-lg font-bold leading-tight sm:text-xl">Progettazione <span className="text-primary">LPS</span></span>
+              <span className="block whitespace-nowrap text-base font-bold leading-tight sm:text-lg">Progettazione <span className="text-primary">LPS</span></span>
               <span className="block max-w-[46vw] truncate text-[11px] text-muted-foreground sm:max-w-[320px] sm:text-xs">{!abilitato ? "CEI EN IEC 62305:2026-10 · smart planning" : visitatore ? `Visitatore · ${accesso.profilo?.nome ?? ""} · niente salvataggi nel cloud` : attivo ? `${attivo.codice ? attivo.codice + " · " : ""}${attivo.nome} · ${statoSalvataggio || "salvato"}` : "Lavoro locale · nessun progetto aperto"}</span>
             </span>
           </Link>
@@ -170,13 +170,13 @@ export function AppHeader() {
       <RicercaGlobale aperta={ricerca} onChiudi={() => setRicerca(false)} />
 
       <div aria-hidden="true" onClick={() => setAperto(false)}
-        className={`fixed inset-0 top-[67px] z-30 bg-black/30 backdrop-blur-[3px] transition-opacity duration-300 sm:top-[79px] ${aperto ? "opacity-100" : "pointer-events-none opacity-0"}`} />
+        className={`fixed inset-0 top-[55px] z-30 bg-black/30 backdrop-blur-[3px] transition-opacity duration-300 sm:top-[59px] ${aperto ? "opacity-100" : "pointer-events-none opacity-0"}`} />
       <nav
         id="menu-principale"
         aria-label="Menu principale"
         aria-hidden={!aperto}
         inert={!aperto}
-        className={`fixed inset-x-0 top-[67px] z-40 max-h-[calc(100dvh-67px)] origin-top overflow-y-auto overscroll-contain rounded-b-2xl border-[0.8px] border-t-0 border-bordo-scheda bg-background/95 px-4 pb-5 pt-4 shadow-[0_18px_40px_rgba(0,0,0,0.28)] backdrop-blur-md transition-[opacity,transform] duration-300 ease-[cubic-bezier(0.2,0.9,0.3,1.2)] sm:inset-x-auto sm:right-6 sm:top-[84px] sm:max-h-[calc(100dvh-100px)] sm:w-[600px] sm:origin-top-right sm:rounded-2xl sm:border-t-[0.8px] ${aperto ? "translate-y-0 scale-100 opacity-100" : "pointer-events-none -translate-y-3 scale-[0.97] opacity-0"}`}
+        className={`fixed inset-x-0 top-[55px] z-40 max-h-[calc(100dvh-55px)] origin-top overflow-y-auto overscroll-contain rounded-b-2xl border-[0.8px] border-t-0 border-bordo-scheda bg-background/95 px-4 pb-5 pt-4 shadow-[0_18px_40px_rgba(0,0,0,0.28)] backdrop-blur-md transition-[opacity,transform] duration-300 ease-[cubic-bezier(0.2,0.9,0.3,1.2)] sm:inset-x-auto sm:right-6 sm:top-[64px] sm:max-h-[calc(100dvh-80px)] sm:w-[600px] sm:origin-top-right sm:rounded-2xl sm:border-t-[0.8px] ${aperto ? "translate-y-0 scale-100 opacity-100" : "pointer-events-none -translate-y-3 scale-[0.97] opacity-0"}`}
       >
         <div className={`grid grid-cols-5 gap-2 ${entrata}`} style={ritardo(n++)}>
           <button type="button" className={pastiglia} onClick={() => { setAperto(false); setRicerca(true); }}><Search className="size-5" strokeWidth={1.5} />Cerca</button>
