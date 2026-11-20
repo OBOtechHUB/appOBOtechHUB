@@ -29,12 +29,12 @@ export function HomePage() {
         <h1 className="text-2xl font-bold leading-tight sm:text-3xl">Progettazione LPS – protezione contro i fulmini</h1>
         <p className="mt-2 max-w-2xl text-base text-white/90">Dall’edificio al progetto: rischio, protezione esterna e documentazione tecnica secondo CEI EN IEC 62305:2026-10.</p>
         <div className="mt-4 flex flex-wrap gap-3">
-          {!user && <Button asChild variant="outline" size="lg"><Link to="/auth">Accedi <ArrowRight strokeWidth={1.5} /></Link></Button>}
-          <Button asChild size="lg"><Link to="/assistente">Apri l’assistente di progetto <ArrowRight strokeWidth={1.5} /></Link></Button>
+          {!user && <Button asChild variant="outline"><Link to="/auth">Accedi <ArrowRight strokeWidth={1.5} /></Link></Button>}
+          <Button asChild><Link to="/assistente">Apri l’assistente di progetto <ArrowRight strokeWidth={1.5} /></Link></Button>
           <PulsanteInstalla />
         </div>
       </div>
-      <Saetta saluto chiaro><strong>Ciao, sono Saetta!</strong> Ti accompagno nel progetto dell'LPS, dall'edificio fino al dossier. Apri l'assistente e ti dico da dove partire.</Saetta>
+      <div className="hidden md:block"><Saetta saluto chiaro><strong>Ciao, sono Saetta!</strong> Ti accompagno nel progetto dell'LPS, dall'edificio fino al dossier. Apri l'assistente e ti dico da dove partire.</Saetta></div>
       </div>
     </section>
     <main className="mx-auto max-w-5xl px-4 py-6">
