@@ -10,6 +10,7 @@ import {
 import { ESTENSIONI_3D, dimensioniCorpo, leggiDXF, leggiMesh, scalaCorpo, unitaDichiarata3D, verticaleZProposto } from "@/lib/importEdificio";
 import { leggiImmagine, leggiPdf, type PianoImportato } from "@/lib/leggiPdf";
 import { leggiDWG, type LetturaCad } from "@/lib/leggiDwg";
+import { analizzaPianta, corpiDaPianta, type Ruolo } from "@/calcoli/importazione/analisiPianta";
 
 type Tipo = "dxf" | "3d" | "pdf" | "img";
 type P2 = [number, number];
@@ -28,7 +29,8 @@ export function ImportaFile({ onImporta }: { onImporta: (m: ModelloEdificio) => 
   const [files, setFiles] = useState<File[]>([]);
   const [busy, setBusy] = useState(false), [errore, setErrore] = useState(""), [fatto, setFatto] = useState("");
   // CAD e 3D
-  const [dxf, setDxf] = useState<LetturaDxf | null>(null), [layer, setLayer] = useState(""), [altezzaDxf, setAltezzaDxf] = useState("");
+  const [dxf, setDxf] = useState<LetturaDxf | null>(null), [layersSel, setLayersSel] = useState<string[]>([]), [altezzaDxf, setAltezzaDxf] = useState("");
+  const [scelte, setScelte] = useState<Record<number, { ruolo?: Ruolo; altezza?: string }>>({}), [hImpianti, setHImpianti] = useState("1,5"), [hLucernari, setHLucernari] = useState("0,6");
   const [corpo1, setCorpo1] = useState<Corpo | null>(null), [verticaleZ, setVerticaleZ] = useState(false);
   const [unita, setUnita] = useState<Unita | "misura">("m");
   const [asse, setAsse] = useState<0 | 1 | 2>(0), [reale, setReale] = useState("");
@@ -40,7 +42,7 @@ export function ImportaFile({ onImporta }: { onImporta: (m: ModelloEdificio) => 
   const svgRef = useRef<SVGSVGElement | null>(null);
 
   function azzera() {
-    setTipo(null); setFiles([]); setErrore(""); setDxf(null); setLayer(""); setCorpo1(null); setPiano(null); setRapporto(null);
+    setTipo(null); setFiles([]); setErrore(""); setDxf(null); setLayersSel([]); setScelte({}); setCorpo1(null); setPiano(null); setRapporto(null);
     setCal([]); setCalReale(""); setPoli([]); setAltezza(""); setReale(""); setUnita("m"); setModo("calibra"); setZoom(1);
   }
   async function esegui(f: () => Promise<void>) {
@@ -57,7 +59,10 @@ export function ImportaFile({ onImporta }: { onImporta: (m: ModelloEdificio) => 
       if (/\.(dxf|dwg)$/i.test(main.name)) {
         const r: LetturaCad = /\.dwg$/i.test(main.name) ? await leggiDWG(main) : await leggiDXF(main, 1);
         if (!r.layers.length) throw new Error("Nel DXF non ci sono polilinee: l'impronta dell'edificio va disegnata con polilinee chiuse.");
-        setDxf(r); setLayer(r.layers[0] ?? ""); setTipo("dxf");
+        setDxf(r); setTipo("dxf"); setScelte({});
+        const conChiuse = [...new Set(r.poligoni.map((p) => p.layer))];
+        const edificio = conChiuse.filter((l) => /edif|build|bldg|sagoma|contorn|pianta|copert|tetto|roof|fabbric/i.test(l));
+        setLayersSel(edificio.length ? edificio : conChiuse.slice(0, 1).length ? conChiuse.slice(0, 1) : r.layers.slice(0, 1));
         setUnita(proponiUnita(r.dimensioni, r.unita).consigliata);
       } else if (/\.pdf$/i.test(main.name)) {
         const p = await leggiPdf(main, 1);
@@ -75,13 +80,21 @@ export function ImportaFile({ onImporta }: { onImporta: (m: ModelloEdificio) => 
   const main = files[0];
 
   // ---------- scala di DXF e 3D
-  const dimensioniGrezze = useMemo<number[]>(() => tipo === "dxf" && dxf ? dxf.ingombro(layer) : tipo === "3d" && corpo1 ? dimensioniCorpo(corpo1) : [], [tipo, dxf, layer, corpo1]);
+  const dimensioniGrezze = useMemo<number[]>(() => {
+    if (tipo === "dxf" && dxf) { const sel = dxf.poligoni.filter((p) => layersSel.includes(p.layer)); const xs = sel.flatMap((p) => p.punti.map((q) => q[0])), ys = sel.flatMap((p) => p.punti.map((q) => q[1])); return xs.length ? [Math.max(...xs) - Math.min(...xs), Math.max(...ys) - Math.min(...ys)] : dxf.ingombro(); }
+    return tipo === "3d" && corpo1 ? dimensioniCorpo(corpo1) : [];
+  }, [tipo, dxf, layersSel, corpo1]);
   const dichiarata: Unita | null = tipo === "dxf" ? dxf?.unita ?? null : tipo === "3d" && main ? unitaDichiarata3D(main.name) : null;
   const proposta: PropostaUnita | null = dimensioniGrezze.length ? proponiUnita(dimensioniGrezze, dichiarata) : null;
   const fattoreMisura = fattoreDaMisura(dimensioniGrezze[asse] ?? 0, num(reale));
   const fattore = unita === "misura" ? fattoreMisura : metriUnita(unita);
   const dimFinali = fattore ? dimensioniGrezze.map((d) => d * fattore) : [];
   const unitaMisura = fattoreMisura ? UNITA.find((u) => differenzaRelativa(u.metri, fattoreMisura) <= 0.03) : undefined;
+
+  // ---------- analisi della pianta CAD: corpi, impianti sul tetto, lucernari e altezze dai testi
+  const elementi = useMemo(() => tipo === "dxf" && dxf && fattore ? analizzaPianta(dxf.poligoni.filter((p) => layersSel.includes(p.layer)), dxf.testi, fattore) : [], [tipo, dxf, layersSel, fattore]);
+  const elementiScelti = elementi.map((e) => { const c = scelte[e.id]; const h = c?.altezza !== undefined ? num(c.altezza) : NaN; return { ...e, ruolo: c?.ruolo ?? e.ruolo, altezza: Number.isFinite(h) && h > 0 ? h : e.altezza }; });
+  const contaRuolo = (r: Ruolo) => elementiScelti.filter((e) => e.ruolo === r).length;
 
   async function cambiaAsse(z: boolean) {
     if (!files.length) return;
@@ -90,10 +103,13 @@ export function ImportaFile({ onImporta }: { onImporta: (m: ModelloEdificio) => 
   function importaCad() {
     if (!fattore) return;
     if (tipo === "dxf" && dxf) {
-      const h = num(altezzaDxf);
-      const corpi = dxf.corpi(layer).map((c) => ({ ...c, impronta: c.impronta.map((p) => [p[0] * fattore, p[1] * fattore] as P2), ...(h > 0 ? { altezzaGronda: h, altezzaColmo: h } : {}) }));
-      if (!corpi.length) { setErrore("Nel layer scelto non ci sono polilinee chiuse."); return; }
-      onImporta({ corpi }); setFatto(`Importati ${corpi.length} ${corpi.length === 1 ? "corpo" : "corpi"} dal layer ${layer}${h > 0 ? `, altezza ${fmt(h)} m` : ": l'altezza dei corpi si imposta in Edificio 3D"}.`); setAltezzaDxf(""); azzera();
+      const h = num(altezzaDxf), hi = num(hImpianti), hl = num(hLucernari);
+      const senzaAltezza = elementiScelti.filter((e) => e.ruolo === "corpo" && !e.altezza).length;
+      if (senzaAltezza && !(h > 0)) { setErrore(`Indica l'altezza di gronda predefinita: ${senzaAltezza} ${senzaAltezza === 1 ? "corpo non ha" : "corpi non hanno"} un'altezza scritta nel disegno.`); return; }
+      const corpi = corpiDaPianta(elementiScelti, fattore, { corpo: h > 0 ? h : 0, impianto: hi > 0 ? hi : 1.5, lucernario: hl > 0 ? hl : 0.6 }).map((c) => corpoSchema.parse({ id: crypto.randomUUID(), ...c }));
+      if (!corpi.length) { setErrore("Nei layer scelti non ci sono polilinee chiuse da importare."); return; }
+      const parti = [["corpo", "corpi"], ["impianto", "impianti sul tetto"], ["lucernario", "lucernari"]].map(([r, t]) => [contaRuolo(r as Ruolo), t] as const).filter(([n]) => n > 0).map(([n, t]) => `${n} ${t}`);
+      onImporta({ corpi }); setFatto(`Importati ${parti.join(", ")} dai layer ${layersSel.join(", ")}. Le altezze si possono correggere in Edificio 3D.`); setAltezzaDxf(""); azzera();
     } else if (tipo === "3d" && corpo1) {
       onImporta({ corpi: [scalaCorpo(corpo1, fattore)] }); setFatto(`Modello importato: ${descriviDimensioni(dimFinali)}.`); azzera();
     }
@@ -152,14 +168,22 @@ export function ImportaFile({ onImporta }: { onImporta: (m: ModelloEdificio) => 
           <h3 id="h-scala" className="font-display text-lg font-semibold">1. Verifica la scala</h3>
           <p className={`mt-2 border-l-4 pl-3 text-sm ${proposta.dichiarataSospetta ? "border-destructive" : "border-accent"}`}>{proposta.motivo}</p>
           {tipo === "dxf" && dxf && dxf.layers.length > 1 && (
-            <div className="mt-3 max-w-xs"><Campo etichetta="Layer con l'impronta dell'edificio">
-              <select className={inputCls} value={layer} onChange={(e) => setLayer(e.target.value)}>{dxf.layers.map((l) => <option key={l}>{l}</option>)}</select>
-            </Campo></div>
+            <fieldset className="mt-3">
+              <legend className="text-sm font-medium">Layer da importare (polilinee chiuse)</legend>
+              <div className="mt-1 flex max-h-40 flex-wrap gap-x-4 gap-y-1 overflow-y-auto text-sm">
+                {dxf.layers.map((l) => { const n = dxf.poligoni.filter((p) => p.layer === l).length; return (
+                  <label key={l} className={`inline-flex items-center gap-1.5 ${n ? "" : "text-muted-foreground"}`}>
+                    <input type="checkbox" checked={layersSel.includes(l)} disabled={!n} onChange={(e) => { setScelte({}); setLayersSel((v) => e.target.checked ? [...v, l] : v.filter((x) => x !== l)); }} />{l} <span className="text-xs text-muted-foreground">({n})</span>
+                  </label>); })}
+              </div>
+            </fieldset>
           )}
           {tipo === "dxf" && (
-            <div className="mt-3 max-w-xs"><Campo etichetta="Altezza di gronda (m)">
-              <input className={inputCls} inputMode="decimal" placeholder="es. 9 (il DXF è solo in pianta)" value={altezzaDxf} onChange={(e) => setAltezzaDxf(e.target.value)} />
-            </Campo></div>
+            <div className="mt-3 grid max-w-xl gap-3 sm:grid-cols-3">
+              <Campo etichetta="Altezza di gronda predefinita (m)"><input className={inputCls} inputMode="decimal" placeholder="es. 9" value={altezzaDxf} onChange={(e) => setAltezzaDxf(e.target.value)} /></Campo>
+              <Campo etichetta="Impianti sul tetto (m sopra il tetto)"><input className={inputCls} inputMode="decimal" value={hImpianti} onChange={(e) => setHImpianti(e.target.value)} /></Campo>
+              <Campo etichetta="Lucernari (m sopra il tetto)"><input className={inputCls} inputMode="decimal" value={hLucernari} onChange={(e) => setHLucernari(e.target.value)} /></Campo>
+            </div>
           )}
           {tipo === "3d" && (
             <div className="mt-3 flex flex-wrap items-center gap-2 text-sm">
@@ -206,8 +230,9 @@ export function ImportaFile({ onImporta }: { onImporta: (m: ModelloEdificio) => 
             <p className="mt-1 text-sm">Dimensioni dopo l'importazione: <strong className="font-mono">{descriviDimensioni(dimFinali)}</strong>
               {!plausibile(dimFinali) && <span className="ml-2 text-destructive">— non sembrano quelle di un edificio: controlla l'unità.</span>}</p>
           ) : <p className="mt-1 text-sm text-muted-foreground">Scrivi la misura reale per calcolare la scala.</p>}
+          {tipo === "dxf" && elementiScelti.length > 0 && <AnteprimaPianta elementi={elementiScelti} onRuolo={(id, ruolo) => setScelte((v) => ({ ...v, [id]: { ...v[id], ruolo } }))} onAltezza={(id, altezza) => setScelte((v) => ({ ...v, [id]: { ...v[id], altezza } }))} />}
           <div className="mt-3 flex flex-wrap gap-2">
-            <Button disabled={!fattore || busy} onClick={importaCad}>Importa con questa scala</Button>
+            <Button disabled={!fattore || busy} onClick={importaCad}>{tipo === "dxf" && elementiScelti.length ? `Importa ${elementiScelti.filter((e) => e.ruolo !== "ignora").length} elementi` : "Importa con questa scala"}</Button>
             <Button variant="outline" onClick={azzera}>Annulla</Button>
           </div>
         </section>
@@ -288,6 +313,47 @@ export function ImportaFile({ onImporta }: { onImporta: (m: ModelloEdificio) => 
           </div>
         </section>
       )}
+    </div>
+  );
+}
+
+const COLORI: Record<Ruolo, string> = { corpo: "#41525D", impianto: "#F39B00", lucernario: "#0ea5e9", ignora: "#c5d9de" };
+const NOMI_RUOLO: Record<Ruolo, string> = { corpo: "Corpo", impianto: "Impianto sul tetto", lucernario: "Lucernario", ignora: "Non importare" };
+type ElementoVista = ReturnType<typeof analizzaPianta>[number];
+
+/** Pianta letta dal CAD: ogni contorno con il suo ruolo (colore e numero) e la tabella per cambiarlo e scrivere l'altezza. */
+function AnteprimaPianta({ elementi, onRuolo, onAltezza }: { elementi: ElementoVista[]; onRuolo: (id: number, r: Ruolo) => void; onAltezza: (id: number, h: string) => void }) {
+  const xs = elementi.flatMap((e) => e.punti.map((p) => p[0])), ys = elementi.flatMap((e) => e.punti.map((p) => p[1]));
+  const x0 = Math.min(...xs), x1 = Math.max(...xs), y0 = Math.min(...ys), y1 = Math.max(...ys), w = x1 - x0 || 1, h = y1 - y0 || 1, m = Math.max(w, h) * 0.04;
+  const vista = [...elementi].sort((a, b) => b.area - a.area);
+  const num = (e: ElementoVista) => elementi.indexOf(e) + 1;
+  return (
+    <div className="mt-3 grid gap-3 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.2fr)]">
+      <svg viewBox={`${x0 - m} ${-(y1 + m)} ${w + 2 * m} ${h + 2 * m}`} className="max-h-80 w-full rounded-md border bg-white" role="img" aria-label="Anteprima della pianta importata">
+        {vista.map((e) => (
+          <g key={e.id}>
+            <polygon points={e.punti.map((p) => `${p[0]},${-p[1]}`).join(" ")} fill={COLORI[e.ruolo]} fillOpacity={e.ruolo === "corpo" ? 0.12 : 0.35} stroke={COLORI[e.ruolo]} strokeWidth={Math.max(w, h) / 400} strokeDasharray={e.ruolo === "ignora" ? `${Math.max(w, h) / 100}` : undefined} />
+            <text x={e.punti.reduce((s, p) => s + p[0], 0) / e.punti.length} y={-e.punti.reduce((s, p) => s + p[1], 0) / e.punti.length} fontSize={Math.max(w, h) / 40} textAnchor="middle" dominantBaseline="middle" fill="#282A31">{num(e)}</text>
+          </g>
+        ))}
+      </svg>
+      <div className="max-h-80 overflow-auto rounded-md border">
+        <table className="w-full text-sm">
+          <thead className="sticky top-0 bg-card"><tr className="border-b text-left"><th className="p-1.5">N.</th><th className="p-1.5">Cosa è</th><th className="p-1.5">Altezza (m)</th><th className="p-1.5">Area</th><th className="p-1.5">Layer · testo</th></tr></thead>
+          <tbody>
+            {elementi.map((e) => (
+              <tr key={e.id} className="border-b">
+                <td className="p-1.5 font-semibold" style={{ color: COLORI[e.ruolo] }}>{num(e)}</td>
+                <td className="p-1.5"><select aria-label={`Ruolo del contorno ${num(e)}`} className="h-8 rounded border border-input bg-background px-1 text-sm" value={e.ruolo} onChange={(ev) => onRuolo(e.id, ev.target.value as Ruolo)}>{(Object.keys(NOMI_RUOLO) as Ruolo[]).map((r) => <option key={r} value={r}>{NOMI_RUOLO[r]}</option>)}</select></td>
+                <td className="p-1.5"><input aria-label={`Altezza del contorno ${num(e)}`} className="h-8 w-20 rounded border border-input bg-background px-1 text-sm" inputMode="decimal" placeholder={e.ruolo === "corpo" ? "predef." : "predef."} defaultValue={e.altezza ? String(e.altezza).replace(".", ",") : ""} disabled={e.ruolo === "ignora"} onChange={(ev) => onAltezza(e.id, ev.target.value)} /></td>
+                <td className="p-1.5 font-mono text-xs">{fmt(e.area, 1)} m²</td>
+                <td className="max-w-[180px] truncate p-1.5 text-xs text-muted-foreground" title={`${e.layer}${e.testo ? ` · ${e.testo}` : ""}`}>{e.layer}{e.testo ? ` · ${e.testo}` : ""}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+        <p className="p-2 text-xs text-muted-foreground">Contorni piccoli dentro un corpo = impianti sul tetto (o lucernari se il layer o il testo lo dice). Le altezze scritte nel disegno dentro il contorno ("+12,50", "H=9") sono già lette; per impianti e lucernari è l'altezza sopra il tetto.</p>
+      </div>
     </div>
   );
 }

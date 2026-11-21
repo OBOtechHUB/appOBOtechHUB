@@ -2,13 +2,16 @@ import { risorsa } from "@/lib/base";
 import { corpoSchema,modelloSchema,type Corpo,type ModelloEdificio } from "@/calcoli/edificio/tipi";
 import {locale} from "@/calcoli/edificio/geometria";
 import {unitaDaInsunits,type Unita} from "@/calcoli/importazione/scala";
-export async function leggiDXF(file:File,scala:number){const {default:DxfParser}=await import("dxf-parser");const data=new DxfParser().parseSync(await file.text());if(!data)throw new Error("DXF non leggibile.");
-  const polilinee=data.entities.filter((e)=>["LWPOLYLINE","POLYLINE"].includes(e.type)) as unknown as {layer:string;shape?:boolean;vertices:{x:number;y:number}[]}[];
-  // unità dichiarata nel DXF ($INSUNITS) e ingombro delle polilinee chiuse, nell'unità del file: servono a verificare la scala
-  const header=(data as unknown as {header?:Record<string,unknown>}).header??{};const unita:Unita|null=unitaDaInsunits(header["$INSUNITS"]);
-  const chiuse=polilinee.filter((e)=>e.shape&&e.vertices.length>=3);const xs=chiuse.flatMap((e)=>e.vertices.map((v)=>v.x)),ys=chiuse.flatMap((e)=>e.vertices.map((v)=>v.y));
-  const ingombro=(layer?:string)=>{const sel=chiuse.filter((e)=>!layer||e.layer===layer);const a=sel.flatMap((e)=>e.vertices.map((v)=>v.x)),b=sel.flatMap((e)=>e.vertices.map((v)=>v.y));return a.length?[Math.max(...a)-Math.min(...a),Math.max(...b)-Math.min(...b)]:[0,0];};
-  return {unita,dimensioni:xs.length?[Math.max(...xs)-Math.min(...xs),Math.max(...ys)-Math.min(...ys)]:[0,0],ingombro,layers:[...new Set(polilinee.map((e)=>e.layer))],corpi:(layer:string):Corpo[]=>polilinee.filter((e)=>e.layer===layer&&e.shape&&e.vertices.length>=3).map((e,i)=>({id:crypto.randomUUID(),nome:`DXF ${i+1}`,impronta:e.vertices.map((p)=>[p.x*scala,p.y*scala]),quotaBase:0,altezzaGronda:0,tipoTetto:"piano",altezzaColmo:0}))};
+import {letturaDaPolilinee,type LetturaCad,type PoliCad,type TestoCad} from "@/lib/leggiDwg";
+/** DXF: polilinee (chiuse = impronte), testi (altezze e nomi) e unità dichiarata; `scala` moltiplica le coordinate dei corpi. */
+export async function leggiDXF(file:File,scala:number):Promise<LetturaCad>{const {default:DxfParser}=await import("dxf-parser");const data=new DxfParser().parseSync(await file.text());if(!data)throw new Error("DXF non leggibile.");
+  type Ent={type:string;layer?:string;shape?:boolean;vertices?:{x:number;y:number}[];text?:string;startPoint?:{x:number;y:number};position?:{x:number;y:number}};
+  const ent=data.entities as unknown as Ent[];
+  const poli:PoliCad[]=ent.filter((e)=>(e.type==="LWPOLYLINE"||e.type==="POLYLINE")&&Array.isArray(e.vertices)).map((e)=>({layer:e.layer||"0",punti:(e.vertices??[]).map((v)=>[v.x,v.y] as [number,number]),chiusa:!!e.shape}));
+  const testi:TestoCad[]=ent.filter((e)=>(e.type==="TEXT"||e.type==="MTEXT")&&typeof e.text==="string").flatMap((e)=>{const p=e.startPoint??e.position;return p?[{layer:e.layer||"0",x:p.x,y:p.y,testo:e.text??""}]:[];});
+  const header=(data as unknown as {header?:Record<string,unknown>}).header??{};
+  const base=letturaDaPolilinee(poli,unitaDaInsunits(header["$INSUNITS"]),"DXF",testi);
+  return scala===1?base:{...base,corpi:(layer:string)=>base.corpi(layer).map((c)=>({...c,impronta:c.impronta.map((p)=>[p[0]*scala,p[1]*scala] as [number,number])}))};
 }
 export async function leggiKML(file:File):Promise<ModelloEdificio>{const xml=new DOMParser().parseFromString(await file.text(),"application/xml");if(xml.querySelector("parsererror"))throw new Error("KML non valido.");const polygons=[...xml.getElementsByTagName("Polygon")];let origine:{lat:number;lon:number}|undefined;
   const corpi:Corpo[]=polygons.map((poly,i)=>{const coords=poly.getElementsByTagName("coordinates")[0]?.textContent?.trim().split(/\s+/).map((s)=>s.split(",").map(Number))??[];const first=coords[0];if(!first||first[0]===undefined||first[1]===undefined)throw new Error("Poligono KML senza coordinate.");origine??={lat:first[1],lon:first[0]};const o=origine;let impronta=coords.map((p)=>locale(p[1]??0,p[0]??0,o));if(impronta.length>3&&JSON.stringify(impronta[0])===JSON.stringify(impronta.at(-1)))impronta=impronta.slice(0,-1);return corpoSchema.parse({id:crypto.randomUUID(),nome:`KML ${i+1}`,impronta,quotaBase:0,altezzaGronda:0,tipoTetto:"piano",altezzaColmo:0});});

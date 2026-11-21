@@ -7,7 +7,8 @@ import { risorsa } from "@/lib/base";
 import { corpoSchema, type Corpo } from "@/calcoli/edificio/tipi";
 import { unitaDaInsunits, type Unita } from "@/calcoli/importazione/scala";
 
-export interface PoliCad { layer: string; punti: [number, number][]; chiusa: boolean }
+import { polilineeChiuse, type PoliCad, type TestoCad } from "@/calcoli/importazione/analisiPianta";
+export type { PoliCad, TestoCad } from "@/calcoli/importazione/analisiPianta";
 
 /** Struttura comune alla lettura di DXF e DWG: unità, ingombro, layer e corpi da un layer. */
 export interface LetturaCad {
@@ -16,18 +17,15 @@ export interface LetturaCad {
   ingombro: (layer?: string) => number[];
   layers: string[];
   corpi: (layer: string) => Corpo[];
+  /** polilinee chiuse di tutti i layer (per l'analisi della pianta) */
+  poligoni: PoliCad[];
+  /** testi del disegno (per leggere altezze e nomi) */
+  testi: TestoCad[];
 }
 
-const uguali = (a: [number, number], b: [number, number]) => Math.abs(a[0] - b[0]) < 1e-6 && Math.abs(a[1] - b[1]) < 1e-6;
-
 /** Polilinee chiuse (flag "chiusa" oppure ultimo vertice uguale al primo) → lettura comune. */
-export function letturaDaPolilinee(poli: PoliCad[], unita: Unita | null, prefisso = "DXF"): LetturaCad {
-  const chiuse = poli.map((p) => {
-    let pts = p.punti.filter((q, i, a) => i === 0 || !uguali(q, a[i - 1] as [number, number]));
-    const chiusa = p.chiusa || (pts.length > 3 && uguali(pts[0] as [number, number], pts[pts.length - 1] as [number, number]));
-    if (pts.length > 3 && uguali(pts[0] as [number, number], pts[pts.length - 1] as [number, number])) pts = pts.slice(0, -1);
-    return { ...p, punti: pts, chiusa };
-  }).filter((p) => p.chiusa && p.punti.length >= 3);
+export function letturaDaPolilinee(poli: PoliCad[], unita: Unita | null, prefisso = "DXF", testi: TestoCad[] = []): LetturaCad {
+  const chiuse = polilineeChiuse(poli);
   const ingombro = (layer?: string) => {
     const sel = chiuse.filter((p) => !layer || p.layer === layer);
     const xs = sel.flatMap((p) => p.punti.map((q) => q[0])), ys = sel.flatMap((p) => p.punti.map((q) => q[1]));
@@ -37,7 +35,7 @@ export function letturaDaPolilinee(poli: PoliCad[], unita: Unita | null, prefiss
   const conChiuse = [...new Set(chiuse.map((p) => p.layer))];
   const layers = [...conChiuse, ...[...new Set(poli.map((p) => p.layer))].filter((l) => !conChiuse.includes(l))];
   return {
-    unita, dimensioni: ingombro(), ingombro, layers,
+    unita, dimensioni: ingombro(), ingombro, layers, poligoni: chiuse, testi,
     corpi: (layer: string) => chiuse.filter((p) => p.layer === layer).map((p, i) => corpoSchema.parse({ id: crypto.randomUUID(), nome: `${prefisso} ${i + 1}`, impronta: p.punti, quotaBase: 0, altezzaGronda: 0, tipoTetto: "piano", altezzaColmo: 0 })),
   };
 }
@@ -57,6 +55,18 @@ export function polilineeDaDatabase(db: { entities?: unknown[] }): PoliCad[] {
       if (x !== null && y !== null) punti.push([x, y]);
     }
     if (punti.length >= 2) out.push({ layer: e.layer || "0", punti, chiusa: ((e.flag ?? 0) & 1) === 1 });
+  }
+  return out;
+}
+
+/** Testi (TEXT e MTEXT) dello spazio modello di un DWG convertito da LibreDWG. */
+export function testiDaDatabase(db: { entities?: unknown[] }): TestoCad[] {
+  const out: TestoCad[] = [];
+  for (const raw of db.entities ?? []) {
+    const e = raw as { type?: string; layer?: string; isInPaperSpace?: boolean; text?: unknown; startPoint?: Vertice["point"]; insertionPoint?: Vertice["point"]; position?: Vertice["point"] };
+    if (e.isInPaperSpace || (e.type !== "TEXT" && e.type !== "MTEXT") || typeof e.text !== "string") continue;
+    const p = e.insertionPoint ?? e.startPoint ?? e.position, x = numero(p?.x), y = numero(p?.y);
+    if (x !== null && y !== null) out.push({ layer: e.layer || "0", x, y, testo: e.text });
   }
   return out;
 }
@@ -89,7 +99,7 @@ export async function leggiDWG(file: File, cartellaWasm?: string): Promise<Lettu
     const db = lettore.lib.convert(ptr);
     const poli = polilineeDaDatabase(db);
     if (!poli.length) throw new Error("Nel DWG non ci sono polilinee: l'impronta dell'edificio va disegnata con polilinee chiuse.");
-    return letturaDaPolilinee(poli, unitaDaInsunits(db.header?.INSUNITS), "DWG");
+    return letturaDaPolilinee(poli, unitaDaInsunits(db.header?.INSUNITS), "DWG", testiDaDatabase(db));
   } finally {
     try { lettore.lib.dwg_free(ptr); } catch { /* memoria già liberata */ }
   }
