@@ -7,7 +7,7 @@ import { writeFile, mkdir, readFile } from "node:fs/promises";
 
 const BASE = "https://www.obo-bettermann.com";
 const LINGUA = "en-xi";
-const RADICI = ["external-lightning-protection", "surge-protection", "equipotential-bonding-and-earthing"];
+const RADICI = process.env.RADICI ? process.env.RADICI.split(",").map((r) => r.trim()).filter(Boolean) : ["external-lightning-protection", "surge-protection", "equipotential-bonding-and-earthing"];
 const PAUSA_MS = Number(process.env.PAUSA_MS ?? 2500);
 const MAX_PAGINE = Number(process.env.MAX_PAGINE ?? 5000);
 const USCITA = process.env.USCITA ?? "public/dati/obo-prodotti.json";
