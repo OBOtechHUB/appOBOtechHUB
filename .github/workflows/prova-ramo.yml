@@ -33,4 +33,4 @@ jobs:
           git init -q && git checkout -q -b build
           git -c user.name=ci -c user.email=ci@localhost add -A
           git -c user.name=ci -c user.email=ci@localhost commit -qm "build di prova ${GITHUB_SHA}"
-          git push -qf "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git" build:refs/heads/build-prova-${{ github.ref_name }}
+          git push -qf "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git" build:refs/heads/build-prova
