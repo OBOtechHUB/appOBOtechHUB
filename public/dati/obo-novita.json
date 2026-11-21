@@ -1,6 +1,1129 @@
 {
  "aggiornamenti": [
   {
+   "data": "2026-11-21",
+   "articoliPrima": 1135,
+   "articoliDopo": 1135,
+   "nuovi": [],
+   "rimossi": [],
+   "modificati": [
+    {
+     "codice": "5015880",
+     "nome": "Cover for BigBar equipotential busbar",
+     "url": "https://www.obo-bettermann.com/en-xi/products/cover-for-bigbar-equipotential-busbar-5-5015880.html",
+     "campi": [
+      {
+       "campo": "Accessories",
+       "prima": null,
+       "dopo": "yes"
+      },
+      {
+       "campo": "Spare part",
+       "prima": null,
+       "dopo": "yes"
+      }
+     ]
+    },
+    {
+     "codice": "5015707",
+     "nome": "Cover hood for 1801 VDE",
+     "url": "https://www.obo-bettermann.com/en-xi/products/cover-hood-for-1801-vde-5015707.html",
+     "campi": [
+      {
+       "campo": "Accessories",
+       "prima": null,
+       "dopo": "yes"
+      },
+      {
+       "campo": "Spare part",
+       "prima": null,
+       "dopo": "yes"
+      }
+     ]
+    },
+    {
+     "codice": "5015200",
+     "nome": "Cover hood for 1809",
+     "url": "https://www.obo-bettermann.com/en-xi/products/cover-hood-for-1809-5015200.html",
+     "campi": [
+      {
+       "campo": "Accessories",
+       "prima": null,
+       "dopo": "yes"
+      },
+      {
+       "campo": "Spare part",
+       "prima": null,
+       "dopo": "yes"
+      }
+     ]
+    },
+    {
+     "codice": "5051520",
+     "nome": "Earthing terminal for PV mounting systems",
+     "url": "https://www.obo-bettermann.com/en-xi/products/earthing-terminal-for-pv-mounting-systems-round-conductor-5051520.html",
+     "campi": [
+      {
+       "campo": "Product series",
+       "prima": null,
+       "dopo": "Magic PV Flat"
+      }
+     ]
+    },
+    {
+     "codice": "5218716",
+     "nome": "165 MBG... roof cable holder for flat roofs, with increased base section",
+     "url": "https://www.obo-bettermann.com/en-xi/products/165-mbg-roof-cable-holder-for-flat-roofs-with-increased-base-section-200-rd-8-10-5218716.html",
+     "campi": [
+      {
+       "campo": "Length",
+       "prima": null,
+       "dopo": "200 mm"
+      },
+      {
+       "campo": "Width",
+       "prima": null,
+       "dopo": "200 mm"
+      },
+      {
+       "campo": "Diameter",
+       "prima": null,
+       "dopo": "200 mm"
+      }
+     ]
+    },
+    {
+     "codice": "5202515",
+     "nome": "Roof conductor holder for ridge tiles, 185−260 mm, Rd 8–10, A2",
+     "url": "https://www.obo-bettermann.com/en-xi/products/roof-conductor-holder-for-ridge-tiles-185-260-mm-rd-8-10-a2-20-rd-8-10-5202515.html",
+     "campi": [
+      {
+       "campo": "Dimension",
+       "prima": "8mm",
+       "dopo": "8-10 mm"
+      }
+     ]
+    },
+    {
+     "codice": "5202836",
+     "nome": "Roof conductor holder for ridge tiles, 185−260 mm, Rd 8, A2",
+     "url": "https://www.obo-bettermann.com/en-xi/products/roof-conductor-holder-for-ridge-tiles-185-260-mm-rd-8-a2-35-rd-8-5202836.html",
+     "campi": [
+      {
+       "campo": "Dimension",
+       "prima": "8-10 mm",
+       "dopo": "8 mm"
+      }
+     ]
+    },
+    {
+     "codice": "5320704",
+     "nome": "Connection component Alu",
+     "url": "https://www.obo-bettermann.com/en-xi/products/connection-component-alu-5320704.html",
+     "campi": [
+      {
+       "campo": "Length",
+       "prima": null,
+       "dopo": "82 mm"
+      },
+      {
+       "campo": "Width",
+       "prima": null,
+       "dopo": "30 mm"
+      },
+      {
+       "campo": "Height",
+       "prima": null,
+       "dopo": "26 mm"
+      }
+     ]
+    },
+    {
+     "codice": "5320690",
+     "nome": "Connection component Cu",
+     "url": "https://www.obo-bettermann.com/en-xi/products/connection-component-cu-5320690.html",
+     "campi": [
+      {
+       "campo": "Length",
+       "prima": null,
+       "dopo": "82 mm"
+      },
+      {
+       "campo": "Width",
+       "prima": null,
+       "dopo": "30 mm"
+      },
+      {
+       "campo": "Height",
+       "prima": null,
+       "dopo": "26 mm"
+      }
+     ]
+    },
+    {
+     "codice": "5320707",
+     "nome": "Connection component with double crossbar",
+     "url": "https://www.obo-bettermann.com/en-xi/products/connection-component-with-double-crossbar-n-50-rd-6-8-5320707.html",
+     "campi": [
+      {
+       "campo": "Length",
+       "prima": null,
+       "dopo": "82 mm"
+      },
+      {
+       "campo": "Width",
+       "prima": null,
+       "dopo": "30 mm"
+      },
+      {
+       "campo": "Height",
+       "prima": null,
+       "dopo": "26 mm"
+      },
+      {
+       "campo": "Suitable for round conductor diameters, min.",
+       "prima": "8 mm",
+       "dopo": "6 mm"
+      },
+      {
+       "campo": "Suitable for round conductor diameters, max.",
+       "prima": null,
+       "dopo": "8 mm"
+      },
+      {
+       "campo": "Fit",
+       "prima": "8 mm",
+       "dopo": "Rd 6 - 8 mm"
+      },
+      {
+       "campo": "Clamping range, min.",
+       "prima": "8 mm",
+       "dopo": "6 mm"
+      },
+      {
+       "campo": "Clamping range, max.",
+       "prima": null,
+       "dopo": "8 mm"
+      }
+     ]
+    },
+    {
+     "codice": "5320709",
+     "nome": "Connection component with double crossbar",
+     "url": "https://www.obo-bettermann.com/en-xi/products/connection-component-with-double-crossbar-h-100-rd-6-8-5320709.html",
+     "campi": [
+      {
+       "campo": "Length",
+       "prima": null,
+       "dopo": "82 mm"
+      },
+      {
+       "campo": "Width",
+       "prima": null,
+       "dopo": "30 mm"
+      },
+      {
+       "campo": "Height",
+       "prima": null,
+       "dopo": "26 mm"
+      }
+     ]
+    },
+    {
+     "codice": "5304202",
+     "nome": "Connector Rd 8−10 mm, double",
+     "url": "https://www.obo-bettermann.com/en-xi/products/connector-rd-8-10-mm-double-rd-8-10-5304202.html",
+     "campi": [
+      {
+       "campo": "Length",
+       "prima": null,
+       "dopo": "25 mm"
+      },
+      {
+       "campo": "Width",
+       "prima": null,
+       "dopo": "50 mm"
+      },
+      {
+       "campo": "Height",
+       "prima": null,
+       "dopo": "38 mm"
+      }
+     ]
+    },
+    {
+     "codice": "5304113",
+     "nome": "Connector Rd 8−10 mm, single, copper",
+     "url": "https://www.obo-bettermann.com/en-xi/products/connector-rd-8-10-mm-single-copper-rd-8-10-5304113.html",
+     "campi": [
+      {
+       "campo": "Length",
+       "prima": null,
+       "dopo": "28 mm"
+      },
+      {
+       "campo": "Width",
+       "prima": null,
+       "dopo": "25 mm"
+      },
+      {
+       "campo": "Height",
+       "prima": null,
+       "dopo": "38 mm"
+      }
+     ]
+    },
+    {
+     "codice": "5304008",
+     "nome": "Connector, Rd 8−10 mm with M10 thread",
+     "url": "https://www.obo-bettermann.com/en-xi/products/connector-rd-8-10-mm-with-m10-thread-rd-8-10-5304008.html",
+     "campi": [
+      {
+       "campo": "Length",
+       "prima": null,
+       "dopo": "21,5 mm"
+      },
+      {
+       "campo": "Width",
+       "prima": null,
+       "dopo": "21,5 mm"
+      },
+      {
+       "campo": "Height",
+       "prima": null,
+       "dopo": "38 mm"
+      }
+     ]
+    },
+    {
+     "codice": "5304176",
+     "nome": "Connector, Rd 8−10 mm with pressure trough",
+     "url": "https://www.obo-bettermann.com/en-xi/products/connector-rd-8-10-mm-with-pressure-trough-rd-8-10-5304176.html",
+     "campi": [
+      {
+       "campo": "Length",
+       "prima": null,
+       "dopo": "22 mm"
+      },
+      {
+       "campo": "Width",
+       "prima": null,
+       "dopo": "22 mm"
+      },
+      {
+       "campo": "Height",
+       "prima": null,
+       "dopo": "38 mm"
+      }
+     ]
+    },
+    {
+     "codice": "5304177",
+     "nome": "Connector, Rd 8−10 mm with pressure trough A2",
+     "url": "https://www.obo-bettermann.com/en-xi/products/connector-rd-8-10-mm-with-pressure-trough-a2-rd-8-10-5304177.html",
+     "campi": [
+      {
+       "campo": "Length",
+       "prima": null,
+       "dopo": "22 mm"
+      },
+      {
+       "campo": "Width",
+       "prima": null,
+       "dopo": "22 mm"
+      },
+      {
+       "campo": "Height",
+       "prima": null,
+       "dopo": "38 mm"
+      }
+     ]
+    },
+    {
+     "codice": "5304172",
+     "nome": "Connector, Rd 8−10 mm with pressure trough Cu",
+     "url": "https://www.obo-bettermann.com/en-xi/products/connector-rd-8-10-mm-with-pressure-trough-cu-rd-8-10-5304172.html",
+     "campi": [
+      {
+       "campo": "Length",
+       "prima": null,
+       "dopo": "21,5 mm"
+      },
+      {
+       "campo": "Width",
+       "prima": null,
+       "dopo": "21,5 mm"
+      },
+      {
+       "campo": "Height",
+       "prima": null,
+       "dopo": "38 mm"
+      }
+     ]
+    },
+    {
+     "codice": "5304164",
+     "nome": "Connector, Rd 8−10 mm with pressure trough FT",
+     "url": "https://www.obo-bettermann.com/en-xi/products/connector-rd-8-10-mm-with-pressure-trough-ft-rd-8-10-5304164.html",
+     "campi": [
+      {
+       "campo": "Length",
+       "prima": null,
+       "dopo": "21,5 mm"
+      },
+      {
+       "campo": "Width",
+       "prima": null,
+       "dopo": "21,5 mm"
+      },
+      {
+       "campo": "Height",
+       "prima": null,
+       "dopo": "38 mm"
+      }
+     ]
+    },
+    {
+     "codice": "5304270",
+     "nome": "Connector, Rd 8−10 mm, double, with pressure trough",
+     "url": "https://www.obo-bettermann.com/en-xi/products/connector-rd-8-10-mm-double-with-pressure-trough-rd-8-10-5304270.html",
+     "campi": [
+      {
+       "campo": "Length",
+       "prima": null,
+       "dopo": "23 mm"
+      },
+      {
+       "campo": "Width",
+       "prima": null,
+       "dopo": "63 mm"
+      },
+      {
+       "campo": "Height",
+       "prima": null,
+       "dopo": "38 mm"
+      }
+     ]
+    },
+    {
+     "codice": "5317479",
+     "nome": "Folding clamp and connection terminal up to 5 mm Cu plate thickness",
+     "url": "https://www.obo-bettermann.com/en-xi/products/folding-clamp-and-connection-terminal-up-to-5-mm-cu-plate-thickness-rd-8-5-5317479.html",
+     "campi": [
+      {
+       "campo": "Height",
+       "prima": null,
+       "dopo": "24 mm"
+      }
+     ]
+    },
+    {
+     "codice": "5317428",
+     "nome": "Folding clamp and connection terminal up to 5 mm FT plate thickness",
+     "url": "https://www.obo-bettermann.com/en-xi/products/folding-clamp-and-connection-terminal-up-to-5-mm-ft-plate-thickness-rd-8-5-5317428.html",
+     "campi": [
+      {
+       "campo": "Height",
+       "prima": null,
+       "dopo": "24 mm"
+      }
+     ]
+    },
+    {
+     "codice": "5317274",
+     "nome": "Folding clamp up to 10 mm plate thickness Cu",
+     "url": "https://www.obo-bettermann.com/en-xi/products/folding-clamp-up-to-10-mm-plate-thickness-cu-rd-8-10-10-5317274.html",
+     "campi": [
+      {
+       "campo": "Height",
+       "prima": null,
+       "dopo": "25 mm"
+      }
+     ]
+    },
+    {
+     "codice": "5317223",
+     "nome": "Folding clamp up to 10 mm plate thickness FT",
+     "url": "https://www.obo-bettermann.com/en-xi/products/folding-clamp-up-to-10-mm-plate-thickness-ft-rd-8-10-10-5317223.html",
+     "campi": [
+      {
+       "campo": "Height",
+       "prima": null,
+       "dopo": "25 mm"
+      }
+     ]
+    },
+    {
+     "codice": "5317481",
+     "nome": "Folding clamp up to 5 mm plate thickness A2",
+     "url": "https://www.obo-bettermann.com/en-xi/products/folding-clamp-up-to-5-mm-plate-thickness-a2-rd-8-10-5-5317481.html",
+     "campi": [
+      {
+       "campo": "Height",
+       "prima": null,
+       "dopo": "21,5 mm"
+      }
+     ]
+    },
+    {
+     "codice": "5317401",
+     "nome": "Folding clamp up to 5 mm plate thickness FT",
+     "url": "https://www.obo-bettermann.com/en-xi/products/folding-clamp-up-to-5-mm-plate-thickness-ft-rd-8-10-5-5317401.html",
+     "campi": [
+      {
+       "campo": "Height",
+       "prima": null,
+       "dopo": "21,5 mm"
+      }
+     ]
+    },
+    {
+     "codice": "5315654",
+     "nome": "Parallel connector Rd 6−10 mm, M6 x 20",
+     "url": "https://www.obo-bettermann.com/en-xi/products/parallel-connector-rd-6-10-mm-m6-x-20-rd-6-10-5315654.html",
+     "campi": [
+      {
+       "campo": "Length",
+       "prima": null,
+       "dopo": "37 mm"
+      },
+      {
+       "campo": "Width",
+       "prima": null,
+       "dopo": "34 mm"
+      },
+      {
+       "campo": "Height",
+       "prima": null,
+       "dopo": "20 mm"
+      }
+     ]
+    },
+    {
+     "codice": "5315700",
+     "nome": "Parallel connector Rd 8 mm, M10 x 30",
+     "url": "https://www.obo-bettermann.com/en-xi/products/parallel-connector-rd-8-mm-m10-x-30-rd-8-5315700.html",
+     "campi": [
+      {
+       "campo": "Length",
+       "prima": null,
+       "dopo": "45 mm"
+      },
+      {
+       "campo": "Width",
+       "prima": null,
+       "dopo": "33 mm"
+      },
+      {
+       "campo": "Height",
+       "prima": null,
+       "dopo": "19 mm"
+      }
+     ]
+    },
+    {
+     "codice": "5315506",
+     "nome": "Parallel connector Rd 8−10 mm, M8 x 25",
+     "url": "https://www.obo-bettermann.com/en-xi/products/parallel-connector-rd-8-10-mm-m8-x-25-rd-8-10-5315506.html",
+     "campi": [
+      {
+       "campo": "Length",
+       "prima": null,
+       "dopo": "49 mm"
+      },
+      {
+       "campo": "Width",
+       "prima": null,
+       "dopo": "38 mm"
+      },
+      {
+       "campo": "Height",
+       "prima": null,
+       "dopo": "23 mm"
+      }
+     ]
+    },
+    {
+     "codice": "5316170",
+     "nome": "Bi-metal roof gutter clamp for all bead thicknesses",
+     "url": "https://www.obo-bettermann.com/en-xi/products/bi-metal-roof-gutter-clamp-for-all-bead-thicknesses-rd-8-10-12-20-5316170.html",
+     "campi": [
+      {
+       "campo": "Length",
+       "prima": null,
+       "dopo": "92,8 mm"
+      },
+      {
+       "campo": "Width",
+       "prima": null,
+       "dopo": "40 mm"
+      },
+      {
+       "campo": "Height",
+       "prima": null,
+       "dopo": "43,95 mm"
+      },
+      {
+       "campo": "Clamping range, min.",
+       "prima": null,
+       "dopo": "12 mm"
+      },
+      {
+       "campo": "Clamping range, max.",
+       "prima": null,
+       "dopo": "20 mm"
+      }
+     ]
+    },
+    {
+     "codice": "5316324",
+     "nome": "Gutter clamp for all bead thicknesses A2",
+     "url": "https://www.obo-bettermann.com/en-xi/products/gutter-clamp-for-all-bead-thicknesses-a2-rd-8-10-20-5316324.html",
+     "campi": [
+      {
+       "campo": "Length",
+       "prima": null,
+       "dopo": "66,5 mm"
+      },
+      {
+       "campo": "Width",
+       "prima": null,
+       "dopo": "35 mm"
+      },
+      {
+       "campo": "Height",
+       "prima": null,
+       "dopo": "25 mm"
+      },
+      {
+       "campo": "Clamping range, max.",
+       "prima": null,
+       "dopo": "20 mm"
+      }
+     ]
+    },
+    {
+     "codice": "5316308",
+     "nome": "Gutter clamp for all bead thicknesses FT",
+     "url": "https://www.obo-bettermann.com/en-xi/products/gutter-clamp-for-all-bead-thicknesses-ft-rd-8-10-20-5316308.html",
+     "campi": [
+      {
+       "campo": "Length",
+       "prima": null,
+       "dopo": "66,5 mm"
+      },
+      {
+       "campo": "Width",
+       "prima": null,
+       "dopo": "35 mm"
+      },
+      {
+       "campo": "Height",
+       "prima": null,
+       "dopo": "25 mm"
+      },
+      {
+       "campo": "Clamping range, max.",
+       "prima": null,
+       "dopo": "20 mm"
+      }
+     ]
+    },
+    {
+     "codice": "5316251",
+     "nome": "Gutter clamp for bead thickness 15−22 mm Cu",
+     "url": "https://www.obo-bettermann.com/en-xi/products/gutter-clamp-for-bead-thickness-15-22-mm-cu-rd-8-10-15-22-5316251.html",
+     "campi": [
+      {
+       "campo": "Length",
+       "prima": null,
+       "dopo": "72 mm"
+      },
+      {
+       "campo": "Width",
+       "prima": null,
+       "dopo": "58 mm"
+      },
+      {
+       "campo": "Height",
+       "prima": null,
+       "dopo": "33,7 mm"
+      }
+     ]
+    },
+    {
+     "codice": "5316219",
+     "nome": "Gutter clamp for bead thickness 15−22 mm FT",
+     "url": "https://www.obo-bettermann.com/en-xi/products/gutter-clamp-for-bead-thickness-15-22-mm-ft-rd-8-10-15-22-5316219.html",
+     "campi": [
+      {
+       "campo": "Length",
+       "prima": null,
+       "dopo": "72 mm"
+      },
+      {
+       "campo": "Width",
+       "prima": null,
+       "dopo": "58 mm"
+      },
+      {
+       "campo": "Height",
+       "prima": null,
+       "dopo": "33,7 mm"
+      }
+     ]
+    },
+    {
+     "codice": "5316459",
+     "nome": "Gutter clamp RK-FIX A2",
+     "url": "https://www.obo-bettermann.com/en-xi/products/gutter-clamp-rk-fix-a2-2-x-rd-8-2-x-rd-6-15-25-5316459.html",
+     "campi": [
+      {
+       "campo": "Length",
+       "prima": null,
+       "dopo": "64,95 mm"
+      },
+      {
+       "campo": "Width",
+       "prima": null,
+       "dopo": "41 mm"
+      },
+      {
+       "campo": "Height",
+       "prima": null,
+       "dopo": "45 mm"
+      }
+     ]
+    },
+    {
+     "codice": "5316468",
+     "nome": "Gutter clamp RK-FIX Cu",
+     "url": "https://www.obo-bettermann.com/en-xi/products/gutter-clamp-rk-fix-cu-2-x-rd-8-2-x-rd-6-15-25-5316468.html",
+     "campi": [
+      {
+       "campo": "Length",
+       "prima": null,
+       "dopo": "64,95 mm"
+      },
+      {
+       "campo": "Width",
+       "prima": null,
+       "dopo": "41 mm"
+      },
+      {
+       "campo": "Height",
+       "prima": null,
+       "dopo": "45 mm"
+      }
+     ]
+    },
+    {
+     "codice": "5316450",
+     "nome": "Gutter clamp RK-FIX FT",
+     "url": "https://www.obo-bettermann.com/en-xi/products/gutter-clamp-rk-fix-ft-2-x-rd-8-15-25-5316450.html",
+     "campi": [
+      {
+       "campo": "Length",
+       "prima": null,
+       "dopo": "64,95 mm"
+      },
+      {
+       "campo": "Width",
+       "prima": null,
+       "dopo": "41 mm"
+      },
+      {
+       "campo": "Height",
+       "prima": null,
+       "dopo": "45 mm"
+      }
+     ]
+    },
+    {
+     "codice": "5316154",
+     "nome": "Roof gutter clamp for all bead thicknesses Cu",
+     "url": "https://www.obo-bettermann.com/en-xi/products/roof-gutter-clamp-for-all-bead-thicknesses-cu-rd-8-10-12-20-5316154.html",
+     "campi": [
+      {
+       "campo": "Length",
+       "prima": null,
+       "dopo": "92,8 mm"
+      },
+      {
+       "campo": "Width",
+       "prima": null,
+       "dopo": "40 mm"
+      },
+      {
+       "campo": "Height",
+       "prima": null,
+       "dopo": "43,95 mm"
+      },
+      {
+       "campo": "Clamping range, min.",
+       "prima": null,
+       "dopo": "12 mm"
+      },
+      {
+       "campo": "Clamping range, max.",
+       "prima": null,
+       "dopo": "20 mm"
+      }
+     ]
+    },
+    {
+     "codice": "5316014",
+     "nome": "Roof gutter clamp for all bead thicknesses FT",
+     "url": "https://www.obo-bettermann.com/en-xi/products/roof-gutter-clamp-for-all-bead-thicknesses-ft-rd-8-10-12-20-5316014.html",
+     "campi": [
+      {
+       "campo": "Length",
+       "prima": null,
+       "dopo": "92,8 mm"
+      },
+      {
+       "campo": "Width",
+       "prima": null,
+       "dopo": "40 mm"
+      },
+      {
+       "campo": "Height",
+       "prima": null,
+       "dopo": "43,95 mm"
+      },
+      {
+       "campo": "Clamping range, min.",
+       "prima": null,
+       "dopo": "12 mm"
+      },
+      {
+       "campo": "Clamping range, max.",
+       "prima": null,
+       "dopo": "20 mm"
+      }
+     ]
+    },
+    {
+     "codice": "5328284",
+     "nome": "Straight connector Rd 6−10 mm Cu",
+     "url": "https://www.obo-bettermann.com/en-xi/products/straight-connector-rd-6-10-mm-cu-rd-6-10-5328284.html",
+     "campi": [
+      {
+       "campo": "Length",
+       "prima": null,
+       "dopo": "80 mm"
+      },
+      {
+       "campo": "Width",
+       "prima": null,
+       "dopo": "17 mm"
+      },
+      {
+       "campo": "Height",
+       "prima": null,
+       "dopo": "19,5 mm"
+      }
+     ]
+    },
+    {
+     "codice": "5329078",
+     "nome": "Straight connector Rd 8 mm",
+     "url": "https://www.obo-bettermann.com/en-xi/products/straight-connector-rd-8-mm-rd-8-5329078.html",
+     "campi": [
+      {
+       "campo": "Length",
+       "prima": null,
+       "dopo": "58 mm"
+      },
+      {
+       "campo": "Width",
+       "prima": null,
+       "dopo": "26 mm"
+      },
+      {
+       "campo": "Height",
+       "prima": null,
+       "dopo": "18 mm"
+      },
+      {
+       "campo": "Clamping range, min.",
+       "prima": null,
+       "dopo": "8 mm"
+      },
+      {
+       "campo": "Clamping range, max.",
+       "prima": null,
+       "dopo": "8 mm"
+      }
+     ]
+    },
+    {
+     "codice": "5328209",
+     "nome": "Straight connector Rd 8−10 mm",
+     "url": "https://www.obo-bettermann.com/en-xi/products/straight-connector-rd-8-10-mm-rd-8-10-5328209.html",
+     "campi": [
+      {
+       "campo": "Length",
+       "prima": null,
+       "dopo": "80 mm"
+      },
+      {
+       "campo": "Width",
+       "prima": null,
+       "dopo": "17 mm"
+      },
+      {
+       "campo": "Height",
+       "prima": null,
+       "dopo": "19,5 mm"
+      },
+      {
+       "campo": "Clamping range, min.",
+       "prima": null,
+       "dopo": "8 mm"
+      },
+      {
+       "campo": "Clamping range, max.",
+       "prima": null,
+       "dopo": "10 mm"
+      }
+     ]
+    },
+    {
+     "codice": "5311039",
+     "nome": "T connector Rd 8 mm",
+     "url": "https://www.obo-bettermann.com/en-xi/products/t-connector-rd-8-mm-rd-8-5311039.html",
+     "campi": [
+      {
+       "campo": "Length",
+       "prima": null,
+       "dopo": "49 mm"
+      },
+      {
+       "campo": "Width",
+       "prima": null,
+       "dopo": "26 mm"
+      },
+      {
+       "campo": "Height",
+       "prima": null,
+       "dopo": "18 mm"
+      }
+     ]
+    },
+    {
+     "codice": "5311268",
+     "nome": "T connector Rd 8-10 mm, triple-screwed Cu",
+     "url": "https://www.obo-bettermann.com/en-xi/products/t-connector-rd-8-10-mm-triple-screwed-cu-rd-8-10-5311268.html",
+     "campi": [
+      {
+       "campo": "Length",
+       "prima": null,
+       "dopo": "50 mm"
+      },
+      {
+       "campo": "Width",
+       "prima": null,
+       "dopo": "40 mm"
+      },
+      {
+       "campo": "Height",
+       "prima": null,
+       "dopo": "14 mm"
+      }
+     ]
+    },
+    {
+     "codice": "5311209",
+     "nome": "T connector Rd 8-10 mm, triple-screwed FT",
+     "url": "https://www.obo-bettermann.com/en-xi/products/t-connector-rd-8-10-mm-triple-screwed-ft-rd-8-10-5311209.html",
+     "campi": [
+      {
+       "campo": "Length",
+       "prima": null,
+       "dopo": "50 mm"
+      },
+      {
+       "campo": "Width",
+       "prima": null,
+       "dopo": "40 mm"
+      },
+      {
+       "campo": "Height",
+       "prima": null,
+       "dopo": "14 mm"
+      }
+     ]
+    },
+    {
+     "codice": "5311152",
+     "nome": "T connector Rd 8−10 mm Cu",
+     "url": "https://www.obo-bettermann.com/en-xi/products/t-connector-rd-8-10-mm-cu-rd-8-10-5311152.html",
+     "campi": [
+      {
+       "campo": "Length",
+       "prima": null,
+       "dopo": "48 mm"
+      },
+      {
+       "campo": "Width",
+       "prima": null,
+       "dopo": "40 mm"
+      },
+      {
+       "campo": "Height",
+       "prima": null,
+       "dopo": "14 mm"
+      }
+     ]
+    },
+    {
+     "codice": "5311101",
+     "nome": "T connector Rd 8−10 mm FT",
+     "url": "https://www.obo-bettermann.com/en-xi/products/t-connector-rd-8-10-mm-ft-rd-8-10-5311101.html",
+     "campi": [
+      {
+       "campo": "Length",
+       "prima": null,
+       "dopo": "48 mm"
+      },
+      {
+       "campo": "Width",
+       "prima": null,
+       "dopo": "40 mm"
+      },
+      {
+       "campo": "Height",
+       "prima": null,
+       "dopo": "14 mm"
+      }
+     ]
+    },
+    {
+     "codice": "5403393",
+     "nome": "UniBase 10 universal stand",
+     "url": "https://www.obo-bettermann.com/en-xi/products/unibase-10-universal-stand-5403393.html",
+     "campi": [
+      {
+       "campo": "Product series",
+       "prima": null,
+       "dopo": "Magic PV Flat"
+      }
+     ]
+    },
+    {
+     "codice": "5012010",
+     "nome": "Connection terminal for through-wiring",
+     "url": "https://www.obo-bettermann.com/en-xi/products/connection-terminal-for-through-wiring-5012010.html",
+     "campi": [
+      {
+       "campo": "Accessories",
+       "prima": null,
+       "dopo": "yes"
+      },
+      {
+       "campo": "Spare part",
+       "prima": null,
+       "dopo": "no"
+      },
+      {
+       "campo": "Type of accessory, accessory for surge protection, energy technology",
+       "prima": null,
+       "dopo": "Connection terminal"
+      }
+     ]
+    },
+    {
+     "codice": "5089657",
+     "nome": "Wiring set for V10 – Mini",
+     "url": "https://www.obo-bettermann.com/en-xi/products/wiring-set-for-v10-mini--5089657.html",
+     "campi": [
+      {
+       "campo": "Accessories",
+       "prima": null,
+       "dopo": "yes"
+      },
+      {
+       "campo": "Spare part",
+       "prima": null,
+       "dopo": "no"
+      },
+      {
+       "campo": "Type of accessory, accessory for surge protection, energy technology",
+       "prima": null,
+       "dopo": "Connection cable"
+      }
+     ]
+    },
+    {
+     "codice": "5084032",
+     "nome": "LSA earthing rail",
+     "url": "https://www.obo-bettermann.com/en-xi/products/lsa-earthing-rail-5084032.html",
+     "campi": [
+      {
+       "campo": "Accessories",
+       "prima": null,
+       "dopo": "yes"
+      },
+      {
+       "campo": "Spare part",
+       "prima": null,
+       "dopo": "no"
+      },
+      {
+       "campo": "Type of accessory, accessory for surge protection, information/MCR technology",
+       "prima": null,
+       "dopo": "Earthing strip"
+      }
+     ]
+    },
+    {
+     "codice": "5084048",
+     "nome": "LSA protective housing",
+     "url": "https://www.obo-bettermann.com/en-xi/products/lsa-protective-housing-5084048.html",
+     "campi": [
+      {
+       "campo": "Accessories",
+       "prima": null,
+       "dopo": "yes"
+      },
+      {
+       "campo": "Spare part",
+       "prima": null,
+       "dopo": "no"
+      },
+      {
+       "campo": "Type of accessory, accessory for surge protection, information/MCR technology",
+       "prima": null,
+       "dopo": "Protective housing"
+      }
+     ]
+    },
+    {
+     "codice": "5082382",
+     "nome": "Fastening set for DIN profile rail",
+     "url": "https://www.obo-bettermann.com/en-xi/products/fastening-set-for-din-profile-rail-for-mounting-coax-b-e2-coax-n-e5-rj-11-tele-4-rj-45-s--5082382.html",
+     "campi": [
+      {
+       "campo": "Accessories",
+       "prima": null,
+       "dopo": "yes"
+      },
+      {
+       "campo": "Spare part",
+       "prima": null,
+       "dopo": "no"
+      },
+      {
+       "campo": "Type of accessory, accessory for surge protection, information/MCR technology",
+       "prima": null,
+       "dopo": "Fastenings"
+      }
+     ]
+    }
+   ]
+  },
+  {
    "data": "2026-11-07",
    "articoliPrima": 0,
    "articoliDopo": 1135,
@@ -10,5 +1133,5 @@
    "primaLettura": true
   }
  ],
- "ultimoControllo": "2026-11-07"
+ "ultimoControllo": "2026-11-21"
 }
