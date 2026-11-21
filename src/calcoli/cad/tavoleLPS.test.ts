@@ -12,7 +12,7 @@ function dati(): DatiTavola {
     aste: [{ x: 20, y: 10, z: 10, altezza: 3 }],
     conduttori: [{ tipo: "captazione", punti: [[0, 0, 10], [40, 0, 10], [40, 20, 10], [0, 20, 10], [0, 0, 10]] }, calata(0, 0), calata(20, 0), calata(40, 0), calata(40, 20), calata(20, 20), calata(0, 20), { tipo: "terra", punti: [[-1, -1, -0.5], [41, -1, -0.5], [41, 21, -0.5], [-1, 21, -0.5], [-1, -1, -0.5]] }],
     supporti: [], morsetti: [], compensatori: [], picchetti: [{ x: -1, y: -1, lunghezza: 1.5 }], distinta: [],
-    particolari: { marcatori: [], usati: [{ idParticolare: "P-A", nome: "Giunzione", punti: 4 }] }, nordInAlto: true,
+    particolari: { marcatori: [], usati: [{ idParticolare: "P-A", nome: "Giunzione", punti: 4 }] }, nordInAlto: true, latoMaglia: 15,
   };
 }
 
@@ -43,7 +43,8 @@ describe("tavole aggiuntive", () => {
     const fogli = aggiungiTavole(base.dxf, d, base, { raggioSfera: 45, distanzaCalate: { tipica: 15 }, particolari: [{ idParticolare: "P-A", nome: "Giunzione", punti: 4, componenti: [{ codiceOBO: "5311519", descrizione: "Connettore", quantita: 1, unita: "/punto" }] }] });
     expect(fogli.map((f) => f.tav)).toEqual(["TAV. LPS-01", "TAV. LPS-02", "TAV. LPS-03", "TAV. LPS-04"]);
     const testo = base.dxf.finale();
-    for (const t of ["TAV. LPS-02", "PROSPETTO SUD", "LPS-SFERA", "CALATE", "OLTRE", "5311519"]) expect(testo).toContain(t);
+    for (const t of ["TAV. LPS-02", "PROSPETTO SUD", "LPS-SFERA", "CALATE", "OLTRE", "5311519", "Maglia 40,00 x 20,00 m - copertura protetta dalle aste"]) expect(testo).toContain(t);
+    expect(testo.split("\r\n").filter((r) => r === "20,00").length).toBeGreaterThanOrEqual(4); // catena delle calate sui lati lunghi
     const pdf = new TextDecoder("latin1").decode(pdfTavole(base.dxf, fogli, Object.values(LAYER_LPS)));
     expect(pdf.startsWith("%PDF-1.4")).toBe(true);
     expect(pdf).toContain("/Count 4");

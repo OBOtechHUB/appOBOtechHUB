@@ -36,6 +36,7 @@ export function generaCAD(s:StatoEsteso,progetto:{codice:string;nome:string;comu
   };
   const lplSfere=Object.keys(sfere).filter((l)=>sfere[l]);
   const layerSfere=lplSfere.map((l)=>{const x=LAYER_SFERA(l);return {nome:x.nome,colore:x.colore,linea:"CONTINUOUS" as const,descrizione:x.descrizione};});
+  dati.latoMaglia=(parametriLPL as unknown as Record<string,{latoMaglia:number}>)[s.lpl]?.latoMaglia;
   const base=generaTavola(dati,layerSfere);
   const {dxf:w,foglio,scala,formato}=base;
   // tavole 02-04 (prospetti con sfera rotolante, calate e terra, particolari) sotto la pianta coperture

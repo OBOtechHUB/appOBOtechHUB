@@ -26,6 +26,8 @@ export interface DatiTavola {
   distinta: VoceDistinta[];
   /** marcatori dei particolari (da posizioniParticolari) e particolari usati, nell'ordine di numerazione */
   particolari: { marcatori: RichiamoParticolare[]; usati: { idParticolare: string; nome: string; punti: number }[] };
+  /** lato massimo della maglia di captazione per il livello di protezione (m), per la verifica in pianta */
+  latoMaglia?: number | undefined;
   /** true se la pianta è orientata con il nord in alto (coordinate da mappa/KML) */
   nordInAlto?: boolean | undefined;
 }
@@ -180,6 +182,65 @@ export function generaTavola(d: DatiTavola, layerExtra: { nome: string; colore: 
     occupati.push({ x: q[0], y: q[1], r: hT(2.8) });
   });
 
+  // ---------- quote a catena delle calate lungo i lati di ogni corpo (più esterne delle quote d'ingombro)
+  for (const c of d.corpi) {
+    if (c.impronta.length < 3) continue;
+    const n = c.impronta.length;
+    // senso del poligono: normale esterna
+    const area = c.impronta.reduce((s2, p, i) => { const q = c.impronta[(i + 1) % n]!; return s2 + p[0] * q[1] - q[0] * p[1]; }, 0);
+    for (let i = 0; i < n; i++) {
+      const a = c.impronta[i]!, b = c.impronta[(i + 1) % n]!, dx = b[0] - a[0], dy = b[1] - a[1], l = Math.hypot(dx, dy);
+      if (l < hT(20)) continue;
+      const ux = dx / l, uy = dy / l, nx = area > 0 ? uy : -uy, ny = area > 0 ? -ux : ux;
+      const t = calatePunti.map((p) => ({ t: (p[0] - a[0]) * ux + (p[1] - a[1]) * uy, d: Math.abs((p[0] - a[0]) * nx + (p[1] - a[1]) * ny) }))
+        .filter((q) => q.d < 0.4 && q.t > 0.3 && q.t < l - 0.3).map((q) => q.t).sort((x, y) => x - y);
+      if (!t.length) continue;
+      // lato verso un altro corpo: niente catena (si sovrapporrebbe)
+      if ([0.05, 0.2, 0.35, 0.5, 0.65, 0.8, 0.95].some((f) => dentroAltroCorpo(a[0] + dx * f + nx * hT(16), a[1] + dy * f + ny * hT(16), c))) continue;
+      const off = hT(15), tick = hT(1.2), pos = [0, ...t, l];
+      const Q = (tt: number, o = off): P2 => [a[0] + ux * tt + nx * o, a[1] + uy * tt + ny * o];
+      w.linea(L.quote.nome, Q(0), Q(l));
+      pos.forEach((tt) => { w.linea(L.quote.nome, Q(tt, off - hT(2)), Q(tt, off + hT(1.5))); const q = Q(tt); w.linea(L.quote.nome, [q[0] - (ux + nx) * tick, q[1] - (uy + ny) * tick], [q[0] + (ux + nx) * tick, q[1] + (uy + ny) * tick]); });
+      const ang = (() => { let g = (Math.atan2(uy, ux) * 180) / Math.PI; if (g > 90.01) g -= 180; if (g < -89.99) g += 180; return g; })();
+      for (let j = 0; j + 1 < pos.length; j++) {
+        const mm = (pos[j]! + pos[j + 1]!) / 2, q = Q(mm, off + hT(1.2));
+        if (pos[j + 1]! - pos[j]! < hT(5)) continue;
+        w.testo(L.quote.nome, q, hT(2), fmtM(pos[j + 1]! - pos[j]!), "centro", ang);
+      }
+      occupati.push({ x: Q(l / 2)[0], y: Q(l / 2)[1], r: hT(3) });
+    }
+  }
+
+  // ---------- maglia di captazione: lato massimo per corpo (conduttori paralleli ai lati del riquadro)
+  if (d.latoMaglia) for (const c of d.corpi) {
+    if (c.impronta.length < 3) continue;
+    const bx = c.impronta.map((p) => p[0]), by = c.impronta.map((p) => p[1]);
+    const x0 = Math.min(...bx), x1 = Math.max(...bx), y0 = Math.min(...by), y1 = Math.max(...by), zt = c.quotaBase + c.altezzaGronda;
+    const xs = new Set<number>([x0, x1]), ys = new Set<number>([y0, y1]);
+    for (const k2 of d.conduttori) {
+      if (k2.tipo === "calata" || k2.tipo === "terra") continue;
+      for (let i = 0; i + 1 < k2.punti.length; i++) {
+        const p = k2.punti[i]!, q = k2.punti[i + 1]!;
+        if (Math.abs(p[2] - zt) > Math.max(1.5, (c.altezzaColmo - c.altezzaGronda) + 0.5)) continue;
+        if (!dentro([(p[0] + q[0]) / 2, (p[1] + q[1]) / 2], c.impronta.map(([x, y]) => [x + (x > (x0 + x1) / 2 ? 0.2 : -0.2), y + (y > (y0 + y1) / 2 ? 0.2 : -0.2)] as P2))) continue;
+        if (Math.abs(p[0] - q[0]) < 0.05 && Math.abs(p[1] - q[1]) > 0.5) xs.add(Math.round(p[0] * 20) / 20);
+        if (Math.abs(p[1] - q[1]) < 0.05 && Math.abs(p[0] - q[0]) > 0.5) ys.add(Math.round(p[1] * 20) / 20);
+      }
+    }
+    const passo = (v: Set<number>) => { const o = [...v].sort((a, b) => a - b); let m = 0; for (let i = 1; i < o.length; i++) m = Math.max(m, o[i]! - o[i - 1]!); return m; };
+    const mx = passo(xs), my = passo(ys);
+    if (xs.size <= 2 && ys.size <= 2 && !d.conduttori.some((k2) => k2.tipo === "captazione")) continue;
+    const ctr: P2 = [c.impronta.reduce((s2, p) => s2 + p[0], 0) / c.impronta.length, c.impronta.reduce((s2, p) => s2 + p[1], 0) / c.impronta.length];
+    const astaVicina = d.aste.some((a2) => Math.hypot(a2.x - ctr[0], a2.y - ctr[1]) < hT(14));
+    const ty = (astaVicina ? ctr[1] - hT(12) : ctr[1]) - hT(7.5);
+    const ok = Math.max(mx, my) <= d.latoMaglia + 1e-6, lati = [mx, my].sort((a, b) => a - b);
+    const conAste = d.aste.some((a2) => dentro([a2.x, a2.y], c.impronta.map(([x, y]) => [x + (x > (x0 + x1) / 2 ? 0.3 : -0.3), y + (y > (y0 + y1) / 2 ? 0.3 : -0.3)] as P2)));
+    const testo = ok ? `Maglia max ${fmtM(lati[1]!)} x ${fmtM(lati[0]!)} m - verificata (lato max ${fmtM(d.latoMaglia)} m)`
+      : conAste ? `Maglia ${fmtM(lati[1]!)} x ${fmtM(lati[0]!)} m - copertura protetta dalle aste (verifica con la sfera rotolante)`
+      : `Maglia max ${fmtM(lati[1]!)} x ${fmtM(lati[0]!)} m - oltre il lato max ${fmtM(d.latoMaglia)} m: infittire o aggiungere aste`;
+    w.testo(ok || conAste ? L.testi.nome : L.avvisi.nome, [ctr[0], ty], hT(2), testo, "centro");
+  }
+
   // ---------- componenti con simbolo e attributi
   for (const a of d.aste) {
     const b = blocco("asta", a.codiceOBO, L.aste.nome, [{ tag: "ALTEZZA", valore: "" }]);
@@ -258,6 +319,10 @@ export function generaTavola(d: DatiTavola, layerExtra: { nome: string; colore: 
       w.testo(L.legenda.nome, P(x0 + 12, y), hT(2.2), t.length > 62 ? `${t.slice(0, 61)}...` : t); y -= rig + 1.2;
     });
     if (d.particolari.usati.length > 12) { w.testo(L.legenda.nome, P(x0, y), hT(2), `... altri ${d.particolari.usati.length - 12} particolari: vedi schede`); y -= rig; }
+  }
+  if (d.aste.length > 1) {
+    const vicina = d.aste.map((a, i) => Math.min(...d.aste.filter((_, j) => j !== i).map((b) => Math.hypot(a.x - b.x, a.y - b.y))));
+    w.testo(L.legenda.nome, P(x0, fondo + 6), hT(2), `Aste: ${d.aste.length} - distanza dalla piu' vicina da ${fmtM(Math.min(...vicina))} a ${fmtM(Math.max(...vicina))} m - altezza da ${fmtM(Math.min(...d.aste.map((a) => a.altezza)))} a ${fmtM(Math.max(...d.aste.map((a) => a.altezza)))} m`);
   }
   w.testo(L.legenda.nome, P(x0, fondo + 2), hT(1.8), "Quote in metri. Simboli: blocchi OBO_<codice> con attributi CODICE, DESCRIZIONE, TIPO.");
 
