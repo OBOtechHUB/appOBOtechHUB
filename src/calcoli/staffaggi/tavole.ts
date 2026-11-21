@@ -10,7 +10,7 @@ import type { RisultatoTratta } from "./calcolo";
 import { sezioneSupporto, type Elemento } from "./disegno";
 import { FINITURE, TIPOLOGIE, type ProgettoStaffaggi } from "./tipi";
 
-export const LAYER_STF: Record<string, LayerLps> = {
+export const LAYER_STF = {
   struttura: { nome: "STF-STRUTTURA", colore: 8, linea: "CONTINUOUS", descrizione: "Soffitto, parete o pavimento" },
   profilato: { nome: "STF-PROFILATI", colore: 30, linea: "CONTINUOUS", descrizione: "Profilati MS (pendini, montanti, traversi)" },
   mensola: { nome: "STF-MENSOLE", colore: 5, linea: "CONTINUOUS", descrizione: "Mensole" },
@@ -20,14 +20,14 @@ export const LAYER_STF: Record<string, LayerLps> = {
   testi: { nome: "STF-TESTI", colore: 7, linea: "CONTINUOUS", descrizione: "Testi e note" },
   asse: { nome: "STF-ASSI", colore: 9, linea: "LPS_TRATTOPUNTO", descrizione: "Assi" },
   cartiglio: { nome: "STF-CARTIGLIO", colore: 7, linea: "CONTINUOUS", descrizione: "Squadratura e cartiglio" },
-};
+} satisfies Record<string, LayerLps>;
 const SCALE = [5, 10, 15, 20, 25, 50];
 const fmt = (v: number, d = 2) => v.toLocaleString("it-IT", { minimumFractionDigits: d, maximumFractionDigits: d });
 
 export interface TavoleStaffaggi { w: ScrittoreDXF; fogli: Foglio[]; layer: LayerLps[] }
 
 export function tavoleStaffaggi(pr: ProgettoStaffaggi, risultati: RisultatoTratta[], data = new Date()): TavoleStaffaggi {
-  const layer = Object.values(LAYER_STF);
+  const layer: LayerLps[] = Object.values(LAYER_STF);
   const w = new ScrittoreDXF(layer);
   const fogli: Foglio[] = [];
   const W = 420, H = 297; // A3 orizzontale, mm
@@ -43,7 +43,7 @@ export function tavoleStaffaggi(pr: ProgettoStaffaggi, risultati: RisultatoTratt
     const hT = (mm: number) => mm * k;
     const L = (lay: string, a: [number, number], b: [number, number]) => w.linea(lay, P(...a), P(...b));
     const T = (lay: string, x: number, y: number, h: number, txt: string, a: "sinistra" | "centro" | "destra" = "sinistra") => w.testo(lay, P(x, y), hT(h), txt, a);
-    const cart = LAYER_STF.cartiglio!.nome;
+    const cart = LAYER_STF.cartiglio.nome;
     // squadratura
     w.poli(cart, [P(5, 5), P(W - 5, 5), P(W - 5, H - 5), P(5, H - 5)], true);
     w.poli(cart, [P(290, 5), P(290, H - 5)], false);
@@ -51,9 +51,9 @@ export function tavoleStaffaggi(pr: ProgettoStaffaggi, risultati: RisultatoTratt
     const cx = AREA.x + AREA.w / 2 - ((s.min[0] + s.max[0]) / 2) / scala, cy = AREA.y + AREA.h / 2 - ((s.min[1] + s.max[1]) / 2) / scala;
     const M = (p: [number, number]): P2 => P(cx + p[0] / scala, cy + p[1] / scala);
     for (const e of s.elementi) disegna(w, e, M, hT, scala);
-    T(LAYER_STF.testi!.nome, AREA.x, H - 14, 4, `SEZIONE TIPO - ${t.nome.toUpperCase()}   Scala 1:${scala}`);
+    T(LAYER_STF.testi.nome, AREA.x, H - 14, 4, `SEZIONE TIPO - ${t.nome.toUpperCase()}   Scala 1:${scala}`);
     // colonna destra: dati e verifiche
-    const X = 295, lt = LAYER_STF.testi!.nome;
+    const X = 295, lt = LAYER_STF.testi.nome;
     let y = H - 14;
     const riga = (txt: string, h = 2.6, passo = 4.4) => { T(lt, X, y, h, txt.length > 62 ? `${txt.slice(0, 61)}...` : txt); y -= passo; };
     riga("DATI DELLA TRATTA", 3.2, 6);
@@ -83,7 +83,7 @@ export function tavoleStaffaggi(pr: ProgettoStaffaggi, risultati: RisultatoTratt
 }
 
 function disegna(w: ScrittoreDXF, e: Elemento, M: (p: [number, number]) => P2, hT: (mm: number) => number, scala: number) {
-  const lay = LAYER_STF[e.ruolo]?.nome ?? LAYER_STF.testi!.nome;
+  const lay = LAYER_STF[e.ruolo].nome;
   if (e.t === "poli" && e.p) w.poli(lay, e.p.map(M), !!e.chiusa);
   else if ((e.t === "rett" || e.t === "tratteggio") && e.a && e.b) {
     const [a, b] = [e.a, e.b];

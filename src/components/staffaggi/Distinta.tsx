@@ -56,7 +56,7 @@ export function Distinta({ progetto: pr, risultati, catalogo }: { progetto: Prog
       const [{ tavoleStaffaggi }, { pdfTavole }] = await Promise.all([import("@/calcoli/staffaggi/tavole"), import("@/calcoli/cad/pdfTavole")]);
       const { w, fogli, layer } = tavoleStaffaggi(pr, risultati);
       if (formato === "dxf") scarica(new Blob([w.finale()], { type: "application/dxf" }), `${nomeFile(pr)}_tavole.dxf`);
-      else scarica(new Blob([pdfTavole(w, fogli, layer, { titolo: `Staffaggi ${pr.nome}` })], { type: "application/pdf" }), `${nomeFile(pr)}_tavole.pdf`);
+      else scarica(new Blob([pdfTavole(w, fogli, layer, { titolo: `Staffaggi ${pr.nome}` }) as Uint8Array<ArrayBuffer>], { type: "application/pdf" }), `${nomeFile(pr)}_tavole.pdf`);
     } catch (e) { setMsg((e as Error).message); }
   }
   const senzaCodice = righe.filter((r) => !r.codice).length;
