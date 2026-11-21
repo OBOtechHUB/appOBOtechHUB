@@ -9,7 +9,8 @@ import {
 } from "@/calcoli/importazione/scala";
 import { ESTENSIONI_3D, dimensioniCorpo, leggiDXF, leggiMesh, scalaCorpo, unitaDichiarata3D, verticaleZProposto } from "@/lib/importEdificio";
 import { leggiImmagine, leggiPdf, type PianoImportato } from "@/lib/leggiPdf";
-import { leggiDWG, type LetturaCad } from "@/lib/leggiDwg";
+import { leggiDWG } from "@/lib/leggiDwg";
+import type { LetturaCad } from "@/lib/letturaCad";
 import { analizzaPianta, corpiDaPianta, type Ruolo } from "@/calcoli/importazione/analisiPianta";
 
 type Tipo = "dxf" | "3d" | "pdf" | "img";
@@ -105,11 +106,10 @@ export function ImportaFile({ onImporta }: { onImporta: (m: ModelloEdificio) => 
     if (tipo === "dxf" && dxf) {
       const h = num(altezzaDxf), hi = num(hImpianti), hl = num(hLucernari);
       const senzaAltezza = elementiScelti.filter((e) => e.ruolo === "corpo" && !e.altezza).length;
-      if (senzaAltezza && !(h > 0)) { setErrore(`Indica l'altezza di gronda predefinita: ${senzaAltezza} ${senzaAltezza === 1 ? "corpo non ha" : "corpi non hanno"} un'altezza scritta nel disegno.`); return; }
       const corpi = corpiDaPianta(elementiScelti, fattore, { corpo: h > 0 ? h : 0, impianto: hi > 0 ? hi : 1.5, lucernario: hl > 0 ? hl : 0.6 }).map((c) => corpoSchema.parse({ id: crypto.randomUUID(), ...c }));
       if (!corpi.length) { setErrore("Nei layer scelti non ci sono polilinee chiuse da importare."); return; }
       const parti = [["corpo", "corpi"], ["impianto", "impianti sul tetto"], ["lucernario", "lucernari"]].map(([r, t]) => [contaRuolo(r as Ruolo), t] as const).filter(([n]) => n > 0).map(([n, t]) => `${n} ${t}`);
-      onImporta({ corpi }); setFatto(`Importati ${parti.join(", ")} dai layer ${layersSel.join(", ")}. Le altezze si possono correggere in Edificio 3D.`); setAltezzaDxf(""); azzera();
+      onImporta({ corpi }); setFatto(`Importati ${parti.join(", ")} dai layer ${layersSel.join(", ")}${senzaAltezza && !(h > 0) ? `: l'altezza di ${senzaAltezza === 1 ? "un corpo" : `${senzaAltezza} corpi`} si imposta in Edificio 3D` : ". Le altezze si possono correggere in Edificio 3D"}.`); setAltezzaDxf(""); azzera();
     } else if (tipo === "3d" && corpo1) {
       onImporta({ corpi: [scalaCorpo(corpo1, fattore)] }); setFatto(`Modello importato: ${descriviDimensioni(dimFinali)}.`); azzera();
     }
@@ -180,7 +180,7 @@ export function ImportaFile({ onImporta }: { onImporta: (m: ModelloEdificio) => 
           )}
           {tipo === "dxf" && (
             <div className="mt-3 grid max-w-xl gap-3 sm:grid-cols-3">
-              <Campo etichetta="Altezza di gronda predefinita (m)"><input className={inputCls} inputMode="decimal" placeholder="es. 9" value={altezzaDxf} onChange={(e) => setAltezzaDxf(e.target.value)} /></Campo>
+              <Campo etichetta="Altezza di gronda predefinita (m)"><input className={inputCls} inputMode="decimal" placeholder="es. 9 (il DXF è solo in pianta)" value={altezzaDxf} onChange={(e) => setAltezzaDxf(e.target.value)} /></Campo>
               <Campo etichetta="Impianti sul tetto (m sopra il tetto)"><input className={inputCls} inputMode="decimal" value={hImpianti} onChange={(e) => setHImpianti(e.target.value)} /></Campo>
               <Campo etichetta="Lucernari (m sopra il tetto)"><input className={inputCls} inputMode="decimal" value={hLucernari} onChange={(e) => setHLucernari(e.target.value)} /></Campo>
             </div>
@@ -232,7 +232,7 @@ export function ImportaFile({ onImporta }: { onImporta: (m: ModelloEdificio) => 
           ) : <p className="mt-1 text-sm text-muted-foreground">Scrivi la misura reale per calcolare la scala.</p>}
           {tipo === "dxf" && elementiScelti.length > 0 && <AnteprimaPianta elementi={elementiScelti} onRuolo={(id, ruolo) => setScelte((v) => ({ ...v, [id]: { ...v[id], ruolo } }))} onAltezza={(id, altezza) => setScelte((v) => ({ ...v, [id]: { ...v[id], altezza } }))} />}
           <div className="mt-3 flex flex-wrap gap-2">
-            <Button disabled={!fattore || busy} onClick={importaCad}>{tipo === "dxf" && elementiScelti.length ? `Importa ${elementiScelti.filter((e) => e.ruolo !== "ignora").length} elementi` : "Importa con questa scala"}</Button>
+            <Button disabled={!fattore || busy} onClick={importaCad}>Importa con questa scala</Button>
             <Button variant="outline" onClick={azzera}>Annulla</Button>
           </div>
         </section>

@@ -2,7 +2,8 @@ import { risorsa } from "@/lib/base";
 import { corpoSchema,modelloSchema,type Corpo,type ModelloEdificio } from "@/calcoli/edificio/tipi";
 import {locale} from "@/calcoli/edificio/geometria";
 import {unitaDaInsunits,type Unita} from "@/calcoli/importazione/scala";
-import {letturaDaPolilinee,type LetturaCad,type PoliCad,type TestoCad} from "@/lib/leggiDwg";
+import {letturaDaPolilinee,type LetturaCad} from "@/lib/letturaCad";
+import type {PoliCad,TestoCad} from "@/calcoli/importazione/analisiPianta";
 /** DXF: polilinee (chiuse = impronte), testi (altezze e nomi) e unità dichiarata; `scala` moltiplica le coordinate dei corpi. */
 export async function leggiDXF(file:File,scala:number):Promise<LetturaCad>{const {default:DxfParser}=await import("dxf-parser");const data=new DxfParser().parseSync(await file.text());if(!data)throw new Error("DXF non leggibile.");
   type Ent={type:string;layer?:string;shape?:boolean;vertices?:{x:number;y:number}[];text?:string;startPoint?:{x:number;y:number};position?:{x:number;y:number}};
