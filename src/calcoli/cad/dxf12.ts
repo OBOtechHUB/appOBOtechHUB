@@ -26,6 +26,16 @@ export interface Attributo { tag: string; valore: string; visibile?: boolean; al
 
 interface Blocco { nome: string; righe: string[] }
 
+/** Entità 2D registrate nello spazio modello (servono a disegnare il PDF vettoriale delle tavole). */
+export type Disegnato =
+  | { t: "linea"; layer: string; a: P2; b: P2 }
+  | { t: "poli"; layer: string; p: P2[]; chiusa: boolean }
+  | { t: "cerchio"; layer: string; c: P2; r: number }
+  | { t: "arco"; layer: string; c: P2; r: number; da: number; a: number }
+  | { t: "pieno"; layer: string; p: P2[] }
+  | { t: "testo"; layer: string; p: P2; h: number; s: string; all: Allineamento; rot: number }
+  | { t: "insert"; layer: string; nome: string; p: P2; scala: number; rot: number; attributi: Attributo[] };
+
 export type Allineamento = "sinistra" | "centro" | "destra" | "centro-medio" | "sinistra-medio";
 
 export class ScrittoreDXF {
@@ -36,6 +46,11 @@ export class ScrittoreDXF {
   private max: P2 = [-Infinity, -Infinity];
   /** fattore dei tipi linea ($LTSCALE): scala della tavola / 100 */
   ltscale = 1;
+  /** entità 2D dello spazio modello, nell'ordine in cui sono state scritte */
+  readonly disegnati: Disegnato[] = [];
+  /** primitive e attributi di ogni blocco (per il PDF) */
+  readonly definizioni = new Map<string, { primitive: Primitiva[]; attributi: Attributo[] }>();
+  /** blocchi definiti fuori da definisciBlocco (archi) */
 
   constructor(layer: LayerLps[] = []) { layer.forEach((l) => this.aggiungiLayer(l)); }
 
@@ -60,12 +75,18 @@ export class ScrittoreDXF {
   linea(layer: string, a: P3 | P2, b: P3 | P2, blocco?: string) {
     const d = this.dest(blocco);
     this.push(d, 0, "LINE", 8, layer, 10, a[0], 20, a[1], 30, a[2] ?? 0, 11, b[0], 21, b[1], 31, b[2] ?? 0);
-    if (!blocco) { this.estendi(a[0], a[1]); this.estendi(b[0], b[1]); }
+    if (!blocco) { this.estendi(a[0], a[1]); this.estendi(b[0], b[1]); if ((a[2] ?? 0) === 0 && (b[2] ?? 0) === 0) this.disegnati.push({ t: "linea", layer, a: [a[0], a[1]], b: [b[0], b[1]] }); }
   }
   cerchio(layer: string, c: P2, r: number, blocco?: string) {
     const d = this.dest(blocco);
     this.push(d, 0, "CIRCLE", 8, layer, 10, c[0], 20, c[1], 30, 0, 40, r);
-    if (!blocco) { this.estendi(c[0] - r, c[1] - r); this.estendi(c[0] + r, c[1] + r); }
+    if (!blocco) { this.estendi(c[0] - r, c[1] - r); this.estendi(c[0] + r, c[1] + r); this.disegnati.push({ t: "cerchio", layer, c, r }); }
+  }
+  /** Arco (gradi, senso antiorario da `da` ad `a`). */
+  arco(layer: string, c: P2, r: number, da: number, a: number) {
+    this.push(this.entita, 0, "ARC", 8, layer, 10, c[0], 20, c[1], 30, 0, 40, r, 50, da, 51, a);
+    this.estendi(c[0] - r, c[1] - r); this.estendi(c[0] + r, c[1] + r);
+    this.disegnati.push({ t: "arco", layer, c, r, da, a });
   }
   /** Polilinea 2D (R12 POLYLINE), eventualmente chiusa, a quota costante. */
   poli(layer: string, punti: P2[], chiusa: boolean, blocco?: string, quota = 0) {
@@ -74,6 +95,7 @@ export class ScrittoreDXF {
     this.push(d, 0, "POLYLINE", 8, layer, 66, 1, 10, 0, 20, 0, 30, quota, 70, chiusa ? 1 : 0);
     for (const p of punti) { this.push(d, 0, "VERTEX", 8, layer, 10, p[0], 20, p[1], 30, quota); if (!blocco) this.estendi(p[0], p[1]); }
     this.push(d, 0, "SEQEND", 8, layer);
+    if (!blocco && quota === 0) this.disegnati.push({ t: "poli", layer, p: punti.map((q) => [q[0], q[1]] as P2), chiusa });
   }
   /** Polilinea 3D. */
   poli3d(layer: string, punti: P3[], chiusa = false) {
@@ -91,14 +113,14 @@ export class ScrittoreDXF {
     const v = [p[0], p[1], p[3] ?? p[2], p[2]] as P2[]; // ordine SOLID: 1,2,4,3
     const d = this.dest(blocco);
     this.push(d, 0, "SOLID", 8, layer, 10, v[0]![0], 20, v[0]![1], 30, 0, 11, v[1]![0], 21, v[1]![1], 31, 0, 12, v[2]![0], 22, v[2]![1], 32, 0, 13, v[3]![0], 23, v[3]![1], 33, 0);
-    if (!blocco) p.forEach((q) => this.estendi(q[0], q[1]));
+    if (!blocco) { p.forEach((q) => this.estendi(q[0], q[1])); this.disegnati.push({ t: "pieno", layer, p: p.map((q) => [q[0], q[1]] as P2) }); }
   }
   testo(layer: string, p: P2, h: number, s: string, all: Allineamento = "sinistra", rot = 0, blocco?: string) {
     const d = this.dest(blocco);
     const [h72, v73] = all === "centro" ? [1, 0] : all === "destra" ? [2, 0] : all === "centro-medio" ? [1, 2] : all === "sinistra-medio" ? [0, 2] : [0, 0];
     this.push(d, 0, "TEXT", 8, layer, 10, p[0], 20, p[1], 30, 0, 40, h, 1, testoDxf(s), 50, rot, 7, "LPS");
     if (h72 || v73) this.push(d, 72, h72, 11, p[0], 21, p[1], 31, 0, 73, v73);
-    if (!blocco) { this.estendi(p[0], p[1]); this.estendi(p[0] + testoDxf(s).length * h * 0.6, p[1] + h); }
+    if (!blocco) { this.estendi(p[0], p[1]); this.estendi(p[0] + testoDxf(s).length * h * 0.6, p[1] + h); this.disegnati.push({ t: "testo", layer, p, h, s, all, rot }); }
   }
 
   // ---------------- blocchi
@@ -107,6 +129,7 @@ export class ScrittoreDXF {
     if (this.blocchi.has(nome)) return;
     const b: Blocco = { nome, righe: [] };
     this.blocchi.set(nome, b);
+    this.definizioni.set(nome, { primitive, attributi });
     for (const p of primitive) {
       if (p.t === "cerchio") this.cerchio("0", p.c, p.r, nome);
       else if (p.t === "linea") this.linea("0", p.a, p.b, nome);
@@ -133,6 +156,7 @@ export class ScrittoreDXF {
     }
     if (attributi.length) this.push(this.entita, 0, "SEQEND", 8, layer);
     this.estendi(p[0], p[1]);
+    this.disegnati.push({ t: "insert", layer, nome, p: [p[0], p[1]], scala, rot, attributi });
   }
 
   // ---------------- file finale

@@ -76,7 +76,8 @@ const modCad = await import("@/lib/exportCAD").catch((err: unknown) => { report.
 if (modCad) {
   const cad = modCad.generaCAD(s, { codice: e.codice ?? "", nome: e.edificio.nomeProgetto, comune: e.edificio.comune }, {}, { senzaModello3D: false });
   writeFileSync(`${out}/08-Tavola-LPS.dxf`, new Uint8Array(await cad.dxf.arrayBuffer()));
-  report.push("Tavola DXF con pianta, calate, legenda, cartiglio e modello 3D");
+  writeFileSync(`${out}/08b-Tavole-LPS.pdf`, new Uint8Array(await cad.pdf.arrayBuffer()));
+  report.push(`Tavole CAD: DXF con ${cad.fogli.length} tavole (${cad.fogli.map((f) => f.tav).join(", ")}) e modello 3D; PDF vettoriale delle stesse tavole`);
 }
 
 writeFileSync(`${out}/LEGGIMI.txt`, `Documenti del progetto di prova completo (dati inventati), ${new Date().toISOString().slice(0, 10)}\n\n${report.join("\n")}\n`);

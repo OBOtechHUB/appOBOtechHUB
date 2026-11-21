@@ -37,3 +37,4 @@ dist-ssr
 # copiato in build da scripts/copia-wasm.mjs
 public/wasm/libredwg*.wasm
 public/licenze.json
+*.local.ts

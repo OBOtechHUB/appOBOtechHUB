@@ -5,6 +5,10 @@ import type {Punto3} from "@/calcoli/edificio/tipi";
 import {ShapeUtils,Vector2} from "three";
 import {generaTavola,type DatiTavola} from "@/calcoli/cad/tavolaDXF";
 import {LAYER_LPS,LAYER_SFERA} from "@/calcoli/cad/standard";
+import {aggiungiTavole,type ParticolareScheda} from "@/calcoli/cad/tavoleLPS";
+import {pdfTavole} from "@/calcoli/cad/pdfTavole";
+import parametriLPL from "@/dati/captazione/parametriLPL.json";
+import distanzaCalate from "@/dati/calate/distanzaCalate.json";
 import {posizioniParticolari,type ParticolareCatalogo} from "@/calcoli/particolari/posizioni";
 import catalogoParticolari from "@/dati/particolari/particolari.json";
 
@@ -31,7 +35,17 @@ export function generaCAD(s:StatoEsteso,progetto:{codice:string;nome:string;comu
     nordInAlto:!!s.modello.origineGeo,
   };
   const lplSfere=Object.keys(sfere).filter((l)=>sfere[l]);
-  const {dxf:w,foglio,scala,formato}=generaTavola(dati,lplSfere.map((l)=>{const x=LAYER_SFERA(l);return {nome:x.nome,colore:x.colore,linea:"CONTINUOUS" as const,descrizione:x.descrizione};}));
+  const layerSfere=lplSfere.map((l)=>{const x=LAYER_SFERA(l);return {nome:x.nome,colore:x.colore,linea:"CONTINUOUS" as const,descrizione:x.descrizione};});
+  const base=generaTavola(dati,layerSfere);
+  const {dxf:w,foglio,scala,formato}=base;
+  // tavole 02-04 (prospetti con sfera rotolante, calate e terra, particolari) sotto la pianta coperture
+  const unita=(u:string)=>u==="per_m"?"/m":u.startsWith("per_")?`/${u.slice(4)}`:u;
+  type Componente={codiceOBO:string|null;descrizione?:string;quantita?:number;unitaQuantita?:string};
+  const perId=new Map(catalogo.map((p)=>[p.id,p as ParticolareCatalogo&{componenti:Componente[];note?:string;bloccoCAD?:string}]));
+  const schede:ParticolareScheda[]=pos.usati.map((u)=>{const p=perId.get(u.idParticolare);return {idParticolare:u.idParticolare,nome:u.nome,punti:u.punti,note:p?.note,bloccoCAD:p?.bloccoCAD,componenti:(p?.componenti??[]).map((c)=>({codiceOBO:c.codiceOBO??"",descrizione:c.descrizione??"",quantita:c.quantita??1,unita:unita(c.unitaQuantita??"")}))};});
+  const par=parametriLPL as unknown as Record<string,{raggio:number}>,dc=distanzaCalate as unknown as Record<string,{distanzaTipica:number}>;
+  const fogli=aggiungiTavole(w,dati,base,{raggioSfera:par[s.lpl]?.raggio??45,distanzaCalate:{tipica:dc[s.lpl]?.distanzaTipica??15},particolari:schede});
+  const pdf=pdfTavole(w,fogli,[...Object.values(LAYER_LPS),...layerSfere],{titolo:`Tavole LPS - ${progetto.nome||progetto.codice||"progetto"}`});
 
   // ---------- modello 3D a destra della tavola
   const L=LAYER_LPS;
@@ -59,5 +73,5 @@ export function generaCAD(s:StatoEsteso,progetto:{codice:string;nome:string;comu
     r.facceEsposte.forEach((f)=>{const nx=f.normale[0],ny=f.normale[1],tx=-ny,ty=nx,hl=f.lunghezza/2;face(L.esposto3d.nome,[f.x-tx*hl,f.y-ty*hl,f.zDa],[f.x+tx*hl,f.y+ty*hl,f.zDa],[f.x+tx*hl,f.y+ty*hl,f.zA],[f.x-tx*hl,f.y-ty*hl,f.zA]);});
   });
   const json={versione:2,unita:"m",tavola:{scala,formato},progetto:{...progetto,lpl:s.lpl},edificio:s.modello,aste:s.aste.map(({id,...a})=>a),conduttori:s.conduttori.map(({id,...c})=>c),supporti:s.supporti,morsetti:s.morsetti,compensatori:s.compensatori,picchetti:s.picchetti,particolari:pos.usati,sfere:{raggio:sfere[s.lpl]?.raggio??({I:20,II:30,III:45,IV:60})[s.lpl],inviluppo:"nel DXF",calcoli:Object.fromEntries(Object.entries(sfere).map(([l,r])=>[l,r?{passo:r.griglia.passo,areaCoperturaEsposta:r.areaCoperturaEsposta,areaPareteEsposta:r.areaPareteEsposta,esito:r.esito,avvisi:r.avvisi}:null]))}};
-  return {origine3D:[dx,dy,0] as [number,number,number],dxf:new Blob([w.finale()],{type:"application/dxf"}),json:new Blob([JSON.stringify(json,null,2)],{type:"application/json"}),scala,formato};
+  return {fogli,pdf:new Blob([pdf as BlobPart],{type:"application/pdf"}),origine3D:[dx,dy,0] as [number,number,number],dxf:new Blob([w.finale()],{type:"application/dxf"}),json:new Blob([JSON.stringify(json,null,2)],{type:"application/json"}),scala,formato};
 }

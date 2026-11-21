@@ -4,7 +4,9 @@ export function leggimiCAD(nome: string): string {
     "PROGETTAZIONE LPS - PACCHETTO PER AUTOCAD E ZWCAD",
     "",
     "Contenuto della cartella",
-    `  ${nome}.dxf       tavola 2D (pianta coperture, legenda con codici OBO, particolari, cartiglio)`,
+    `  ${nome}.dxf       tavole 2D: LPS-01 pianta coperture, LPS-02 prospetti con sfera rotolante,`,
+    "                     LPS-03 calate e impianto di terra, LPS-04 particolari costruttivi",
+    `  ${nome}_tavole.pdf le stesse tavole in PDF vettoriale, pronte da stampare`,
     `  ${nome}.lpsdati   dati del progetto per il modello 3D e la distinta`,
     "  LPS.lsp            programma per AutoCAD e ZWCAD",
     "",
@@ -26,8 +28,8 @@ export function leggimiCAD(nome: string): string {
     "Comandi disponibili dopo il caricamento: LPS (elenco), LPS-AUTO, LPS-IMPORTA, LPS-DISTINTA, LPS-SFERA,",
     "LPS-ESPORTA, LPS-BLOCCHI.",
     "",
-    "Stampa: la tavola si stampa dallo spazio modello con finestra sulla squadratura; il modello 3D e' a destra",
-    "della tavola e non va stampato.",
+    "Stampa: ogni tavola si stampa dallo spazio modello con finestra sulla sua squadratura (le tavole sono una sotto",
+    "l'altra); il modello 3D e' a destra della prima tavola e non va stampato. Oppure stampa direttamente il PDF.",
     "",
   ].join("\r\n");
 }
