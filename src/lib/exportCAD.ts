@@ -42,7 +42,7 @@ export function generaCAD(s:StatoEsteso,progetto:{codice:string;nome:string;comu
   const unita=(u:string)=>u==="per_m"?"/m":u.startsWith("per_")?`/${u.slice(4)}`:u;
   type Componente={codiceOBO:string|null;descrizione?:string;quantita?:number;unitaQuantita?:string};
   const perId=new Map(catalogo.map((p)=>[p.id,p as ParticolareCatalogo&{componenti:Componente[];note?:string;bloccoCAD?:string}]));
-  const schede:ParticolareScheda[]=pos.usati.map((u)=>{const p=perId.get(u.idParticolare);return {idParticolare:u.idParticolare,nome:u.nome,punti:u.punti,note:p?.note,bloccoCAD:p?.bloccoCAD,componenti:(p?.componenti??[]).map((c)=>({codiceOBO:c.codiceOBO??"",descrizione:c.descrizione??"",quantita:c.quantita??1,unita:unita(c.unitaQuantita??"")}))};});
+  const schede:ParticolareScheda[]=pos.usati.map((u)=>{const p=perId.get(u.idParticolare);return {idParticolare:u.idParticolare,nome:u.nome,punti:u.punti,note:p?.note,bloccoCAD:p?.bloccoCAD,componenti:((p?.componenti as Componente[]|undefined)??[]).map((c)=>({codiceOBO:c.codiceOBO??"",descrizione:c.descrizione??"",quantita:c.quantita??1,unita:unita(c.unitaQuantita??"")}))};});
   const par=parametriLPL as unknown as Record<string,{raggio:number}>,dc=distanzaCalate as unknown as Record<string,{distanzaTipica:number}>;
   const fogli=aggiungiTavole(w,dati,base,{raggioSfera:par[s.lpl]?.raggio??45,distanzaCalate:{tipica:dc[s.lpl]?.distanzaTipica??15},particolari:schede});
   const pdf=pdfTavole(w,fogli,[...Object.values(LAYER_LPS),...layerSfere],{titolo:`Tavole LPS - ${progetto.nome||progetto.codice||"progetto"}`});
