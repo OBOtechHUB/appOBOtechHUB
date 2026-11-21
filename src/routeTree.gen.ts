@@ -34,7 +34,6 @@ import { Route as ParticolariRouteImport } from './routes/particolari'
 import { Route as CruscottoRouteImport } from './routes/cruscotto'
 import { Route as RichiesteRouteImport } from './routes/richieste'
 import { Route as SopralluogoRouteImport } from './routes/sopralluogo'
-import { Route as StaffaggiRouteImport } from './routes/staffaggi'
 import { Route as LicenzeRouteImport } from './routes/licenze'
 import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
@@ -167,11 +166,6 @@ const SopralluogoRoute = SopralluogoRouteImport.update({
   path: '/sopralluogo',
   getParentRoute: () => rootRouteImport,
 } as any)
-const StaffaggiRoute = StaffaggiRouteImport.update({
-  id: '/staffaggi',
-  path: '/staffaggi',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const LicenzeRoute = LicenzeRouteImport.update({
   id: '/licenze',
   path: '/licenze',
@@ -233,7 +227,6 @@ export interface FileRoutesByFullPath {
   '/cruscotto': typeof CruscottoRoute
   '/richieste': typeof RichiesteRoute
   '/sopralluogo': typeof SopralluogoRoute
-  '/staffaggi': typeof StaffaggiRoute
   '/licenze': typeof LicenzeRoute
   '/privacy': typeof PrivacyRoute
   '/reset-password': typeof ResetPasswordRoute
@@ -267,7 +260,6 @@ export interface FileRoutesByTo {
   '/cruscotto': typeof CruscottoRoute
   '/richieste': typeof RichiesteRoute
   '/sopralluogo': typeof SopralluogoRoute
-  '/staffaggi': typeof StaffaggiRoute
   '/licenze': typeof LicenzeRoute
   '/privacy': typeof PrivacyRoute
   '/reset-password': typeof ResetPasswordRoute
@@ -303,7 +295,6 @@ export interface FileRoutesById {
   '/cruscotto': typeof CruscottoRoute
   '/richieste': typeof RichiesteRoute
   '/sopralluogo': typeof SopralluogoRoute
-  '/staffaggi': typeof StaffaggiRoute
   '/licenze': typeof LicenzeRoute
   '/privacy': typeof PrivacyRoute
   '/reset-password': typeof ResetPasswordRoute
@@ -339,7 +330,6 @@ export interface FileRouteTypes {
     | '/cruscotto'
     | '/richieste'
     | '/sopralluogo'
-    | '/staffaggi'
     | '/licenze'
     | '/privacy'
     | '/reset-password'
@@ -373,7 +363,6 @@ export interface FileRouteTypes {
     | '/cruscotto'
     | '/richieste'
     | '/sopralluogo'
-    | '/staffaggi'
     | '/licenze'
     | '/privacy'
     | '/reset-password'
@@ -408,7 +397,6 @@ export interface FileRouteTypes {
     | '/cruscotto'
     | '/richieste'
     | '/sopralluogo'
-    | '/staffaggi'
     | '/licenze'
     | '/privacy'
     | '/reset-password'
@@ -444,7 +432,6 @@ export interface RootRouteChildren {
   CruscottoRoute: typeof CruscottoRoute
   RichiesteRoute: typeof RichiesteRoute
   SopralluogoRoute: typeof SopralluogoRoute
-  StaffaggiRoute: typeof StaffaggiRoute
   LicenzeRoute: typeof LicenzeRoute
   PrivacyRoute: typeof PrivacyRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
@@ -629,13 +616,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SopralluogoRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/staffaggi': {
-      id: '/staffaggi'
-      path: '/staffaggi'
-      fullPath: '/staffaggi'
-      preLoaderRoute: typeof StaffaggiRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/licenze': {
       id: '/licenze'
       path: '/licenze'
@@ -727,7 +707,6 @@ const rootRouteChildren: RootRouteChildren = {
   CruscottoRoute: CruscottoRoute,
   RichiesteRoute: RichiesteRoute,
   SopralluogoRoute: SopralluogoRoute,
-  StaffaggiRoute: StaffaggiRoute,
   LicenzeRoute: LicenzeRoute,
   PrivacyRoute: PrivacyRoute,
   ResetPasswordRoute: ResetPasswordRoute,
