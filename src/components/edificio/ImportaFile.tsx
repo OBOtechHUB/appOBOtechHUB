@@ -62,7 +62,7 @@ export function ImportaFile({ onImporta }: { onImporta: (m: ModelloEdificio) => 
         if (!r.layers.length) throw new Error("Nel DXF non ci sono polilinee: l'impronta dell'edificio va disegnata con polilinee chiuse.");
         setDxf(r); setTipo("dxf"); setScelte({});
         const conChiuse = [...new Set(r.poligoni.map((p) => p.layer))];
-        const edificio = conChiuse.filter((l) => /edif|build|bldg|sagoma|contorn|pianta|copert|tetto|roof|fabbric/i.test(l));
+        const edificio = conChiuse.filter((l) => /edif|build|bldg|sagoma|contorn|pianta|copert|tetto|roof|fabbric|impiant|uta\b|hvac|lucern|skylight|torrin|camin|cupol/i.test(l));
         setLayersSel(edificio.length ? edificio : conChiuse.slice(0, 1).length ? conChiuse.slice(0, 1) : r.layers.slice(0, 1));
         setUnita(proponiUnita(r.dimensioni, r.unita).consigliata);
       } else if (/\.pdf$/i.test(main.name)) {
@@ -328,8 +328,8 @@ function AnteprimaPianta({ elementi, onRuolo, onAltezza }: { elementi: ElementoV
   const vista = [...elementi].sort((a, b) => b.area - a.area);
   const num = (e: ElementoVista) => elementi.indexOf(e) + 1;
   return (
-    <div className="mt-3 grid gap-3 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.2fr)]">
-      <svg viewBox={`${x0 - m} ${-(y1 + m)} ${w + 2 * m} ${h + 2 * m}`} className="max-h-80 w-full rounded-md border bg-white" role="img" aria-label="Anteprima della pianta importata">
+    <div className="mt-3 space-y-3">
+      <svg viewBox={`${x0 - m} ${-(y1 + m)} ${w + 2 * m} ${h + 2 * m}`} className="max-h-72 w-full rounded-md border bg-white" role="img" aria-label="Anteprima della pianta importata">
         {vista.map((e) => (
           <g key={e.id}>
             <polygon points={e.punti.map((p) => `${p[0]},${-p[1]}`).join(" ")} fill={COLORI[e.ruolo]} fillOpacity={e.ruolo === "corpo" ? 0.12 : 0.35} stroke={COLORI[e.ruolo]} strokeWidth={Math.max(w, h) / 400} strokeDasharray={e.ruolo === "ignora" ? `${Math.max(w, h) / 100}` : undefined} />
@@ -337,7 +337,7 @@ function AnteprimaPianta({ elementi, onRuolo, onAltezza }: { elementi: ElementoV
           </g>
         ))}
       </svg>
-      <div className="max-h-80 overflow-auto rounded-md border">
+      <div className="max-h-96 overflow-auto rounded-md border">
         <table className="w-full text-sm">
           <thead className="sticky top-0 bg-card"><tr className="border-b text-left"><th className="p-1.5">N.</th><th className="p-1.5">Cosa è</th><th className="p-1.5">Altezza (m)</th><th className="p-1.5">Area</th><th className="p-1.5">Layer · testo</th></tr></thead>
           <tbody>
