@@ -14,17 +14,24 @@
 ;;;   LPS-ESPORTA    esporta i contorni dell'edificio verso il sito (edificio_da_CAD.json)
 ;;;   LPS-DISTINTA   distinta dei componenti disegnati (codici OBO, pezzi e metri) + CSV
 ;;;   LPS-BLOCCHI    imposta la cartella dei blocchi OBO (file <codice>.dwg)
+;;;   LPS-SEPARAZIONE  verifica la distanza di separazione s = ki kc / km l tra due punti
+;;;   LPS-PENETRAZIONE penetrazione della sfera rotolante tra due punti di captazione (prospetti e sezioni)
+;;;   LPS-NUMERA     numera le calate (C1, C2...) cliccando nell'ordine
+;;;   LPS-TABELLA    inserisce la distinta dei materiali come tabella in un punto del disegno
 ;;;
 ;;; Il file .lpsdati ha un record LISP per riga, con coordinate in metri:
 ;;; il comando converte nelle unita' del disegno (INSUNITS).
 ;;; ==========================================================================
 
-(setq *LPS-VERSIONE* "3.0")
+(setq *LPS-VERSIONE* "3.1")
 (if vl-load-com (vl-load-com))
 
 ;;; --------------------------------------------------------------------------
 ;;; Impostazioni
 ;;; --------------------------------------------------------------------------
+
+;; coefficiente ki per livello (CEI EN IEC 62305-3:2026-10, Tab. 11) - da allineare a separazione.ts
+(setq *LPS-KI* '(("I" . 0.08) ("II" . 0.06) ("III" . 0.04) ("IV" . 0.04)))
 
 ;; raggi della sfera rotolante per livello (m) - da allineare a parametriLPL.json
 (setq *LPS-RAGGI* '(("I" . 20.0) ("II" . 30.0) ("III" . 45.0) ("IV" . 60.0)))
@@ -55,6 +62,9 @@
     ("TESTI" "LPS-TEST" 7 "Continuous")
     ("LEGENDA" "LPS-LEGE" 7 "Continuous")
     ("CARTIGLIO" "LPS-CART" 7 "Continuous")
+    ("QUOTE" "LPS-QUOT" 9 "Continuous")
+    ("AVVISI" "LPS-AVVISI" 1 "Continuous")
+    ("SFERA2D" "LPS-SFERA" 150 "LPS_TRATTEGGIO")
     ("ESPOSTO" "LPS-3D-ESPO" 1 "Continuous")
     ("SFERA" "LPS-3D-SFER" 150 "Continuous")))
 
@@ -519,6 +529,10 @@
   (lps:msg "  LPS-ESPORTA   esporta i contorni dell'edificio verso il sito")
   (lps:msg "  LPS-DISTINTA  distinta dei componenti (codici, pezzi, metri) + CSV")
   (lps:msg "  LPS-BLOCCHI   cartella dei blocchi OBO")
+  (lps:msg "  LPS-SEPARAZIONE   verifica la distanza di separazione tra due punti (s = ki kc / km l)")
+  (lps:msg "  LPS-PENETRAZIONE  penetrazione della sfera rotolante tra due punti (prospetti e sezioni)")
+  (lps:msg "  LPS-NUMERA    numera le calate C1, C2... cliccando nell'ordine")
+  (lps:msg "  LPS-TABELLA   inserisce la distinta dei materiali come tabella")
   (lps:msg "  Standard OBO: layer LPS-*, blocchi OBO_<codice> con attributi CODICE/DESCRIZIONE/TIPO.")
   (lps:msg "  Simboli per tavole 1:200: (setq *LPS-SCALA-SIMBOLI* 2.0) prima di LPS-IMPORTA.")
   (princ))
@@ -622,24 +636,31 @@
     (progn (lps:msg (strcat "Disegno salvato: " nome)) nome)))
 
 ;; tabella della distinta calcolata dai componenti disegnati, sotto il modello 3D
-(defun lps:tabella-distinta (tab / s h x0 y lay q descr)
+;; tabella della distinta con l'angolo in alto a sinistra in (x0 y), s = grandezza (unita' disegno per 1 m a 1:100)
+(defun lps:tabella-a (tab x0 y s / h lay q descr)
+  (setq h (* 0.25 s) lay (lps:layer "LEGENDA"))
+  (lps:testo (list x0 y 0.0) (* 1.6 h) "DISTINTA MATERIALI DAL DISEGNO (codici OBO)" lay)
+  (setq y (- y (* 0.9 s)))
+  (lps:testo (list x0 y 0.0) (* 0.8 h) "CODICE" lay)
+  (lps:testo (list (+ x0 (* 3.0 s)) y 0.0) (* 0.8 h) "DESCRIZIONE" lay)
+  (lps:testo (list (+ x0 (* 15.0 s)) y 0.0) (* 0.8 h) "QUANTITA'" lay)
+  (lps:linea (list x0 (- y (* 0.2 s)) 0.0) (list (+ x0 (* 18.0 s)) (- y (* 0.2 s)) 0.0) lay)
+  (setq y (- y (* 0.6 s)))
+  (foreach v tab
+    (setq q (caddr v) descr (cadr (assoc (car v) *LPS-VOCI*)))
+    (lps:testo (list x0 y 0.0) h (car v) lay)
+    (lps:testo (list (+ x0 (* 3.0 s)) y 0.0) h (if descr descr (cadr v)) lay)
+    (lps:testo (list (+ x0 (* 15.0 s)) y 0.0) h (if (= (cadddr v) "m") (strcat (rtos q 2 1) " m") (strcat (rtos q 2 0) " pz")) lay)
+    (setq y (- y (* 0.5 s)))))
+
+(defun lps:tabella-distinta (tab / s)
   (if (and tab *LPS-EST*)
     (progn
-      (setq s (* *LPS-F* *LPS-SCALA-SIMBOLI*) h (* 0.25 s) lay (lps:layer "LEGENDA")
-            x0 (car (lps:p (car *LPS-EST*) 0.0 0.0))
-            y (- (cadr (lps:p 0.0 (cadr *LPS-EST*) 0.0)) (* 4.0 s)))
-      (lps:testo (list x0 y 0.0) (* 1.6 h) "DISTINTA MATERIALI DAL DISEGNO (codici OBO)" lay)
-      (setq y (- y (* 0.9 s)))
-      (lps:testo (list x0 y 0.0) (* 0.8 h) "CODICE" lay)
-      (lps:testo (list (+ x0 (* 3.0 s)) y 0.0) (* 0.8 h) "DESCRIZIONE" lay)
-      (lps:testo (list (+ x0 (* 15.0 s)) y 0.0) (* 0.8 h) "QUANTITA'" lay)
-      (setq y (- y (* 0.6 s)))
-      (foreach v tab
-        (setq q (caddr v) descr (cadr (assoc (car v) *LPS-VOCI*)))
-        (lps:testo (list x0 y 0.0) h (car v) lay)
-        (lps:testo (list (+ x0 (* 3.0 s)) y 0.0) h (if descr descr (cadr v)) lay)
-        (lps:testo (list (+ x0 (* 15.0 s)) y 0.0) h (if (= (cadddr v) "m") (strcat (rtos q 2 1) " m") (strcat (rtos q 2 0) " pz")) lay)
-        (setq y (- y (* 0.5 s)))))))
+      (setq s (* *LPS-F* *LPS-SCALA-SIMBOLI*))
+      (lps:tabella-a tab
+                     (car (lps:p (car *LPS-EST*) 0.0 0.0))
+                     (- (cadr (lps:p 0.0 (cadr *LPS-EST*) 0.0)) (* 4.0 s))
+                     s))))
 
 (defun c:LPS-AUTO (/ file tab)
   (setq file (lps:file-progetto))
@@ -793,6 +814,102 @@
                      (if (= (cadddr v) "m") (strcat (rtos (caddr v) 2 1) " m")
                          (strcat (rtos (caddr v) 2 0) " pz")))))
   (lps:distinta-csv tab)
+  (princ))
+
+;;; --------------------------------------------------------------------------
+;;; Verifiche sul disegno
+;;; --------------------------------------------------------------------------
+
+;; livello di protezione chiesto all'utente (predefinito III)
+(defun lps:chiedi-lpl (/ lpl)
+  (initget "I II III IV")
+  (setq lpl (getkword "\nLivello di protezione [I/II/III/IV] <III>: "))
+  (if lpl lpl "III"))
+
+;; numero con la virgola (2 decimali)
+(defun lps:num2 (v / s)
+  (setq s (rtos v 2 2))
+  (if (vl-string-search "." s) (vl-string-subst "," "." s) s))
+
+;; distanza di separazione: s = ki * kc / km * l, confrontata con la distanza misurata tra due punti
+(defun c:LPS-SEPARAZIONE (/ f lpl ki n kc mat km a b l0 l sep d ok lay h m testo)
+  (lps:inizio)
+  (setq f (lps:fattore) lpl (lps:chiedi-lpl) ki (cdr (assoc lpl *LPS-KI*)))
+  (initget 6)
+  (setq n (getint "\nNumero di calate dell'LPS <4>: "))
+  (if (not n) (setq n 4))
+  (setq kc (cond ((= n 1) 1.0) ((= n 2) 0.66) (T 0.44)))
+  (initget "Aria Solido Distanziatore")
+  (setq mat (getkword "\nMateriale tra conduttore e parte metallica [Aria/Solido/Distanziatore] <Aria>: "))
+  (setq km (cond ((= mat "Solido") 0.5) ((= mat "Distanziatore") 0.7) (T 1.0)))
+  (setq a (getpoint "\nPunto del conduttore LPS (captazione o calata): "))
+  (if a (setq b (getpoint a "\nPunto della parte metallica o dell'impianto da separare: ")))
+  (if (and a b)
+    (progn
+      (setq l0 (if (and (caddr a) (> (caddr a) 0.0)) (/ (caddr a) f) 10.0))
+      (initget 6)
+      (setq l (getreal (strcat "\nLunghezza l lungo il conduttore fino al collegamento equipotenziale piu' vicino, in metri <" (lps:num2 l0) ">: ")))
+      (if (not l) (setq l l0))
+      (setq sep (/ (* ki kc l) km) d (/ (distance a b) f) ok (>= d sep))
+      (setq lay (lps:layer (if ok "QUOTE" "AVVISI")) h (* 0.25 f *LPS-SCALA-SIMBOLI*))
+      (lps:linea a b lay)
+      (setq m (list (/ (+ (car a) (car b)) 2.0) (/ (+ (cadr a) (cadr b)) 2.0) (/ (+ (if (caddr a) (caddr a) 0.0) (if (caddr b) (caddr b) 0.0)) 2.0)))
+      (setq testo (strcat "s = " (lps:num2 sep) " m - d = " (lps:num2 d) " m - " (if ok "VERIFICATA" "NON VERIFICATA")))
+      (lps:testo-all m h testo lay 1 0)
+      (lps:testo-all (list (car m) (- (cadr m) (* 1.4 h)) (caddr m)) (* 0.7 h)
+                     (strcat "LPL " lpl ": ki " (rtos ki 2 2) " kc " (rtos kc 2 2) " km " (rtos km 2 1) " l " (lps:num2 l) " m") lay 1 0)
+      (lps:msg (strcat "Distanza di separazione s = ki kc / km l = " (rtos ki 2 2) " x " (rtos kc 2 2) " / " (rtos km 2 1) " x " (lps:num2 l) " = " (lps:num2 sep) " m"))
+      (lps:msg (strcat "Distanza misurata d = " (lps:num2 d) " m: " (if ok "VERIFICATA (d >= s)" "NON VERIFICATA: allontanare o collegare la parte metallica")))))
+  (lps:fine)
+  (princ))
+
+;; penetrazione della sfera tra due punti di captazione nel piano XY corrente (prospetti e sezioni: Y = quota)
+(defun c:LPS-PENETRAZIONE (/ f lpl r a b d meta hh nx ny c sx dx a1 a2 p lay h fondo)
+  (lps:inizio)
+  (setq f (lps:fattore) lpl (lps:chiedi-lpl) r (* (cdr (assoc lpl *LPS-RAGGI*)) f))
+  (setq a (getpoint (strcat "\nPrimo punto di captazione (punta d'asta o conduttore), sfera R = " (rtos (/ r f) 2 0) " m: ")))
+  (if a (setq b (getpoint a "\nSecondo punto di captazione: ")))
+  (if (and a b)
+    (progn
+      (setq d (distance (list (car a) (cadr a)) (list (car b) (cadr b))) lay (lps:layer "SFERA2D") h (* 0.25 f *LPS-SCALA-SIMBOLI*))
+      (if (>= d (* 2.0 r))
+        (lps:msg (strcat "Distanza " (lps:num2 (/ d f)) " m oltre il diametro della sfera (" (lps:num2 (/ (* 2.0 r) f)) " m): la sfera tocca la superficie tra i due punti."))
+        (progn
+          (setq meta (/ d 2.0) hh (sqrt (- (* r r) (* meta meta))))
+          ;; centro della sfera sopra la congiungente
+          (setq nx (/ (- (cadr a) (cadr b)) d) ny (/ (- (car b) (car a)) d))
+          (if (< ny 0.0) (setq nx (- nx) ny (- ny)))
+          (setq c (list (+ (/ (+ (car a) (car b)) 2.0) (* nx hh)) (+ (/ (+ (cadr a) (cadr b)) 2.0) (* ny hh)) 0.0))
+          (if (< (car a) (car b)) (setq sx a dx b) (setq sx b dx a))
+          (setq a1 (angle c sx) a2 (angle c dx) p (- r hh))
+          (entmake (list '(0 . "ARC") (cons 8 lay) (cons 10 c) (cons 40 r) (cons 50 a1) (cons 51 a2)))
+          (setq fondo (list (- (car c) (* nx r)) (- (cadr c) (* ny r)) 0.0))
+          (lps:testo-all (list (car fondo) (- (cadr fondo) (* 1.6 h)) 0.0) h (strcat "p = " (lps:num2 (/ p f)) " m (R = " (rtos (/ r f) 2 0) " m, d = " (lps:num2 (/ d f)) " m)") lay 1 0)
+          (lps:msg (strcat "Penetrazione della sfera tra i due punti: p = R - radq(R^2 - (d/2)^2) = " (lps:num2 (/ p f)) " m"))
+          (lps:msg "Le parti da proteggere devono stare sotto l'arco disegnato (altezza delle punte meno la penetrazione).")))))
+  (lps:fine)
+  (princ))
+
+;; numerazione delle calate: si clicca dove scrivere C1, C2... nell'ordine voluto
+(defun c:LPS-NUMERA (/ pref n p h lay)
+  (setq pref (getstring "\nPrefisso <C>: "))
+  (if (= pref "") (setq pref "C"))
+  (initget 6)
+  (setq n (getint "\nPrimo numero <1>: "))
+  (if (not n) (setq n 1))
+  (setq h (* 0.3 (lps:fattore) *LPS-SCALA-SIMBOLI*) lay (lps:layer "CALATANUM"))
+  (while (setq p (getpoint (strcat "\nPosizione di " pref (itoa n) " (Invio per finire): ")))
+    (lps:testo-all p h (strcat pref (itoa n)) lay 1 2)
+    (setq n (1+ n)))
+  (princ))
+
+;; distinta dei componenti disegnati inserita come tabella in un punto
+(defun c:LPS-TABELLA (/ tab p)
+  (setq tab (lps:distinta-tab))
+  (if (not tab)
+    (lps:msg "Nessun componente LPS nel disegno.")
+    (if (setq p (getpoint "\nAngolo in alto a sinistra della tabella: "))
+      (lps:tabella-a tab (car p) (cadr p) (* (lps:fattore) *LPS-SCALA-SIMBOLI*))))
   (princ))
 
 (lps:msg (strcat "Progettazione LPS " *LPS-VERSIONE* " caricato. Digita LPS per l'elenco dei comandi."))
