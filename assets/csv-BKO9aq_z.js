@@ -1,0 +1,2 @@
+function e(e,t,n){let r=e=>`"${String(e??``).replace(/"/g,`""`)}"`,i=[t,...n].map(e=>e.map(r).join(`;`)).join(`\r
+`),a=new Blob([`﻿`+i],{type:`text/csv;charset=utf-8`}),o=document.createElement(`a`);o.href=URL.createObjectURL(a),o.download=e,document.body.appendChild(o),o.click(),o.remove(),setTimeout(()=>URL.revokeObjectURL(o.href),2e3)}var t=()=>new Date().toLocaleDateString(`sv-SE`),n=e=>new Date(e).toLocaleString(`it-IT`,{dateStyle:`short`,timeStyle:`medium`});export{t as n,e as r,n as t};

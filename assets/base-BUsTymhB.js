@@ -1,0 +1,1 @@
+var e=`/appOBOtechHUB/`;function t(t){return e.replace(/\/?$/,`/`)+t.replace(/^\/+/,``)}function n(e){return window.location.origin+t(e)}export{t as n,n as r,e as t};

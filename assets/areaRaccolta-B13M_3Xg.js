@@ -1,0 +1,1 @@
+function e(e,t,n){if(![e,t,n].every(e=>Number.isFinite(e)&&e>=0))throw Error(`Dimensioni non valide: L, W e H devono essere numeri ≥ 0`);let r=3*n;return e*t+2*r*(e+t)+Math.PI*r*r}export{e as t};

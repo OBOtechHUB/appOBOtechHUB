@@ -1,0 +1,395 @@
+{
+ "creato": "2026-11-21T23:24:57.890Z",
+ "librerie": [
+  {
+   "nome": "@hookform/resolvers",
+   "versione": "5.5.7",
+   "licenza": "MIT",
+   "sito": "https://react-hook-form.com"
+  },
+  {
+   "nome": "@mlightcad/libredwg-web",
+   "versione": "0.9.0",
+   "licenza": "GPL-3.0",
+   "sito": "https://github.com/mlightcad/libredwg-web"
+  },
+  {
+   "nome": "@radix-ui/react-accordion",
+   "versione": "1.2.20",
+   "licenza": "MIT",
+   "sito": "https://radix-ui.com/primitives"
+  },
+  {
+   "nome": "@radix-ui/react-alert-dialog",
+   "versione": "1.1.23",
+   "licenza": "MIT",
+   "sito": "https://radix-ui.com/primitives"
+  },
+  {
+   "nome": "@radix-ui/react-aspect-ratio",
+   "versione": "1.1.15",
+   "licenza": "MIT",
+   "sito": "https://radix-ui.com/primitives"
+  },
+  {
+   "nome": "@radix-ui/react-avatar",
+   "versione": "1.2.6",
+   "licenza": "MIT",
+   "sito": "https://radix-ui.com/primitives"
+  },
+  {
+   "nome": "@radix-ui/react-checkbox",
+   "versione": "1.3.11",
+   "licenza": "MIT",
+   "sito": "https://radix-ui.com/primitives"
+  },
+  {
+   "nome": "@radix-ui/react-collapsible",
+   "versione": "1.1.20",
+   "licenza": "MIT",
+   "sito": "https://radix-ui.com/primitives"
+  },
+  {
+   "nome": "@radix-ui/react-context-menu",
+   "versione": "2.3.7",
+   "licenza": "MIT",
+   "sito": "https://radix-ui.com/primitives"
+  },
+  {
+   "nome": "@radix-ui/react-dialog",
+   "versione": "1.1.23",
+   "licenza": "MIT",
+   "sito": "https://radix-ui.com/primitives"
+  },
+  {
+   "nome": "@radix-ui/react-dropdown-menu",
+   "versione": "2.1.24",
+   "licenza": "MIT",
+   "sito": "https://radix-ui.com/primitives"
+  },
+  {
+   "nome": "@radix-ui/react-hover-card",
+   "versione": "1.1.23",
+   "licenza": "MIT",
+   "sito": "https://radix-ui.com/primitives"
+  },
+  {
+   "nome": "@radix-ui/react-label",
+   "versione": "2.1.15",
+   "licenza": "MIT",
+   "sito": "https://radix-ui.com/primitives"
+  },
+  {
+   "nome": "@radix-ui/react-menubar",
+   "versione": "1.1.24",
+   "licenza": "MIT",
+   "sito": "https://radix-ui.com/primitives"
+  },
+  {
+   "nome": "@radix-ui/react-navigation-menu",
+   "versione": "1.2.22",
+   "licenza": "MIT",
+   "sito": "https://radix-ui.com/primitives"
+  },
+  {
+   "nome": "@radix-ui/react-popover",
+   "versione": "1.1.23",
+   "licenza": "MIT",
+   "sito": "https://radix-ui.com/primitives"
+  },
+  {
+   "nome": "@radix-ui/react-progress",
+   "versione": "1.1.16",
+   "licenza": "MIT",
+   "sito": "https://radix-ui.com/primitives"
+  },
+  {
+   "nome": "@radix-ui/react-radio-group",
+   "versione": "1.4.7",
+   "licenza": "MIT",
+   "sito": "https://radix-ui.com/primitives"
+  },
+  {
+   "nome": "@radix-ui/react-scroll-area",
+   "versione": "1.2.18",
+   "licenza": "MIT",
+   "sito": "https://radix-ui.com/primitives"
+  },
+  {
+   "nome": "@radix-ui/react-select",
+   "versione": "2.3.7",
+   "licenza": "MIT",
+   "sito": "https://radix-ui.com/primitives"
+  },
+  {
+   "nome": "@radix-ui/react-separator",
+   "versione": "1.1.15",
+   "licenza": "MIT",
+   "sito": "https://radix-ui.com/primitives"
+  },
+  {
+   "nome": "@radix-ui/react-slider",
+   "versione": "1.4.7",
+   "licenza": "MIT",
+   "sito": "https://radix-ui.com/primitives"
+  },
+  {
+   "nome": "@radix-ui/react-slot",
+   "versione": "1.3.3",
+   "licenza": "MIT",
+   "sito": "https://radix-ui.com/primitives"
+  },
+  {
+   "nome": "@radix-ui/react-switch",
+   "versione": "1.3.7",
+   "licenza": "MIT",
+   "sito": "https://radix-ui.com/primitives"
+  },
+  {
+   "nome": "@radix-ui/react-tabs",
+   "versione": "1.1.21",
+   "licenza": "MIT",
+   "sito": "https://radix-ui.com/primitives"
+  },
+  {
+   "nome": "@radix-ui/react-toggle",
+   "versione": "1.1.18",
+   "licenza": "MIT",
+   "sito": "https://radix-ui.com/primitives"
+  },
+  {
+   "nome": "@radix-ui/react-toggle-group",
+   "versione": "1.1.19",
+   "licenza": "MIT",
+   "sito": "https://radix-ui.com/primitives"
+  },
+  {
+   "nome": "@radix-ui/react-tooltip",
+   "versione": "1.2.16",
+   "licenza": "MIT",
+   "sito": "https://radix-ui.com/primitives"
+  },
+  {
+   "nome": "@react-three/drei",
+   "versione": "10.7.9",
+   "licenza": "MIT",
+   "sito": "https://github.com/pmndrs/drei"
+  },
+  {
+   "nome": "@react-three/fiber",
+   "versione": "9.8.2",
+   "licenza": "MIT",
+   "sito": "https://github.com/pmndrs/react-three-fiber#readme"
+  },
+  {
+   "nome": "@supabase/supabase-js",
+   "versione": "2.119.0",
+   "licenza": "MIT",
+   "sito": "https://github.com/supabase/supabase-js/tree/master/packages/core/supabase-js"
+  },
+  {
+   "nome": "@tailwindcss/vite",
+   "versione": "4.3.3",
+   "licenza": "MIT",
+   "sito": "https://tailwindcss.com"
+  },
+  {
+   "nome": "@tanstack/react-query",
+   "versione": "5.101.4",
+   "licenza": "MIT",
+   "sito": "https://tanstack.com/query"
+  },
+  {
+   "nome": "@tanstack/react-router",
+   "versione": "1.170.41",
+   "licenza": "MIT",
+   "sito": "https://tanstack.com/router"
+  },
+  {
+   "nome": "@tanstack/router-plugin",
+   "versione": "1.168.42",
+   "licenza": "MIT",
+   "sito": "https://tanstack.com/router"
+  },
+  {
+   "nome": "class-variance-authority",
+   "versione": "0.7.1",
+   "licenza": "Apache-2.0",
+   "sito": "https://github.com/joe-bell/cva#readme"
+  },
+  {
+   "nome": "clsx",
+   "versione": "2.1.1",
+   "licenza": "MIT",
+   "sito": "lukeed/clsx"
+  },
+  {
+   "nome": "cmdk",
+   "versione": "1.1.1",
+   "licenza": "MIT",
+   "sito": "https://github.com/pacocoursey/cmdk#readme"
+  },
+  {
+   "nome": "date-fns",
+   "versione": "4.4.0",
+   "licenza": "MIT",
+   "sito": "https://github.com/date-fns/date-fns"
+  },
+  {
+   "nome": "dxf-parser",
+   "versione": "1.1.2",
+   "licenza": "MIT",
+   "sito": "https://github.com/gdsestimating/dxf-parser"
+  },
+  {
+   "nome": "dxf-viewer",
+   "versione": "1.0.51",
+   "licenza": "MPL-2.0",
+   "sito": "https://github.com/vagran/dxf-viewer"
+  },
+  {
+   "nome": "embla-carousel-react",
+   "versione": "8.6.0",
+   "licenza": "MIT",
+   "sito": "https://www.embla-carousel.com"
+  },
+  {
+   "nome": "input-otp",
+   "versione": "1.4.2",
+   "licenza": "MIT",
+   "sito": "https://input-otp.rodz.dev/"
+  },
+  {
+   "nome": "jspdf",
+   "versione": "4.2.1",
+   "licenza": "MIT",
+   "sito": "https://github.com/parallax/jsPDF"
+  },
+  {
+   "nome": "jspdf-autotable",
+   "versione": "5.0.9",
+   "licenza": "MIT",
+   "sito": "https://simonbengtsson.github.io/jsPDF-AutoTable"
+  },
+  {
+   "nome": "leaflet",
+   "versione": "1.9.4",
+   "licenza": "BSD-2-Clause",
+   "sito": "https://leafletjs.com/"
+  },
+  {
+   "nome": "lucide-react",
+   "versione": "0.575.0",
+   "licenza": "ISC",
+   "sito": "https://lucide.dev"
+  },
+  {
+   "nome": "occt-import-js",
+   "versione": "0.0.23",
+   "licenza": "LGPL-2.1",
+   "sito": "github:kovacsv/occt-import-js"
+  },
+  {
+   "nome": "pdfjs-dist",
+   "versione": "4.10.38",
+   "licenza": "Apache-2.0",
+   "sito": "https://mozilla.github.io/pdf.js/"
+  },
+  {
+   "nome": "react",
+   "versione": "19.2.8",
+   "licenza": "MIT",
+   "sito": "https://react.dev/"
+  },
+  {
+   "nome": "react-day-picker",
+   "versione": "9.14.0",
+   "licenza": "MIT",
+   "sito": "https://daypicker.dev"
+  },
+  {
+   "nome": "react-dom",
+   "versione": "19.2.8",
+   "licenza": "MIT",
+   "sito": "https://react.dev/"
+  },
+  {
+   "nome": "react-hook-form",
+   "versione": "7.83.0",
+   "licenza": "MIT",
+   "sito": "https://react-hook-form.com"
+  },
+  {
+   "nome": "react-resizable-panels",
+   "versione": "4.12.2",
+   "licenza": "MIT",
+   "sito": "https://react-resizable-panels.vercel.app/"
+  },
+  {
+   "nome": "recharts",
+   "versione": "2.15.4",
+   "licenza": "MIT",
+   "sito": "https://github.com/recharts/recharts"
+  },
+  {
+   "nome": "sonner",
+   "versione": "2.0.7",
+   "licenza": "MIT",
+   "sito": "https://sonner.emilkowal.ski/"
+  },
+  {
+   "nome": "tailwind-merge",
+   "versione": "3.6.0",
+   "licenza": "MIT",
+   "sito": "https://github.com/dcastil/tailwind-merge"
+  },
+  {
+   "nome": "tailwindcss",
+   "versione": "4.3.3",
+   "licenza": "MIT",
+   "sito": "https://tailwindcss.com"
+  },
+  {
+   "nome": "three",
+   "versione": "0.187.0",
+   "licenza": "MIT",
+   "sito": "https://threejs.org/"
+  },
+  {
+   "nome": "tw-animate-css",
+   "versione": "1.4.0",
+   "licenza": "MIT",
+   "sito": "https://github.com/Wombosvideo/tw-animate-css#readme"
+  },
+  {
+   "nome": "vaul",
+   "versione": "1.1.2",
+   "licenza": "MIT",
+   "sito": "https://vaul.emilkowal.ski/"
+  },
+  {
+   "nome": "vite-tsconfig-paths",
+   "versione": "6.1.1",
+   "licenza": "MIT",
+   "sito": "aleclarson/vite-tsconfig-paths"
+  },
+  {
+   "nome": "web-ifc",
+   "versione": "0.0.78",
+   "licenza": "MPL-2.0",
+   "sito": "https://github.com/ThatOpen/engine_web-ifc"
+  },
+  {
+   "nome": "xlsx",
+   "versione": "0.20.3",
+   "licenza": "Apache-2.0",
+   "sito": "https://sheetjs.com/"
+  },
+  {
+   "nome": "zod",
+   "versione": "3.25.76",
+   "licenza": "MIT",
+   "sito": "https://zod.dev"
+  }
+ ]
+}
