@@ -10,6 +10,7 @@
  */
 import { COLONNA_MM, FORMATI, LAYER_LPS, SCALE_TAVOLA, nomeBlocco } from "./standard";
 import type { ScrittoreDXF, P2, P3 } from "./dxf12";
+import { ALTEZZA_TESTALINO, disegnaTestalino, legendaLayer } from "./testalino";
 import { codiciRichiamo, dentro, ordinaCalate, type DatiTavola, type RisultatoTavola } from "./tavolaDXF";
 
 export interface Foglio { x: number; y: number; larghezza: number; altezza: number; formatoMm: [number, number]; scala: number; tav: string; titolo: string }
@@ -33,26 +34,10 @@ export function nuovoFoglio(w: ScrittoreDXF, formatoMm: [number, number], scala:
 }
 export type FoglioDisegno = ReturnType<typeof nuovoFoglio>;
 
-/** Cartiglio in basso nella colonna destra (stesso schema della TAV. LPS-01). */
+/** Testalino in basso nella colonna destra (lo stesso della TAV. LPS-01). */
 export function cartiglio(w: ScrittoreDXF, f: FoglioDisegno, d: DatiTavola, sottotitolo: string, tav: string, scalaTesto: string) {
-  const L = LAYER_LPS, { P, hT, colX } = f, cy0 = 10, cy1 = 10 + 72, xr = colX + COLONNA_MM;
-  w.poli(L.cartiglio.nome, [P(colX, cy0), P(xr, cy0), P(xr, cy1), P(colX, cy1)], true);
-  const righe: [string, string][] = [
-    ["Progetto", d.progetto.nome || "-"], ["Comune", d.progetto.comune || "-"], ["Codice", d.progetto.codice || "-"],
-    ["Livello di protezione", `LPL ${d.progetto.lpl}`], ["Scala", scalaTesto], ["Data", d.progetto.data],
-  ];
-  w.testo(L.cartiglio.nome, P(colX + 4, cy1 - 7), hT(3.2), "IMPIANTO DI PROTEZIONE CONTRO I FULMINI (LPS)");
-  w.testo(L.cartiglio.nome, P(colX + 4, cy1 - 12.5), hT(2.6), sottotitolo);
-  w.linea(L.cartiglio.nome, P(colX, cy1 - 16), P(xr, cy1 - 16));
-  righe.forEach(([e, v], i) => {
-    const yy = cy1 - 21 - i * 6.2;
-    w.testo(L.cartiglio.nome, P(colX + 4, yy), hT(2), e.toUpperCase());
-    w.testo(L.cartiglio.nome, P(colX + 46, yy), hT(2.6), v.length > 44 ? `${v.slice(0, 43)}...` : v);
-    w.linea(L.cartiglio.nome, P(colX, yy - 2), P(xr, yy - 2));
-  });
-  w.linea(L.cartiglio.nome, P(colX + 42, cy1 - 16), P(colX + 42, cy0 + 8.5));
-  w.testo(L.cartiglio.nome, P(colX + 4, cy0 + 3), hT(1.8), "CEI EN IEC 62305 - Elaborato con Progettazione LPS (OBO Italia)");
-  w.testo(L.cartiglio.nome, P(xr - 4, cy0 + 3), hT(2.6), tav, "destra");
+  const formato = FORMATI.find((x) => x.mm[0] === f.W && x.mm[1] === f.H)?.nome;
+  disegnaTestalino(w, f.P, f.hT, f.colX, d.progetto, { sottotitolo, tav, scala: scalaTesto, formato });
 }
 
 /** Testo a capo per larghezza (in caratteri). */
@@ -145,7 +130,7 @@ function dentroRidotto(p: P2, poli: P2[]): boolean {
   return true;
 }
 
-function tavolaProspetti(w: ScrittoreDXF, d: DatiTavola, formatoMm: [number, number], x0: number, yAlto: number, R: number): Foglio {
+function tavolaProspetti(w: ScrittoreDXF, d: DatiTavola, formatoMm: [number, number], x0: number, yAlto: number, R: number, conLegendaLayer = false): Foglio {
   const L = LAYER_LPS, vs = viste(!!d.nordInAlto);
   // ingombri delle viste (m)
   const box = vs.map((v) => {
@@ -242,6 +227,7 @@ function tavolaProspetti(w: ScrittoreDXF, d: DatiTavola, formatoMm: [number, num
     "La verifica completa nello spazio e' quella del modello 3D (Edificio 3D).",
     "Quote altimetriche in metri rispetto al piano campagna (+0,00).",
   ]) for (const riga of aCapo(r, 70)) { w.testo(L.legenda.nome, P(x0c, y), hT(2.2), riga); y -= 4.4; }
+  if (conLegendaLayer) legendaLayer(w, P, hT, x0c, y - 8, 10 + ALTEZZA_TESTALINO + 8);
   cartiglio(w, f, d, "PROSPETTI - ASTE, CALATE E SFERA ROTOLANTE", "TAV. LPS-02", `1:${scala}`);
   return { x: f.sx, y: f.sy, larghezza: f.W * k, altezza: f.H * k, formatoMm, scala, tav: "TAV. LPS-02", titolo: "Prospetti" };
 }
@@ -338,7 +324,7 @@ function tavolaCalate(w: ScrittoreDXF, d: DatiTavola, base: RisultatoTavola, for
   const colonne: [string, number, "sinistra" | "destra"][] = [["N.", x0c, "sinistra"], ["H (m)", x0c + 34, "destra"], ["LUNGH. (m)", x0c + 62, "destra"], ["INTERASSE (m)", x0c + 100, "destra"], ["ESITO", xr, "destra"]];
   colonne.forEach(([t, x, a]) => w.testo(L.legenda.nome, P(x, y), hT(2), t, a));
   y -= 1.5; w.linea(L.legenda.nome, P(x0c, y), P(xr, y)); y -= 4.2;
-  const maxRighe = Math.max(0, Math.floor((y - 10 - 72 - 60) / 4.6));
+  const maxRighe = Math.max(0, Math.floor((y - 10 - ALTEZZA_TESTALINO - 60) / 4.6));
   tab.slice(0, maxRighe).forEach((c) => {
     const ok = !c.prossima || c.distanzaSuccessiva <= lim + 1e-6;
     w.testo(L.legenda.nome, P(x0c, y), hT(2.2), c.prossima ? `${c.nome}-${c.prossima}` : c.nome);
@@ -403,6 +389,7 @@ function tavolaParticolari(w: ScrittoreDXF, d: DatiTavola, formatoMm: [number, n
     "Disegni di dettaglio: schede PDF e blocchi CAD OBO dei particolari (archivio di Progettazione LPS).",
     ...(schede.length > maxSchede ? [`Nel foglio entrano ${maxSchede} schede: le altre ${schede.length - maxSchede} sono nelle schede PDF.`] : []),
   ]) for (const riga of aCapo(r, 70)) { w.testo(L.legenda.nome, P(x0c, y), hT(2.2), riga); y -= 4.4; }
+  legendaLayer(w, P, hT, x0c, y - 8, 10 + ALTEZZA_TESTALINO + 8);
   cartiglio(w, f, d, "PARTICOLARI COSTRUTTIVI - COMPONENTI OBO", "TAV. LPS-04", "-");
   return { x: f.sx, y: f.sy, larghezza: f.W * k, altezza: f.H * k, formatoMm, scala: scalaModello, tav: "TAV. LPS-04", titolo: "Particolari costruttivi" };
 }
@@ -413,7 +400,7 @@ export function aggiungiTavole(w: ScrittoreDXF, d: DatiTavola, base: RisultatoTa
   const fogli: Foglio[] = [{ x: base.foglio.x, y: base.foglio.y, larghezza: base.foglio.larghezza, altezza: base.foglio.altezza, formatoMm, scala: base.scala, tav: "TAV. LPS-01", titolo: "Pianta coperture" }];
   const sotto = () => { const u = fogli[fogli.length - 1]!; return u.y - u.altezza * 0.08; };
   const x0 = base.foglio.x;
-  if (d.corpi.some((c) => c.impronta.length >= 3)) fogli.push(tavolaProspetti(w, d, formatoMm, x0, sotto(), o.raggioSfera));
+  if (d.corpi.some((c) => c.impronta.length >= 3)) fogli.push(tavolaProspetti(w, d, formatoMm, x0, sotto(), o.raggioSfera, !o.particolari.length));
   if (d.conduttori.some((c) => c.tipo === "calata" || c.tipo === "terra") || d.picchetti.length) fogli.push(tavolaCalate(w, d, base, formatoMm, x0, sotto(), o));
   if (o.particolari.length) fogli.push(tavolaParticolari(w, d, formatoMm, x0, sotto(), o.particolari, base.scala));
   return fogli;

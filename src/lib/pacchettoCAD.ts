@@ -32,6 +32,8 @@ export function leggimiCAD(nome: string): string {
     "  LPS-SFERA               disegna la sfera rotolante in un punto",
     "  LPS-NUMERA              numera le calate C1, C2... cliccando nell'ordine",
     "  LPS-DISTINTA, LPS-TABELLA  distinta dei materiali dal disegno (CSV e tabella nel disegno)",
+    "  LPS-TESTALINO           testalino OBO (committente, opera, revisioni, progettista, tavola) sul layer LPS-CART",
+    "  LPS-LEGENDA             legenda dei layer predefiniti sul layer LPS-LEGE",
     "  LPS-ESPORTA             esporta i contorni dell'edificio verso il sito",
     "  LPS-BLOCCHI             cartella dei blocchi OBO ufficiali",
     "",

@@ -27,7 +27,7 @@ export const LAYER_LPS = {
   quote: { nome: "LPS-QUOT", colore: 9, linea: "CONTINUOUS", descrizione: "Quote" },
   testi: { nome: "LPS-TEST", colore: 7, linea: "CONTINUOUS", descrizione: "Testi e diciture" },
   legenda: { nome: "LPS-LEGE", colore: 7, linea: "CONTINUOUS", descrizione: "Legenda e distinta" },
-  cartiglio: { nome: "LPS-CART", colore: 7, linea: "CONTINUOUS", descrizione: "Cartiglio e squadratura" },
+  cartiglio: { nome: "LPS-CART", colore: 7, linea: "CONTINUOUS", descrizione: "Testalino e squadratura" },
   sfera2d: { nome: "LPS-SFERA", colore: 150, linea: "LPS_TRATTEGGIO", descrizione: "Inviluppo della sfera rotolante nei prospetti" },
   avvisi: { nome: "LPS-AVVISI", colore: 1, linea: "CONTINUOUS", descrizione: "Valori oltre i limiti (da verificare)" },
   edificio3d: { nome: "LPS-3D-EDIF", colore: 9, linea: "CONTINUOUS", descrizione: "Modello 3D: edificio", stampa: false },

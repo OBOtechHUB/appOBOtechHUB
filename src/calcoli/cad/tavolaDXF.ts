@@ -5,6 +5,7 @@
  */
 import { COLONNA_MM, LAYER_LPS, SIMBOLI, nomeBlocco, scegliTavola, type TipoSimbolo } from "./standard";
 import { ScrittoreDXF, type Attributo, type P2, type P3 } from "./dxf12";
+import { ALTEZZA_TESTALINO, disegnaTestalino, type DatiTestalino } from "./testalino";
 
 export interface CorpoTavola { nome: string; impronta: P2[]; quotaBase: number; altezzaGronda: number; tipoTetto: string; altezzaColmo: number }
 export interface ComponenteTavola { x: number; y: number; z?: number | undefined; rotazione?: number | undefined; codiceOBO?: string | null | undefined; tipo?: string | undefined }
@@ -15,7 +16,7 @@ export interface VoceDistinta { codice: string; descrizione: string; quantita: n
 export interface RichiamoParticolare { idParticolare: string; nome: string; x: number; y: number }
 
 export interface DatiTavola {
-  progetto: { codice: string; nome: string; comune: string; lpl: string; data: string };
+  progetto: DatiTestalino;
   corpi: CorpoTavola[];
   aste: AstaTavola[];
   conduttori: ConduttoreTavola[];
@@ -290,7 +291,7 @@ export function generaTavola(d: DatiTavola, layerExtra: { nome: string; colore: 
     w.poli(v.layer, [P(x0, y + 1.2), P(x0 + 14, y + 1.2)], false);
     w.testo(L.legenda.nome, P(x0 + 18, y), hT(2.4), v.testo); y -= rig;
   }
-  const altCartiglio = 72, fondo = 10 + altCartiglio + 4;
+  const fondo = 10 + ALTEZZA_TESTALINO + 4;
   const voci = [...usoBlocchi.entries()].sort((a, b) => a[1].tipo.localeCompare(b[1].tipo) || a[1].codice.localeCompare(b[1].codice));
   const qtaDistinta = new Map<string, { q: number; u: string }>();
   d.distinta.forEach((v) => { const o = qtaDistinta.get(v.codice); qtaDistinta.set(v.codice, { q: (o?.q ?? 0) + v.quantita, u: v.unita }); });
@@ -326,25 +327,8 @@ export function generaTavola(d: DatiTavola, layerExtra: { nome: string; colore: 
   }
   w.testo(L.legenda.nome, P(x0, fondo + 2), hT(1.8), "Quote in metri. Simboli: blocchi OBO_<codice> con attributi CODICE, DESCRIZIONE, TIPO.");
 
-  // cartiglio
-  const cy0 = 10, cy1 = 10 + altCartiglio, xr = colX + COLONNA_MM;
-  w.poli(L.cartiglio.nome, [P(colX, cy0), P(xr, cy0), P(xr, cy1), P(colX, cy1)], true);
-  const righe: [string, string][] = [
-    ["Progetto", d.progetto.nome || "-"], ["Comune", d.progetto.comune || "-"], ["Codice", d.progetto.codice || "-"],
-    ["Livello di protezione", `LPL ${d.progetto.lpl}`], ["Scala", `1:${scala} (${formato.nome})`], ["Data", d.progetto.data],
-  ];
-  w.testo(L.cartiglio.nome, P(colX + 4, cy1 - 7), hT(3.2), "IMPIANTO DI PROTEZIONE CONTRO I FULMINI (LPS)");
-  w.testo(L.cartiglio.nome, P(colX + 4, cy1 - 12.5), hT(2.6), "PIANTA COPERTURE - CAPTAZIONE, CALATE E IMPIANTO DI TERRA");
-  w.linea(L.cartiglio.nome, P(colX, cy1 - 16), P(xr, cy1 - 16));
-  righe.forEach(([e, v], i) => {
-    const yy = cy1 - 21 - i * 6.2;
-    w.testo(L.cartiglio.nome, P(colX + 4, yy), hT(2), e.toUpperCase());
-    w.testo(L.cartiglio.nome, P(colX + 46, yy), hT(2.6), v.length > 44 ? `${v.slice(0, 43)}...` : v);
-    w.linea(L.cartiglio.nome, P(colX, yy - 2), P(xr, yy - 2));
-  });
-  w.linea(L.cartiglio.nome, P(colX + 42, cy1 - 16), P(colX + 42, cy0 + 8.5));
-  w.testo(L.cartiglio.nome, P(colX + 4, cy0 + 3), hT(1.8), "CEI EN IEC 62305 - Elaborato con Progettazione LPS (OBO Italia)");
-  w.testo(L.cartiglio.nome, P(xr - 4, cy0 + 3), hT(2.6), "TAV. LPS-01", "destra");
+  // testalino
+  disegnaTestalino(w, P, hT, colX, d.progetto, { sottotitolo: "PIANTA COPERTURE - CAPTAZIONE, CALATE E IMPIANTO DI TERRA", tav: "TAV. LPS-01", scala: `1:${scala}`, formato: formato.nome });
 
   return { dxf: w, scala, formato: formato.nome, foglio: { x: sx, y: sy, larghezza: W * k, altezza: H * k } };
 }

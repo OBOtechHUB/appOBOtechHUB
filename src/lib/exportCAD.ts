@@ -24,7 +24,7 @@ export function generaCAD(s:StatoEsteso,progetto:{codice:string;nome:string;comu
   const pos=posizioniParticolari(catalogo,[{origine:"progetto",supporti:s.supporti,morsetti:s.morsetti,compensatori:s.compensatori,picchetti:s.picchetti.map((p)=>({...p,tipo:"picchetto"})),aste:s.aste,distinte:[s.distinta,s.terra?.distinta]}]);
   const oggi=new Date();
   const dati:DatiTavola={
-    progetto:{codice:progetto.codice,nome:progetto.nome,comune:progetto.comune,lpl:s.lpl,data:`${String(oggi.getDate()).padStart(2,"0")}/${String(oggi.getMonth()+1).padStart(2,"0")}/${oggi.getFullYear()}`},
+    progetto:{codice:progetto.codice,nome:progetto.nome,comune:progetto.comune,lpl:s.lpl,data:`${String(oggi.getDate()).padStart(2,"0")}/${String(oggi.getMonth()+1).padStart(2,"0")}/${oggi.getFullYear()}`,committente:s.relazione?.committente||undefined,opera:s.relazione?.titoloOpera||undefined,progettista:s.relazione?.tecnico||undefined,albo:s.relazione?.albo||undefined,rev:s.emissione?.rev??s.revisioni?.at(-1)?.rev??undefined,revisioni:(s.revisioni??[]).map((r)=>({rev:r.rev,data:r.data,descrizione:r.descrizione,autore:r.autore}))},
     corpi:s.modello.corpi.map((c)=>({nome:c.nome,impronta:c.impronta.map((p)=>[p[0],p[1]] as [number,number]),quotaBase:c.quotaBase,altezzaGronda:c.altezzaGronda,tipoTetto:c.tipoTetto,altezzaColmo:c.altezzaColmo})),
     aste:s.aste.map((a)=>({x:a.x,y:a.y,z:a.z,altezza:a.altezza,codiceOBO:a.codiceOBO})),
     conduttori:s.conduttori.map((c)=>({tipo:c.tipo,sottotipo:c.sottotipo,punti:c.punti,materiale:c.materiale,sezione:c.sezione,codiceOBO:c.codiceOBO})),

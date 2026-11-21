@@ -18,12 +18,14 @@
 ;;;   LPS-PENETRAZIONE penetrazione della sfera rotolante tra due punti di captazione (prospetti e sezioni)
 ;;;   LPS-NUMERA     numera le calate (C1, C2...) cliccando nell'ordine
 ;;;   LPS-TABELLA    inserisce la distinta dei materiali come tabella in un punto del disegno
+;;;   LPS-TESTALINO  disegna il testalino OBO (committente, opera, revisioni, progettista, tavola) sul layer LPS-CART
+;;;   LPS-LEGENDA    disegna la legenda dei layer predefiniti LPS (campione di linea, nome, colore) sul layer LPS-LEGE
 ;;;
 ;;; Il file .lpsdati ha un record LISP per riga, con coordinate in metri:
 ;;; il comando converte nelle unita' del disegno (INSUNITS).
 ;;; ==========================================================================
 
-(setq *LPS-VERSIONE* "3.1")
+(setq *LPS-VERSIONE* "3.2")
 (if vl-load-com (vl-load-com))
 
 ;;; --------------------------------------------------------------------------
@@ -533,6 +535,8 @@
   (lps:msg "  LPS-PENETRAZIONE  penetrazione della sfera rotolante tra due punti (prospetti e sezioni)")
   (lps:msg "  LPS-NUMERA    numera le calate C1, C2... cliccando nell'ordine")
   (lps:msg "  LPS-TABELLA   inserisce la distinta dei materiali come tabella")
+  (lps:msg "  LPS-TESTALINO disegna il testalino OBO sul layer LPS-CART")
+  (lps:msg "  LPS-LEGENDA   disegna la legenda dei layer predefiniti sul layer LPS-LEGE")
   (lps:msg "  Standard OBO: layer LPS-*, blocchi OBO_<codice> con attributi CODICE/DESCRIZIONE/TIPO.")
   (lps:msg "  Simboli per tavole 1:200: (setq *LPS-SCALA-SIMBOLI* 2.0) prima di LPS-IMPORTA.")
   (princ))
@@ -910,6 +914,113 @@
     (lps:msg "Nessun componente LPS nel disegno.")
     (if (setq p (getpoint "\nAngolo in alto a sinistra della tabella: "))
       (lps:tabella-a tab (car p) (cadr p) (* (lps:fattore) *LPS-SCALA-SIMBOLI*))))
+  (princ))
+
+;;; --------------------------------------------------------------------------
+;;; Testalino e legenda dei layer (misure in mm sulla carta)
+;;; --------------------------------------------------------------------------
+
+;; scala della tavola chiesta all'utente: unita' disegno per 1 mm di carta
+(defun lps:chiedi-k (/ sc)
+  (initget 6)
+  (setq sc (getint "\nScala della tavola 1:<100>: "))
+  (if (not sc) (setq sc 100))
+  (* (/ sc 1000.0) (lps:fattore)))
+
+;; data di oggi gg/mm/aaaa
+(defun lps:oggi (/ d)
+  (setq d (rtos (getvar "CDATE") 2 0))
+  (strcat (substr d 7 2) "/" (substr d 5 2) "/" (substr d 1 4)))
+
+;; testo chiesto con valore predefinito
+(defun lps:chiedi-testo (domanda pred / r)
+  (setq r (getstring T (strcat "\n" domanda (if (/= pred "") (strcat " <" pred ">") "") ": ")))
+  (if (= r "") pred r))
+
+(defun c:LPS-TESTALINO (/ k o x0 y0 x1 xm y lay campi cm op co cd lpl dt rv pg tv st sc)
+  (lps:inizio)
+  (setq o (getpoint "\nAngolo in basso a sinistra del testalino: "))
+  (if o
+    (progn
+      (setq k (lps:chiedi-k) sc (rtos (/ k (lps:fattore) 0.001) 2 0))
+      (setq cm (lps:chiedi-testo "Committente" "")
+            op (lps:chiedi-testo "Opera" "")
+            co (lps:chiedi-testo "Comune" "")
+            cd (lps:chiedi-testo "Codice progetto (CRM)" "")
+            lpl (lps:chiedi-lpl)
+            dt (lps:chiedi-testo "Data" (lps:oggi))
+            rv (lps:chiedi-testo "Revisione" "A")
+            pg (lps:chiedi-testo "Progettista" "")
+            st (lps:chiedi-testo "Titolo della tavola" "PIANTA COPERTURE - CAPTAZIONE, CALATE E IMPIANTO DI TERRA")
+            tv (lps:chiedi-testo "Numero tavola" "LPS-01"))
+      (setq lay (lps:layer "CARTIGLIO") x0 0.0 x1 175.0 xm 87.5 y0 0.0)
+      ;; punto e linea in mm di carta
+      ;; o, k e lay sono visibili nelle funzioni chiamate da qui (scope dinamico di AutoLISP)
+      (defun lps:tl-p (x y) (list (+ (car o) (* x k)) (+ (cadr o) (* y k)) 0.0))
+      (defun lps:tl-t (x y h s a) (lps:testo-all (lps:tl-p x y) (* h k) s lay a 0))
+      (defun lps:tl-l (xa ya xb yb) (lps:linea (lps:tl-p xa ya) (lps:tl-p xb yb) lay))
+      (lps:tl-l 0 0 175 0) (lps:tl-l 175 0 175 106) (lps:tl-l 175 106 0 106) (lps:tl-l 0 106 0 0)
+      (setq y 106.0)
+      (lps:tl-t 4 (- y 9) 7.0 "OBO" 0) (lps:tl-t 25 (- y 9) 3.4 "BETTERMANN" 0)
+      (lps:tl-t 171 (- y 5.2) 2.0 "OBO Bettermann S.r.l." 2)
+      (lps:tl-t 171 (- y 8.6) 1.7 "Via C. Ferrero 16 - 10098 Rivoli (TO)" 2)
+      (lps:tl-t 171 (- y 11.8) 1.7 "Tel. +39 011 9548 811 - tecnico@obo.it" 2)
+      (setq y (- y 14)) (lps:tl-l 0 y 175 y)
+      (lps:tl-t 4 (- y 5.5) 3.1 "IMPIANTO DI PROTEZIONE CONTRO I FULMINI (LPS)" 0)
+      (lps:tl-t 4 (- y 10.2) 2.4 st 0)
+      (setq y (- y 13)) (lps:tl-l 0 y 175 y)
+      (setq campi (list (list "COMMITTENTE" cm nil nil) (list "OPERA" op nil nil)
+                        (list "COMUNE" co "CODICE PROGETTO (CRM)" cd)
+                        (list "LIVELLO DI PROTEZIONE" (strcat "LPL " lpl) "NORMA" "CEI EN IEC 62305:2026-10")
+                        (list "SCALA" (strcat "1:" sc) "FORMATO" "")
+                        (list "DATA" dt "REVISIONE" (strcat "Rev. " rv))))
+      (foreach c campi
+        (lps:tl-t 2 (- y 2.4) 1.6 (car c) 0)
+        (lps:tl-t 2 (- y 5.4) 2.4 (if (= (cadr c) "") "-" (cadr c)) 0)
+        (if (caddr c)
+          (progn (lps:tl-l 87.5 y 87.5 (- y 6.5))
+                 (lps:tl-t 89.5 (- y 2.4) 1.6 (caddr c) 0)
+                 (lps:tl-t 89.5 (- y 5.4) 2.4 (if (= (cadddr c) "") "-" (cadddr c)) 0)))
+        (setq y (- y 6.5)) (lps:tl-l 0 y 175 y))
+      ;; revisioni: intestazione e 3 righe (la prima con la revisione indicata)
+      (foreach c '(("REV." 0) ("DATA" 12) ("DESCRIZIONE" 32) ("REDATTO" 112) ("CONTR." 136) ("APPR." 156))
+        (lps:tl-t (+ (cadr c) 1.5) (- y 3.4) 1.6 (car c) 0)
+        (if (> (cadr c) 0) (lps:tl-l (cadr c) y (cadr c) (- y 20))))
+      (setq y (- y 5)) (lps:tl-l 0 y 175 y)
+      (lps:tl-t 1.5 (- y 3.6) 2.0 rv 0) (lps:tl-t 13.5 (- y 3.6) 1.9 dt 0) (lps:tl-t 33.5 (- y 3.6) 1.9 (if (= rv "A") "Prima emissione" "Revisione") 0)
+      (repeat 3 (setq y (- y 5)) (lps:tl-l 0 y 175 y))
+      ;; progettista, timbro e firma, tavola
+      (lps:tl-l 70 y 70 0) (lps:tl-l 137 y 137 0)
+      (lps:tl-t 2 (- y 2.6) 1.6 "PROGETTISTA" 0) (lps:tl-t 2 (- y 6.2) 2.2 (if (= pg "") "-" pg) 0)
+      (lps:tl-t 72 (- y 2.6) 1.6 "TIMBRO E FIRMA" 0)
+      (lps:tl-t 139 (- y 2.6) 1.6 "TAVOLA" 0)
+      (lps:tl-t 156 3.5 4.4 tv 1)
+      (lps:msg (strcat "Testalino disegnato sul layer " lay " (175 x 106 mm a scala 1:" sc ")."))))
+  (lps:fine)
+  (princ))
+
+(defun c:LPS-LEGENDA (/ k o y lay lg)
+  (lps:inizio)
+  (setq o (getpoint "\nAngolo in alto a sinistra della legenda: "))
+  (if o
+    (progn
+      (setq k (lps:chiedi-k) lg (lps:layer "LEGENDA") y 0.0)
+      (defun lps:lg-p (x yy) (list (+ (car o) (* x k)) (+ (cadr o) (* yy k)) 0.0))
+      (lps:testo (lps:lg-p 0 y) (* 3.2 k) "LAYER PREDEFINITI" lg)
+      (setq y (- y 6))
+      (lps:testo (lps:lg-p 16 y) (* 1.7 k) "LAYER" lg) (lps:testo (lps:lg-p 50 y) (* 1.7 k) "COL." lg) (lps:testo (lps:lg-p 62 y) (* 1.7 k) "TIPO LINEA" lg)
+      (setq y (- y 1.4)) (lps:linea (lps:lg-p 0 y) (lps:lg-p 100 y) lg) (setq y (- y 3.8))
+      (foreach d *LPS-LAYER*
+        (if (not (wcmatch (cadr d) "LPS-3D*"))
+          (progn
+            (setq lay (lps:layer (car d)))
+            (lps:linea (lps:lg-p 0 (+ y 0.9)) (lps:lg-p 12 (+ y 0.9)) lay)
+            (lps:testo (lps:lg-p 16 y) (* 1.9 k) (cadr d) lg)
+            (lps:testo (lps:lg-p 50 y) (* 1.9 k) (itoa (caddr d)) lg)
+            (lps:testo (lps:lg-p 62 y) (* 1.9 k) (cadddr d) lg)
+            (setq y (- y 3.8)))))
+      (lps:msg (strcat "Legenda dei layer disegnata sul layer " lg "."))))
+  (lps:fine)
   (princ))
 
 (lps:msg (strcat "Progettazione LPS " *LPS-VERSIONE* " caricato. Digita LPS per l'elenco dei comandi."))
