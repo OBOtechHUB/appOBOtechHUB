@@ -2,6 +2,18 @@
   "nota": "Registro degli aggiornamenti di Progettazione LPS. Una voce per aggiornamento, la più recente per prima (app: lps). Viene mostrato nella barra \"Aggiorna app\", nel riquadro Novità e nella pagina Novità di OBO Hub.",
   "aggiornamenti": [
     {
+      "id": "2026-11-21-lps-27",
+      "data": "2026-11-21",
+      "app": "lps",
+      "titolo": "Testalino e legenda dei layer nelle tavole CAD",
+      "voci": [
+        "Nuovo testalino OBO su tutte le tavole: committente, opera, comune, codice, LPL, scala, formato, data, revisioni, progettista con albo, spazio per timbro e firma, numero della tavola",
+        "Committente, opera, progettista e albo vengono da Dati della relazione; le revisioni da Revisioni del progetto",
+        "Legenda dei layer predefiniti (campione di linea, nome, colore, descrizione) nella tavola dei particolari",
+        "LPS.lsp 3.2: comandi LPS-TESTALINO e LPS-LEGENDA per aggiungerli a qualsiasi disegno, sui layer LPS-CART e LPS-LEGE"
+      ]
+    },
+    {
       "id": "2026-11-21-lps-26",
       "data": "2026-11-21",
       "app": "lps",
