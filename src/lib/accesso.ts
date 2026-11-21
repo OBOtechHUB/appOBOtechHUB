@@ -6,7 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 export const db = () => supabase as unknown as SupabaseClient;
 import { BASE } from "@/lib/base";
 
-export type Sezione = "assistente" | "progetti" | "edificio" | "rischio" | "captazione" | "calate" | "terra" | "spd" | "computo" | "particolari" | "verifiche" | "prodotti" | "modelli3d" | "cad" | "app_mappa" | "app_prodotti";
+export type Sezione = "assistente" | "progetti" | "edificio" | "rischio" | "captazione" | "calate" | "terra" | "spd" | "computo" | "particolari" | "verifiche" | "prodotti" | "modelli3d" | "cad" | "app_mappa" | "app_prodotti" | "app_staffaggi";
 export const SEZIONI: { id: Sezione; nome: string }[] = [
   { id: "assistente", nome: "Assistente di progetto" },
   { id: "progetti", nome: "Progetti salvati" },
@@ -24,6 +24,7 @@ export const SEZIONI: { id: Sezione; nome: string }[] = [
   { id: "cad", nome: "Download CAD" },
   { id: "app_mappa", nome: "OBO Hub · Mappa carichi ufficio tecnico" },
   { id: "app_prodotti", nome: "OBO Hub · Prodotti OBO" },
+  { id: "app_staffaggi", nome: "OBO Hub · Staffaggi OBO" },
 ];
 
 /** Indirizzo di OBO Hub (schermata iniziale con tutte le app), sullo stesso sito GitHub Pages. */
@@ -47,7 +48,7 @@ export const SEZIONE_PAGINA: Record<string, Sezione | "admin"> = {
   "/assistente": "assistente", "/progetti": "progetti", "/dati-edificio": "edificio", "/dati-normativi": "edificio",
   "/rischio": "rischio", "/edificio-3d": "captazione", "/calate": "calate", "/resistenza-terra": "terra", "/spd": "spd",
   "/computo-materiali": "computo", "/particolari": "particolari", "/verifiche": "verifiche", "/prodotti": "prodotti",
-  "/modelli-3d": "modelli3d", "/download-cad": "cad", "/admin": "admin",
+  "/modelli-3d": "modelli3d", "/download-cad": "cad", "/staffaggi": "app_staffaggi", "/admin": "admin",
 };
 
 /** Percorso interno dell'app (senza la cartella di pubblicazione, es. /Lighting). */

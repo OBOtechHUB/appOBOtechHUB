@@ -4,8 +4,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import {
   ArrowDownToLine, ShieldCheck, Box, Boxes, Cpu, ShieldAlert, Building2, Package, ClipboardCheck, Compass, Gauge, ChevronLeft, ClipboardList, Download, FileText, FolderOpen, Info, LogIn, LogOut,
   Languages, LayoutGrid, ZoomIn, ZoomOut, Mail, Moon, Sun, SunMoon, Menu, Ruler, Search, Smartphone, Shield, SlidersHorizontal, User, UserPlus, Wrench, X,
-  BookOpen, Inbox, BarChart3, Camera,
-} from "lucide-react";
+  BookOpen, Inbox, BarChart3, Camera, Columns3 } from "lucide-react";
 import { useAuth } from "@/lib/auth";
 import { NOMI_TEMA, cambiaZoom, impostaTema, useTema, useZoom, type Tema } from "@/lib/tema";
 import { impostaLingua, useLingua } from "@/lib/lingua";
@@ -97,6 +96,7 @@ export function AppHeader() {
       voci: [
         { etichetta: "Assistente di progetto", to: "/assistente", icona: Compass },
         { etichetta: "Panoramica strumenti", to: "/strumenti", icona: Wrench },
+        { etichetta: "Staffaggi OBO", to: "/staffaggi", icona: Columns3 },
         { etichetta: "Richieste all'ufficio tecnico", to: "/richieste", icona: Inbox },
         { etichetta: "Sopralluogo (foto)", to: "/sopralluogo", icona: Camera },
         { etichetta: "Dati edificio", to: "/dati-edificio", icona: Building2 },
@@ -132,6 +132,7 @@ export function AppHeader() {
     },
   ];
 
+  const staffaggi = /\/staffaggi\/?$/.test(percorso);
   const home = percorso.replace(/\/+$/, "").endsWith("/Lighting") || percorso === "/" || percorso === "";
   const sezioniVisibili = sezioni.map((sez) => ({ ...sez, voci: sez.voci.filter((v) => !("to" in v) || visibile(v.to)) })).filter((sez) => sez.voci.length);
   const ritardo = (i: number) => ({ transitionDelay: aperto ? `${60 + Math.min(i, 24) * 18}ms` : "0ms" });
@@ -147,15 +148,22 @@ export function AppHeader() {
           {!home && <button type="button" aria-label="Indietro" onClick={() => router.history.back()} className="-ml-1 flex size-9 shrink-0 items-center justify-center text-foreground hover:text-primary sm:hidden">
             <ChevronLeft className="size-7" strokeWidth={1.5} />
           </button>}
+          {staffaggi ? <Link to="/staffaggi" aria-label="Staffaggi OBO" className="flex min-w-0 items-center gap-2">
+            <Columns3 className="size-8 shrink-0 text-primary" strokeWidth={1.6} />
+            <span className="hidden min-w-0 sm:block">
+              <span className="block whitespace-nowrap text-base font-bold leading-tight sm:text-lg">Staffaggi <span className="text-primary">OBO</span></span>
+              <span className="block truncate text-[11px] text-muted-foreground sm:text-xs">Binari MS · mensole · passerelle KTS</span>
+            </span>
+          </Link> :
           <Link to="/" aria-label="Progettazione LPS – home" className="flex min-w-0 items-center gap-2">
             <SaettaFigura className="h-8 w-7 shrink-0 sm:h-9 sm:w-8" />
             <span className="hidden min-w-0 sm:block">
               <span className="block whitespace-nowrap text-base font-bold leading-tight sm:text-lg">Progettazione <span className="text-primary">LPS</span></span>
               <span className="block max-w-[46vw] truncate text-[11px] text-muted-foreground sm:max-w-[320px] sm:text-xs">{!abilitato ? "CEI EN IEC 62305:2026-10 · smart planning" : visitatore ? `Visitatore · ${accesso.profilo?.nome ?? ""} · niente salvataggi nel cloud` : attivo ? `${attivo.codice ? attivo.codice + " · " : ""}${attivo.nome} · ${statoSalvataggio || "salvato"}` : "Lavoro locale · nessun progetto aperto"}</span>
             </span>
-          </Link>
+          </Link>}
           <nav aria-label="Accessi rapidi" className="ml-auto flex items-stretch">
-            {abilitato ? <>
+            {abilitato && staffaggi ? null : abilitato ? <>
               {visibile("/assistente") && <IconaBarra to="/assistente" etichetta="Assistente" icona={Compass} badge={mancanti.length || undefined} titolo={prossimo ? `Prossimo passo: ${prossimo.titolo}` : "Progetto completo"} nascondiMobile />}
               {visibile("/progetti") && !visitatore && <IconaBarra to="/progetti" etichetta="Progetti" icona={ClipboardList} />}
               {!visitatore && <IconaBarra to="/sopralluogo" etichetta="Sopralluogo" icona={Camera} titolo="Sopralluogo: foto di particolari e impianti esistenti" />}
@@ -163,7 +171,7 @@ export function AppHeader() {
             <IconaBarra etichetta={aperto ? "Chiudi" : "Menu"} icona={aperto ? X : Menu} onClick={() => setAperto((v) => !v)} espanso={aperto} />
           </nav>
         </div>
-        {abilitato && <div className="h-[3px] w-full bg-muted" role="progressbar" aria-label="Avanzamento del progetto" aria-valuemin={0} aria-valuemax={100} aria-valuenow={comp.percento} title={`Progetto al ${comp.percento}%`}>
+        {abilitato && !staffaggi && <div className="h-[3px] w-full bg-muted" role="progressbar" aria-label="Avanzamento del progetto" aria-valuemin={0} aria-valuemax={100} aria-valuenow={comp.percento} title={`Progetto al ${comp.percento}%`}>
           <div className="h-full bg-primary transition-all" style={{ width: `${comp.percento}%` }} />
         </div>}
       </header>
