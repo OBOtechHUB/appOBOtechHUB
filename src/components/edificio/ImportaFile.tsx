@@ -108,7 +108,7 @@ export function ImportaFile({ onImporta }: { onImporta: (m: ModelloEdificio) => 
       const senzaAltezza = elementiScelti.filter((e) => e.ruolo === "corpo" && !e.altezza).length;
       const corpi = corpiDaPianta(elementiScelti, fattore, { corpo: h > 0 ? h : 0, impianto: hi > 0 ? hi : 1.5, lucernario: hl > 0 ? hl : 0.6 }).map((c) => corpoSchema.parse({ id: crypto.randomUUID(), ...c }));
       if (!corpi.length) { setErrore("Nei layer scelti non ci sono polilinee chiuse da importare."); return; }
-      const parti = [["corpo", "corpi"], ["impianto", "impianti sul tetto"], ["lucernario", "lucernari"]].map(([r, t]) => [contaRuolo(r as Ruolo), t] as const).filter(([n]) => n > 0).map(([n, t]) => `${n} ${t}`);
+      const parti = ([["corpo", "corpo", "corpi"], ["impianto", "impianto sul tetto", "impianti sul tetto"], ["lucernario", "lucernario", "lucernari"]] as const).map(([r, uno, piu]) => [contaRuolo(r), uno, piu] as const).filter(([n]) => n > 0).map(([n, uno, piu]) => `${n} ${n === 1 ? uno : piu}`);
       onImporta({ corpi }); setFatto(`Importati ${parti.join(", ")} dai layer ${layersSel.join(", ")}${senzaAltezza && !(h > 0) ? `: l'altezza di ${senzaAltezza === 1 ? "un corpo" : `${senzaAltezza} corpi`} si imposta in Edificio 3D` : ". Le altezze si possono correggere in Edificio 3D"}.`); setAltezzaDxf(""); azzera();
     } else if (tipo === "3d" && corpo1) {
       onImporta({ corpi: [scalaCorpo(corpo1, fattore)] }); setFatto(`Modello importato: ${descriviDimensioni(dimFinali)}.`); azzera();

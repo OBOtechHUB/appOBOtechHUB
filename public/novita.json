@@ -2,6 +2,20 @@
   "nota": "Registro degli aggiornamenti di Progettazione LPS. Una voce per aggiornamento, la più recente per prima (app: lps). Viene mostrato nella barra \"Aggiorna app\", nel riquadro Novità e nella pagina Novità di OBO Hub.",
   "aggiornamenti": [
     {
+      "id": "2026-11-21-lps-26",
+      "data": "2026-11-21",
+      "app": "lps",
+      "titolo": "CAD pro: tavole complete, PDF, quote, LPS.lsp e importazione",
+      "voci": [
+        "Esporta per CAD crea 4 tavole: pianta coperture, prospetti con la sfera rotolante, calate e impianto di terra, particolari costruttivi",
+        "Nuovo pulsante Tavole PDF (vettoriale, una pagina per tavola), anche nel pacchetto AutoCAD/ZWCAD",
+        "In pianta: quote a catena delle calate sui lati, verifica della maglia di captazione per corpo, distanze e altezze delle aste",
+        "Calate: interasse misurato lungo il perimetro e confrontato con la distanza tipica (Tab. 5, tolleranza 25 %)",
+        "LPS.lsp 3.1: nuovi comandi LPS-SEPARAZIONE, LPS-PENETRAZIONE, LPS-NUMERA e LPS-TABELLA",
+        "Importazione DXF/DWG: più layer insieme, anteprima, riconoscimento di corpi, impianti sul tetto e lucernari, altezze lette dai testi del disegno"
+      ]
+    },
+    {
       "id": "2026-11-20-lps-25",
       "data": "2026-11-20",
       "app": "lps",
