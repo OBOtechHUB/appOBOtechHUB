@@ -1,5 +1,6 @@
 import { useEffect } from "react";
 import { Link, Outlet, useRouterState } from "@tanstack/react-router";
+import { EntrataPagina } from "@/components/EntrataPagina";
 import { ShieldOff, Wrench } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { PUBBLICHE, SEZIONE_PAGINA, percorsoApp, prendiRitorno, puoVedere, salvaRitorno, useAccesso } from "@/lib/accesso";
@@ -44,7 +45,7 @@ export function ControlloAccesso() {
   </main>;
   if (adminPassa) return <>
     <p role="status" className="mx-auto mt-3 flex max-w-5xl items-center gap-2 rounded-lg border-l-4 border-[#7a4b00] bg-[#fff4e0] px-4 py-2 text-sm text-[#5a3800]"><Wrench className="size-4 shrink-0" strokeWidth={1.5} />In manutenzione ({man?.sezioni[inManutenzione]?.nome ?? inManutenzione}): gli utenti vedono la pagina di manutenzione, tu la vedi perché sei admin.</p>
-    <Outlet />
+    <EntrataPagina chiave={p}><Outlet /></EntrataPagina>
   </>;
-  return <Outlet />;
+  return <EntrataPagina chiave={p}><Outlet /></EntrataPagina>;
 }

@@ -13,6 +13,7 @@ import { UsoAdmin } from "@/components/accesso/UsoAdmin";
 import { ListinoAdmin } from "@/components/accesso/ListinoAdmin";
 import { CopiaSicurezza, giorniDallaCopia } from "@/components/accesso/CopiaSicurezza";
 import { oggiFile, scaricaCsv } from "@/lib/csv";
+import { GraficoBarre } from "@/components/GraficoBarre";
 
 interface Richiesta { id: string; email: string; nome: string; azienda: string; motivo: string; stato: "in_attesa" | "approvata" | "rifiutata"; sezioni: string[]; creata_il: string; gestita_il: string | null }
 interface Evento { id: number; utente: string | null; email: string | null; evento: string; quando: string; dettagli: Record<string, unknown> }
@@ -104,19 +105,7 @@ function barrePeriodo(periodo: Periodo): { inizio: Date; barre: { da: Date; a: D
 function GraficoAccessi({ accessi, periodo }: { accessi: Evento[]; periodo: Periodo }) {
   const { barre } = useMemo(() => barrePeriodo(periodo), [periodo]);
   const valori = useMemo(() => barre.map((b) => accessi.filter((e) => { const t = new Date(e.quando); return t >= b.da && t < b.a; }).length), [barre, accessi]);
-  const max = Math.max(1, ...valori);
-  const tutti = barre.length <= 31; // con tante barre il numero si scrive solo dove c'è almeno un accesso
-  return <div>
-    <div className="flex h-44 items-end gap-[3px]" role="img" aria-label="Accessi nel periodo">
-      {barre.map((b, i) => { const n = valori[i] ?? 0; return <div key={i} title={`${b.titolo}: ${n} accessi`} className="relative flex h-full min-w-0 flex-1 flex-col items-center justify-end">
-        {(tutti || n > 0) && <span className={`mb-0.5 max-w-full overflow-hidden font-mono leading-none ${barre.length > 12 ? "text-[9px]" : "text-[11px]"} ${n ? "text-foreground" : "hidden text-muted-foreground sm:inline"}`}>{n}</span>}
-        <div className="w-full rounded-t bg-primary" style={{ height: `${(n / max) * 82}%`, minHeight: n ? 3 : 1, opacity: n ? 1 : 0.25 }} />
-      </div>; })}
-    </div>
-    <div className="mt-1 flex gap-[3px] overflow-hidden text-[10px] text-muted-foreground">
-      {barre.map((b, i) => <span key={i} className="min-w-0 flex-1 truncate text-center">{barre.length <= 31 ? (barre.length === 26 && i % 2 ? "" : b.etichetta) : i % 7 === 0 ? b.etichetta : ""}</span>)}
-    </div>
-  </div>;
+  return <GraficoBarre voci={barre.map((b, i) => ({ etichetta: b.etichetta, titolo: b.titolo, valore: valori[i] ?? 0 }))} decimali={0} nome="Accessi" altezza="3 / 0.9" vuoto="Nessun accesso nel periodo." />;
 }
 
 /** Tipi di risultato della ricerca di OBO Hub (impostazione "ricerca", letta da stato_manutenzione()). */

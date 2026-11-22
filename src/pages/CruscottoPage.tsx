@@ -9,6 +9,7 @@ import { PageTitle } from "@/components/PageTitle";
 import { db, useAccesso } from "@/lib/accesso";
 import { TIPI_RICHIESTA, STATI_RICHIESTA } from "@/lib/richieste";
 import { scaricaCsv } from "@/lib/csv";
+import { GraficoBarre } from "@/components/GraficoBarre";
 
 type Mese = { mese: string; n: number };
 interface Dati {
@@ -29,13 +30,9 @@ function intervallo(p: Periodo): [string, string] {
 }
 const n = (v: number | null | undefined, dec = 0) => (v == null ? "—" : v.toLocaleString("it-IT", { maximumFractionDigits: dec }));
 
-function Barre({ voci, unita = "" }: { voci: { etichetta: string; valore: number }[]; unita?: string }) {
-  const max = Math.max(1, ...voci.map((v) => v.valore));
-  if (!voci.length) return <p className="text-sm text-muted-foreground">Nessun dato nel periodo.</p>;
-  return <ul className="space-y-1">{voci.map((v) => <li key={v.etichetta} className="grid grid-cols-[minmax(6rem,10rem)_1fr_4rem] items-center gap-2 text-sm">
-    <span className="truncate" title={v.etichetta}>{v.etichetta}</span>
-    <span className="h-3 rounded-sm bg-[#F39B00]" style={{ width: `${Math.max(2, (v.valore / max) * 100)}%` }} aria-hidden="true" />
-    <span className="text-right tabular-nums">{n(v.valore, 1)}{unita}</span></li>)}</ul>;
+/** Barre animate: verticali per i mesi, orizzontali per le classifiche. */
+function Barre({ voci, unita = "", periodo = false }: { voci: { etichetta: string; valore: number }[]; unita?: string; periodo?: boolean }) {
+  return <GraficoBarre voci={voci} unita={unita} orizzontale={!periodo} />;
 }
 const Tessera = ({ titolo, valore, nota }: { titolo: string; valore: string; nota?: string }) => <div className="rounded-lg border p-3"><p className="text-xs text-muted-foreground">{titolo}</p><p className="text-2xl font-semibold tabular-nums">{valore}</p>{nota && <p className="text-xs text-muted-foreground">{nota}</p>}</div>;
 const Pannello = ({ titolo, children }: { titolo: string; children: React.ReactNode }) => <section className="rounded-lg border p-4"><h2 className="mb-3 font-semibold">{titolo}</h2>{children}</section>;
@@ -79,8 +76,8 @@ export function CruscottoPage() {
         <Tessera titolo="Aste OBO prescritte" valore={n(dati.materiale.totale_aste)} nota="nei progetti modificati" />
       </div>
       <div className="grid gap-4 lg:grid-cols-2">
-        <Pannello titolo="Progetti creati per mese"><Barre voci={(p?.per_mese ?? []).map((x) => ({ etichetta: x.mese, valore: x.n }))} /></Pannello>
-        <Pannello titolo="Revisioni emesse per mese">{v ? <Barre voci={v.per_mese.map((x) => ({ etichetta: x.mese, valore: x.n }))} /> : <p className="text-sm text-muted-foreground">Eseguire supabase/revisioni.sql.</p>}</Pannello>
+        <Pannello titolo="Progetti creati per mese"><Barre voci={(p?.per_mese ?? []).map((x) => ({ etichetta: x.mese, valore: x.n }))} periodo /></Pannello>
+        <Pannello titolo="Revisioni emesse per mese">{v ? <Barre voci={v.per_mese.map((x) => ({ etichetta: x.mese, valore: x.n }))} periodo /> : <p className="text-sm text-muted-foreground">Eseguire supabase/revisioni.sql.</p>}</Pannello>
         <Pannello titolo="Progetti per persona (modificati nel periodo)"><Barre voci={(p?.per_persona ?? []).slice(0, 15).map((x) => ({ etichetta: x.nome, valore: x.n }))} /></Pannello>
         <Pannello titolo="Livello di protezione dei progetti"><Barre voci={Object.entries(p?.per_lpl ?? {}).sort().map(([k, val]) => ({ etichetta: `LPL ${k}`, valore: val }))} /></Pannello>
         <Pannello titolo="Aste OBO più prescritte"><table className="w-full text-sm"><thead><tr className="border-b text-left"><th className="p-1">Codice</th><th className="p-1 text-right">Aste</th><th className="p-1 text-right">Progetti</th></tr></thead><tbody>{dati.materiale.aste.map((x) => <tr key={x.codice} className="border-b"><td className="p-1 font-mono">{x.codice}</td><td className="p-1 text-right">{n(x.n)}</td><td className="p-1 text-right">{n(x.progetti)}</td></tr>)}</tbody></table></Pannello>
