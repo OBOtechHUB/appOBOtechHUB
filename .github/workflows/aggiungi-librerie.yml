@@ -1,0 +1,45 @@
+# Aggiunge le librerie grafiche (Motion, Anime.js, grafici Bklit UI) sui server di GitHub,
+# perché dai PC aziendali non si possono installare programmi. Scrive il risultato nel ramo
+# "librerie-ui" (main non cambia). Parte a ogni invio sul ramo "aggiungi-librerie".
+name: Aggiungi librerie grafiche
+on:
+  push:
+    branches: [aggiungi-librerie]
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  librerie:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with: { ref: main, fetch-depth: 0 }
+      - uses: oven-sh/setup-bun@v2
+        with: { bun-version: "1.3.0" }
+      - uses: actions/setup-node@v4
+        with: { node-version: 22 }
+      - run: bun install
+      - name: Motion e Anime.js
+        run: bun add motion animejs
+      - name: Grafici Bklit UI
+        run: |
+          for g in line-chart area-chart bar-chart ring-chart radar-chart funnel-chart heatmap-chart; do
+            echo "::group::@bklit/$g"
+            if npx --yes shadcn@latest add "@bklit/$g" --yes; then echo "OK $g" >> esito.txt; else echo "NO $g" >> esito.txt; fi
+            echo "::endgroup::"
+          done
+          cat esito.txt
+          rm esito.txt
+      - name: Prova veloce (tipi)
+        continue-on-error: true
+        run: bunx tsc --noEmit -p . 2>&1 | tail -40
+      - name: Ramo librerie-ui
+        run: |
+          git config user.name "github-actions"
+          git config user.email "github-actions@users.noreply.github.com"
+          git checkout -B librerie-ui
+          git add -A
+          git status --short
+          git commit -m "Librerie grafiche: Motion, Anime.js e grafici Bklit UI" || echo "niente da aggiungere"
+          git push -f origin librerie-ui
