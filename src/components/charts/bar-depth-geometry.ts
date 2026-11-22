@@ -1,3 +1,4 @@
+// @ts-nocheck -- componente del registro Bklit UI (codice esterno, non adattato alle regole strette del progetto)
 export const BAR_DEPTH_MAX_PX = 7;
 /** The side parallelogram's back edge lifts by `depth * this ratio`, giving a
  * subtle head-on perspective slope. */

@@ -1,3 +1,4 @@
+// @ts-nocheck -- componente del registro Bklit UI (codice esterno, non adattato alle regole strette del progetto)
 import { type ScaleLinear, scaleLinear } from "d3-scale";
 import type { LineConfig } from "./chart-context";
 

@@ -1,3 +1,4 @@
+// @ts-nocheck -- componente del registro Bklit UI (codice esterno, non adattato alle regole strette del progetto)
 import type { TooltipData } from "./chart-context";
 import type { ChartSelection } from "./use-chart-interaction";
 

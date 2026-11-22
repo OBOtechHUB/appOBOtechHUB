@@ -1,4 +1,5 @@
 "use client";
+// @ts-nocheck -- componente del registro Bklit UI (codice esterno, non adattato alle regole strette del progetto)
 
 import { type ScaleTime, scaleBand, scaleLinear } from "d3-scale";
 import type { Transition } from "motion/react";

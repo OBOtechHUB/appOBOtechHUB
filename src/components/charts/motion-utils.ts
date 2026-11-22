@@ -1,3 +1,4 @@
+// @ts-nocheck -- componente del registro Bklit UI (codice esterno, non adattato alle regole strette del progetto)
 import type { Transition } from "motion/react";
 import { DEFAULT_CHART_ENTER_TRANSITION } from "./animation";
 

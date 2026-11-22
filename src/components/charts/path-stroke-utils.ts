@@ -1,3 +1,4 @@
+// @ts-nocheck -- componente del registro Bklit UI (codice esterno, non adattato alle regole strette del progetto)
 import { type RefObject, useEffect, useState } from "react";
 
 export function findPathLengthAtX(

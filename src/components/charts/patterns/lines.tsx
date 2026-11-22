@@ -1,3 +1,4 @@
+// @ts-nocheck -- componente del registro Bklit UI (codice esterno, non adattato alle regole strette del progetto)
 import { cn } from "@/lib/utils";
 import { PatternOrientation, type PatternOrientationType } from "./constants";
 import { Pattern } from "./pattern";

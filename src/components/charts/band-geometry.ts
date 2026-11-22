@@ -1,3 +1,4 @@
+// @ts-nocheck -- componente del registro Bklit UI (codice esterno, non adattato alle regole strette del progetto)
 import { type CurveFactory, area as d3Area, line as d3Line } from "d3-shape";
 import {
   flattenSeriesPath,

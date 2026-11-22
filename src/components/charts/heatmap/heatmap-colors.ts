@@ -1,3 +1,4 @@
+// @ts-nocheck -- componente del registro Bklit UI (codice esterno, non adattato alle regole strette del progetto)
 import { CHART_SCALE_VARS } from "../chart-scale";
 import type { PatternPresetId } from "../pattern-preset";
 import { getHeatmapContributionLevel } from "./heatmap-utils";

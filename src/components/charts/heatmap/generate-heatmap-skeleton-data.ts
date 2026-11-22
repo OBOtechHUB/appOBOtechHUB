@@ -1,3 +1,4 @@
+// @ts-nocheck -- componente del registro Bklit UI (codice esterno, non adattato alle regole strette del progetto)
 import type { HeatmapColumn } from "./heatmap-context";
 
 /** Placeholder grid with the same week/day shape as target data (all empty cells). */

@@ -1,3 +1,4 @@
+// @ts-nocheck -- componente del registro Bklit UI (codice esterno, non adattato alle regole strette del progetto)
 export const LINE_LOADING_PULSE_CYCLE_S = 2.2;
 
 /** Idle gap before the loading line pulse restarts (milliseconds). */

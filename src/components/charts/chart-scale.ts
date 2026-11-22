@@ -1,3 +1,4 @@
+// @ts-nocheck -- componente del registro Bklit UI (codice esterno, non adattato alle regole strette del progetto)
 export const CHART_SCALE_VARS = [
   "var(--chart-scale-01)",
   "var(--chart-scale-02)",

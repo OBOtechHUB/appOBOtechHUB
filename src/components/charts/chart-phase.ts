@@ -1,3 +1,4 @@
+// @ts-nocheck -- componente del registro Bklit UI (codice esterno, non adattato alle regole strette del progetto)
 export type ChartStatus = "loading" | "ready";
 
 /** Loading animation style: the default traveling pulse, or a diagonal

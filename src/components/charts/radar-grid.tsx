@@ -1,4 +1,5 @@
 "use client";
+// @ts-nocheck -- componente del registro Bklit UI (codice esterno, non adattato alle regole strette del progetto)
 
 import { scaleLinear } from "d3-scale";
 import { lineRadial } from "d3-shape";

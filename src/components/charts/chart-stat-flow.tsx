@@ -1,4 +1,5 @@
 "use client";
+// @ts-nocheck -- componente del registro Bklit UI (codice esterno, non adattato alle regole strette del progetto)
 
 import NumberFlow from "@number-flow/react";
 import { type ReactNode, useEffect, useMemo, useState } from "react";

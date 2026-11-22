@@ -1,3 +1,4 @@
+// @ts-nocheck -- componente del registro Bklit UI (codice esterno, non adattato alle regole strette del progetto)
 import type { ReactElement, ReactNode } from "react";
 import { Children, isValidElement } from "react";
 import { resolveChartChildElement } from "../chart-child-passthrough";

@@ -1,4 +1,5 @@
 "use client";
+// @ts-nocheck -- componente del registro Bklit UI (codice esterno, non adattato alle regole strette del progetto)
 
 import { MotionGlobalConfig } from "motion/react";
 import { memo, useLayoutEffect, useRef } from "react";

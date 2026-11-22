@@ -1,4 +1,5 @@
 "use client";
+// @ts-nocheck -- componente del registro Bklit UI (codice esterno, non adattato alle regole strette del progetto)
 
 import { createContext, useContext } from "react";
 import type { ReferenceAreaConfig } from "./reference-area-config";

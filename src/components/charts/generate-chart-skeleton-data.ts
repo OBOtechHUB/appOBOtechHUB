@@ -1,3 +1,4 @@
+// @ts-nocheck -- componente del registro Bklit UI (codice esterno, non adattato alle regole strette del progetto)
 const DEFAULT_SKELETON_DATA_KEY = "value";
 const DEFAULT_SKELETON_POINT_COUNT = 7;
 

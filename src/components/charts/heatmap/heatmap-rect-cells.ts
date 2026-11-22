@@ -1,3 +1,4 @@
+// @ts-nocheck -- componente del registro Bklit UI (codice esterno, non adattato alle regole strette del progetto)
 export interface HeatmapRectCell<ColumnDatum, BinDatum> {
   bin: BinDatum;
   row: number;

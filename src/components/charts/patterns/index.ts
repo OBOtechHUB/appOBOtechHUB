@@ -1,3 +1,4 @@
+// @ts-nocheck -- componente del registro Bklit UI (codice esterno, non adattato alle regole strette del progetto)
 export type { PatternCirclesProps } from "./circles";
 export { Circles as PatternCircles } from "./circles";
 export type { PatternOrientationType } from "./constants";

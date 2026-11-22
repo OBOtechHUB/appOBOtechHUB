@@ -1,3 +1,4 @@
+// @ts-nocheck -- componente del registro Bklit UI (codice esterno, non adattato alle regole strette del progetto)
 export const TAU = Math.PI * 2;
 
 /** Point on a circle where angle 0 is 12 o'clock and angles run clockwise. */

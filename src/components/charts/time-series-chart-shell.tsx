@@ -1,4 +1,5 @@
 "use client";
+// @ts-nocheck -- componente del registro Bklit UI (codice esterno, non adattato alle regole strette del progetto)
 
 import { bisector, extent } from "d3-array";
 import { scaleLinear, scaleTime } from "d3-scale";

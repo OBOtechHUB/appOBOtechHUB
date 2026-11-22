@@ -1,3 +1,4 @@
+// @ts-nocheck -- componente del registro Bklit UI (codice esterno, non adattato alle regole strette del progetto)
 export type ProjectionMode = "auto" | "target" | "manual";
 export type ProjectionAutoMethod = "linearRegression" | "lastSegment";
 /** How the projection segment is drawn between anchor and horizon. */

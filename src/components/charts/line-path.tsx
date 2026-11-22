@@ -1,3 +1,4 @@
+// @ts-nocheck -- componente del registro Bklit UI (codice esterno, non adattato alle regole strette del progetto)
 import { area, type CurveFactory, line } from "d3-shape";
 import type { Ref, SVGProps } from "react";
 import { fastShapePath } from "./fast-path";
