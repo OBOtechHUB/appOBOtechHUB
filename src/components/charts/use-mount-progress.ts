@@ -1,5 +1,5 @@
-"use client";
 // @ts-nocheck -- componente del registro Bklit UI (codice esterno, non adattato alle regole strette del progetto)
+"use client";
 
 import { animate, type Transition, useMotionValue } from "motion/react";
 import { useEffect, useRef } from "react";

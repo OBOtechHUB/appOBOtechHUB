@@ -1,5 +1,5 @@
-"use client";
 // @ts-nocheck -- componente del registro Bklit UI (codice esterno, non adattato alle regole strette del progetto)
+"use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { flushSync } from "react-dom";

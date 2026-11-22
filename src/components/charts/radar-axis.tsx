@@ -1,5 +1,5 @@
-"use client";
 // @ts-nocheck -- componente del registro Bklit UI (codice esterno, non adattato alle regole strette del progetto)
+"use client";
 
 import { m } from "motion/react";
 import { GRID_SPOKE_SPRING, GRID_SPOKE_STAGGER_S } from "./animation";
