@@ -26,7 +26,7 @@ jobs:
         run: |
           for g in line-chart area-chart bar-chart ring-chart radar-chart funnel-chart heatmap-chart; do
             echo "::group::@bklit/$g"
-            if npx --yes shadcn@latest add "@bklit/$g" --yes; then echo "OK $g" >> esito.txt; else echo "NO $g" >> esito.txt; fi
+            if yes n | npx --yes shadcn@latest add "@bklit/$g" --yes; then echo "OK $g" >> esito.txt; else echo "NO $g" >> esito.txt; fi
             echo "::endgroup::"
           done
           cat esito.txt
