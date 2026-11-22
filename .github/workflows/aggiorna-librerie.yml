@@ -1,0 +1,72 @@
+# Aggiornamento automatico delle librerie grafiche installate tramite GitHub
+# (Motion, Anime.js, grafici Bklit UI e le loro dipendenze).
+# Ogni lunedì alle 03:17 UTC: aggiorna, prova (test, tipi, build) e SOLO se tutto passa
+# salva su main e ripubblica l'app. Se qualcosa non va, main non cambia e la run risulta fallita
+# (arriva l'email di GitHub). Non cancella nulla: i file dei grafici vengono solo aggiornati.
+name: Aggiornamento librerie grafiche
+on:
+  schedule:
+    - cron: "17 3 * * 1"
+  workflow_dispatch:
+permissions:
+  contents: write
+  actions: write
+concurrency:
+  group: aggiorna-librerie
+  cancel-in-progress: false
+jobs:
+  aggiorna:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with: { ref: main }
+      - uses: oven-sh/setup-bun@v2
+        with: { bun-version: "1.3.0" }
+      - uses: actions/setup-node@v4
+        with: { node-version: 22 }
+      - run: bun install
+      - name: Aggiorna Motion, Anime.js e dipendenze dei grafici
+        run: bun update motion animejs @number-flow/react d3-array d3-scale d3-shape
+      - name: Aggiorna i grafici Bklit UI
+        run: |
+          for g in line-chart area-chart bar-chart ring-chart radar-chart funnel-chart heatmap-chart; do
+            npx --yes shadcn@latest add "@bklit/$g" --yes --overwrite || echo "::warning::@bklit/$g non aggiornato"
+          done
+          # i file del progetto fuori dalla cartella dei grafici restano come sono
+          git checkout -- src/lib src/components/ui components.json 2>/dev/null || true
+          git clean -fdq src/lib src/components/ui 2>/dev/null || true
+          M='// @ts-nocheck -- componente del registro Bklit UI (codice esterno, non adattato alle regole strette del progetto)'
+          find src/components/charts \( -name "*.ts" -o -name "*.tsx" \) | while read f; do
+            grep -vF "$M" "$f" > /tmp/x && { echo "$M"; cat /tmp/x; } > "$f"
+          done
+      - name: Ci sono novità?
+        id: diff
+        run: |
+          git status --short
+          if [ -n "$(git status --porcelain)" ]; then echo "cambiato=1" >> "$GITHUB_OUTPUT"; else echo "Librerie già aggiornate"; fi
+      - name: Test
+        if: steps.diff.outputs.cambiato == '1'
+        run: bun run test
+      - name: Controllo dei tipi
+        if: steps.diff.outputs.cambiato == '1'
+        run: bun run typecheck
+      - name: Build
+        if: steps.diff.outputs.cambiato == '1'
+        env:
+          VITE_BASE: /${{ github.event.repository.name }}/
+          VITE_SUPABASE_URL: ${{ vars.VITE_SUPABASE_URL }}
+          VITE_SUPABASE_PUBLISHABLE_KEY: ${{ vars.VITE_SUPABASE_PUBLISHABLE_KEY }}
+        run: bun run build
+      - name: Salva su main e ripubblica
+        if: steps.diff.outputs.cambiato == '1'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          git config user.name "github-actions"
+          git config user.email "github-actions@users.noreply.github.com"
+          git add -A package.json bun.lock src/components/charts
+          git commit -m "Aggiornamento automatico delle librerie grafiche"
+          git pull --rebase -q origin main
+          git push origin HEAD:main
+          gh workflow run pubblica.yml --ref main

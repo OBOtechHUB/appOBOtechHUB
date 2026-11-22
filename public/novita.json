@@ -4,6 +4,7 @@
     {
       "id": "2026-11-22-lps-28",
       "data": "2026-11-22",
+      "app": "lps",
       "titolo": "Pagine più fluide",
       "voci": [
         "Passando da una pagina all'altra il contenuto compare con una dissolvenza morbida (spenta se nel sistema è attivo \"riduci movimento\")."
