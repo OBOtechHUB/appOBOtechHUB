@@ -2,6 +2,18 @@
   "nota": "Registro degli aggiornamenti di Progettazione LPS. Una voce per aggiornamento, la più recente per prima (app: lps). Viene mostrato nella barra \"Aggiorna app\", nel riquadro Novità e nella pagina Novità di OBO Hub.",
   "aggiornamenti": [
     {
+      "id": "2026-11-22-lps-28",
+      "data": "2026-11-22",
+      "titolo": "Pagine più fluide",
+      "voci": [
+        "Passando da una pagina all'altra il contenuto compare con una dissolvenza morbida (spenta se nel sistema è attivo \"riduci movimento\")."
+      ],
+      "titolo_en": "Smoother pages",
+      "voci_en": [
+        "Moving between pages, the content now fades in smoothly (off when \"reduce motion\" is enabled in the system)."
+      ]
+    },
+    {
       "id": "2026-11-21-lps-27",
       "data": "2026-11-21",
       "app": "lps",
