@@ -7,7 +7,7 @@
 -- =====================================================================
 
 insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
-values ('sopralluoghi', 'sopralluoghi', false, 10485760, array['image/jpeg','image/png','image/webp'])
+values ('sopralluoghi', 'sopralluoghi', false, 10485760, array['image/jpeg','image/png','image/webp','audio/webm','audio/mp4','audio/x-m4a','audio/aac','audio/mpeg','audio/ogg','audio/wav'])
 on conflict (id) do nothing;
 
 drop policy if exists "sopralluoghi_inserimento" on storage.objects;

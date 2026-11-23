@@ -1,5 +1,5 @@
 /**
- * Foto del sopralluogo: ridotte nel browser (lato lungo 1600 px, JPEG), caricate nello storage privato
+ * Foto e messaggi vocali del sopralluogo: foto ridotte nel browser (lato lungo 1600 px, JPEG), caricate nello storage privato
  * "sopralluoghi" (supabase/sopralluoghi.sql). Senza rete restano in coda sul dispositivo (IndexedDB)
  * e partono da sole quando la rete torna. Nulla si sovrascrive o si cancella sul server.
  */
@@ -29,12 +29,15 @@ export const fotoLocale = (percorso: string) => tx<InCoda | undefined>("readonly
 
 async function client() { return (await import("@/integrations/supabase/client")).supabase; }
 
-/** Percorso della foto per l'utente e il progetto. */
-export async function percorsoFoto(progetto: string): Promise<string | null> {
+/** Percorso della foto (o del vocale, con un'altra estensione) per l'utente e il progetto. */
+export async function percorsoFoto(progetto: string, estensione = "jpg"): Promise<string | null> {
   const { data } = await (await client()).auth.getUser();
   if (!data.user) return null;
-  return `${data.user.id}/${progetto}/${new Date().toISOString().replace(/[:.]/g, "-").slice(0, 19)}_${Math.random().toString(36).slice(2, 7)}.jpg`;
+  return `${data.user.id}/${progetto}/${new Date().toISOString().replace(/[:.]/g, "-").slice(0, 19)}_${Math.random().toString(36).slice(2, 7)}.${estensione}`;
 }
+/** Ultimo errore di caricamento (es. vocali non ancora permessi dallo storage). */
+let ultimoErrore = "";
+export const erroreCaricamento = () => ultimoErrore;
 
 /** Salva la foto: prima in coda sul dispositivo, poi prova subito a caricarla. */
 export async function salvaFoto(percorso: string, blob: Blob): Promise<"caricata" | "in-coda"> {
@@ -44,8 +47,12 @@ export async function salvaFoto(percorso: string, blob: Blob): Promise<"caricata
 async function caricaUna(percorso: string, blob: Blob): Promise<boolean> {
   if (typeof navigator !== "undefined" && !navigator.onLine) return false;
   try {
-    const { error } = await (await client()).storage.from(BUCKET).upload(percorso, blob, { upsert: false, contentType: "image/jpeg" });
-    if (error && !/exists|Duplicate/i.test(error.message)) return false;
+    const tipo = (blob.type || "image/jpeg").split(";")[0]!;
+    const { error } = await (await client()).storage.from(BUCKET).upload(percorso, blob, { upsert: false, contentType: tipo });
+    if (error && !/exists|Duplicate/i.test(error.message)) {
+      ultimoErrore = /mime|type/i.test(error.message) && tipo.startsWith("audio/") ? "I messaggi vocali restano sul dispositivo finché l'amministratore non esegue supabase/sopralluoghi-vocali.sql." : error.message;
+      return false;
+    }
     await tx("readwrite", (s) => s.delete(percorso)); // tolta solo la copia locale, la foto è sul server
     return true;
   } catch { return false; }

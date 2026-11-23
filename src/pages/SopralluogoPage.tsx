@@ -1,6 +1,6 @@
 /**
  * Sopralluogo da telefono o tablet: foto per ricordare particolari e impianti esistenti, con didascalia,
- * tipo e nota, più gli appunti del sopralluogo. Le foto si salvano anche senza rete e si caricano quando
+ * tipo e nota (scritta o dettata) e messaggi vocali, più gli appunti e i vocali generali del sopralluogo. Le foto si salvano anche senza rete e si caricano quando
  * torna; quelle segnate vanno nella relazione. Tutto resta nel progetto attivo (`esteso.sopralluogo`).
  */
 import { useEffect, useRef, useState } from "react";
@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { PageTitle } from "@/components/PageTitle";
 import { useDatiEdificio } from "@/lib/progettoStore";
 import { aggiornaEsteso, leggiAttivo, leggiEsteso, useAttivo, useEsteso, sopralluogoSchema, type Sopralluogo } from "@/lib/statoProgetto";
+import { PulsanteDetta, NoteVocali } from "@/components/sopralluogo/Voce";
 import { fotoInCoda, percorsoFoto, riduciFoto, salvaFoto, scaricaFoto, sincronizzaFoto } from "@/lib/fotoSopralluogo";
 
 type Foto = Sopralluogo["foto"][number];
@@ -96,11 +97,14 @@ export function SopralluogoPage() {
         <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
           <span className="rounded bg-muted px-1.5 py-0.5">{CATEGORIE.find(([v]) => v === f.categoria)?.[1] ?? "Senza tipo"}</span>
           <span>{f.data ? new Date(f.data).toLocaleString("it-IT", { dateStyle: "short", timeStyle: "short" }) : ""}</span>
+          {so.vocali.some((v) => v.foto === f.id) && <span className="rounded bg-primary/15 px-1.5 py-0.5 text-primary">{so.vocali.filter((v) => v.foto === f.id).length} vocali</span>}
           {f.nota && aperta !== f.id && <span className="truncate">· {f.nota}</span>}
         </div>
         {aperta === f.id && <>
           <select className={cls} value={f.categoria} aria-label="Tipo" onChange={(e) => setFoto(f.id, { categoria: e.target.value as Categoria })}><option value="">Senza tipo</option>{CATEGORIE.map(([v, t]) => <option key={v} value={v}>{t}</option>)}</select>
           <textarea className={`${cls} h-20 py-2`} value={f.nota} maxLength={1000} placeholder="Nota (es. ancoraggio da verificare, cavo esistente da collegare)" aria-label="Nota" onChange={(e) => setFoto(f.id, { nota: e.target.value })} />
+          <PulsanteDetta valore={f.nota} onValore={(t) => setFoto(f.id, { nota: t })} etichetta="Detta la nota" massimo={1000} />
+          <NoteVocali compatto progetto={attivo.id} foto={f.id} vocali={so.vocali} onVocali={(v) => setSo({ vocali: v })} />
           <label className="flex items-center gap-2 text-sm"><input type="checkbox" className="h-5 w-5" checked={f.inRelazione} onChange={(e) => setFoto(f.id, { inRelazione: e.target.checked })} />Metti nella relazione</label>
         </>}
       </div>
@@ -110,6 +114,14 @@ export function SopralluogoPage() {
     <section className="rounded-lg border bg-card p-4" aria-labelledby="h-appunti">
       <h2 id="h-appunti" className="mb-2 font-semibold">Appunti del sopralluogo</h2>
       <textarea className={`${cls} h-32 py-2`} value={so.appunti} maxLength={5000} placeholder="Accessi alla copertura, impianti esistenti, cose da chiedere al cliente…" aria-label="Appunti del sopralluogo" onChange={(e) => setSo({ appunti: e.target.value })} />
+      <div className="mt-2"><PulsanteDetta valore={so.appunti} onValore={(t) => setSo({ appunti: t })} etichetta="Detta gli appunti" /></div>
+      <p className="mt-2 text-xs text-muted-foreground">Puoi anche scrivere a voce con il microfono della tastiera del telefono.</p>
+    </section>
+
+    <section className="rounded-lg border bg-card p-4" aria-labelledby="h-vocali">
+      <h2 id="h-vocali" className="mb-1 font-semibold">Messaggi vocali</h2>
+      <p className="mb-3 text-sm text-muted-foreground">Registra un appunto a voce (fino a 5 minuti): resta nel progetto, si ascolta da qualsiasi dispositivo e puoi scriverne un riassunto. Per un vocale su una foto, apri la foto.</p>
+      <NoteVocali progetto={attivo.id} vocali={so.vocali} onVocali={(v) => setSo({ vocali: v })} />
     </section>
   </main>;
 }

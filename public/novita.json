@@ -2,6 +2,23 @@
   "nota": "Registro degli aggiornamenti di Progettazione LPS. Una voce per aggiornamento, la più recente per prima (app: lps). Viene mostrato nella barra \"Aggiorna app\", nel riquadro Novità e nella pagina Novità di OBO Hub.",
   "aggiornamenti": [
     {
+      "id": "2026-11-23-lps-29",
+      "data": "2026-11-23",
+      "app": "lps",
+      "titolo": "Sopralluogo: note a voce e messaggi vocali",
+      "voci": [
+        "Nota di ogni foto e appunti del sopralluogo si possono dettare: premi \"Detta\", parla, e il testo si scrive da solo (Chrome, Edge, Safari su iPhone e iPad); resta anche il microfono della tastiera",
+        "Nuovi messaggi vocali (fino a 5 minuti): generali, nella sezione \"Messaggi vocali\" sotto gli appunti, oppure di una singola foto aprendo la foto; si riascoltano da qualsiasi dispositivo e si può scriverne o dettarne un riassunto",
+        "Come le foto, i vocali si salvano anche senza rete e si caricano da soli quando torna la connessione"
+      ],
+      "titolo_en": "Site survey: voice notes and voice messages",
+      "voci_en": [
+        "Photo notes and survey notes can be dictated: press \"Dictate\", speak and the text is written for you (Chrome, Edge, Safari on iPhone and iPad); the keyboard microphone still works",
+        "New voice messages (up to 5 minutes): general ones in the \"Voice messages\" section below the notes, or for a single photo by opening it; they can be played back on any device, with a written or dictated summary",
+        "Like photos, voice messages are saved offline too and upload automatically when the connection is back"
+      ]
+    },
+    {
       "id": "2026-11-22-lps-28",
       "data": "2026-11-22",
       "app": "lps",
