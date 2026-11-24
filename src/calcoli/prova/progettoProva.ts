@@ -85,7 +85,7 @@ export function progettoProva(): IngressoRelazione {
     parapetto: "si-collegato", strutturaMetallica: "si-collegato", armature: "si", calateEsistenti: "in-getto", calateNumero: 31, calateInterasse: 15,
     terraEsistente: "anello", terraCollegataAltri: true, spdEsistenti: "si", impiantiCopertura: "unità di trattamento aria, canali e pannelli fotovoltaici", altezzaImpianti: 2.2,
     fissaggioAste: "treppiede", ventoKmh: 150, margineSicurezza: 1,
-    corpi: { c1: { altezzaDaProteggere: 2.2, nota: "UTA e canali sul lato nord" }, c2: { altezzaDaProteggere: 1, nota: "" }, c3: { altezzaDaProteggere: 1.5, nota: "pannelli fotovoltaici" } },
+    corpi: { c1: { altezzaDaProteggere: 2.2, nota: "UTA e canali sul lato nord", metallica: false }, c2: { altezzaDaProteggere: 1, nota: "", metallica: true }, c3: { altezzaDaProteggere: 1.5, nota: "pannelli fotovoltaici", metallica: false } },
     tipoIntervento: "integrazione", valutazioneEconomica: true,
     impresaNome: "Elettro Prova S.r.l.", impresaResponsabile: "Mario Bianchi", impresaSede: "Via dell'Industria 1, 10095 Grugliasco (TO)", impresaPiva: "01234567890", impresaCciaa: "CCIAA di Torino n. TO-000000",
     luogoDiLavoro: true, ambienteSevero: false, dataMessaEsercizio: "2027-03-01",

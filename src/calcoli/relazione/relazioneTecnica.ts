@@ -54,9 +54,9 @@ export interface DatiRelazione {
   terraEsistente: "nessuno" | "anello" | "fondazione" | "picchetti" | "misto"; terraCollegataAltri: boolean; spdEsistenti: SiNo;
   impiantiCopertura: string; altezzaImpianti: number | null;
   fissaggioAste: "putrella" | "parapetto" | "treppiede" | "basamento" | "parete" | "misto"; ventoKmh: number | null; margineSicurezza: number;
-  corpi: Record<string, { altezzaDaProteggere: number | null; nota: string; metallica?: boolean | undefined }>;
+  corpi: Record<string, { altezzaDaProteggere: number | null; nota: string; metallica: boolean }>;
   /** captazione a putrella: profilo (es. "IPE 200") e/o spessore dell'ala in mm */
-  putrellaProfilo?: string | undefined; putrellaSpessore?: number | null | undefined;
+  putrellaProfilo: string; putrellaSpessore: number | null;
   valutazioneEconomica: boolean; tecnico: string; albo: string;
   /** impresa installatrice (dichiarazione di conformità D.M. 37/2008) */
   impresaNome: string; impresaSede: string; impresaPiva: string; impresaCciaa: string; impresaResponsabile: string;
@@ -73,7 +73,7 @@ export const datiRelazioneVuoti: DatiRelazione = {
   terraEsistente: "nessuno", terraCollegataAltri: false, spdEsistenti: "no",
   impiantiCopertura: "", altezzaImpianti: null,
   fissaggioAste: "misto", ventoKmh: null, margineSicurezza: 1,
-  corpi: {}, valutazioneEconomica: false, tecnico: "", albo: "",
+  corpi: {}, putrellaProfilo: "", putrellaSpessore: null, valutazioneEconomica: false, tecnico: "", albo: "",
   impresaNome: "", impresaSede: "", impresaPiva: "", impresaCciaa: "", impresaResponsabile: "",
   luogoDiLavoro: false, ambienteSevero: false, dataMessaEsercizio: "", lingua: "it",
 };

@@ -50,7 +50,7 @@ describe("relazione tecnica", () => {
   });
   it("genera i testi dai dati del progetto (stato di fatto, verifica per blocco, blocchi per il vento)", () => {
     const e = esempio();
-    e.dati = { ...e.dati, parapetto: "si-collegato", calateEsistenti: "in-getto", calateNumero: 20, calateInterasse: 15, terraEsistente: "anello", terraCollegataAltri: true, spdEsistenti: "si", impiantiCopertura: "unità di trattamento aria", altezzaImpianti: 2, fissaggioAste: "treppiede", ventoKmh: 150, corpi: { c1: { altezzaDaProteggere: 1.5, nota: "" } } };
+    e.dati = { ...e.dati, parapetto: "si-collegato", calateEsistenti: "in-getto", calateNumero: 20, calateInterasse: 15, terraEsistente: "anello", terraCollegataAltri: true, spdEsistenti: "si", impiantiCopertura: "unità di trattamento aria", altezzaImpianti: 2, fissaggioAste: "treppiede", ventoKmh: 150, corpi: { c1: { altezzaDaProteggere: 1.5, nota: "", metallica: false } } };
     const t = testoDocumento(relazioneTecnica(e));
     expect(t).toContain("Stato di fatto rilevato al sopralluogo");
     expect(t).toContain("presente e collegato elettricamente alle calate");
