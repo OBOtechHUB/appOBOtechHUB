@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Campo, inputCls } from "@/components/Campo";
 import { CampoNumero } from "@/components/CampoNumero";
 import { DESTINAZIONI } from "@/calcoli/relazione/destinazioni";
+import { IPE } from "@/calcoli/relazione/putrelle";
 import { useComputo, useDatiEdificio } from "@/lib/progettoStore";
 import { aggiornaEsteso, leggiAttivo, useEsteso } from "@/lib/statoProgetto";
 import { leggiStato, strutturaRischio } from "@/lib/statoRischio";
@@ -128,7 +129,7 @@ export function RelazioneTecnica({ righe, mancanti, particolari }: { righe: Riga
   const sel = <K extends keyof DatiRelazione>(k: K, etichetta: string, opzioni: readonly (readonly [string, string])[]) => <Campo etichetta={etichetta}><select className={inputCls} value={String(r[k])} onChange={(e) => aggiorna(k, e.target.value as DatiRelazione[K])}>{opzioni.map(([v, t]) => <option key={v} value={v}>{t}</option>)}</select></Campo>;
   const num = (k: "calateNumero" | "calateInterasse" | "altezzaImpianti" | "ventoKmh" | "nsgAttestato", etichetta: string, segnaposto?: string) => <Campo etichetta={etichetta}><CampoNumero className={inputCls} valore={r[k]} placeholder={segnaposto} onValore={(v) => aggiorna(k, v)} /></Campo>;
   const spunta = (k: "coperturaMetallica" | "terraCollegataAltri" | "valutazioneEconomica", etichetta: string) => <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={r[k]} onChange={(e) => aggiorna(k, e.target.checked)} />{etichetta}</label>;
-  const corpo = (id: string, campo: "altezzaDaProteggere" | "nota", v: number | string | null) => { const prima = r.corpi[id] ?? { altezzaDaProteggere: null, nota: "" }; aggiorna("corpi", { ...r.corpi, [id]: { ...prima, [campo]: v } }); };
+  const corpo = (id: string, campo: "altezzaDaProteggere" | "nota" | "metallica", v: number | string | boolean | null) => { const prima = r.corpi[id] ?? { altezzaDaProteggere: null, nota: "", metallica: false }; aggiorna("corpi", { ...r.corpi, [id]: { ...prima, [campo]: v } }); };
 
   const [occupato, setOccupato] = useState(false);
   // immagini del progetto: restano solo finché la pagina è aperta (non entrano nel salvataggio del progetto)
@@ -228,14 +229,19 @@ export function RelazioneTecnica({ righe, mancanti, particolari }: { righe: Riga
       </Gruppo>
       <Gruppo titolo="Captazione">
         {sel("fissaggioAste", "Fissaggio delle aste non isolate", [["misto", "Misto / da catalogo"], ["putrella", "A putrella (struttura metallica)"], ["parapetto", "A ringhiera o parapetto"], ["treppiede", "Su treppiede con blocchi"], ["basamento", "Su basamento FangFix"], ["parete", "A parete"]])}
+        {(r.fissaggioAste === "putrella" || r.fissaggioAste === "misto") && <>
+          <Campo etichetta="Putrelle: profilo"><select className={inputCls} value={r.putrellaProfilo ?? ""} onChange={(e) => aggiorna("putrellaProfilo", e.target.value)}><option value="">— profilo non indicato —</option>{Object.keys(IPE).map((k) => <option key={k} value={k}>{k} (ala {IPE[k]!.toLocaleString("it-IT")} mm)</option>)}</select></Campo>
+          <Campo etichetta="Putrelle: spessore dell'ala (mm)"><CampoNumero className={inputCls} valore={r.putrellaSpessore} placeholder={r.putrellaProfilo ? `${IPE[r.putrellaProfilo]?.toLocaleString("it-IT") ?? ""} (dal profilo)` : "es. 8,5"} onValore={(v) => aggiorna("putrellaSpessore", v)} /></Campo>
+        </>}
         {num("ventoKmh", "Velocità del vento di progetto (km/h)", "per i blocchi dei treppiedi")}
         <Campo etichetta="Distanza di sicurezza sopra l'altezza da proteggere (m)"><input className={inputCls} inputMode="decimal" value={r.margineSicurezza} onChange={(e) => aggiorna("margineSicurezza", numero(e.target.value) ?? 1)} /></Campo>
         {s.modello.corpi.length > 0 && <div className="sm:col-span-2">
           <p className="mb-1 text-sm font-medium">Altezza da proteggere sul tetto di ogni blocco (schema a blocchi)</p>
-          <ul className="grid gap-2">{s.modello.corpi.map((k, i) => <li key={k.id} className="grid items-center gap-2 sm:grid-cols-[minmax(8rem,1fr)_8rem_2fr]">
+          <ul className="grid gap-2">{s.modello.corpi.map((k, i) => <li key={k.id} className="grid items-center gap-2 sm:grid-cols-[minmax(8rem,1fr)_8rem_2fr_auto]">
             <span className="text-sm">Blocco {i + 1}{k.nome ? ` – ${k.nome}` : ""} <span className="text-muted-foreground">(H {(k.quotaBase + k.altezzaGronda).toLocaleString("it-IT")} m)</span></span>
             <input className={inputCls} inputMode="decimal" aria-label={`Altezza da proteggere, blocco ${i + 1}`} placeholder={r.altezzaImpianti != null ? String(r.altezzaImpianti) : "m"} value={r.corpi[k.id]?.altezzaDaProteggere ?? ""} onChange={(e) => corpo(k.id, "altezzaDaProteggere", numero(e.target.value))} />
             <input className={inputCls} aria-label={`Nota sul blocco ${i + 1}`} placeholder="nota per la relazione (facoltativa)" maxLength={1000} value={r.corpi[k.id]?.nota ?? ""} onChange={(e) => corpo(k.id, "nota", e.target.value)} />
+            <label className="flex items-center gap-1.5 text-sm" title="Sovrastruttura metallica in copertura (struttura in acciaio, lamiera, carpenteria)"><input type="checkbox" checked={!!r.corpi[k.id]?.metallica} onChange={(e) => corpo(k.id, "metallica", e.target.checked)} />Metallica</label>
           </li>)}</ul>
         </div>}
       </Gruppo>

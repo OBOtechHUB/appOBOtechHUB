@@ -2,6 +2,18 @@
   "nota": "Registro degli aggiornamenti di Progettazione LPS. Una voce per aggiornamento, la più recente per prima (app: lps). Viene mostrato nella barra \"Aggiorna app\", nel riquadro Novità e nella pagina Novità di OBO Hub.",
   "aggiornamenti": [
     {
+      "id": "2026-11-24-lps-41",
+      "data": "2026-11-24",
+      "app": "lps",
+      "titolo": "SPD V20, conduttori, putrelle, sovrastrutture metalliche",
+      "voci": [
+        "SPD per i sottoquadri: solo la serie V20, compreso il V20 3+N/PE con fusibile integrato 5095257",
+        "Proposta di captazione: conduttore tondo alluminio Ø 8, tondo acciaio zincato Ø 8 (5021081, connettori Vario FT) o piatto acciaio zincato 30×3,5",
+        "Aste a putrella: profilo IPE (con lo spessore dell'ala) o spessore in mm, riportati nella relazione",
+        "Edificio 3D e Dati della relazione: spunta «Sovrastruttura metallica» per ogni corpo; la relazione indica collegamento all'LPS e uso come captatore naturale"
+      ]
+    },
+    {
       "id": "2026-11-24-lps-40",
       "data": "2026-11-24",
       "app": "lps",

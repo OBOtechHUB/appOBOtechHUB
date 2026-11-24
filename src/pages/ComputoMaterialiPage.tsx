@@ -87,7 +87,7 @@ export function ComputoMaterialiPage() {
     {errore && <p role="alert" className="mt-3 text-sm text-destructive">{errore}</p>}
     {(() => { const n = righe.filter((x) => !x.codice).length; return n ? <p className="mt-3 rounded-md border-l-4 border-destructive bg-destructive/5 px-4 py-2 text-sm"><b>{n} {n === 1 ? "riga" : "righe"} senza codice OBO</b> nell'elenco materiali qui sotto (segnate in rosso): indica il codice.</p> : null; })()}
     {generato.mancanti.length > 0 && <div className="mt-4 rounded-md border-l-4 border-amber-500 bg-amber-50 px-4 py-3 dark:bg-amber-950/40"><h2 className="font-semibold">Computo incompleto: {generato.mancanti.length} {generato.mancanti.length === 1 ? "dato mancante" : "dati mancanti"}</h2>
-      <ul className="mt-1 space-y-0.5 text-sm">{generato.mancanti.map((m) => { const dove = DOVE_MANCANTE(m); return <li key={m}>• {m}{dove ? <> — <Link to={dove.to as "/"} hash={dove.hash} className="font-medium text-primary underline">{dove.testo}</Link></> : null}</li>; })}</ul>
+      <ul className="mt-1 space-y-0.5 text-sm">{generato.mancanti.map((m) => { const dove = DOVE_MANCANTE(m); return <li key={m}>• {m}{dove ? <> — <Link to={dove.to as "/"} {...(dove.hash ? { hash: dove.hash } : {})} className="font-medium text-primary underline">{dove.testo}</Link></> : null}</li>; })}</ul>
       <p className="mt-1 text-xs text-muted-foreground">Le righe manuali non sostituiscono i risultati di progetto.</p></div>}
     <RelazioneTecnica righe={righe} mancanti={generato.mancanti} particolari={lib} />
     <DocumentiImpianto />

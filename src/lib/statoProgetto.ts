@@ -28,7 +28,8 @@ export const relazioneSchema = z.object({
   impiantiCopertura: z.string().max(2000).default(""), altezzaImpianti: nNull,
   // captazione
   fissaggioAste: z.enum(["putrella", "parapetto", "treppiede", "basamento", "parete", "misto"]).default("misto"), ventoKmh: nNull, margineSicurezza: z.number().finite().min(0).max(10).default(1),
-  corpi: z.record(z.object({ altezzaDaProteggere: nNull, nota: z.string().max(1000).default("") })).default({}),
+  corpi: z.record(z.object({ altezzaDaProteggere: nNull, nota: z.string().max(1000).default(""), metallica: z.boolean().default(false) })).default({}),
+  putrellaProfilo: z.string().max(20).default(""), putrellaSpessore: nNull,
   valutazioneEconomica: z.boolean().default(false), tecnico: t200, albo: t200,
   // impresa installatrice e verifiche
   impresaNome: t200, impresaSede: t200, impresaPiva: z.string().max(40).default(""), impresaCciaa: t200, impresaResponsabile: t200,

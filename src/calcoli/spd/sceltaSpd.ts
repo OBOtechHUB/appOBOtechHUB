@@ -108,7 +108,16 @@ export function candidati(prodotti: ProdottoSpd[], livello: Livello2, req: Requi
     punteggio += d.upKv === null ? 5 : 0;
     out.push({ prodotto: p, dati: d, punteggio, note });
   }
-  return out.sort((a, b) => a.punteggio - b.punteggio || (a.dati.upKv ?? 9) - (b.dati.upKv ?? 9));
+  const ordinati = out.sort((a, b) => a.punteggio - b.punteggio || (a.dati.upKv ?? 9) - (b.dati.upKv ?? 9));
+  if (livello !== "sottoquadro") return ordinati;
+  // sottoquadri: solo la serie V20 (richiesta di Marco, 24/11/2026), compreso il V20 con fusibile integrato 5095257
+  const v20 = ordinati.filter((c) => /\bV20\b/i.test(c.prodotto.nome) && !/\bV10\b/i.test(c.prodotto.nome));
+  if (poli.includes("3+N/PE") && req.upMax >= 1.5 && !v20.some((c) => c.prodotto.codice === V20_FUSIBILE.codice))
+    v20.splice(Math.min(1, v20.length), 0, { prodotto: V20_FUSIBILE, dati: datiSpd(V20_FUSIBILE.datiTecnici), punteggio: 0, note: ["V20 3+N/PE con fusibile di protezione integrato: non serve il fusibile a monte dedicato", "Up < 1,5 kV", "Uc da verificare sulla scheda"] });
+  return v20.length ? v20 : ordinati;
 }
+
+/** Limitatore V20 con fusibile integrato, 3+N/PE, IP20 (nuovo prodotto OBO, non ancora nel catalogo scaricato). */
+export const V20_FUSIBILE: ProdottoSpd = { codice: "5095257", nome: "Limitatore di sovratensione V20 con fusibile integrato, 3+N/PE, IP20", datiTecnici: { "SPD to EN 61643-11": "Type 2", "Protection level": "1.5 kV" } };
 
 const round = (v: number) => Math.round(v * 100) / 100;

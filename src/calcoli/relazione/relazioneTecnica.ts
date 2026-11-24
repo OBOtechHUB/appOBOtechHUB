@@ -29,6 +29,7 @@ import blocchiTreppiede from "@/dati/captazione/blocchiTreppiede.json";
 import { NOME_TIPO, blocchiPerVento, fraseCalate, fraseIntervento, fraseSoluzione, frasiStatoDiFatto, tipoAsta, verificaCorpi, type InfoArticolo, type TipoAsta } from "./testiProgetto";
 import { schemaBlocchi } from "./grafici";
 import { dataIt, destinazioneDi } from "./destinazioni";
+import { spessorePutrella } from "./putrelle";
 import { NOME_METODO, verificaVentoProgetto, type DatiVentoProgetto } from "@/calcoli/vento/progetto";
 import { descriviBasi, CATEGORIE as CATEGORIE_VENTO, ZONE as ZONE_VENTO, ce as ceVento, pressioneBase, velocitaBase } from "@/calcoli/vento/vento";
 import { disegnoDaComponenti, disegnoSchema, svgTipologico, type IndiceDisegniObo } from "@/calcoli/particolari/tipologico";
@@ -53,7 +54,9 @@ export interface DatiRelazione {
   terraEsistente: "nessuno" | "anello" | "fondazione" | "picchetti" | "misto"; terraCollegataAltri: boolean; spdEsistenti: SiNo;
   impiantiCopertura: string; altezzaImpianti: number | null;
   fissaggioAste: "putrella" | "parapetto" | "treppiede" | "basamento" | "parete" | "misto"; ventoKmh: number | null; margineSicurezza: number;
-  corpi: Record<string, { altezzaDaProteggere: number | null; nota: string }>;
+  corpi: Record<string, { altezzaDaProteggere: number | null; nota: string; metallica?: boolean | undefined }>;
+  /** captazione a putrella: profilo (es. "IPE 200") e/o spessore dell'ala in mm */
+  putrellaProfilo?: string | undefined; putrellaSpessore?: number | null | undefined;
   valutazioneEconomica: boolean; tecnico: string; albo: string;
   /** impresa installatrice (dichiarazione di conformità D.M. 37/2008) */
   impresaNome: string; impresaSede: string; impresaPiva: string; impresaCciaa: string; impresaResponsabile: string;
@@ -536,8 +539,9 @@ export function relazioneTecnica(x: IngressoRelazione): Documento {
   corpi.forEach((c, i) => {
     const xs = c.impronta.map((q) => q[0]), ys = c.impronta.map((q) => q[1]);
     const a = Math.max(...xs) - Math.min(...xs), b = Math.max(...ys) - Math.min(...ys);
-    const dp = r.corpi[c.id]?.altezzaDaProteggere, nota = r.corpi[c.id]?.nota;
+    const dp = r.corpi[c.id]?.altezzaDaProteggere, nota = r.corpi[c.id]?.nota, metallica = r.corpi[c.id]?.metallica;
     B.push(h3(`Blocco ${i + 1}${c.nome ? ` – ${c.nome}` : ""}`), p(`${c.nome || `Il blocco ${i + 1}`} ha dimensioni planari di ${it(Math.max(a, b), 1)} m × ${it(Math.min(a, b), 1)} m (${c.impronta.length === 4 ? "pianta rettangolare" : `pianta di ${c.impronta.length} lati`}), un'area di ${it(areaPoligono(c.impronta), 0)} m², un perimetro di ${it(perimetro(c.impronta), 1)} m e un'altezza di gronda di ${it(c.quotaBase + c.altezzaGronda, 2)} m${c.tipoTetto === "falde" ? `, con copertura a falde e colmo a ${it(c.quotaBase + c.altezzaColmo, 2)} m` : c.tipoTetto === "piano" ? ", con copertura piana" : ""}.${dp != null ? ` Sul tetto va protetta un'altezza di ${it(dp, 1)} m (impianti e strutture in copertura).` : ""}${nota ? ` ${nota}` : ""}`));
+    if (metallica) B.push(p(`${c.nome || `Il blocco ${i + 1}`} è una sovrastruttura metallica in copertura: va collegata all'impianto di captazione (collegamento equipotenziale con morsetti adatti al materiale) e, se lo spessore delle lamiere e dei profili rispetta i valori minimi della CEI EN IEC 62305-3:2026-10 (Tab. 3), può essere usata come captatore naturale; altrimenti va protetta con la captazione di progetto.`));
   });
   if (corpi.length) fig(schemaBlocchi(verifiche.map((v) => ({ corpo: v.corpo, numero: v.numero, daProteggere: v.daProteggere })), x.aste.map((a) => ({ x: a.x, y: a.y, tipo: tipi.get(a.id) ?? "fissa" })), NOME_BREVE), "Schema a blocchi dell'edificio: numero del blocco, dimensioni in pianta, altezza di gronda, altezza da proteggere in copertura e posizione delle aste per tipo");
   const sdf = frasiStatoDiFatto(r);
@@ -647,6 +651,7 @@ export function relazioneTecnica(x: IngressoRelazione): Documento {
     const fr = fraseSoluzione(r, perTipo, x.conduttori.some((c) => c.tipo === "captazione"), lpl, R);
     if (x.risultati.captazione?.descrizione) B.push(p(x.risultati.captazione.descrizione));
     if (fr) B.push(p(fr));
+    if (r.fissaggioAste === "putrella" || r.fissaggioAste === "misto") { const sp = spessorePutrella(r.putrellaProfilo, r.putrellaSpessore); if (r.putrellaProfilo || sp != null) B.push(p(`Le aste fissate alla struttura metallica si montano sulle putrelle${r.putrellaProfilo ? ` ${r.putrellaProfilo}` : ""}${sp != null ? ` (spessore dell'ala ${it(sp, 1)} mm)` : ""} con morsetti per putrella adatti a questo spessore, collegati equipotenzialmente alla struttura.`)); else if (r.fissaggioAste === "putrella") B.push(p([{ t: "Aste fissate a putrella: " }, dc("profilo (es. IPE 200) o spessore dell'ala delle putrelle in mm")])); }
     if (!fr && !x.risultati.captazione?.descrizione) B.push(p([dc("captazione non ancora disegnata nell'app (Edificio 3D)")])); }
   if (asteGr.size || capt.length) {
     B.push(p("Così progettato l'impianto di captazione sarà costituito da:"), el(

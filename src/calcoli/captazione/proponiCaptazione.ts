@@ -30,6 +30,8 @@ export interface CatalogoCaptazione {
   compensatore?: { codice: string; descrizione: string; ogni: number | null } | undefined; // ogni quanti m (null = non posato)
   asta?: { codice: string; descrizione: string } | undefined;
   riferimento: string;
+  /** materiale scelto dall'utente diverso da quello del particolare: conduttore, connettore e compensatore non si riallineano alla libreria */
+  materialeScelto?: boolean | undefined;
 }
 
 /** Valori del particolare OBO-TBS-250-T1.05 (tetto piano, conduttore tondo). */
@@ -48,6 +50,16 @@ export const CATALOGO_T1_06: CatalogoCaptazione = {
   connettore: { codice: "5314658", descrizione: "256 A-DIN 30 FT – morsetto a croce per piatto" },
   compensatore: { codice: "5331501", descrizione: "856 – nastro di dilatazione (+ 2 viti SKS 10x25 F 3160734)", ogni: 15 }, // T1.04: acciaio 15 m
   riferimento: "OBO-TBS-250-T1.06",
+};
+
+/** Come T1.05 ma con conduttore tondo in acciaio zincato Ø 8 (RD 8-FT) e connettori FT. */
+export const CATALOGO_T1_05_FT: CatalogoCaptazione = {
+  conduttore: { codice: "5021081", descrizione: "RD 8-FT – conduttore tondo in acciaio zincato Ø 8", materiale: "St/tZn", diametroMm: 8 },
+  supporto: CATALOGO_T1_05.supporto,
+  connettore: { codice: "5311500", descrizione: "249 8-10 ST – connettore rapido Vario FT" },
+  compensatore: { codice: "5218926", descrizione: "172 AR – compensatore di dilatazione", ogni: 15 }, // T1.04: acciaio 15 m
+  riferimento: "OBO-TBS-250-T1.05",
+  materialeScelto: true,
 };
 
 /** OBO-TBS-250-T1.07: tetto con ghiaia (passo dei supporti non indicato nel PDF: 1,0 m da verificare). */
@@ -140,10 +152,10 @@ export function allineaCatalogo(cat: CatalogoCaptazione, lib: readonly Particola
   const r = cat.riferimento, al = <V extends { codice: string; descrizione: string }>(v: V, ruolo: Parameters<typeof allinea>[4]): V => { const x = allinea(v, r, lib, 0, ruolo); return { ...v, codice: x.codice, descrizione: x.descrizione }; };
   return {
     ...cat,
-    conduttore: al(cat.conduttore, "conduttore"),
+    conduttore: cat.materialeScelto ? cat.conduttore : al(cat.conduttore, "conduttore"),
     supporto: cat.supporto ? al(cat.supporto, "supporto") : null,
-    connettore: al(cat.connettore, "connettore"),
-    compensatore: cat.compensatore ? al(cat.compensatore, "compensatore") : cat.compensatore,
+    connettore: cat.materialeScelto ? cat.connettore : al(cat.connettore, "connettore"),
+    compensatore: cat.materialeScelto || !cat.compensatore ? cat.compensatore : al(cat.compensatore, "compensatore"),
     asta: cat.asta ? al(cat.asta, "asta") : cat.asta,
   };
 }
@@ -158,10 +170,11 @@ export function allineaSupporto<S extends SupportoCat & { conduttore?: { codice:
 }
 
 /** Particolare OBO da usare per il tipo di copertura e il materiale del conduttore. */
-export function catalogoPerCopertura(copertura: CoperturaPiana | string | undefined, materiale: "alluminio" | "acciaio" = "alluminio"): CatalogoCaptazione {
-  if (copertura === "ghiaia") return CATALOGO_T1_07;
+export type MaterialeConduttore = "alluminio" | "acciaio-tondo" | "acciaio";
+export function catalogoPerCopertura(copertura: CoperturaPiana | string | undefined, materiale: MaterialeConduttore = "alluminio"): CatalogoCaptazione {
+  if (copertura === "ghiaia") return materiale === "alluminio" ? CATALOGO_T1_07 : { ...CATALOGO_T1_07, conduttore: CATALOGO_T1_05_FT.conduttore, connettore: CATALOGO_T1_05_FT.connettore, compensatore: CATALOGO_T1_05_FT.compensatore, materialeScelto: true };
   if (copertura === "carrabile") return CATALOGO_T1_22;
-  return materiale === "acciaio" ? CATALOGO_T1_06 : CATALOGO_T1_05;
+  return materiale === "acciaio" ? CATALOGO_T1_06 : materiale === "acciaio-tondo" ? CATALOGO_T1_05_FT : CATALOGO_T1_05;
 }
 
 export interface ParametriProposta {
