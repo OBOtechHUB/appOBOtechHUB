@@ -2,6 +2,19 @@
   "nota": "Registro degli aggiornamenti di Progettazione LPS. Una voce per aggiornamento, la più recente per prima (app: lps). Viene mostrato nella barra \"Aggiorna app\", nel riquadro Novità e nella pagina Novità di OBO Hub.",
   "aggiornamenti": [
     {
+      "id": "2026-11-24-lps-51",
+      "data": "2026-11-24",
+      "app": "lps",
+      "titolo": "Grafica futuristica",
+      "voci": [
+        "Fasce in cima alle pagine con aurora arancio in movimento e griglia tecnica",
+        "Schede con luce che segue il puntatore e bordo arancio che si accende",
+        "Contenuti che compaiono allo scorrimento e barra di avanzamento della pagina in alto",
+        "Agenti del progetto automatico che entrano in sequenza",
+        "Tutto si spegne da solo con «riduci movimento» del sistema e in stampa"
+      ]
+    },
+    {
       "id": "2026-11-24-lps-50",
       "data": "2026-11-24",
       "app": "lps",

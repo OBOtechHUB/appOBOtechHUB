@@ -1,4 +1,5 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { avviaEffetti } from "@/lib/effetti";
 import { segnalaErrore } from "@/lib/registro";
 import {
   Outlet,
@@ -131,5 +132,6 @@ function PortalShell(){
       if(event==="SIGNED_OUT"){impostaAttivo(null);ripristinaLocale();queryClient.clear();}else {void queryClient.invalidateQueries();if(session)libreria(session.user.id);}
     });return()=>data.subscription.unsubscribe();
   },[router,queryClient,setUser,setPronto]);
+  useEffect(()=>avviaEffetti(),[]);
   return <><AggiornaApp/><AppHeader/><AvvisoEmissione/><ProjectSync/><ControlloAccesso/><AppFooter/></>;
 }

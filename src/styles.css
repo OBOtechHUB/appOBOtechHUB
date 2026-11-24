@@ -322,3 +322,33 @@ main {
 html { touch-action: pan-y; }
 html, body { max-width: 100%; overflow-x: hidden; overscroll-behavior-x: none; }
 @supports (overflow: clip) { html, body { overflow-x: clip; } }
+
+/* ---------- stile futuristico (uguale a comune/futuro.css di OBO Hub) ----------
+   fasce ardesia con aurora arancio e griglia, schede con luce che segue il puntatore, comparsa allo scorrimento,
+   barra di avanzamento della pagina. Spento con "riduci movimento" e in stampa (src/lib/effetti.ts). */
+section.bg-ardesia { position: relative; isolation: isolate; overflow: hidden; }
+section.bg-ardesia::before {
+  content: ""; position: absolute; inset: -40% -10%; z-index: -1; pointer-events: none;
+  background: radial-gradient(40% 60% at 15% 30%, rgb(243 155 0 / .38), transparent 70%), radial-gradient(35% 55% at 85% 70%, rgb(118 148 164 / .45), transparent 70%), radial-gradient(30% 40% at 60% 10%, rgb(243 155 0 / .18), transparent 70%);
+  filter: blur(18px); animation: fx-aurora 18s ease-in-out infinite alternate;
+}
+section.bg-ardesia::after {
+  content: ""; position: absolute; inset: 0; z-index: -1; pointer-events: none; opacity: .2;
+  background-image: linear-gradient(rgb(255 255 255 / .18) 1px, transparent 1px), linear-gradient(90deg, rgb(255 255 255 / .18) 1px, transparent 1px);
+  background-size: 36px 36px; mask-image: linear-gradient(180deg, transparent, #000 30%, #000 70%, transparent); animation: fx-griglia 30s linear infinite;
+}
+@keyframes fx-aurora { 0% { transform: translate3d(-4%, -2%, 0) rotate(0deg) scale(1); } 50% { transform: translate3d(3%, 2%, 0) rotate(6deg) scale(1.08); } 100% { transform: translate3d(-2%, 3%, 0) rotate(-4deg) scale(1.02); } }
+@keyframes fx-griglia { to { background-position: 36px 36px, 36px 36px; } }
+.fx-scheda { transition: box-shadow .28s, border-color .28s; background-image: radial-gradient(280px circle at var(--fx-x, -999px) var(--fx-y, -999px), rgb(243 155 0 / .10), transparent 60%); }
+.fx-scheda:hover { box-shadow: 0 14px 34px -16px rgb(243 155 0 / .5), 0 0 0 1px rgb(243 155 0 / .5); }
+.fx-in { opacity: 0; transform: translate3d(0, 22px, 0) scale(.985); filter: blur(5px); }
+.fx-in.fx-vis { opacity: 1; transform: none; filter: none; transition: opacity .7s cubic-bezier(.2,.8,.2,1), transform .7s cubic-bezier(.2,.8,.2,1), filter .7s; transition-delay: var(--fx-ritardo, 0ms); }
+#fx-progresso { position: fixed; top: 0; left: 0; right: 0; height: 2px; z-index: 9999; pointer-events: none; transform-origin: 0 50%; transform: scaleX(var(--fx-p, 0)); background: linear-gradient(90deg, #f39b00, #ffd27a, #f39b00); box-shadow: 0 0 10px rgb(243 155 0 / .7); }
+.agente { animation: fx-entra .6s cubic-bezier(.2,.8,.2,1) both; }
+@keyframes fx-entra { from { opacity: 0; transform: translate3d(0, 16px, 0) scale(.97); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) {
+  section.bg-ardesia::before, section.bg-ardesia::after, .agente { animation: none !important; }
+  .fx-in { opacity: 1 !important; transform: none !important; filter: none !important; }
+  #fx-progresso { display: none; }
+}
+@media print { section.bg-ardesia::before, section.bg-ardesia::after, #fx-progresso { display: none !important; } .fx-in { opacity: 1 !important; transform: none !important; filter: none !important; } }
