@@ -155,6 +155,7 @@ export function AppHeader() {
             </span>
           </Link>
           <nav aria-label="Accessi rapidi" className="ml-auto flex items-stretch">
+            <a href={URL_HUB} title="Torna a OBO Hub (tutte le app)" aria-label="Torna alla pagina iniziale di OBO Hub" className="my-1.5 mr-1 flex min-w-[46px] flex-col items-center justify-center gap-0.5 rounded-xl bg-primary px-2 text-[10px] font-semibold text-white shadow-[0_4px_12px_-6px_rgba(243,155,0,.8)] hover:bg-[#d98a00] sm:min-w-[60px] sm:text-xs"><LayoutGrid className="size-5 sm:size-[22px]" strokeWidth={1.5} /><span>OBO Hub</span></a>
             {abilitato ? <>
               {visibile("/assistente") && <IconaBarra to="/assistente" etichetta="Assistente" icona={Compass} badge={mancanti.length || undefined} titolo={prossimo ? `Prossimo passo: ${prossimo.titolo}` : "Progetto completo"} nascondiMobile />}
               {visibile("/progetti") && !visitatore && <IconaBarra to="/progetti" etichetta="Progetti" icona={ClipboardList} />}

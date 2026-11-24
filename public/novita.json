@@ -2,6 +2,15 @@
   "nota": "Registro degli aggiornamenti di Progettazione LPS. Una voce per aggiornamento, la più recente per prima (app: lps). Viene mostrato nella barra \"Aggiorna app\", nel riquadro Novità e nella pagina Novità di OBO Hub.",
   "aggiornamenti": [
     {
+      "id": "2026-11-24-lps-34",
+      "data": "2026-11-24",
+      "app": "lps",
+      "titolo": "OBO Hub sempre in evidenza",
+      "voci": [
+        "Nella barra in alto c'è sempre il pulsante arancione «OBO Hub» per tornare alla pagina iniziale di OBO Hub, come in tutte le altre app"
+      ]
+    },
+    {
       "id": "2026-11-24-lps-33",
       "data": "2026-11-24",
       "app": "lps",
