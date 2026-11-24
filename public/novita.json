@@ -2,6 +2,18 @@
   "nota": "Registro degli aggiornamenti di Progettazione LPS. Una voce per aggiornamento, la più recente per prima (app: lps). Viene mostrato nella barra \"Aggiorna app\", nel riquadro Novità e nella pagina Novità di OBO Hub.",
   "aggiornamenti": [
     {
+      "id": "2026-11-24-lps-49",
+      "data": "2026-11-24",
+      "app": "lps",
+      "titolo": "Edifici dalla mappa in automatico",
+      "voci": [
+        "Edificio 3D → «Dalla mappa (automatico)»: «Trova tutti gli edifici della zona» prende da OpenStreetMap contorni e altezze di tutti gli edifici del riquadro",
+        "Edifici colorati per altezza; tocchi quelli da usare (o «Seleziona tutti») e «Importa selezionati»: diventano corpi del progetto",
+        "Le parti dell'edificio con altezze diverse (torri, volumi sul tetto) diventano corpi separati; altezze dai piani e tetti a falde dove indicati; se l'altezza manca si usa quella scritta",
+        "Fondo satellitare per controllare; si può ancora disegnare l'impronta a mano"
+      ]
+    },
+    {
       "id": "2026-11-24-lps-48",
       "data": "2026-11-24",
       "app": "lps",
