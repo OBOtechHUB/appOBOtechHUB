@@ -278,7 +278,7 @@ export function AdminPage() {
     <main className="mx-auto max-w-6xl px-4 py-8">
       {msg && <p role="status" className="mb-4 rounded-lg border-l-4 border-primary bg-muted p-3 text-sm">{msg}</p>}
       {erroreRegistro && <p className="mb-4 rounded-lg border-l-4 border-[#b3261e] bg-[#fdecea] p-3 text-sm">Il registro accessi non si legge ({erroreRegistro}): i conteggi degli accessi restano a 0. Esegui supabase/statistiche-admin.sql.</p>}
-      {(() => { const g = giorniDallaCopia(impostazioni["ultima_copia_sicurezza"]); return g === null || g > 7 ? <p className="mb-4 rounded-lg border-l-4 border-[#b3261e] bg-[#fdecea] p-3 text-sm">{g === null ? "Non è ancora stata fatta una copia di sicurezza dei dati." : `L'ultima copia di sicurezza è di ${g} giorni fa.`} Scaricala dalla scheda <strong>Copia di sicurezza</strong> e salvala nella cartella SharePoint.</p> : null; })()}
+      {(() => { const g = giorniDallaCopia(impostazioni["ultima_copia_sicurezza"]); return g === null || g > 7 ? <p className="mb-4 rounded-lg border-l-4 border-[#b3261e] bg-[#fdecea] p-3 text-sm">{g === null ? "Non è ancora stata fatta una copia di sicurezza dei dati." : `L'ultima copia di sicurezza è di ${g} giorni fa.`} Controlla la scheda <strong>Copia di sicurezza</strong> (copie automatiche: SQL 13 supabase/copie-automatiche.sql).</p> : null; })()}
       {!impostazioni["password_iniziale"] && <p className="mb-4 rounded-lg border-l-4 border-[#b3261e] bg-[#fdecea] p-3 text-sm">Imposta la <strong>password iniziale comune</strong> nella scheda Impostazioni prima di approvare le richieste.</p>}
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-6">

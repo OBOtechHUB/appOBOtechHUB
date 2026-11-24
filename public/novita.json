@@ -2,6 +2,17 @@
   "nota": "Registro degli aggiornamenti di Progettazione LPS. Una voce per aggiornamento, la più recente per prima (app: lps). Viene mostrato nella barra \"Aggiorna app\", nel riquadro Novità e nella pagina Novità di OBO Hub.",
   "aggiornamenti": [
     {
+      "id": "2026-11-24-lps-33",
+      "data": "2026-11-24",
+      "app": "lps",
+      "titolo": "Copie di sicurezza automatiche con data",
+      "voci": [
+        "Amministrazione → Copia di sicurezza: il database fa da solo una copia di tutti i dati ogni notte, con la data, e tiene gli ultimi 31 giorni (serve il SQL 13 copie-automatiche.sql)",
+        "Elenco delle copie per giorno: scarica il file di un giorno o ripristina un progetto LPS com'era quel giorno (diventa un nuovo progetto «… (ripristino del giorno)» del suo proprietario, l'originale non si tocca)",
+        "Copia su SharePoint: scegli una volta la cartella OBO Hub sincronizzata da OneDrive (Edge o Chrome); a ogni apertura della pagina l'app ci salva le copie nuove e toglie quelle più vecchie di 31 giorni"
+      ]
+    },
+    {
       "id": "2026-11-24-lps-32",
       "data": "2026-11-24",
       "app": "lps",

@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { giorniDallaCopia } from "./CopiaSicurezza";
+import { fileDaTogliere, giorniDallaCopia, nomeFileCopia } from "./CopiaSicurezza";
 import { raggruppa } from "./UsoAdmin";
 import { browserBreve } from "./ErroriAdmin";
 import { ERRORE_IGNORATO } from "@/lib/registro";
@@ -25,5 +25,13 @@ describe("strumenti admin", () => {
     expect(browserBreve("Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 Version/18.0 Mobile/15E148 Safari/604.1")).toBe("Safari · iPhone");
     expect(ERRORE_IGNORATO.test("Failed to fetch")).toBe(true);
     expect(ERRORE_IGNORATO.test("Cannot read properties of undefined (reading 'x')")).toBe(false);
+  });
+});
+
+describe("copie nella cartella OneDrive", () => {
+  it("toglie solo i file delle copie più vecchi di 31 giorni", () => {
+    const oggi = new Date("2026-11-24T10:00:00Z");
+    expect(nomeFileCopia("2026-11-24")).toBe("OBO-Hub-copia-2026-11-24.json");
+    expect(fileDaTogliere(["OBO-Hub-copia-2026-10-20.json", "OBO-Hub-copia-2026-10-24.json", "OBO-Hub-copia-2026-11-23.json", "appunti.docx", "copia-obo-hub-2026-01-01.json"], oggi)).toEqual(["OBO-Hub-copia-2026-10-20.json"]);
   });
 });
