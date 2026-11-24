@@ -28,7 +28,7 @@
 ;;; il comando converte nelle unita' del disegno (INSUNITS).
 ;;; ==========================================================================
 
-(setq *LPS-VERSIONE* "3.3")
+(setq *LPS-VERSIONE* "3.4")
 (if vl-load-com (vl-load-com))
 
 ;;; --------------------------------------------------------------------------
@@ -621,13 +621,20 @@
   (setq file (getfiled "File di progetto LPS" "" "lpsdati" 0))
   (if file (lps:costruisci file nil))
   (lps:fine)
-  (if file (command "_.ZOOM" "_E"))
+  (if file
+    (progn
+      (command "_.ZOOM" "_E")
+      ;; disegno nuovo: si salva accanto al .lpsdati, cosi' LPS-AUTO e le prossime aperture lo ritrovano
+      (if (or (= (getvar "DWGTITLED") 0) (not (findfile (strcat (getvar "DWGPREFIX") (vl-filename-base file) ".lpsdati"))))
+        (lps:salva-accanto file))))
   (princ))
 
 ;; disegno completo come LPS-AUTO: modello, legenda e particolari, distinta (tabella e CSV), squadratura e testalino
-(defun lps:costruisci (file auto / e0 tab)
+(defun lps:costruisci (file auto / e0 tab tav)
+  ;; prima volta in un disegno vuoto: si portano dentro anche le tavole 2D del pacchetto (testalino, cartiglio, legenda)
+  (setq tav (lps:inserisci-tavole file))
   (setq e0 (entlast))
-  (if (lps:importa file auto)
+  (if (lps:importa file (or auto tav))
     (progn
       (setq tab (lps:distinta-tab))
       (lps:tabella-distinta tab)
@@ -635,6 +642,63 @@
       (setq *LPS-ULTIMO-BB* (lps:ingombro-da e0))
       (lps:squadratura *LPS-ULTIMO-BB* *LPS-FORMATO* *LPS-SCALA-TAVOLA*)
       T)))
+
+;; T se nel disegno ci sono gia' le tavole 2D (testalino sul layer LPS-CART)
+(defun lps:ha-tavole () (if (and (tblsearch "LAYER" "LPS-CART") (ssget "_X" '((8 . "LPS-CART")))) T nil))
+
+;; tavole 2D del pacchetto CAD: <nome>.dxf accanto al .lpsdati, inserito a 0,0,0 ed esploso (stesse coordinate del sito).
+;; Restituisce T se inserite. Se il CAD non accetta il DXF come blocco, avvisa di aprire il DXF.
+(defun lps:inserisci-tavole (file / dxf doc ms ref)
+  (setq dxf (strcat (vl-filename-directory file) "\\" (vl-filename-base file) ".dxf"))
+  (cond
+    ((lps:ha-tavole) nil)
+    ((not (findfile dxf))
+     (lps:msg "Tavole 2D non trovate accanto al .lpsdati: disegno solo il modello 3D (per le tavole apri il DXF del pacchetto CAD).") nil)
+    (T
+     (setq doc (vla-get-ActiveDocument (vlax-get-acad-object)) ms (vla-get-ModelSpace doc)
+           ref (vl-catch-all-apply 'vla-InsertBlock (list ms (vlax-3d-point '(0.0 0.0 0.0)) dxf 1.0 1.0 1.0 0.0)))
+     (if (vl-catch-all-error-p ref)
+       (progn (lps:msg (strcat "Questo CAD non inserisce il DXF come blocco: apri " (vl-filename-base file) ".dxf e lancia LPS-AUTO per avere anche le tavole 2D.")) nil)
+       (progn
+         (vl-catch-all-apply 'vla-Explode (list ref))
+         (vl-catch-all-apply 'vla-Delete (list ref))
+         (lps:msg (strcat "Tavole 2D inserite da " (vl-filename-base file) ".dxf (testalino, cartiglio, legenda, particolari)."))
+         T)))))
+
+;; salva il disegno come DWG accanto al .lpsdati (stesso nome), senza sovrascrivere: poi LPS-AUTO lo ritrova
+(defun lps:salva-accanto (file / base nome i doc r)
+  (setq base (strcat (vl-filename-directory file) "\\" (vl-filename-base file)) nome (strcat base ".dwg") i 1)
+  (while (findfile nome) (setq i (1+ i) nome (strcat base "_" (itoa i) ".dwg")))
+  (setq doc (vl-catch-all-apply 'vla-get-ActiveDocument (list (vlax-get-acad-object))))
+  (setq r (if (vl-catch-all-error-p doc) doc (vl-catch-all-apply 'vla-SaveAs (list doc nome))))
+  (if (vl-catch-all-error-p r)
+    (progn (lps:msg "Salvataggio non riuscito: salva il disegno con Salva con nome nella cartella del .lpsdati.") nil)
+    (progn (lps:msg (strcat "Disegno salvato accanto ai dati: " nome)) nome)))
+
+;; squadratura gia' disegnata da LPS (testalino del modello 3D)?
+(defun lps:ha-squadratura () (if (ssget "_X" '((0 . "TEXT") (1 . "MODELLO 3D LPS*"))) T nil))
+
+;; completa un disegno gia' costruito (es. con LPS-IMPORTA di una versione precedente): distinta e squadratura con testalino
+(defun lps:completa (file / dati ss bb i e o mn mx tab)
+  (if file (progn (setq dati (lps:leggi file)) (setq *LPS-PROGETTO* (assoc 'PROGETTO dati))
+                  (foreach v dati (if (eq (car v) 'VOCE) (setq *LPS-VOCI* (cons (list (nth 1 v) (nth 2 v) (lps:num (nth 3 v)) (nth 4 v)) *LPS-VOCI*))))))
+  (setq bb *LPS-ULTIMO-BB*)
+  (if (and (not bb) (setq ss (ssget "_X" '((-3 ("LPS"))))))
+    (progn
+      (setq i 0)
+      (repeat (sslength ss)
+        (setq e (ssname ss i) i (1+ i) o (vl-catch-all-apply 'vlax-ename->vla-object (list e)))
+        (if (and (not (vl-catch-all-error-p o)) (not (vl-catch-all-error-p (vl-catch-all-apply 'vla-GetBoundingBox (list o 'mn 'mx)))) mn mx)
+          (setq mn (vlax-safearray->list mn) mx (vlax-safearray->list mx)
+                bb (if bb (list (min (car bb) (car mn)) (min (cadr bb) (cadr mn)) (max (caddr bb) (car mx)) (max (cadddr bb) (cadr mx)))
+                          (list (car mn) (cadr mn) (car mx) (cadr mx)))))
+        (setq mn nil mx nil))))
+  (if bb
+    (progn
+      (if (not (ssget "_X" '((0 . "TEXT") (1 . "DISTINTA MATERIALI DAL DISEGNO*"))))
+        (progn (setq tab (lps:distinta-tab)) (lps:tabella-distinta tab) (lps:distinta-csv tab)))
+      (lps:squadratura bb *LPS-FORMATO* *LPS-SCALA-TAVOLA*))
+    (lps:msg "Nessun componente LPS nel disegno: usa LPS-IMPORTA.")))
 
 ;; primo file .lpsdati nella cartella del disegno (nil se il disegno non e' salvato o non c'e')
 (defun lps:file-progetto (/ d l)
@@ -682,11 +746,23 @@
                      (- (cadr (lps:p 0.0 (cadr *LPS-EST*) 0.0)) (* 4.0 s))
                      s))))
 
-(defun c:LPS-AUTO (/ file tab)
+(defun c:LPS-AUTO (/ file)
   (setq file (lps:file-progetto))
+  (if (not file)
+    (progn
+      (lps:msg "Nessun file .lpsdati accanto al disegno: sceglilo (cartella del pacchetto CAD scaricato dal sito).")
+      (setq file (getfiled "File di progetto LPS" "" "lpsdati" 0))))
   (cond
-    ((not file) (lps:msg "Nessun file .lpsdati nella cartella del disegno: apri il DXF del pacchetto CAD o usa LPS-IMPORTA."))
-    ((lps:gia-costruito) (lps:msg "Il progetto LPS e' gia' disegnato in questo file (componenti LPS presenti)."))
+    ((not file) (lps:msg "LPS-AUTO annullato: nessun file .lpsdati scelto."))
+    ((lps:gia-costruito)
+     (if (lps:ha-squadratura)
+       (lps:msg "Il progetto LPS e' gia' disegnato, con squadratura e testalino. Per cambiare formato o scala: LPS-SQUADRA.")
+       (progn
+         (lps:inizio)
+         (lps:msg "Il progetto LPS e' gia' disegnato: aggiungo quello che manca (distinta, squadratura e testalino).")
+         (lps:completa file)
+         (lps:fine)
+         (command "_.ZOOM" "_E"))))
     (T
      (lps:inizio)
      (lps:cartella-blocchi)
@@ -694,7 +770,7 @@
      (lps:costruisci file T)
      (lps:fine)
      (command "_.ZOOM" "_E")
-     (lps:salva-dwg)))
+     (if (= (getvar "DWGTITLED") 1) (lps:salva-dwg) (lps:salva-accanto file))))
   (princ))
 
 (defun c:LPS-SFERA (/ lpl r c f lay i a n pts)

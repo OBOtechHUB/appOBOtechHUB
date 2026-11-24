@@ -2,6 +2,17 @@
   "nota": "Registro degli aggiornamenti di Progettazione LPS. Una voce per aggiornamento, la più recente per prima (app: lps). Viene mostrato nella barra \"Aggiorna app\", nel riquadro Novità e nella pagina Novità di OBO Hub.",
   "aggiornamenti": [
     {
+      "id": "2026-11-24-lps-47",
+      "data": "2026-11-24",
+      "app": "lps",
+      "titolo": "LPS.lsp 3.4: importazione completa in ZWCAD e AutoCAD",
+      "voci": [
+        "LPS-IMPORTA in un disegno vuoto porta dentro anche le tavole 2D del pacchetto (testalino, cartiglio, legenda, particolari) dal DXF accanto al .lpsdati, poi modello 3D, distinta, squadratura e testalino",
+        "Dopo LPS-IMPORTA il disegno si salva come DWG accanto al .lpsdati, così LPS-AUTO lo ritrova",
+        "LPS-AUTO non si ferma più con «nessun file»: se il .lpsdati non è accanto al disegno te lo fa scegliere; su un disegno già costruito aggiunge solo quello che manca"
+      ]
+    },
+    {
       "id": "2026-11-24-lps-46",
       "data": "2026-11-24",
       "app": "lps",
