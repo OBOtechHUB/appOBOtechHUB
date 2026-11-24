@@ -10,10 +10,10 @@
 import type { Asta, Conduttore, Corpo } from "@/calcoli/edificio/tipi";
 
 export interface IngressoIFC {
-  progetto: { codice?: string; nome?: string; comune?: string };
+  progetto: { codice?: string | undefined; nome?: string | undefined; comune?: string | undefined };
   corpi: Corpo[]; aste: Asta[]; conduttori: Conduttore[];
-  picchetti?: { id: string; x: number; y: number; z: number; lunghezza: number; diametro?: number | undefined; codiceOBO?: string }[];
-  autore?: string; data?: Date;
+  picchetti?: { id: string; x: number; y: number; z: number; lunghezza: number; diametro?: number | undefined; codiceOBO?: string | undefined }[] | undefined;
+  autore?: string | undefined; data?: Date | undefined;
 }
 
 const ALFABETO = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz_$";
