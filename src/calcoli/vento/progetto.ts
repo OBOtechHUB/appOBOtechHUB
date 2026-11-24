@@ -21,7 +21,7 @@ export const NOME_METODO: Record<MetodoVento, string> = {
   parete: "fissata alla struttura con due supporti (calcolo)",
 };
 export interface ArticoloVento { nome: string; dati?: Record<string, string> | undefined }
-export interface DatiVentoProgetto { zona: number; altitudine: number; categoria: Parametri["categoria"]; quotaBase: number; mu: number; interasseParete: number; materialeParete: Materiale }
+export interface DatiVentoProgetto { zona: number; altitudine: number; categoria: Parametri["categoria"]; quotaBase: number; mu: number; interasseParete: number; materialeParete: Materiale; regione?: string | undefined; provincia?: string | undefined }
 
 export interface VerificaGruppo {
   chiave: string; codice: string; nome: string; numero: number; altezza: number; quotaBase: number; tipo: TipoFissaggio; metodo: MetodoVento;

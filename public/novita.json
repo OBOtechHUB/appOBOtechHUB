@@ -2,6 +2,18 @@
   "nota": "Registro degli aggiornamenti di Progettazione LPS. Una voce per aggiornamento, la più recente per prima (app: lps). Viene mostrato nella barra \"Aggiorna app\", nel riquadro Novità e nella pagina Novità di OBO Hub.",
   "aggiornamenti": [
     {
+      "id": "2026-11-24-lps-31",
+      "data": "2026-11-24",
+      "app": "lps",
+      "titolo": "Verifica al vento di tutte le aste del progetto",
+      "voci": [
+        "Vento e zavorre: nuova sezione «Aste del progetto» con la verifica di ogni asta del modello (quota della sua base, tipo di fissaggio, dati del catalogo OBO): irod calcolate, isFang dalle tabelle OBO, altre aste su treppiede o basamento FangFix, aste fissate alla struttura",
+        "Barre filettate isFang 3B-G1, G2, G3, G4 (270, 340, 430, 500 mm) per 1, 2, 3, 4 blocchi: ogni base mostra la barra da installare; il massimo installabile è 4 blocchi per base",
+        "La relazione tecnica (13.1) riporta parametri del vento, tabelle di verifica di tutte le aste, esito e zavorre; il computo materiali aggiunge blocchi 5403227, protezioni 5403238 e le barre giuste",
+        "Excel della pagina con il foglio «Aste del progetto»"
+      ]
+    },
+    {
       "id": "2026-11-24-lps-30",
       "data": "2026-11-24",
       "app": "lps",
