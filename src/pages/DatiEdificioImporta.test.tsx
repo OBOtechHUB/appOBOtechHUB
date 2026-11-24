@@ -19,7 +19,7 @@ describe("Dati edificio: importazione con dimensioni automatiche", () => {
     const route = createRoute({ getParentRoute: () => root, path: "/", component: DatiEdificioPage });
     render(<RouterProvider router={createRouter({ routeTree: root.addChildren([route]), history: createMemoryHistory({ initialEntries: ["/"] }) })} />);
     await waitFor(() => expect(screen.getByText(/Importa un disegno o un modello/)).toBeInTheDocument());
-    const input = document.querySelector('input[type="file"]') as HTMLInputElement;
+    const input = document.querySelector('#importa-edificio input[type="file"]') as HTMLInputElement;
     fireEvent.change(input, { target: { files: [file("pianta.dxf", dxfMm)] } });
     await waitFor(() => expect(screen.getByText(/Il file indica millimetri/)).toBeInTheDocument());
     fireEvent.change(screen.getByPlaceholderText(/il DXF è solo in pianta/), { target: { value: "9" } });
