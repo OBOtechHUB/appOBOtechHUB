@@ -10,6 +10,7 @@ import { db, useAccesso } from "@/lib/accesso";
 import { TIPI_RICHIESTA, STATI_RICHIESTA } from "@/lib/richieste";
 import { scaricaCsv } from "@/lib/csv";
 import { GraficoBarre } from "@/components/GraficoBarre";
+import { formattaNome } from "@/lib/nomi";
 
 type Mese = { mese: string; n: number };
 interface Dati {
@@ -78,7 +79,7 @@ export function CruscottoPage() {
       <div className="grid gap-4 lg:grid-cols-2">
         <Pannello titolo="Progetti creati per mese"><Barre voci={(p?.per_mese ?? []).map((x) => ({ etichetta: x.mese, valore: x.n }))} periodo /></Pannello>
         <Pannello titolo="Revisioni emesse per mese">{v ? <Barre voci={v.per_mese.map((x) => ({ etichetta: x.mese, valore: x.n }))} periodo /> : <p className="text-sm text-muted-foreground">Eseguire supabase/revisioni.sql.</p>}</Pannello>
-        <Pannello titolo="Progetti per persona (modificati nel periodo)"><Barre voci={(p?.per_persona ?? []).slice(0, 15).map((x) => ({ etichetta: x.nome, valore: x.n }))} /></Pannello>
+        <Pannello titolo="Progetti per persona (modificati nel periodo)"><Barre voci={(p?.per_persona ?? []).slice(0, 15).map((x) => ({ etichetta: formattaNome(x.nome), valore: x.n }))} /></Pannello>
         <Pannello titolo="Livello di protezione dei progetti"><Barre voci={Object.entries(p?.per_lpl ?? {}).sort().map(([k, val]) => ({ etichetta: `LPL ${k}`, valore: val }))} /></Pannello>
         <Pannello titolo="Aste OBO più prescritte"><table className="w-full text-sm"><thead><tr className="border-b text-left"><th className="p-1">Codice</th><th className="p-1 text-right">Aste</th><th className="p-1 text-right">Progetti</th></tr></thead><tbody>{dati.materiale.aste.map((x) => <tr key={x.codice} className="border-b"><td className="p-1 font-mono">{x.codice}</td><td className="p-1 text-right">{n(x.n)}</td><td className="p-1 text-right">{n(x.progetti)}</td></tr>)}</tbody></table></Pannello>
         <Pannello titolo="Ore pianificate in Mappa carichi (progetti che iniziano nel periodo)">{dati.mappa ? <Barre voci={dati.mappa.slice(0, 15).map((x) => ({ etichetta: x.persona, valore: x.ore }))} unita=" h" /> : <p className="text-sm text-muted-foreground">Mappa carichi non collegata.</p>}</Pannello>

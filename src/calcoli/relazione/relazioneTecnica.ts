@@ -34,6 +34,7 @@ import { disegnoDaComponenti, disegnoSchema, svgTipologico, type IndiceDisegniOb
 import { ruoloDi } from "@/calcoli/particolari/allinea";
 import { traduciDocumento } from "./traduzione";
 import { barreLog, curvaCorrente, flussoValutazione, graficoSeparazione, graficoSfera, piantaCopertura, schemaSorgenti } from "./grafici";
+import { formattaNome } from "@/lib/nomi";
 
 export type Lpl = "I" | "II" | "III" | "IV";
 
@@ -226,7 +227,7 @@ export function relazioneTecnica(x: IngressoRelazione): Documento {
   // PARTE 1 – RELAZIONE IMPIANTO DI PROTEZIONE DALLE SCARICHE ATMOSFERICHE
   // =====================================================================================
   copertina("Relazione impianto di protezione\ndalle scariche atmosferiche");
-  if (x.revisioni.length) B.push(h3("Revisioni del documento"), tab(["Rev.", "Data", "Descrizione", "Autore"], x.revisioni.map((v) => [v.rev, new Date(v.data).toLocaleDateString("it-IT"), v.descrizione, v.autore]), [1, 2, 6, 3]));
+  if (x.revisioni.length) B.push(h3("Revisioni del documento"), tab(["Rev.", "Data", "Descrizione", "Autore"], x.revisioni.map((v) => [v.rev, new Date(v.data).toLocaleDateString("it-IT"), v.descrizione, formattaNome(v.autore)]), [1, 2, 6, 3]));
   B.push({ tipo: "sommario", titolo: "Sommario" });
 
   // ---------- 1 Premessa
@@ -857,7 +858,7 @@ export function relazioneTecnica(x: IngressoRelazione): Documento {
     p("Calcoli di supporto alla progettazione eseguiti con OBO Hub · Progettazione LPS (CEI EN IEC 62305:2026-10). Il documento va verificato, completato nelle parti evidenziate e firmato da un tecnico abilitato.", { dimensione: 9, spazioPrima: 12 }),
     p([{ t: `${r.luogo || "Rivoli"}, ${dataLunga(x.data)}` }], { spazioPrima: 18 }),
     p([{ t: "Il tecnico", b: true }], { allinea: "destra", spazioPrima: 12, spazioDopo: 2 }),
-    p(r.tecnico ? [{ t: r.tecnico + (r.albo ? `\n${r.albo}` : "") }] : [dc("nome e iscrizione all'albo")], { allinea: "destra", spazioDopo: 30 }),
+    p(r.tecnico ? [{ t: formattaNome(r.tecnico) + (r.albo ? `\n${r.albo}` : "") }] : [dc("nome e iscrizione all'albo")], { allinea: "destra", spazioDopo: 30 }),
     p("______________________________", { allinea: "destra" }),
   );
 

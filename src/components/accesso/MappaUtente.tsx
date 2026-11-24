@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { db, type Profilo } from "@/lib/accesso";
+import { formattaNome } from "@/lib/nomi";
 
 export interface PersonaMappa { name: string; is_admin: boolean; is_visitor: boolean }
 
@@ -34,8 +35,8 @@ export function MappaUtente({ p, persone, abilitata, onCambio, onNuovaPersona }:
         }
         await salva({ mappa_persona: e.target.value });
       }}>
-      <option value="">{persona && !nomi.includes(persona) ? `${persona} (non trovata)` : "— scegli la persona —"}</option>
-      {nomi.map((n) => <option key={n} value={n}>{n}</option>)}
+      <option value="">{persona && !nomi.includes(persona) ? `${formattaNome(persona)} (non trovata)` : "— scegli la persona —"}</option>
+      {nomi.map((n) => <option key={n} value={n}>{formattaNome(n)}</option>)}
       <option value="__nuova">+ Nuova persona…</option>
     </select>}
   </div>;

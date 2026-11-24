@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { inputCls } from "@/components/Campo";
 import { db, gestione, urlHubCompleto, type Profilo } from "@/lib/accesso";
 import type { PersonaMappa } from "./MappaUtente";
+import { formattaNome } from "@/lib/nomi";
 
 
 function testoInvito(nome: string, email: string, password: string) {
@@ -56,7 +57,7 @@ export function InvitaUtenti({ profili, persone, password, predefinite, scelta, 
       <h3 className="font-semibold">Messaggi da mandare</h3>
       <p className="mt-1 text-xs text-muted-foreground">Le email automatiche partono solo verso il tuo indirizzo finché non colleghi un dominio a Resend: manda tu il messaggio (email o Teams).</p>
       <ul className="mt-3 space-y-3">{inviati.map((x) => { const t = testoInvito(x.nome, x.email, password); return <li key={x.email} className="rounded-lg bg-muted p-3">
-        <div className="flex flex-wrap items-center justify-between gap-2"><span className="font-semibold">{x.nome} · {x.email}</span>
+        <div className="flex flex-wrap items-center justify-between gap-2"><span className="font-semibold">{formattaNome(x.nome, x.email)} · {x.email}</span>
           <span className="flex gap-2">
             <Button size="sm" variant="outline" onClick={() => { void navigator.clipboard.writeText(t).then(() => setMsg(`Messaggio per ${x.email} copiato.`)); }}><Copy />Copia</Button>
             <Button size="sm" variant="outline" asChild><a href={`mailto:${x.email}?subject=${encodeURIComponent("Accesso a OBO Hub")}&body=${encodeURIComponent(t)}`}><Mail />Apri email</a></Button>

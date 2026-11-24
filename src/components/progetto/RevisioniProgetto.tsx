@@ -11,6 +11,7 @@ import { archiviaRevisione, leggiProgetto, leggiRevisione } from "@/lib/progetti
 import { documentiRevisione, linkDocumento, type DocumentoArchiviato } from "@/lib/archivioDocumenti";
 import { salvaAttivo } from "@/components/ProjectSync";
 import { apriRevisione, emetti, modificatoDopoEmissione, revSuccessiva } from "@/calcoli/progetto/revisioni";
+import { formattaNome } from "@/lib/nomi";
 
 const dataIt = (iso: string) => { try { return new Date(iso).toLocaleDateString("it-IT", { day: "2-digit", month: "2-digit", year: "numeric" }); } catch { return iso; } };
 
@@ -74,7 +75,7 @@ export function RevisioniProgetto({ problemi = 0 }: { problemi?: number }) {
     {s.revisioni.length > 0 && <div className="mt-3 overflow-x-auto"><table className="w-full min-w-[560px] text-sm">
       <thead><tr className="border-b text-left"><th className="p-2">Rev.</th><th className="p-2">Data</th><th className="p-2">Autore</th><th className="p-2">Descrizione</th><th className="p-2">Copia</th><th className="p-2">Documenti</th></tr></thead>
       <tbody>{s.revisioni.slice().reverse().map((r) => <tr key={r.rev} className="border-b">
-        <td className="p-2 font-mono font-semibold">{r.rev}</td><td className="p-2">{dataIt(r.data)}</td><td className="p-2">{r.autore}</td><td className="p-2">{r.descrizione}</td>
+        <td className="p-2 font-mono font-semibold">{r.rev}</td><td className="p-2">{dataIt(r.data)}</td><td className="p-2">{formattaNome(r.autore)}</td><td className="p-2">{r.descrizione}</td>
         <td className="p-2">{r.archiviata && attivo ? <button type="button" className="text-accent underline-offset-2 hover:underline" onClick={() => void scarica(r.rev)}>Scarica</button> : <span className="text-muted-foreground">solo nel progetto</span>}</td>
         <td className="p-2">{attivo ? <button type="button" className="text-accent underline-offset-2 hover:underline" aria-expanded={!!documenti[r.rev]} onClick={() => void mostraDocumenti(r.rev)}>{documenti[r.rev] ? "Chiudi" : "Mostra"}</button> : "—"}
           {documenti[r.rev] === "carico" && <span className="ml-2 text-muted-foreground">…</span>}

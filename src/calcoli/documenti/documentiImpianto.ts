@@ -13,6 +13,7 @@ import type { DatiRelazione } from "@/calcoli/relazione/relazioneTecnica";
 import type { Sopralluogo } from "@/lib/statoProgetto";
 import { CHECKLIST, INTERVALLI_SEVERI, INTERVALLI_TIPICI, aggiungiAnni, type Intervalli } from "@/calcoli/verifiche/verifiche";
 import { PIEDE_OBO, casella, dataIt, dataLunga, dc, el, eln, firma, h1, h2, it, oDc, p, tab, testataObo } from "./stileObo";
+import { formattaNome } from "@/lib/nomi";
 
 export type Lpl = "I" | "II" | "III" | "IV";
 export interface IngressoDocumenti {
@@ -69,12 +70,12 @@ export function dichiarazioneConformita(x: IngressoDocumenti): Documento {
   const B: Blocco[] = [
     ...testataObo("Dichiarazione di conformità dell'impianto alla regola dell'arte", "D.M. 22 gennaio 2008, n. 37 – art. 7 · impianto di protezione contro le scariche atmosferiche · bozza precompilata", x.logo),
     p([{ t: "Bozza precompilata da OBO Bettermann con i dati del progetto. La dichiarazione è rilasciata e firmata dall'impresa installatrice abilitata, che ne verifica e completa ogni parte; le parti evidenziate sono da compilare.", i: true }], { dimensione: 9 }),
-    p([{ t: "Il sottoscritto " }, ...oDc(imp.impresaResponsabile, "nome del titolare o legale rappresentante"), { t: ", titolare o legale rappresentante dell'impresa " }, ...oDc(imp.impresaNome, "ragione sociale dell'impresa"), { t: " operante nel settore degli impianti elettrici e di protezione contro le scariche atmosferiche, con sede in " }, ...oDc(imp.impresaSede, "sede dell'impresa"), { t: ", partita IVA " }, ...oDc(imp.impresaPiva, "partita IVA"), { t: ", iscritta nel registro delle imprese / albo provinciale delle imprese artigiane " }, ...oDc(imp.impresaCciaa, "CCIAA e numero di iscrizione"), { t: "," }], { allinea: "giustificato" }),
+    p([{ t: "Il sottoscritto " }, ...oDc(formattaNome(imp.impresaResponsabile), "nome del titolare o legale rappresentante"), { t: ", titolare o legale rappresentante dell'impresa " }, ...oDc(imp.impresaNome, "ragione sociale dell'impresa"), { t: " operante nel settore degli impianti elettrici e di protezione contro le scariche atmosferiche, con sede in " }, ...oDc(imp.impresaSede, "sede dell'impresa"), { t: ", partita IVA " }, ...oDc(imp.impresaPiva, "partita IVA"), { t: ", iscritta nel registro delle imprese / albo provinciale delle imprese artigiane " }, ...oDc(imp.impresaCciaa, "CCIAA e numero di iscrizione"), { t: "," }], { allinea: "giustificato" }),
     p([{ t: "esecutrice dell'impianto di " }, { t: "protezione contro le scariche atmosferiche (art. 1, comma 2, lettera a)", b: true }, { t: `, inteso come ${INTERVENTO[d.tipoIntervento]}, commissionato da ` }, ...oDc(d.committente, "committente"), { t: " e installato nella struttura " }, ...(titoloOpera(x) ? [{ t: `«${titoloOpera(x)}»` }] : [dc("nome della struttura")]), { t: " sita in " }, ...ubicazione(x), { t: ", adibita a " }, ...oDc(d.destinazione, "destinazione d'uso"), { t: "," }], { allinea: "giustificato" }),
     p([{ t: "DICHIARA", b: true }], { allinea: "centro", spazioPrima: 8 }),
     p("sotto la propria personale responsabilità, che l'impianto è stato realizzato in modo conforme alla regola dell'arte, secondo quanto previsto dall'art. 6, tenuto conto delle condizioni di esercizio e degli usi a cui è destinato l'edificio, avendo in particolare:", { allinea: "giustificato" }),
     el(
-      [{ t: "rispettato il progetto redatto ai sensi dell'art. 5 (" }, { t: riferimentoProgetto(x) }, { t: `, LPS di classe ${x.lpl})` }, ...(d.tecnico ? [{ t: `, a firma di ${d.tecnico}` }] : []), { t: ";" }],
+      [{ t: "rispettato il progetto redatto ai sensi dell'art. 5 (" }, { t: riferimentoProgetto(x) }, { t: `, LPS di classe ${x.lpl})` }, ...(d.tecnico ? [{ t: `, a firma di ${formattaNome(d.tecnico)}` }] : []), { t: ";" }],
       "seguito la normativa tecnica applicabile all'impiego: serie CEI EN IEC 62305 (2026-10) e CEI EN IEC 62561 per i componenti;",
       "installato componenti e materiali costruiti a regola d'arte e adatti al luogo di installazione (artt. 5 e 6);",
       "controllato l'impianto ai fini della sicurezza e della funzionalità con esito positivo, avendo eseguito le verifiche richieste dalle norme e dalle disposizioni di legge (verbale di prima verifica allegato).",
@@ -91,7 +92,7 @@ export function dichiarazioneConformita(x: IngressoDocumenti): Documento {
     el("Verbale di prima verifica dell'LPS con le misure di continuità e di resistenza di terra.", "Piano delle verifiche periodiche e schede tecniche dei componenti OBO."),
     p("Declina ogni responsabilità per sinistri a persone o a cose derivanti da manomissione dell'impianto da parte di terzi ovvero da carenze di manutenzione o riparazione.", { allinea: "giustificato", spazioPrima: 8 }),
     p([{ t: "Luoghi di lavoro (D.P.R. 22 ottobre 2001, n. 462): ", b: true }, { t: "la dichiarazione di conformità equivale a omologazione dell'impianto; il datore di lavoro la trasmette all'INAIL entro 30 giorni dalla messa in esercizio e fa eseguire le verifiche periodiche previste." }], { dimensione: 9, allinea: "giustificato" }),
-    ...firma(luogoData(x), "Il dichiarante (timbro e firma)", oDc(imp.impresaResponsabile, "nome del dichiarante")),
+    ...firma(luogoData(x), "Il dichiarante (timbro e firma)", oDc(formattaNome(imp.impresaResponsabile), "nome del dichiarante")),
     p([{ t: "Il responsabile tecnico", b: true }], { allinea: "destra", spazioPrima: 12, spazioDopo: 26 }),
     p("______________________________", { allinea: "destra" }),
   ];
@@ -178,7 +179,7 @@ export function pianoVerifichePeriodiche(x: IngressoDocumenti): Documento {
     tab(["Scadenza", "Verifica", "Eseguita il", "Firma"], lista.map((s) => [dataIt(s.data), s.tipo, "", ""]), [3.5, 5, 3.5, 4], { dimensione: 9 }),
     h1("4. Registro"),
     p("Ogni verifica si registra con data, esito, misure e firma del verificatore (in Progettazione LPS: sezione Verifiche). Le non conformità vanno corrette senza ritardo e annotate.", { allinea: "giustificato" }),
-    ...firma(luogoData(x), "Il tecnico", d.tecnico ? [{ t: d.tecnico + (d.albo ? `\n${d.albo}` : "") }] : [dc("nome e iscrizione all'albo")]),
+    ...firma(luogoData(x), "Il tecnico", d.tecnico ? [{ t: formattaNome(d.tecnico) + (d.albo ? `\n${d.albo}` : "") }] : [dc("nome e iscrizione all'albo")]),
   ];
   return { titolo: `Piano delle verifiche – ${titoloOpera(x) || x.comune || "LPS"}`, intestazione: `Piano delle verifiche periodiche LPS · ${titoloOpera(x) || "impianto"}${x.comune ? ` – ${x.comune}` : ""}`, piede: PIEDE_OBO, blocchi: B };
 }

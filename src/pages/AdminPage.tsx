@@ -14,6 +14,7 @@ import { ListinoAdmin } from "@/components/accesso/ListinoAdmin";
 import { CopiaSicurezza, giorniDallaCopia } from "@/components/accesso/CopiaSicurezza";
 import { oggiFile, scaricaCsv } from "@/lib/csv";
 import { GraficoBarre } from "@/components/GraficoBarre";
+import { formattaNome } from "@/lib/nomi";
 
 interface Richiesta { id: string; email: string; nome: string; azienda: string; motivo: string; stato: "in_attesa" | "approvata" | "rifiutata"; sezioni: string[]; creata_il: string; gestita_il: string | null }
 interface Evento { id: number; utente: string | null; email: string | null; evento: string; quando: string; dettagli: Record<string, unknown> }
@@ -197,7 +198,7 @@ export function AdminPage() {
   const accessi = accessiTutti.filter((e) => new Date(e.quando) >= inizioPeriodo);
   const nomePersona = useCallback((utente: string | null, email: string | null) => {
     const p = profili.find((x) => x.utente === utente);
-    return (p?.nome || p?.mappa_persona || "").trim() || (email ?? "").split("@")[0]!.split(/[._-]/).filter(Boolean).reverse().map((x) => x.charAt(0).toUpperCase() + x.slice(1)).join(" ") || "—";
+    return formattaNome((p?.nome || p?.mappa_persona || "").trim() || (email ?? "").split("@")[0]!.split(/[._-]/).filter(Boolean).reverse().map((x) => x.charAt(0).toUpperCase() + x.slice(1)).join(" "), p?.email || email) || "—";
   }, [profili]);
   const perUtente = useMemo(() => {
     // una riga per persona: se la stessa persona entra con più account o email, gli accessi si sommano
@@ -316,7 +317,7 @@ export function AdminPage() {
         <TabsContent value="richieste" className="mt-4 space-y-4">
           {!inAttesa.length && <p className="text-sm text-muted-foreground">Nessuna richiesta in attesa.</p>}
           {inAttesa.map((r) => { const sez = sezioniRichiesta[r.id] ?? predefinite; return <div key={r.id} className="rounded-lg border-[0.8px] border-primary p-4">
-            <div className="flex flex-wrap items-start justify-between gap-3"><div><p className="text-lg font-semibold">{r.nome} <span className="font-normal text-muted-foreground">· {r.azienda || "azienda non indicata"}</span></p><p className="text-sm">{r.email} · {data(r.creata_il)}</p>{r.motivo && <p className="mt-2 max-w-3xl text-sm italic">“{r.motivo}”</p>}</div></div>
+            <div className="flex flex-wrap items-start justify-between gap-3"><div><p className="text-lg font-semibold">{formattaNome(r.nome, r.email)} <span className="font-normal text-muted-foreground">· {r.azienda || "azienda non indicata"}</span></p><p className="text-sm">{r.email} · {data(r.creata_il)}</p>{r.motivo && <p className="mt-2 max-w-3xl text-sm italic">“{r.motivo}”</p>}</div></div>
             <div className="mt-4"><p className="mb-2 text-sm font-semibold">Sezioni da abilitare</p><SceltaSezioni valore={sez} onChange={(v) => setSezioniRichiesta({ ...sezioniRichiesta, [r.id]: v })} /></div>
             <div className="mt-4 flex flex-wrap gap-2">
               <Button disabled={busy} onClick={() => void azione(() => gestione("approva", { richiesta: r.id, sezioni: sez, email: r.email }), `Accesso approvato per ${r.email}: comunicagli la password iniziale.`)}><UserCheck strokeWidth={1.5} />Approva</Button>
@@ -324,7 +325,7 @@ export function AdminPage() {
             </div>
           </div>; })}
           {richieste.some((r) => r.stato !== "in_attesa") && <details className="rounded-lg border-[0.8px] border-bordo-scheda p-4"><summary className="cursor-pointer font-semibold">Richieste gestite</summary>
-            <ul className="mt-3 divide-y text-sm">{richieste.filter((r) => r.stato !== "in_attesa").map((r) => <li key={r.id} className="flex flex-wrap justify-between gap-2 py-2"><span>{r.nome} · {r.email}</span><span className={r.stato === "approvata" ? "text-[#1d7a45]" : "text-[#b3261e]"}>{r.stato} il {data(r.gestita_il)}</span></li>)}</ul>
+            <ul className="mt-3 divide-y text-sm">{richieste.filter((r) => r.stato !== "in_attesa").map((r) => <li key={r.id} className="flex flex-wrap justify-between gap-2 py-2"><span>{formattaNome(r.nome, r.email)} · {r.email}</span><span className={r.stato === "approvata" ? "text-[#1d7a45]" : "text-[#b3261e]"}>{r.stato} il {data(r.gestita_il)}</span></li>)}</ul>
           </details>}
         </TabsContent>
 
@@ -333,7 +334,7 @@ export function AdminPage() {
           <div className="overflow-x-auto"><table className="w-full min-w-[1100px] text-sm">
             <thead><tr className="border-b text-left"><th className="p-2">Utente</th><th className="p-2">Ruolo</th><th className="p-2">Stato</th><th className="p-2">App che può usare</th><th className="p-2">Mappa carichi</th><th className="p-2">Authenticator</th><th className="p-2">Ultimo accesso</th><th className="p-2">Azioni</th></tr></thead>
             <tbody>{profili.map((p) => { const me = p.utente === io.profilo?.utente; return <tr key={p.utente} className="border-b align-top">
-              <td className="p-2"><p className="font-semibold">{p.nome || "—"}</p><p className="text-xs text-muted-foreground">{p.email}{p.azienda ? ` · ${p.azienda}` : ""}</p>{p.deve_cambiare_password && <p className="text-xs text-[#9a6200]">deve cambiare la password</p>}{p.password_cambiata_il && <p className="text-xs text-muted-foreground">password cambiata il {new Date(p.password_cambiata_il).toLocaleDateString("it-IT")}</p>}</td>
+              <td className="p-2"><p className="font-semibold">{formattaNome(p.nome, p.email) || "—"}</p><p className="text-xs text-muted-foreground">{p.email}{p.azienda ? ` · ${p.azienda}` : ""}</p>{p.deve_cambiare_password && <p className="text-xs text-[#9a6200]">deve cambiare la password</p>}{p.password_cambiata_il && <p className="text-xs text-muted-foreground">password cambiata il {new Date(p.password_cambiata_il).toLocaleDateString("it-IT")}</p>}</td>
               <td className="p-2"><select aria-label="Ruolo" className="rounded border px-2 py-1" disabled={busy || me} value={p.ruolo} onChange={(e) => void azione(() => gestione("aggiorna", { utente: p.utente, ruolo: e.target.value }), "Ruolo aggiornato.")}><option value="utente">Utente</option><option value="admin">Amministratore</option></select></td>
               <td className="p-2"><Button size="sm" variant={p.stato === "attivo" ? "outline" : "default"} disabled={busy || me} onClick={() => void azione(() => gestione("aggiorna", { utente: p.utente, stato: p.stato === "attivo" ? "sospeso" : "attivo" }), p.stato === "attivo" ? "Utente sospeso." : "Utente riattivato.")}>{p.stato === "attivo" ? "Attivo · sospendi" : "Sospeso · riattiva"}</Button></td>
               <td className="max-w-[300px] p-2 text-xs"><AppUtente ruolo={p.ruolo} sezioni={p.sezioni} />

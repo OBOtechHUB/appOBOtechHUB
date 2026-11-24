@@ -5,6 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 /** Client senza tipi generati per le tabelle del controllo accessi (non presenti in types.ts). */
 export const db = () => supabase as unknown as SupabaseClient;
 import { BASE } from "@/lib/base";
+import { soloNome } from "./nomi";
 
 export type Sezione = "assistente" | "progetti" | "edificio" | "rischio" | "captazione" | "calate" | "terra" | "spd" | "computo" | "particolari" | "verifiche" | "prodotti" | "modelli3d" | "cad" | "app_mappa" | "app_prodotti";
 export const SEZIONI: { id: Sezione; nome: string }[] = [
@@ -69,7 +70,7 @@ function salvaNome(a: Accesso) {
     if (a.stato === "anonimo") { localStorage.removeItem("obo-nome"); return; }
     if (a.stato !== "abilitato" || !a.profilo) return;
     const validi = [a.profilo.nome, a.profilo.mappa_persona].map((x) => (x || "").trim()).filter((x) => x && !/^amministratore$/i.test(x));
-    let primo = (validi[0] ?? "").split(/\s+/)[0] ?? "";
+    let primo = soloNome(validi[0] ?? "", a.email || a.profilo.email).split(" ")[0] ?? "";
     if (!primo) { const parti = ((a.email || a.profilo.email || "").split("@")[0] ?? "").split(/[._-]/).filter(Boolean); const x = (parti.length > 1 ? parti[parti.length - 1] : parti[0]) ?? ""; primo = x ? x.charAt(0).toUpperCase() + x.slice(1).toLowerCase() : ""; }
     if (primo) localStorage.setItem("obo-nome", primo);
   } catch { /* niente */ }

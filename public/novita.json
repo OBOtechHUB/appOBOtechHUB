@@ -2,6 +2,17 @@
   "nota": "Registro degli aggiornamenti di Progettazione LPS. Una voce per aggiornamento, la più recente per prima (app: lps). Viene mostrato nella barra \"Aggiorna app\", nel riquadro Novità e nella pagina Novità di OBO Hub.",
   "aggiornamenti": [
     {
+      "id": "2026-11-24-lps-32",
+      "data": "2026-11-24",
+      "app": "lps",
+      "titolo": "Nomi delle persone uniformi",
+      "voci": [
+        "In tutta l'app i nomi delle persone si vedono con il COGNOME tutto maiuscolo e il Nome con solo l'iniziale maiuscola (es. Marco LO VETERE): Amministrazione, richieste, cruscotto, revisioni, relazione tecnica, documenti dell'impianto e testalino CAD",
+        "Il cognome si riconosce dall'email (cognome.nome@…), dalle parole già scritte in maiuscolo o, altrimenti, è tutto quello dopo la prima parola; i titoli (Ing., Arch., Geom., P.I.…) restano come scritti",
+        "Cambia solo come i nomi si vedono: i dati salvati non vengono modificati"
+      ]
+    },
+    {
       "id": "2026-11-24-lps-31",
       "data": "2026-11-24",
       "app": "lps",

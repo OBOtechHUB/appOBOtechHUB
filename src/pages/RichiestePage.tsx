@@ -16,6 +16,7 @@ import { STATI_RICHIESTA, TIPI_RICHIESTA, aggiornaRichiesta, elencaRichieste, nu
 import { creaProgetto, leggiProgetto } from "@/lib/progetti.functions";
 import { caricaSnapshot, impostaAttivo, snapshot, snapshotVuoto } from "@/lib/statoProgetto";
 import { salvaAttivo } from "@/components/ProjectSync";
+import { formattaNome } from "@/lib/nomi";
 
 const vuota: NuovaRichiesta = { richiedente: "", cliente: "", comune: "", tipo: "progetto-lps", descrizione: "", priorita: "Media", scadenza: null, ore_stimate: null };
 const dataIt = (s: string | null) => (s ? new Date(s.length === 10 ? `${s}T12:00:00` : s).toLocaleDateString("it-IT") : "—");
@@ -83,12 +84,12 @@ export function RichiestePage() {
     {lista && <div className="mt-4 overflow-x-auto"><table className="w-full min-w-[960px] text-sm">
       <thead><tr className="border-b text-left"><th className="p-2">Aperta</th><th className="p-2">Cliente e comune</th><th className="p-2">Tipo</th><th className="p-2">Priorità</th><th className="p-2">Scadenza</th><th className="p-2 text-right">Ore</th><th className="p-2">Stato</th><th className="p-2">Tecnico</th><th className="p-2">Azioni</th></tr></thead>
       <tbody>{vis.map((r) => <tr key={r.id} className="border-b align-top">
-        <td className="p-2 whitespace-nowrap">{dataIt(r.creata_il)}<div className="text-xs text-muted-foreground">{r.richiedente}</div></td>
+        <td className="p-2 whitespace-nowrap">{dataIt(r.creata_il)}<div className="text-xs text-muted-foreground">{formattaNome(r.richiedente)}</div></td>
         <td className="p-2"><b>{r.cliente || "—"}</b>{r.comune && <div>{r.comune}</div>}{r.descrizione && <div className="mt-1 max-w-xs whitespace-pre-line text-xs text-muted-foreground">{r.descrizione}</div>}</td>
         <td className="p-2">{TIPI_RICHIESTA[r.tipo]}</td><td className="p-2">{r.priorita}</td>
         <td className="p-2 whitespace-nowrap">{dataIt(r.scadenza)}</td><td className="p-2 text-right">{r.ore_stimate ?? "—"}</td>
         <td className="p-2"><select aria-label={`Stato della richiesta di ${r.cliente}`} className={`rounded border px-2 py-1 ${COLORE[r.stato]}`} value={r.stato} disabled={busy} onChange={(e) => void azione(() => aggiornaRichiesta(r.id, { stato: e.target.value as StatoRichiesta }), "Stato aggiornato.")}>{Object.entries(STATI_RICHIESTA).map(([v, t]) => <option key={v} value={v}>{t}</option>)}</select>{r.progetto_mappa && <div className="mt-1 text-xs text-muted-foreground">In Mappa carichi</div>}</td>
-        <td className="p-2">{r.tecnico || <Button type="button" size="sm" variant="outline" disabled={busy} onClick={() => void azione(() => aggiornaRichiesta(r.id, { tecnico: mioNome, stato: r.stato === "nuova" ? "in-carico" : r.stato }), "Richiesta presa in carico.")}>Prendi in carico</Button>}</td>
+        <td className="p-2">{formattaNome(r.tecnico) || <Button type="button" size="sm" variant="outline" disabled={busy} onClick={() => void azione(() => aggiornaRichiesta(r.id, { tecnico: mioNome, stato: r.stato === "nuova" ? "in-carico" : r.stato }), "Richiesta presa in carico.")}>Prendi in carico</Button>}</td>
         <td className="p-2">{r.progetto
           ? <Button type="button" size="sm" variant="outline" disabled={busy} onClick={() => void azione(() => apriProgetto(r.progetto!), "")}><FolderOpen />Apri progetto</Button>
           : r.tipo === "progetto-lps" && r.stato !== "annullata" && <Button type="button" size="sm" disabled={busy} onClick={() => void azione(() => creaProgettoDa(r), "Progetto creato.")}><FolderPlus />Crea progetto LPS</Button>}</td>
