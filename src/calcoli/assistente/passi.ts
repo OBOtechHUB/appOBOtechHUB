@@ -22,6 +22,8 @@ export interface RiassuntoProgetto {
   mancantiComputo: number;
   verifiche: number;
   verificaScaduta: boolean;
+  /** documenti caricati nella documentazione del progetto */
+  documenti?: number;
 }
 
 export type Destinazione = "/rischio" | "/calate" | "/spd" | "/dati-edificio" | "/edificio-3d" | "/resistenza-terra" | "/particolari" | "/computo-materiali" | "/download-cad" | "/verifiche";
@@ -43,6 +45,12 @@ export function passiAssistente(p: RiassuntoProgetto): Passo[] {
   const edificioCompleto = geometria && Boolean(e.lpl) && Boolean(e.nome.trim()) && Boolean(e.comune.trim());
   const captazione = p.aste + p.conduttoriCaptazione > 0;
   return [
+    {
+      id: "documentazione", titolo: "Documentazione del progetto", descrizione: "Planimetrie, prospetti e sezioni, relazioni, zone ATEX e foto ricevute dal cliente, trascinate nel progetto.",
+      stato: (p.documenti ?? 0) > 0 ? "completo" : "facoltativo",
+      motivo: (p.documenti ?? 0) > 0 ? `${p.documenti} ${p.documenti === 1 ? "documento" : "documenti"} nel progetto` : "Trascina in Dati edificio i documenti ricevuti: da piante e modelli si ricava anche l'edificio.",
+      to: "/dati-edificio", obbligatorio: false,
+    },
     {
       id: "edificio", titolo: "Dati dell'edificio", descrizione: "Nome, comune, dimensioni, densità di fulminazione e livello di protezione (LPL).",
       stato: edificioCompleto ? "completo" : geometria || e.nome || e.comune ? "in corso" : "da fare",

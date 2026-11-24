@@ -28,7 +28,7 @@ const fmt = (v: number, d = 2) => v.toLocaleString("it-IT", { maximumFractionDig
  * Importazione guidata di disegni e modelli da fonti diverse (CAD 2D, modelli 3D, PDF, immagini di pianta).
  * Per ogni file propone l'unità o la scala più plausibile, chiede conferma e permette la verifica con una misura nota.
  */
-export function ImportaFile({ onImporta, paginaIntera = false }: { onImporta: (m: ModelloEdificio) => void; /** accetta i file trascinati in qualsiasi punto della pagina */ paginaIntera?: boolean }) {
+export function ImportaFile({ onImporta, paginaIntera = false, daAprire }: { onImporta: (m: ModelloEdificio) => void; /** accetta i file trascinati in qualsiasi punto della pagina */ paginaIntera?: boolean; /** file da aprire subito (es. dalla documentazione del progetto) */ daAprire?: File[] | null }) {
   const [trascina, setTrascina] = useState(false), [lps, setLps] = useState<ModelloIfcLps | null>(null);
   const [tipo, setTipo] = useState<Tipo | null>(null);
   const [files, setFiles] = useState<File[]>([]);
@@ -85,6 +85,7 @@ export function ImportaFile({ onImporta, paginaIntera = false }: { onImporta: (m
       }
     });
   }
+  useEffect(() => { if (daAprire?.length) void scegli(daAprire); }, [daAprire]); // eslint-disable-line react-hooks/exhaustive-deps
   const main = files[0];
 
   // ---------- scala di DXF e 3D

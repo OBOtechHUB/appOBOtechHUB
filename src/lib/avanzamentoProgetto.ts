@@ -30,6 +30,7 @@ export function useAvanzamentoProgetto() {
       mancantiComputo: computo.mancanti.length + righe.filter((r) => !r.codice).length,
       verifiche: s.verifiche.length,
       verificaScaduta: scaduta(scad.visiva, oggi) || scaduta(scad.completa, oggi),
+      documenti: (s.documentazione ?? []).filter((x) => !x.nascosto).length,
     });
     return { passi, prossimo: prossimoPasso(passi), comp: completamento(passi), mancanti: passi.filter((p) => p.obbligatorio && p.stato !== "completo") };
   }, [s, d, c]);

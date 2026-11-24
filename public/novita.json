@@ -2,6 +2,19 @@
   "nota": "Registro degli aggiornamenti di Progettazione LPS. Una voce per aggiornamento, la più recente per prima (app: lps). Viene mostrato nella barra \"Aggiorna app\", nel riquadro Novità e nella pagina Novità di OBO Hub.",
   "aggiornamenti": [
     {
+      "id": "2026-11-24-lps-43",
+      "data": "2026-11-24",
+      "app": "lps",
+      "titolo": "Documentazione del progetto come primo passo",
+      "voci": [
+        "In Dati edificio, in alto: trascina planimetrie, prospetti e sezioni, relazioni, zone ATEX, foto e altri documenti ricevuti (fino a 50 MB a file)",
+        "Il tipo del documento si propone dal nome e si può cambiare; i documenti restano nel progetto e li vedono anche i colleghi con cui è condiviso",
+        "\"Usa per l'edificio\" su piante e modelli (DWG, DXF, PDF, IFC…): apre subito l'importazione dell'edificio",
+        "Con le zone ATEX compare il richiamo all'analisi del rischio",
+        "Un documento si nasconde dall'elenco ma il file non si cancella; nuovo primo passo nell'Assistente di progetto"
+      ]
+    },
+    {
       "id": "2026-11-24-lps-42",
       "data": "2026-11-24",
       "app": "lps",

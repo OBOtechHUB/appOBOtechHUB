@@ -29,6 +29,12 @@ describe("assistente di progetto", () => {
     expect(prossimoPasso(passi)?.id).toBe("rischio");
   });
 
+  it("documentazione: primo passo facoltativo, completo con un documento", () => {
+    expect(passiAssistente(vuoto)[0]?.id).toBe("documentazione");
+    expect(passiAssistente(vuoto)[0]?.stato).toBe("facoltativo");
+    expect(passiAssistente({ ...vuoto, documenti: 2 })[0]?.stato).toBe("completo");
+  });
+
   it("verifica scaduta riporta il passo in corso", () => {
     const passi = passiAssistente({ ...vuoto, verifiche: 2, verificaScaduta: true });
     expect(passi.find((x) => x.id === "verifiche")?.stato).toBe("in corso");
