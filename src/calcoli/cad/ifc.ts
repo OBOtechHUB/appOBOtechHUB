@@ -126,3 +126,86 @@ export function generaIFC(x: IngressoIFC): string {
     `FILE_NAME(${testoIfc(nomeP + ".ifc")},'${iso}',(${testoIfc(x.autore || "")}),('OBO Bettermann Italia'),'Progettazione LPS','Progettazione LPS','');`,
     "FILE_SCHEMA(('IFC4'));", "ENDSEC;", "DATA;", ...righe, "ENDSEC;", "END-ISO-10303-21;", ""].join("\n");
 }
+
+// ---------------------------------------------------------------- importazione di un IFC di Progettazione LPS
+type Val = string | number | null | Val[] | { ref: number } | { tipo: string; v: Val };
+/** Legge gli argomenti di un'entità STEP: stringhe, numeri, riferimenti #n, liste, $ e *, enumerazioni, valori tipizzati. */
+export function argomentiStep(s: string): Val[] {
+  let i = 0;
+  const testo = () => { let o = ""; i++; while (i < s.length) { if (s[i] === "'") { if (s[i + 1] === "'") { o += "'"; i += 2; continue; } i++; break; } o += s[i++]; } return o.replace(/\\X2\\([0-9A-F]+)\\X0\\/g, (_m, h: string) => h.match(/.{4}/g)!.map((c) => String.fromCharCode(parseInt(c, 16))).join("")).replace(/\\\\/g, "\\"); };
+  const valore = (): Val => {
+    while (s[i] === " ") i++;
+    const c = s[i];
+    if (c === "'") return testo();
+    if (c === "(") { i++; const l: Val[] = []; while (s[i] !== ")" && i < s.length) { l.push(valore()); while (s[i] === " ") i++; if (s[i] === ",") i++; } i++; return l; }
+    if (c === "#") { i++; let n = ""; while (/\d/.test(s[i] ?? "")) n += s[i++]; return { ref: Number(n) }; }
+    if (c === "$" || c === "*") { i++; return null; }
+    if (c === ".") { let n = "."; i++; while (s[i] !== "." && i < s.length) n += s[i++]; i++; return n + "."; }
+    if (/[A-Z]/i.test(c ?? "")) { let n = ""; while (/[A-Z0-9_]/i.test(s[i] ?? "")) n += s[i++]; const a = s[i] === "(" ? (i++, valore()) : null; if (s[i] === ")") i++; return { tipo: n.toUpperCase(), v: a }; }
+    let n = ""; while (/[-+0-9.Ee]/.test(s[i] ?? "")) n += s[i++]; return Number(n);
+  };
+  const out: Val[] = [];
+  while (i < s.length) { out.push(valore()); while (s[i] === " ") i++; if (s[i] === ",") i++; else break; }
+  return out;
+}
+
+export interface ModelloIfcLps {
+  corpi: Corpo[]; aste: Asta[]; conduttori: Conduttore[];
+  picchetti: { id: string; x: number; y: number; z: number; lunghezza: number; diametro?: number; codiceOBO: string }[];
+}
+/** È un IFC scritto da Progettazione LPS (proprietà OBO_LPS)? */
+export const eIfcLps = (testo: string) => /IFCPROPERTYSET\('[^']*',[^,]*,'OBO_LPS'/.test(testo);
+
+/** Ricostruisce corpi, aste, conduttori e picchetti da un IFC esportato da Progettazione LPS. */
+export function leggiIfcLps(testo: string): ModelloIfcLps {
+  const ent = new Map<number, { tipo: string; a: Val[] }>();
+  const corpoDati = testo.split(/\nDATA;/)[1] ?? testo;
+  for (const m of corpoDati.replace(/\r/g, "").replace(/;\s*\n/g, ";\n").matchAll(/#(\d+)\s*=\s*([A-Z0-9_]+)\s*\(([\s\S]*?)\);\s*(?=\n#|\nENDSEC)/g))
+    ent.set(Number(m[1]), { tipo: m[2]!, a: argomentiStep(m[3]!.replace(/\n/g, "")) });
+  const get = (v: Val | undefined) => (v && typeof v === "object" && "ref" in v ? ent.get(v.ref) : undefined);
+  const num = (v: Val | undefined) => (typeof v === "number" ? v : 0);
+  const pt = (v: Val | undefined): number[] => { const e = get(v); return e?.tipo === "IFCCARTESIANPOINT" ? (e.a[0] as number[]).map(Number) : [0, 0, 0]; };
+  const posizione = (pl: Val | undefined): [number, number, number] => {
+    let x = 0, y = 0, z = 0, e = get(pl);
+    for (let k = 0; e && e.tipo === "IFCLOCALPLACEMENT" && k < 20; k++) { const ax = get(e.a[1]); const p = pt(ax?.a[0]); x += p[0] ?? 0; y += p[1] ?? 0; z += p[2] ?? 0; e = get(e.a[0]); }
+    return [x, y, z];
+  };
+  // proprietà OBO_LPS di ogni elemento
+  const prop = new Map<number, Record<string, string | number>>();
+  for (const e of ent.values()) if (e.tipo === "IFCRELDEFINESBYPROPERTIES") {
+    const set = get(e.a[5]); if (!set || set.a[2] !== "OBO_LPS") continue;
+    const val: Record<string, string | number> = {};
+    for (const r of (set.a[4] as Val[]) ?? []) { const p = get(r); if (!p) continue; const v = p.a[2] as { tipo: string; v: Val } | null; if (p.a[0] && v) val[String(p.a[0])] = typeof v.v === "number" ? v.v : String(v.v ?? ""); }
+    for (const el of (e.a[4] as Val[]) ?? []) if (el && typeof el === "object" && "ref" in el) prop.set(el.ref, val);
+  }
+  const solido = (rep: Val | undefined) => { const sh = get(rep); const r0 = get((sh?.a[2] as Val[] | undefined)?.[0]); return get((r0?.a[3] as Val[] | undefined)?.[0]); };
+  const out: ModelloIfcLps = { corpi: [], aste: [], conduttori: [], picchetti: [] };
+  const uid = () => (typeof crypto !== "undefined" && "randomUUID" in crypto ? crypto.randomUUID() : Math.random().toString(36).slice(2));
+  for (const [id, e] of ent) {
+    if (e.tipo !== "IFCBUILDINGELEMENTPROXY") continue;
+    const p = prop.get(id) ?? {}, tipo = String(p["Tipo"] ?? e.a[4] ?? ""), nome = String(e.a[2] ?? "");
+    const [x, y, z] = posizione(e.a[5]), s = solido(e.a[6]);
+    const codice = String(p["Codice_OBO"] ?? "");
+    if (!s) continue;
+    if (s.tipo === "IFCEXTRUDEDAREASOLID") {
+      const prof = get(s.a[0]), h = num(s.a[3]);
+      if (prof?.tipo === "IFCCIRCLEPROFILEDEF") {
+        const d = 2 * num(prof.a[3]);
+        if (/picchett/i.test(tipo)) out.picchetti.push({ id: uid(), x, y, z, lunghezza: h, diametro: d, codiceOBO: codice });
+        else out.aste.push({ id: uid(), x, y, z, altezza: h, diametro: d, codiceOBO: codice, origine: "ifc" });
+      } else if (prof?.tipo === "IFCARBITRARYCLOSEDPROFILEDEF") {
+        const poli = get(prof.a[2]);
+        const pts = ((poli?.a[0] as Val[]) ?? []).map((r) => pt(r)).map((q) => [q[0]! + x, q[1]! + y] as [number, number]);
+        if (pts.length > 3 && pts[0]![0] === pts.at(-1)![0] && pts[0]![1] === pts.at(-1)![1]) pts.pop();
+        if (pts.length >= 3) out.corpi.push({ id: uid(), nome: nome || "Corpo", impronta: pts, quotaBase: z, altezzaGronda: h, tipoTetto: String(p["Copertura"] ?? "piano") === "falde" ? "falde" : "piano", altezzaColmo: h } as Corpo);
+      }
+    } else if (s.tipo === "IFCSWEPTDISKSOLID") {
+      const poli = get(s.a[0]);
+      const punti = ((poli?.a[0] as Val[]) ?? []).map((r) => { const q = pt(r); return [q[0]! + x, q[1]! + y, (q[2] ?? 0) + z] as [number, number, number]; });
+      if (punti.length < 2) continue;
+      const t = /calat/i.test(tipo) ? "calata" : /terra/i.test(tipo) ? "terra" : "captazione";
+      out.conduttori.push({ id: uid(), tipo: t, punti, materiale: String(p["Materiale"] ?? ""), sezione: String(p["Sezione"] ?? ""), codiceOBO: codice, origine: "ifc" });
+    }
+  }
+  return out;
+}

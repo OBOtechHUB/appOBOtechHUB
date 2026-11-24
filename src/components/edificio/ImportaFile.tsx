@@ -1,4 +1,6 @@
-import { useMemo, useRef, useState, type MouseEvent as ReactMouseEvent } from "react";
+import { useEffect, useMemo, useRef, useState, type MouseEvent as ReactMouseEvent } from "react";
+import { eIfcLps, leggiIfcLps, type ModelloIfcLps } from "@/calcoli/cad/ifc";
+import { aggiornaEsteso, leggiEsteso } from "@/lib/statoProgetto";
 import { Button } from "@/components/ui/button";
 import { Campo, inputCls } from "@/components/Campo";
 import type { Corpo, ModelloEdificio } from "@/calcoli/edificio/tipi";
@@ -25,7 +27,8 @@ const fmt = (v: number, d = 2) => v.toLocaleString("it-IT", { maximumFractionDig
  * Importazione guidata di disegni e modelli da fonti diverse (CAD 2D, modelli 3D, PDF, immagini di pianta).
  * Per ogni file propone l'unità o la scala più plausibile, chiede conferma e permette la verifica con una misura nota.
  */
-export function ImportaFile({ onImporta }: { onImporta: (m: ModelloEdificio) => void }) {
+export function ImportaFile({ onImporta, paginaIntera = false }: { onImporta: (m: ModelloEdificio) => void; /** accetta i file trascinati in qualsiasi punto della pagina */ paginaIntera?: boolean }) {
+  const [trascina, setTrascina] = useState(false), [lps, setLps] = useState<ModelloIfcLps | null>(null);
   const [tipo, setTipo] = useState<Tipo | null>(null);
   const [files, setFiles] = useState<File[]>([]);
   const [busy, setBusy] = useState(false), [errore, setErrore] = useState(""), [fatto, setFatto] = useState("");
@@ -43,7 +46,7 @@ export function ImportaFile({ onImporta }: { onImporta: (m: ModelloEdificio) => 
   const svgRef = useRef<SVGSVGElement | null>(null);
 
   function azzera() {
-    setTipo(null); setFiles([]); setErrore(""); setDxf(null); setLayersSel([]); setScelte({}); setCorpo1(null); setPiano(null); setRapporto(null);
+    setLps(null); setTipo(null); setFiles([]); setErrore(""); setDxf(null); setLayersSel([]); setScelte({}); setCorpo1(null); setPiano(null); setRapporto(null);
     setCal([]); setCalReale(""); setPoli([]); setAltezza(""); setReale(""); setUnita("m"); setModo("calibra"); setZoom(1);
   }
   async function esegui(f: () => Promise<void>) {
@@ -70,6 +73,9 @@ export function ImportaFile({ onImporta }: { onImporta: (m: ModelloEdificio) => 
         setPiano(p); setRapporto(p.scalaTesto); setTipo("pdf");
       } else if (/\.(png|jpe?g|webp)$/i.test(main.name)) {
         setPiano(await leggiImmagine(main)); setTipo("img");
+      } else if (/\.ifc$/i.test(main.name) && eIfcLps(await main.text())) {
+        // IFC esportato da Progettazione LPS: si ricostruiscono corpi, aste, conduttori e picchetti
+        setLps(leggiIfcLps(await main.text()));
       } else {
         const z = verticaleZProposto(main.name);
         const c = await leggiMesh(lista, 1, z);
@@ -149,19 +155,42 @@ export function ImportaFile({ onImporta }: { onImporta: (m: ModelloEdificio) => 
   }
   const r = piano ? Math.max(piano.larghezzaPx, piano.altezzaPx) / 300 : 1; // raggio dei punti proporzionato all'immagine
 
+  function importaLps() {
+    if (!lps) return;
+    if (lps.corpi.length) onImporta({ corpi: lps.corpi });
+    const e = leggiEsteso();
+    aggiornaEsteso({ aste: [...e.aste, ...lps.aste], conduttori: [...e.conduttori, ...lps.conduttori], picchetti: [...e.picchetti, ...lps.picchetti] });
+    setFatto(`Importati dal file IFC: ${lps.corpi.length} corpi, ${lps.aste.length} aste, ${lps.conduttori.length} conduttori, ${lps.picchetti.length} picchetti (aggiunti a quelli già presenti).`); azzera();
+  }
+  // trascina e rilascia: sul riquadro e, se richiesto, in tutta la pagina
+  useEffect(() => {
+    if (!paginaIntera) return;
+    const sopra = (ev: DragEvent) => { if (ev.dataTransfer?.types.includes("Files")) { ev.preventDefault(); setTrascina(true); } };
+    const via = (ev: DragEvent) => { if (!ev.relatedTarget) setTrascina(false); };
+    const lascia = (ev: DragEvent) => { if (!ev.dataTransfer?.files.length) return; ev.preventDefault(); setTrascina(false); void scegli([...ev.dataTransfer.files]); };
+    document.addEventListener("dragover", sopra); document.addEventListener("dragleave", via); document.addEventListener("drop", lascia);
+    return () => { document.removeEventListener("dragover", sopra); document.removeEventListener("dragleave", via); document.removeEventListener("drop", lascia); };
+  });
   return (
     <div className="space-y-4">
       <p className="text-sm text-muted-foreground">
         Carica un disegno o un modello: <strong>DWG, DXF</strong>, <strong>PDF</strong>, immagini di pianta (PNG, JPG), <strong>OBJ, STL, PLY, GLB/GLTF, IFC, STEP, IGES</strong>.
         Prima di importare l'app controlla la scala, ti propone quella più realistica e ti chiede di confermarla.
       </p>
-      <label className="inline-flex cursor-pointer items-center gap-2 rounded-md border border-input bg-card px-4 py-2.5 text-sm font-medium hover:border-accent">
-        {busy ? "Lettura in corso…" : "Scegli file"}
+      <label onDragOver={(e) => { e.preventDefault(); setTrascina(true); }} onDragLeave={() => setTrascina(false)} onDrop={(e) => { e.preventDefault(); e.stopPropagation(); setTrascina(false); const l = [...e.dataTransfer.files]; if (l.length) void scegli(l); }}
+        className={`flex cursor-pointer flex-col items-center justify-center gap-1 rounded-lg border-2 border-dashed px-4 py-6 text-center text-sm transition-colors ${trascina ? "border-primary bg-primary/10" : "border-input bg-card hover:border-primary"}`}>
+        <span className="text-base font-semibold">{busy ? "Lettura in corso…" : trascina ? "Rilascia qui il file" : "Trascina qui il file oppure clicca per sceglierlo"}</span>
+        <span className="text-xs text-muted-foreground">DWG, DXF, PDF, PNG/JPG, OBJ, STL, PLY, GLB/GLTF, IFC, STEP, IGES{paginaIntera ? " · puoi rilasciarlo in qualsiasi punto della pagina" : ""}</span>
         <input type="file" className="sr-only" multiple accept={ACCETTA} disabled={busy} onChange={(e) => { const l = [...(e.target.files ?? [])]; e.target.value = ""; if (l.length) void scegli(l); }} />
       </label>
       {main && <span className="ml-3 text-sm text-muted-foreground">{main.name}{files.length > 1 ? ` + ${files.length - 1} file collegati` : ""}</span>}
       {errore && <p role="alert" className="border-l-4 border-destructive pl-3 text-sm text-destructive">{errore}</p>}
       {fatto && <p role="status" className="border-l-4 border-accent pl-3 text-sm">{fatto}</p>}
+      {lps && <section className="rounded-md border border-primary p-4" aria-labelledby="h-ifc-lps">
+        <h3 id="h-ifc-lps" className="font-display text-lg font-semibold">File IFC di Progettazione LPS</h3>
+        <p className="mt-1 text-sm">Contiene {lps.corpi.length} corpi dell'edificio, {lps.aste.length} aste, {lps.conduttori.length} conduttori e {lps.picchetti.length} picchetti, con codici OBO, materiali e sezioni. Vengono aggiunti al progetto (quello che c'è già resta).</p>
+        <div className="mt-3 flex flex-wrap gap-2"><Button onClick={importaLps}>Importa nel progetto</Button><Button variant="outline" onClick={azzera}>Annulla</Button></div>
+      </section>}
 
       {(tipo === "dxf" || tipo === "3d") && proposta && (
         <section className="rounded-md border border-border p-4" aria-labelledby="h-scala">

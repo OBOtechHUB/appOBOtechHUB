@@ -41,7 +41,7 @@ export async function leggiMesh(files:File[],scala:number,verticaleZ=false):Prom
   if(!object)throw new Error("Geometria non disponibile.");object.updateMatrixWorld(true);const positions:number[]=[];
   object.traverse((o)=>{if(!(o instanceof THREE.Mesh))return;const g=o.geometry.index?o.geometry.toNonIndexed():o.geometry;const a=g.getAttribute("position");for(let i=0;i<a.count;i++){const v=new THREE.Vector3().fromBufferAttribute(a,i).applyMatrix4(o.matrixWorld).multiplyScalar(scala);if(verticaleZ)positions.push(v.x,v.y,v.z);else positions.push(v.x,v.z,v.y);}g.dispose();});
   if(!positions.length||positions.length>3000000)throw new Error("Mesh vuota o troppo complessa.");const xs=positions.filter((_,i)=>i%3===0),ys=positions.filter((_,i)=>i%3===1),zs=positions.filter((_,i)=>i%3===2);const min=(a:number[])=>a.reduce((s,v)=>Math.min(s,v),Infinity),max=(a:number[])=>a.reduce((s,v)=>Math.max(s,v),-Infinity);const minZ=min(zs),minX=min(xs),maxX=max(xs),minY=min(ys),maxY=max(ys);for(let i=2;i<positions.length;i+=3)positions[i]=(positions[i]??0)-minZ;
-  return corpoSchema.parse({id:crypto.randomUUID(),nome:main.name,impronta:[[minX,minY],[maxX,minY],[maxX,maxY],[minX,maxY]],quotaBase:0,altezzaGronda:max(zs)-minZ,altezzaColmo:max(zs)-minZ,tipoTetto:"altro",mesh:{posizioni:positions}});
+  const hull=involucro(xs,ys);return corpoSchema.parse({id:crypto.randomUUID(),nome:main.name,impronta:hull.length>=3?hull:[[minX,minY],[maxX,minY],[maxX,maxY],[minX,maxY]],quotaBase:0,altezzaGronda:max(zs)-minZ,altezzaColmo:max(zs)-minZ,tipoTetto:"altro",mesh:{posizioni:positions}});
 }
 /** Formati 3D che si possono importare come corpo dell'edificio. */
 export const ESTENSIONI_3D=/\.(obj|stl|ply|glb|gltf|ifc|step|stp|iges|igs)$/i;
@@ -67,3 +67,14 @@ export function scalaCorpo(c:Corpo,f:number):Corpo{
 
 /** Asse verticale proposto: Z per i formati CAD (STEP, IGES, STL, PLY), Y per OBJ, glTF e IFC letto da web-ifc. */
 export function verticaleZProposto(nome:string):boolean{return /\.(step|stp|iges|igs|stl|ply)$/i.test(nome);}
+
+/** Impronta in pianta di un modello 3D: involucro convesso dei vertici (più fedele del rettangolo d'ingombro). */
+export function involucro(xs:number[],ys:number[]):[number,number][]{
+  const passo=1;const p:[number,number][]=[];for(let i=0;i<xs.length;i+=passo)p.push([Math.round(xs[i]!*1000)/1000,Math.round(ys[i]!*1000)/1000]);
+  p.sort((a,b)=>a[0]-b[0]||a[1]-b[1]);if(p.length<3)return p;
+  const x=(o:[number,number],a:[number,number],b:[number,number])=>(a[0]-o[0])*(b[1]-o[1])-(a[1]-o[1])*(b[0]-o[0]);
+  const lo:[number,number][]=[],hi:[number,number][]=[];
+  for(const q of p){while(lo.length>=2&&x(lo[lo.length-2]!,lo[lo.length-1]!,q)<=0)lo.pop();lo.push(q);}
+  for(let i=p.length-1;i>=0;i--){const q=p[i]!;while(hi.length>=2&&x(hi[hi.length-2]!,hi[hi.length-1]!,q)<=0)hi.pop();hi.push(q);}
+  return lo.slice(0,-1).concat(hi.slice(0,-1));
+}

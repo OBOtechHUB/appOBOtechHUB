@@ -5,11 +5,13 @@
       "id": "2026-11-24-lps-37",
       "data": "2026-11-24",
       "app": "lps",
-      "titolo": "Esportazione IFC (BIM)",
+      "titolo": "IFC: esportazione e importazione, importazione in alto con trascina e rilascia",
       "voci": [
         "Edificio 3D → «Modello IFC»: scarica il progetto in IFC4 con edificio, aste di captazione, conduttori (captazione, calate, terra) e picchetti, con codice OBO, materiale, sezione e lunghezza nelle proprietà «OBO_LPS»",
         "Il file .ifc è anche nel pacchetto per AutoCAD e ZWCAD",
-        "Si apre in Revit, ArchiCAD, Solibri, BIMcollab e negli altri programmi BIM; l'importazione di file IFC c'era già (Edificio 3D → Importa file)"
+        "Si apre in Revit, ArchiCAD, Solibri, BIMcollab e negli altri programmi BIM; l'importazione di file IFC c'era già (Edificio 3D → Importa file)",
+        "Edificio 3D: «Importa un disegno o un modello» è in cima alla pagina; basta trascinare il file sul riquadro o in qualsiasi punto della pagina (anche in Dati edificio sul riquadro)",
+        "Importazione IFC: un file IFC esportato da Progettazione LPS rientra con corpi, aste, conduttori e picchetti (codici OBO, materiali, sezioni); un IFC di architettura entra come modello 3D con l'impronta reale (involucro) invece del rettangolo d'ingombro"
       ]
     },
     {

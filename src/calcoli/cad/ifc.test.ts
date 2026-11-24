@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { generaIFC, guidIfc, testoIfc } from "./ifc";
+import { eIfcLps, generaIFC, guidIfc, leggiIfcLps, testoIfc } from "./ifc";
 import type { Corpo } from "@/calcoli/edificio/tipi";
 
 const corpo = { id: "c1", nome: "Blocco A", impronta: [[0, 0], [20, 0], [20, 10], [0, 10]], quotaBase: 0, altezzaGronda: 8, tipoTetto: "piano", altezzaColmo: 0 } as unknown as Corpo;
@@ -27,6 +27,16 @@ describe("esportazione IFC", () => {
     // ogni riferimento #n punta a un'entità esistente
     const def = new Set([...t.matchAll(/^#(\d+)=/gm)].map((m) => m[1]));
     for (const m of t.matchAll(/#(\d+)(?!=)/g)) expect(def.has(m[1])).toBe(true);
+  });
+  it("si reimporta: stessi corpi, aste, conduttori e picchetti", () => {
+    const t = generaIFC(ingresso);
+    expect(eIfcLps(t)).toBe(true);
+    const m = leggiIfcLps(t);
+    expect(m.corpi.length).toBe(1); expect(m.corpi[0]!.impronta.length).toBe(4); expect(m.corpi[0]!.altezzaGronda).toBeCloseTo(8);
+    expect(m.aste[0]).toMatchObject({ x: 5, y: 5, z: 8, altezza: 4, codiceOBO: "5402864" }); expect(m.aste[0]!.diametro).toBeCloseTo(0.016);
+    expect(m.conduttori[0]).toMatchObject({ tipo: "captazione", codiceOBO: "5021294", materiale: "Al" }); expect(m.conduttori[0]!.punti.length).toBe(3);
+    expect(m.picchetti[0]).toMatchObject({ x: 0, y: -1, lunghezza: 1.5 });
+    expect(m.corpi[0]!.nome).toBe("Blocco A");
   });
   it("si apre con web-ifc e ha la geometria", async () => {
     const W = await import("web-ifc");
