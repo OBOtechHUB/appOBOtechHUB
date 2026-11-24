@@ -1,4 +1,4 @@
-import { describe, expect, test } from "bun:test";
+import { describe, expect, test } from "vitest";
 import { verificaVentoProgetto } from "./progetto";
 import type { Asta } from "@/calcoli/edificio/tipi";
 
