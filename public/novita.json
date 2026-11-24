@@ -2,6 +2,17 @@
   "nota": "Registro degli aggiornamenti di Progettazione LPS. Una voce per aggiornamento, la più recente per prima (app: lps). Viene mostrato nella barra \"Aggiorna app\", nel riquadro Novità e nella pagina Novità di OBO Hub.",
   "aggiornamenti": [
     {
+      "id": "2026-11-24-lps-50",
+      "data": "2026-11-24",
+      "app": "lps",
+      "titolo": "Progetto automatico a passi: la squadra di agenti",
+      "voci": [
+        "Assistente → «Progetto automatico a passi»: sette agenti, ognuno fa una cosa sola (lettore dei documenti, geometra, analista del rischio, progettista della captazione, calate e terra, computista, redattore della relazione); «Avvia» passa al prossimo da fare",
+        "Il lettore dei documenti legge davvero PDF e Word della documentazione e trova comune, provincia, indirizzo, committente, dimensioni, altezza, piani, struttura, copertura, destinazione d'uso, zone ATEX, fotovoltaico e numero di commessa, con la frase da cui li ha presi: scegli cosa applicare",
+        "Il progettista della captazione apre Edificio 3D e prepara subito la proposta di aste e maglia, da accettare o modificare"
+      ]
+    },
+    {
       "id": "2026-11-24-lps-49",
       "data": "2026-11-24",
       "app": "lps",

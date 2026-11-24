@@ -104,6 +104,9 @@ export function Edificio3DPage(){const s=useEsteso(),d=useDatiEdificio(),c=useCo
   async function esportaLpsDati(){const b=await lpsDati();if(b)scarica(new Blob([b],{type:"application/octet-stream"}),`${nomeFile()}.lpsdati`);}
   /** Pacchetto unico per AutoCAD/ZWCAD: tavola DXF, dati 3D con l'origine accanto alla tavola, LPS.lsp e istruzioni. */
   /** Modello IFC4 del progetto (edificio, aste, conduttori, picchetti) per i programmi BIM. */
+  // avviato dall'agente "Progettista della captazione" (Assistente → Progetto automatico): proposta subito
+  const autoFatto=useRef(false);
+  useEffect(()=>{if(autoFatto.current||!haGeometria)return;if(new URLSearchParams(window.location.search).get("auto")!=="proponi")return;autoFatto.current=true;window.history.replaceState(null,"",window.location.pathname);void proponi();},[haGeometria]);// eslint-disable-line react-hooks/exhaustive-deps
   function file3D(){return new TextEncoder().encode(esportaDxf3D(modello3D({corpi:s.modello.corpi,aste:s.aste,conduttori:datiTerraCAD(s).conduttori,supporti:s.supporti,morsetti:[...s.morsetti,...s.compensatori],picchetti:s.picchetti}),1,"m"));}
   function esporta3D(){const nome=nomeFile();const b=new Blob([file3D()],{type:"application/dxf"});scarica(b,`${nome}_3D.dxf`);void archiviaDocumento(b,`${nome}_3D.dxf`);setMsg("Modello 3D scaricato: aprilo in AutoCAD o ZWCAD e ruotalo con 3DORBIT (stile di visualizzazione Realistico o Ombreggiato).");}
   function fileIFC(){return new TextEncoder().encode(generaIFC({progetto:{codice:attivo?.codice??"",nome:d.nomeProgetto,comune:d.comune},corpi:s.modello.corpi,aste:s.aste,conduttori:s.conduttori,picchetti:s.picchetti,autore:s.relazione?.tecnico||undefined}));}

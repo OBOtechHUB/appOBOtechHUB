@@ -5,6 +5,7 @@ import { Saetta } from "@/components/Saetta";
 import { useAttivo } from "@/lib/statoProgetto";
 import { useAvanzamentoProgetto } from "@/lib/avanzamentoProgetto";
 import type { Passo, StatoPasso } from "@/calcoli/assistente/passi";
+import { SquadraAgenti } from "@/components/assistente/SquadraAgenti";
 
 const STILE: Record<StatoPasso, string> = {
   completo: "bg-[#e3f4ea] text-[#1d7a45]",
@@ -60,8 +61,10 @@ export function AssistentePage() {
         ? <><strong>Ciao, sono Saetta!</strong> {comp.completi === 0 ? "Partiamo insieme:" : `Ottimo lavoro, sei al ${comp.percento}%.`} Il prossimo passo è <strong>{prossimo.titolo.toLowerCase()}</strong>. {prossimo.motivo}</>
         : <><strong>Complimenti!</strong> Hai completato tutti i passi disponibili. Ricordati le verifiche periodiche.</>}</Saetta>
     </div></section>
-    <main className="mx-auto max-w-3xl px-4 py-10">
-      <ol aria-label="Passi del progetto">{passi.map((p, i) => <VocePasso key={p.id} passo={p} n={i + 1} attuale={p.id === prossimo?.id} ultimo={i === passi.length - 1} />)}</ol>
+    <main className="mx-auto max-w-5xl px-4 py-10">
+      <SquadraAgenti passi={passi} />
+      <h2 className="mb-4 font-display text-xl font-bold">Tutti i passi</h2>
+      <ol aria-label="Passi del progetto" className="mx-auto max-w-3xl">{passi.map((p, i) => <VocePasso key={p.id} passo={p} n={i + 1} attuale={p.id === prossimo?.id} ultimo={i === passi.length - 1} />)}</ol>
       <p className="mt-2 text-xs text-muted-foreground">I passi “in arrivo” saranno attivati con i moduli di analisi del rischio e scelta SPD. Calcoli di supporto – da validare da tecnico abilitato.</p>
     </main>
   </>;
