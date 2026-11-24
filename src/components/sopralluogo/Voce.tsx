@@ -3,7 +3,7 @@
  * registrati (generali o di una foto) con il loro testo, salvati come le foto (anche senza rete).
  */
 import { useEffect, useState } from "react";
-import { Mic, MicOff, Square, AudioLines } from "lucide-react";
+import { Mic, MicOff, Square, AudioLines, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { mmss, useDettatura, useRegistratore, DURATA_MASSIMA } from "@/lib/voce";
 import { percorsoFoto, salvaFoto, scaricaFoto, erroreCaricamento } from "@/lib/fotoSopralluogo";
@@ -46,6 +46,8 @@ export function NoteVocali({ progetto, foto = "", vocali, onVocali, compatto = f
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [miei.length]);
   const setTesto = (id: string, testo: string) => onVocali(vocali.map((v) => (v.id === id ? { ...v, testo } : v)));
+  // toglie il messaggio dal sopralluogo (il file audio resta nell'archivio, che non cancella mai nulla)
+  const elimina = (v: Vocale) => { if (window.confirm(`Eliminare il messaggio vocale del ${v.data ? new Date(v.data).toLocaleString("it-IT", { dateStyle: "short", timeStyle: "short" }) : ""}${v.testo ? ` («${v.testo.slice(0, 60)}»)` : ""}?`)) onVocali(vocali.filter((x) => x.id !== v.id)); };
   return <div className="space-y-2">
     {reg.disponibile && <div className="flex flex-wrap items-center gap-2">
       <Button type="button" size={compatto ? "sm" : "default"} variant={reg.registra ? "destructive" : "outline"} className={compatto ? "" : "h-12"} onClick={() => (reg.registra ? reg.ferma() : void reg.avvia())}>
@@ -58,6 +60,7 @@ export function NoteVocali({ progetto, foto = "", vocali, onVocali, compatto = f
       <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
         <AudioLines className="size-4 text-primary" aria-hidden="true" />
         <span>{v.data ? new Date(v.data).toLocaleString("it-IT", { dateStyle: "short", timeStyle: "short" }) : ""} · {mmss(v.durata)}</span>
+        <Button type="button" size="sm" variant="ghost" className="ml-auto h-8 text-destructive" onClick={() => elimina(v)} aria-label="Elimina il messaggio vocale"><Trash2 />Elimina</Button>
       </div>
       {audio[v.percorso] ? <audio controls preload="metadata" src={audio[v.percorso]} className="mt-1 h-10 w-full" aria-label="Ascolta il messaggio vocale" /> : <p className="mt-1 text-xs text-muted-foreground">Audio non disponibile su questo dispositivo.</p>}
       <textarea className="mt-1 h-16 w-full rounded-md border border-input bg-background px-3 py-2 text-base" value={v.testo} maxLength={2000} placeholder="Riassunto del messaggio (scrivi o detta)" aria-label="Testo del messaggio vocale" onChange={(e) => setTesto(v.id, e.target.value)} />

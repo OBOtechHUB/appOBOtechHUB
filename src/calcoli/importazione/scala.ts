@@ -35,7 +35,7 @@ export const LIMITI_EDIFICIO = { minimo: 2, massimo: 600, tipico: 30 };
 export function plausibile(dimensioniM: number[]): boolean {
   const pos = dimensioniM.filter((d) => d > 0);
   if (!pos.length) return false;
-  const max = Math.max(...pos);
+  const max = massimo(pos);
   return max >= LIMITI_EDIFICIO.minimo && max <= LIMITI_EDIFICIO.massimo;
 }
 
@@ -70,7 +70,7 @@ export function proponiUnita(dimensioniGrezze: number[], dichiarata: Unita | nul
     return { consigliata: dich.unita, dichiarata, candidati, dichiarataSospetta: false,
       motivo: `Il file indica ${nomeUnita(dich.unita)}: l'edificio misura ${descriviDimensioni(dich.dimensioniM)}, dimensioni realistiche.` };
   }
-  const distanza = (c: Candidato) => Math.abs(Math.log(Math.max(...c.dimensioniM.filter((d) => d > 0), 1e-9) / LIMITI_EDIFICIO.tipico));
+  const distanza = (c: Candidato) => Math.abs(Math.log(Math.max(massimo(c.dimensioniM.filter((d) => d > 0)), 1e-9) / LIMITI_EDIFICIO.tipico));
   const plaus = candidati.filter((c) => c.plausibile).sort((a, b) => distanza(a) - distanza(b));
   // a parità di plausibilità si preferiscono le unità più comuni nei disegni edili: m, mm, cm
   const ordine: Unita[] = ["m", "mm", "cm", "in", "ft"];
@@ -133,4 +133,5 @@ export function scalaComuneVicina(rapporto: number): number | null {
 
 export function distanza2(a: [number, number], b: [number, number]): number {
   return Math.hypot(a[0] - b[0], a[1] - b[1]);
-}
+}import { massimo, minimo } from "@/lib/estremi";
+

@@ -1,4 +1,5 @@
 /** Lettura comune di DXF e DWG: polilinee chiuse, layer, unità dichiarata e testi. Logica senza dipendenze dal browser. */
+import { massimo, minimo } from "@/lib/estremi";
 import { corpoSchema, type Corpo } from "@/calcoli/edificio/tipi";
 import type { Unita } from "@/calcoli/importazione/scala";
 import { type PoliCad, type TestoCad } from "@/calcoli/importazione/analisiPianta";
@@ -30,7 +31,7 @@ export function letturaDaPolilinee(poli: PoliCad[], unita: Unita | null, prefiss
   const ingombro = (layer?: string) => {
     const sel = chiuse.filter((p) => !layer || p.layer === layer);
     const xs = sel.flatMap((p) => p.punti.map((q) => q[0])), ys = sel.flatMap((p) => p.punti.map((q) => q[1]));
-    return xs.length ? [Math.max(...xs) - Math.min(...xs), Math.max(...ys) - Math.min(...ys)] : [0, 0];
+    return xs.length ? [massimo(xs) - minimo(xs), massimo(ys) - minimo(ys)] : [0, 0];
   };
   // prima i layer con polilinee chiuse (dove di solito c'è l'impronta), poi gli altri
   const conChiuse = [...new Set(chiuse.map((p) => p.layer))];

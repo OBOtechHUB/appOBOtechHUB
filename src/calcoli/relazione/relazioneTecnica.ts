@@ -28,6 +28,7 @@ import { l1Norma } from "@/calcoli/terra/proponiTerra";
 import blocchiTreppiede from "@/dati/captazione/blocchiTreppiede.json";
 import { NOME_TIPO, blocchiPerVento, fraseCalate, fraseIntervento, fraseSoluzione, frasiStatoDiFatto, tipoAsta, verificaCorpi, type InfoArticolo, type TipoAsta } from "./testiProgetto";
 import { schemaBlocchi } from "./grafici";
+import { dataIt, destinazioneDi } from "./destinazioni";
 import { NOME_METODO, verificaVentoProgetto, type DatiVentoProgetto } from "@/calcoli/vento/progetto";
 import { descriviBasi, CATEGORIE as CATEGORIE_VENTO, ZONE as ZONE_VENTO, ce as ceVento, pressioneBase, velocitaBase } from "@/calcoli/vento/vento";
 import { disegnoDaComponenti, disegnoSchema, svgTipologico, type IndiceDisegniObo } from "@/calcoli/particolari/tipologico";
@@ -184,7 +185,8 @@ export function relazioneTecnica(x: IngressoRelazione): Documento {
   /** tabella numerata con titolo sopra */
   const tabN = (titoloT: string, ...a: Parameters<typeof tab>) => B.push(p([{ t: `Tabella ${++nTab} – `, b: true }, { t: titoloT }], { dimensione: 9, spazioDopo: 2, conSuccessivo: true }), tab(...a));
   const evid = (b: Blocco, righe: number[]): Blocco => (b.tipo === "tabella" ? { ...b, evidenziaRighe: righe } : b);
-  const destinazione: Run[] = r.destinazione ? [{ t: r.destinazione }] : [dc("destinazione d'uso")];
+  const dest = destinazioneDi(r.destinazione);
+  const destinazione: Run[] = dest ? [{ t: dest.nome.toLowerCase() }] : r.destinazione ? [{ t: r.destinazione }] : [dc("destinazione d'uso (abitativa, ricettiva o uso promiscuo)")];
   const committente: Run[] = r.committente ? [{ t: r.committente, b: true }] : [dc("committente")];
   const indirizzoComm: Run[] = r.indirizzoCommittente || r.cittaCommittente ? [{ t: [r.indirizzoCommittente, r.cittaCommittente].filter(Boolean).join("\n") }] : [dc("indirizzo del committente")];
 
@@ -509,7 +511,7 @@ export function relazioneTecnica(x: IngressoRelazione): Documento {
   B.push(h1("10. Densità annua di fulmini a terra"),
     p("La densità annua di fulmini a terra al kilometro quadrato nella posizione in cui è ubicata la struttura vale:"),
     p([{ t: `NG = ${it(d.densita)}  –  NSG = ${it(r.nsgAttestato ?? k * d.densita)}`, b: true, i: true }, { t: "  fulmini/(anno·km²)", i: true }], { allinea: "centro" }),
-    p([{ t: `NSG è la densità dei punti di impatto al suolo; se il fornitore dei dati non indica il rapporto k = NSG/NG si assume k = 2 (CEI EN IEC 62305-2:2026-10, A.1). Nel progetto k = ${it(k)}. ` }, ...(r.ngFornitore ? [{ t: `I valori sono quelli dell'attestato ${r.ngFornitore}${r.ngData ? ` del ${r.ngData}` : ""}${r.nsgAttestato != null ? ` (NSG da attestato = ${it(r.nsgAttestato)})` : ""}, allegato alla relazione (capitolo 17).` }] : [dc("fornitore e data dell'attestato NG/NSG (Dati della relazione)")])]),
+    p([{ t: `NSG è la densità dei punti di impatto al suolo; se il fornitore dei dati non indica il rapporto k = NSG/NG si assume k = 2 (CEI EN IEC 62305-2:2026-10, A.1). Nel progetto k = ${it(k)}. ` }, ...(r.ngFornitore ? [{ t: `I valori sono quelli dell'attestato ${r.ngFornitore}${r.ngData ? ` del ${dataIt(r.ngData)}` : ""}${r.nsgAttestato != null ? ` (NSG da attestato = ${it(r.nsgAttestato)})` : ""}, allegato alla relazione (capitolo 17).` }] : [dc("fornitore e data dell'attestato NG/NSG (Dati della relazione)")])]),
   );
 
   // struttura
@@ -553,6 +555,7 @@ export function relazioneTecnica(x: IngressoRelazione): Documento {
   if (!zz.length || zz.some((z) => (z.oreApparecchi ?? 8760) > 0)) perdite.push({ l: "L3", testo: `perdita dovuta al guasto degli impianti interni (L3), valutata con la frequenza del danno F${zz.some((z) => z.impiantiCritici) ? " (impianti critici: FT = 0,1)" : ""}.` });
   B.push(h1("12. Dati iniziali e valutazione del rischio"),
     p([{ t: "La destinazione d'uso prevalente della struttura è: " }, ...destinazione, { t: "." }]),
+    ...(dest ? [p(dest.testo), p(dest.obbligo)] : []),
     p("In relazione anche alla sua destinazione d'uso, la struttura può essere soggetta a:"),
     el(...perdite.map((x2) => x2.testo)),
     p(`In accordo con la norma CEI EN IEC 62305-2:2026-10, per valutare la necessità della protezione contro il fulmine ${perdite.some((x2) => x2.l === "L3") ? "devono pertanto essere calcolati il rischio R e la frequenza del danno F" : "deve pertanto essere calcolato il rischio R"} per ogni zona della struttura${x.rischio ? ` (${x.rischio.zone.length} ${x.rischio.zone.length === 1 ? "zona" : "zone"}: ${x.rischio.zone.map((z) => z.nome).join(", ")})` : ""}.`),
@@ -850,7 +853,7 @@ export function relazioneTecnica(x: IngressoRelazione): Documento {
       ["Longitudine", typeof d.lon === "number" ? `${d.lon.toFixed(6).replace(".", ",")}° E` : [dc("longitudine")]],
     ], [4, 8]),
     p("I valori di NG (numero medio di fulmini a terra all'anno e al kilometro quadrato) e NSG (numero medio dei punti di impatto a terra all'anno e al kilometro quadrato) sono riferiti alle coordinate geografiche della struttura (WGS84) e sono riportati nell'attestato rilasciato dal fornitore dei dati secondo la CEI EN IEC 62858, allegato in originale alla presente relazione con le sue condizioni d'uso e la sua validità temporale."),
-    p([{ t: "Attestato: " }, ...(r.ngFornitore ? [{ t: `${r.ngFornitore}${r.ngData ? ` – ${r.ngData}` : ""}` }] : [dc("fornitore, numero e data dell'attestato NG/NSG")])]),
+    p([{ t: "Attestato: " }, ...(r.ngFornitore ? [{ t: `${r.ngFornitore}${r.ngData ? ` – ${dataIt(r.ngData)}` : ""}` }] : [dc("fornitore, numero e data dell'attestato NG/NSG")])]),
   );
 
   B.push(h1("18. Allegati"), el("Attestato dei valori NG e NSG (CEI EN IEC 62858)", "Disegni di posizionamento del sistema di captazione e delle calate (DWG/DXF)", "Schede dei particolari costruttivi OBO", "Elenco materiale (Excel)"),

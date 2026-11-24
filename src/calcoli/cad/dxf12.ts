@@ -190,12 +190,12 @@ export class ScrittoreDXF {
     for (const b of this.blocchi.values()) {
       const conAttributi = b.righe.includes("ATTDEF");
       w(0, "BLOCK", 8, "0", 2, b.nome, 70, conAttributi ? 2 : 0, 10, 0, 20, 0, 30, 0, 3, b.nome);
-      r.push(...b.righe);
+      for (const x of b.righe) r.push(x);
       w(0, "ENDBLK", 8, "0");
     }
     w(0, "ENDSEC");
     w(0, "SECTION", 2, "ENTITIES");
-    r.push(...this.entita);
+    for (const x of this.entita) r.push(x);
     w(0, "ENDSEC", 0, "EOF");
     return r.join("\r\n") + "\r\n";
   }

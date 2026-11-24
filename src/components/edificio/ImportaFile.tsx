@@ -1,3 +1,4 @@
+import { massimo, minimo } from "@/lib/estremi";
 import { useEffect, useMemo, useRef, useState, type MouseEvent as ReactMouseEvent } from "react";
 import { eIfcLps, leggiIfcLps, type ModelloIfcLps } from "@/calcoli/cad/ifc";
 import { aggiornaEsteso, leggiEsteso } from "@/lib/statoProgetto";
@@ -88,7 +89,7 @@ export function ImportaFile({ onImporta, paginaIntera = false }: { onImporta: (m
 
   // ---------- scala di DXF e 3D
   const dimensioniGrezze = useMemo<number[]>(() => {
-    if (tipo === "dxf" && dxf) { const sel = dxf.poligoni.filter((p) => layersSel.includes(p.layer)); const xs = sel.flatMap((p) => p.punti.map((q) => q[0])), ys = sel.flatMap((p) => p.punti.map((q) => q[1])); return xs.length ? [Math.max(...xs) - Math.min(...xs), Math.max(...ys) - Math.min(...ys)] : dxf.ingombro(); }
+    if (tipo === "dxf" && dxf) { const sel = dxf.poligoni.filter((p) => layersSel.includes(p.layer)); const xs = sel.flatMap((p) => p.punti.map((q) => q[0])), ys = sel.flatMap((p) => p.punti.map((q) => q[1])); return xs.length ? [massimo(xs) - minimo(xs), massimo(ys) - minimo(ys)] : dxf.ingombro(); }
     return tipo === "3d" && corpo1 ? dimensioniCorpo(corpo1) : [];
   }, [tipo, dxf, layersSel, corpo1]);
   const dichiarata: Unita | null = tipo === "dxf" ? dxf?.unita ?? null : tipo === "3d" && main ? unitaDichiarata3D(main.name) : null;
@@ -130,10 +131,10 @@ export function ImportaFile({ onImporta, paginaIntera = false }: { onImporta: (m
   const mPerPx = mPerPxMisura ?? mPerPxScala; // la misura nota, se c'è, è la più affidabile
   const improntaM: P2[] = mPerPx && poli.length >= 3 ? (() => {
     const pts = poli.map(([x, y]) => [x * mPerPx, -y * mPerPx] as P2);
-    const mx = Math.min(...pts.map((p) => p[0])), my = Math.min(...pts.map((p) => p[1]));
+    const mx = minimo(pts.map((p) => p[0])), my = minimo(pts.map((p) => p[1]));
     return pts.map((p) => [p[0] - mx, p[1] - my] as P2);
   })() : [];
-  const dimPiano = improntaM.length ? [Math.max(...improntaM.map((p) => p[0])), Math.max(...improntaM.map((p) => p[1]))] : [];
+  const dimPiano = improntaM.length ? [massimo(improntaM.map((p) => p[0])), massimo(improntaM.map((p) => p[1]))] : [];
   const area = improntaM.length ? Math.abs(improntaM.reduce((s, p, i) => { const q = improntaM[(i + 1) % improntaM.length] as P2; return s + p[0] * q[1] - q[0] * p[1]; }, 0)) / 2 : 0;
 
   function punto(ev: ReactMouseEvent<SVGSVGElement>): P2 | null {
@@ -354,7 +355,7 @@ type ElementoVista = ReturnType<typeof analizzaPianta>[number];
 /** Pianta letta dal CAD: ogni contorno con il suo ruolo (colore e numero) e la tabella per cambiarlo e scrivere l'altezza. */
 function AnteprimaPianta({ elementi, onRuolo, onAltezza }: { elementi: ElementoVista[]; onRuolo: (id: number, r: Ruolo) => void; onAltezza: (id: number, h: string) => void }) {
   const xs = elementi.flatMap((e) => e.punti.map((p) => p[0])), ys = elementi.flatMap((e) => e.punti.map((p) => p[1]));
-  const x0 = Math.min(...xs), x1 = Math.max(...xs), y0 = Math.min(...ys), y1 = Math.max(...ys), w = x1 - x0 || 1, h = y1 - y0 || 1, m = Math.max(w, h) * 0.04;
+  const x0 = minimo(xs), x1 = massimo(xs), y0 = minimo(ys), y1 = massimo(ys), w = x1 - x0 || 1, h = y1 - y0 || 1, m = Math.max(w, h) * 0.04;
   const vista = [...elementi].sort((a, b) => b.area - a.area);
   const num = (e: ElementoVista) => elementi.indexOf(e) + 1;
   return (

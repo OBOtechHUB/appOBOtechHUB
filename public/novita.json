@@ -2,6 +2,18 @@
   "nota": "Registro degli aggiornamenti di Progettazione LPS. Una voce per aggiornamento, la più recente per prima (app: lps). Viene mostrato nella barra \"Aggiorna app\", nel riquadro Novità e nella pagina Novità di OBO Hub.",
   "aggiornamenti": [
     {
+      "id": "2026-11-24-lps-39",
+      "data": "2026-11-24",
+      "app": "lps",
+      "titolo": "Correzioni: file grandi, dettatura, vocali, dati della relazione",
+      "voci": [
+        "Importazione di file grandi (DWG, DXF, IFC): corretto l'errore «Maximum call stack size exceeded»",
+        "Sopralluogo: «Ferma dettatura» ferma subito il microfono; i messaggi vocali si possono eliminare",
+        "Dati della relazione: data dell'attestato scelta dal calendario (sempre gg/mm/aaaa), NSG e gli altri numeri accettano la virgola",
+        "Destinazione d'uso a scelta: abitativa, ricettiva o uso promiscuo, con i testi relativi nella relazione"
+      ]
+    },
+    {
       "id": "2026-11-24-lps-38",
       "data": "2026-11-24",
       "app": "lps",

@@ -10,7 +10,7 @@ interface EventoVoce { resultIndex: number; results: ArrayLike<RisultatoVoce> }
 interface Riconoscitore {
   lang: string; continuous: boolean; interimResults: boolean;
   onresult: ((e: EventoVoce) => void) | null; onend: (() => void) | null; onerror: ((e: { error: string }) => void) | null;
-  start(): void; stop(): void;
+  start(): void; stop(): void; abort?: () => void;
 }
 type CostruttoreRiconoscitore = new () => Riconoscitore;
 const costruttore = (): CostruttoreRiconoscitore | null => {
@@ -25,13 +25,21 @@ export function useDettatura(aggiungi: (testo: string) => void) {
   const [attiva, setAttiva] = useState(false), [parziale, setParziale] = useState(""), [errore, setErrore] = useState("");
   const rif = useRef<Riconoscitore | null>(null), cb = useRef(aggiungi);
   cb.current = aggiungi;
-  useEffect(() => () => rif.current?.stop(), []);
-  const ferma = () => { rif.current?.stop(); };
+  useEffect(() => () => { const r = rif.current; rif.current = null; try { r?.abort?.(); r?.stop(); } catch { /* già ferma */ } }, []);
+  // ferma subito: alcuni browser (Chrome su Android) con la dettatura continua non si fermano con stop()
+  const ferma = () => {
+    const r = rif.current; rif.current = null; setAttiva(false); setParziale("");
+    if (!r) return;
+    r.onresult = null; r.onend = null;
+    try { r.stop(); } catch { /* già ferma */ }
+    window.setTimeout(() => { try { r.abort?.(); } catch { /* già ferma */ } }, 400);
+  };
   const avvia = () => {
     const C = costruttore(); if (!C) { setErrore("Dettatura non disponibile in questo browser: usa il microfono della tastiera."); return; }
     setErrore("");
     const r = new C(); r.lang = "it-IT"; r.continuous = true; r.interimResults = true;
     r.onresult = (e) => {
+      if (rif.current !== r) return;
       let p = "";
       for (let i = e.resultIndex; i < e.results.length; i++) {
         const x = e.results[i]!; const t = x[0].transcript.trim();
@@ -40,7 +48,7 @@ export function useDettatura(aggiungi: (testo: string) => void) {
       setParziale(p.trim());
     };
     r.onerror = (e) => setErrore(e.error === "not-allowed" ? "Permesso del microfono negato: consentilo dal lucchetto vicino all'indirizzo." : e.error === "no-speech" ? "" : `Dettatura interrotta (${e.error}).`);
-    r.onend = () => { setAttiva(false); setParziale(""); rif.current = null; };
+    r.onend = () => { if (rif.current === r) { setAttiva(false); setParziale(""); rif.current = null; } };
     rif.current = r; r.start(); setAttiva(true);
   };
   return { attiva, parziale, errore, avvia, ferma, disponibile: dettaturaDisponibile() };

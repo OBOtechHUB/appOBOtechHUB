@@ -6,6 +6,8 @@ import { useEffect, useState, type ReactNode } from "react";
 import { FileText, Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Campo, inputCls } from "@/components/Campo";
+import { CampoNumero } from "@/components/CampoNumero";
+import { DESTINAZIONI } from "@/calcoli/relazione/destinazioni";
 import { useComputo, useDatiEdificio } from "@/lib/progettoStore";
 import { aggiornaEsteso, leggiAttivo, useEsteso } from "@/lib/statoProgetto";
 import { leggiStato, strutturaRischio } from "@/lib/statoRischio";
@@ -124,7 +126,7 @@ export function RelazioneTecnica({ righe, mancanti, particolari }: { righe: Riga
   const cambia = (k: ChiaveTesto, v: string) => aggiorna(k, v);
   const numero = (v: string): number | null => { const x = Number(v.replace(",", ".")); return v.trim() === "" || !Number.isFinite(x) ? null : x; };
   const sel = <K extends keyof DatiRelazione>(k: K, etichetta: string, opzioni: readonly (readonly [string, string])[]) => <Campo etichetta={etichetta}><select className={inputCls} value={String(r[k])} onChange={(e) => aggiorna(k, e.target.value as DatiRelazione[K])}>{opzioni.map(([v, t]) => <option key={v} value={v}>{t}</option>)}</select></Campo>;
-  const num = (k: "calateNumero" | "calateInterasse" | "altezzaImpianti" | "ventoKmh" | "nsgAttestato", etichetta: string, segnaposto?: string) => <Campo etichetta={etichetta}><input className={inputCls} inputMode="decimal" value={r[k] ?? ""} placeholder={segnaposto} onChange={(e) => aggiorna(k, numero(e.target.value))} /></Campo>;
+  const num = (k: "calateNumero" | "calateInterasse" | "altezzaImpianti" | "ventoKmh" | "nsgAttestato", etichetta: string, segnaposto?: string) => <Campo etichetta={etichetta}><CampoNumero className={inputCls} valore={r[k]} placeholder={segnaposto} onValore={(v) => aggiorna(k, v)} /></Campo>;
   const spunta = (k: "coperturaMetallica" | "terraCollegataAltri" | "valutazioneEconomica", etichetta: string) => <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={r[k]} onChange={(e) => aggiorna(k, e.target.checked)} />{etichetta}</label>;
   const corpo = (id: string, campo: "altezzaDaProteggere" | "nota", v: number | string | null) => { const prima = r.corpi[id] ?? { altezzaDaProteggere: null, nota: "" }; aggiorna("corpi", { ...r.corpi, [id]: { ...prima, [campo]: v } }); };
 
@@ -195,14 +197,18 @@ export function RelazioneTecnica({ righe, mancanti, particolari }: { righe: Riga
     </div>
     {aperto && <div className="mt-4 grid gap-3 sm:grid-cols-2">
       <Gruppo titolo="Opera e committente">
-        {CAMPI.map((f) => <Campo key={f.k} etichetta={f.etichetta}><input className={inputCls} value={r[f.k]} maxLength={f.k === "destinazione" ? 500 : 200} placeholder={f.segnaposto} onChange={(e) => cambia(f.k, e.target.value)} /></Campo>)}
+        {CAMPI.map((f) => f.k === "destinazione"
+          ? <Campo key={f.k} etichetta={f.etichetta}><select className={inputCls} value={DESTINAZIONI.some((x) => x.id === r.destinazione) ? r.destinazione : ""} onChange={(e) => cambia("destinazione", e.target.value)}>
+              <option value="">{r.destinazione && !DESTINAZIONI.some((x) => x.id === r.destinazione) ? `— scegli (prima: «${r.destinazione.slice(0, 40)}») —` : "— scegli —"}</option>
+              {DESTINAZIONI.map((x) => <option key={x.id} value={x.id}>{x.nome}</option>)}</select></Campo>
+          : <Campo key={f.k} etichetta={f.etichetta}><input className={inputCls} value={r[f.k]} maxLength={200} placeholder={f.segnaposto} onChange={(e) => cambia(f.k, e.target.value)} /></Campo>)}
         {sel("lingua", "Lingua della relazione", [["it", "Italiano"], ["en", "English (traduzione automatica dei testi della relazione)"]])}
         {sel("tipoIntervento", "Tipo di intervento", [["nuovo", "Nuovo impianto"], ["adeguamento", "Adeguamento dell'impianto esistente"], ["integrazione", "Integrazione con calate, terra e SPD esistenti"]])}
         {spunta("valutazioneEconomica", "Il committente ha chiesto la valutazione economica")}
       </Gruppo>
       <Gruppo titolo="Attestato NG / NSG (CEI EN IEC 62858)">
         <Campo etichetta="Fornitore e numero dell'attestato"><input className={inputCls} value={r.ngFornitore} maxLength={200} placeholder="es. TNE srl, attestato n. …" onChange={(e) => cambia("ngFornitore", e.target.value)} /></Campo>
-        <Campo etichetta="Data dell'attestato"><input className={inputCls} value={r.ngData} maxLength={200} placeholder="es. 12/09/2025" onChange={(e) => cambia("ngData", e.target.value)} /></Campo>
+        <Campo etichetta="Data dell'attestato"><input className={inputCls} type="date" value={/^\d{4}-\d{2}-\d{2}$/.test(r.ngData) ? r.ngData : ""} onChange={(e) => cambia("ngData", e.target.value)} />{r.ngData && !/^\d{4}-\d{2}-\d{2}$/.test(r.ngData) ? <span className="mt-1 block text-xs text-amber-700">Data scritta prima a mano: «{r.ngData}». Sceglila dal calendario per uniformarla.</span> : null}</Campo>
         {num("nsgAttestato", "NSG dall'attestato (se indicato)", `calcolato: ${(2 * d.densita).toLocaleString("it-IT")}`)}
       </Gruppo>
       <Gruppo titolo="Sopralluogo – stato di fatto">

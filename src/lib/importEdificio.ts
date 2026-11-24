@@ -1,3 +1,4 @@
+import { massimo, minimo } from "@/lib/estremi";
 import { risorsa } from "@/lib/base";
 import { corpoSchema,modelloSchema,type Corpo,type ModelloEdificio } from "@/calcoli/edificio/tipi";
 import {locale} from "@/calcoli/edificio/geometria";
@@ -66,7 +67,7 @@ export function unitaDichiarata3D(nome:string):Unita|null{
 /** Dimensioni del corpo letto con scala 1 (nell'unità del file): lunghezza, larghezza, altezza. */
 export function dimensioniCorpo(c:Corpo):number[]{
   const xs=c.impronta.map((p)=>p[0]),ys=c.impronta.map((p)=>p[1]);
-  return [Math.max(...xs)-Math.min(...xs),Math.max(...ys)-Math.min(...ys),c.altezzaGronda];
+  return [massimo(xs)-minimo(xs),massimo(ys)-minimo(ys),c.altezzaGronda];
 }
 
 /** Applica il fattore di scala (metri per unità del file) a un corpo letto con scala 1. */
@@ -106,7 +107,7 @@ export function semplificaTriangoli(tri:number[],max=MAX_TRIANGOLI):number[]{
     const k=(i:number)=>`${Math.round(tri[i]!/cella)},${Math.round(tri[i+1]!/cella)},${Math.round(tri[i+2]!/cella)}`;
     for(let t=0;t<n;t++){const b=t*9;const a=k(b),c=k(b+3),d=k(b+6);if(a===c||c===d||a===d)continue;const chiave=[a,c,d].sort().join("|");if(visti.has(chiave))continue;visti.add(chiave);
       const q=(i:number)=>Math.round(tri[i]!/cella)*cella;const p=[q(b),q(b+1),q(b+2),q(b+3),q(b+4),q(b+5),q(b+6),q(b+7),q(b+8)];
-      const ux=p[3]!-p[0]!,uy=p[4]!-p[1]!,uz=p[5]!-p[2]!,vx=p[6]!-p[0]!,vy=p[7]!-p[1]!,vz=p[8]!-p[2]!;aree.push(Math.hypot(uy*vz-uz*vy,uz*vx-ux*vz,ux*vy-uy*vx));out.push(...p);}
+      const ux=p[3]!-p[0]!,uy=p[4]!-p[1]!,uz=p[5]!-p[2]!,vx=p[6]!-p[0]!,vy=p[7]!-p[1]!,vz=p[8]!-p[2]!;aree.push(Math.hypot(uy*vz-uz*vy,uz*vx-ux*vz,ux*vy-uy*vx));for(const q of p)out.push(q);}
     if(out.length/9<=max)return out;
     if(giro===3){const ord=aree.map((a,i)=>[a,i] as const).sort((x,y)=>y[0]-x[0]).slice(0,max).map((x)=>x[1]).sort((x,y)=>x-y);const r:number[]=[];for(const i of ord)for(let j=0;j<9;j++)r.push(out[i*9+j]!);return r;}
     cella*=2;

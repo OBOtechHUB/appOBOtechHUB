@@ -5,6 +5,7 @@
  * - se in un layer non si chiude niente, si propone il contorno esterno (involucro convesso) di tutto il layer,
  *   segnato come "approssimato", così il disegno si importa comunque e si corregge l'impronta dopo.
  */
+import { massimo, minimo } from "@/lib/estremi";
 import type { PoliCad } from "./analisiPianta";
 type P2 = [number, number];
 
@@ -44,7 +45,7 @@ export function unisciTratti(tratti: PoliCad[], tol: number): PoliCad[] {
       for (let passi = 0; passi < 100000; passi++) {
         if (catena.length > 2 && vicini(catena[0]!, catena[catena.length - 1]!)) break;
         const f = trova(catena[catena.length - 1]!); if (!f) break;
-        usato[f.i] = true; const t = f.inverti ? [...lista[f.i]!].reverse() : lista[f.i]!; catena.push(...t.slice(1));
+        usato[f.i] = true; const t = f.inverti ? [...lista[f.i]!].reverse() : lista[f.i]!; for (let q = 1; q < t.length; q++) catena.push(t[q]!);
       }
       if (catena.length > 3 && vicini(catena[0]!, catena[catena.length - 1]!)) out.push({ layer, punti: catena.slice(0, -1), chiusa: true });
     }
@@ -69,7 +70,7 @@ export function involucroConvesso(punti: P2[]): P2[] {
  */
 export function contorniDaTratti(tratti: PoliCad[]): { chiusi: PoliCad[]; approssimati: PoliCad[] } {
   const xs = tratti.flatMap((t) => t.punti.map((p) => p[0])), ys = tratti.flatMap((t) => t.punti.map((p) => p[1]));
-  const lato = xs.length ? Math.max(Math.max(...xs) - Math.min(...xs), Math.max(...ys) - Math.min(...ys)) : 1;
+  const lato = xs.length ? Math.max(massimo(xs) - minimo(xs), massimo(ys) - minimo(ys)) : 1;
   const tol = Math.max(lato * 2e-4, 1e-6);
   const gia = tratti.filter((t) => t.chiusa || (t.punti.length > 3 && Math.abs(t.punti[0]![0] - t.punti.at(-1)![0]) <= tol && Math.abs(t.punti[0]![1] - t.punti.at(-1)![1]) <= tol));
   const uniti = unisciTratti(tratti.filter((t) => !gia.includes(t)), tol);
@@ -78,7 +79,7 @@ export function contorniDaTratti(tratti: PoliCad[]): { chiusi: PoliCad[]; appros
   const conChiusi = new Set(chiusi.map((c) => c.layer));
   const approssimati: PoliCad[] = [];
   const perLayer = new Map<string, P2[]>();
-  for (const t of tratti) if (!conChiusi.has(t.layer)) { const l = perLayer.get(t.layer) ?? []; l.push(...t.punti); perLayer.set(t.layer, l); }
+  for (const t of tratti) if (!conChiusi.has(t.layer)) { const l = perLayer.get(t.layer) ?? []; for (const q of t.punti) l.push(q); perLayer.set(t.layer, l); }
   for (const [layer, pts] of perLayer) { const h = involucroConvesso(pts); if (h.length >= 3) approssimati.push({ layer, punti: h, chiusa: true }); }
   return { chiusi, approssimati };
 }
