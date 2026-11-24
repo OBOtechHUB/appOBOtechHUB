@@ -2,6 +2,19 @@
   "nota": "Registro degli aggiornamenti di Progettazione LPS. Una voce per aggiornamento, la più recente per prima (app: lps). Viene mostrato nella barra \"Aggiorna app\", nel riquadro Novità e nella pagina Novità di OBO Hub.",
   "aggiornamenti": [
     {
+      "id": "2026-11-24-lps-42",
+      "data": "2026-11-24",
+      "app": "lps",
+      "titolo": "Condividi o passa un progetto",
+      "voci": [
+        "In Progetti, icona Condividi: il proprietario condivide il progetto con un collega (email dell'account OBO Hub); il collega lo apre, lo modifica e fa il sopralluogo, con foto e vocali visibili a tutti e due",
+        "La condivisione si toglie o si riattiva quando serve; nulla viene cancellato",
+        "Passa a un'altra persona: il progetto diventa suo e chi lo passa resta tra le persone con cui è condiviso",
+        "Nuova sezione \"Condivisi con me\" in Progetti e nella scelta del progetto del Sopralluogo",
+        "\"Installa app\" ora si trova solo nella homepage di OBO Hub"
+      ]
+    },
+    {
       "id": "2026-11-24-lps-41",
       "data": "2026-11-24",
       "app": "lps",

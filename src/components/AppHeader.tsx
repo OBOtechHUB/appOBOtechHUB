@@ -3,7 +3,7 @@ import { Link, useNavigate, useRouter, useRouterState } from "@tanstack/react-ro
 import { useQueryClient } from "@tanstack/react-query";
 import {
   ArrowDownToLine, ShieldCheck, Box, Boxes, Cpu, ShieldAlert, Building2, Package, ClipboardCheck, Compass, Gauge, ChevronLeft, ClipboardList, Download, FileText, FolderOpen, Info, LogIn, LogOut,
-  Languages, LayoutGrid, Sparkles, ZoomIn, ZoomOut, Mail, Moon, Sun, SunMoon, Menu, Ruler, Search, Smartphone, Shield, SlidersHorizontal, User, UserPlus, Wrench, X,
+  Languages, LayoutGrid, Sparkles, ZoomIn, ZoomOut, Mail, Moon, Sun, SunMoon, Menu, Ruler, Search, Shield, SlidersHorizontal, User, UserPlus, Wrench, X,
   BookOpen, Inbox, BarChart3, Camera, Wind } from "lucide-react";
 import { useAuth } from "@/lib/auth";
 import { NOMI_TEMA, cambiaZoom, impostaTema, useTema, useZoom, type Tema } from "@/lib/tema";
@@ -15,7 +15,6 @@ import { RicercaGlobale } from "@/components/RicercaGlobale";
 import { useAvanzamentoProgetto } from "@/lib/avanzamentoProgetto";
 import { SEZIONE_PAGINA, URL_HUB, esciVisitatore, puoVedere, useAccesso } from "@/lib/accesso";
 import { impostaAttivo, useAttivo } from "@/lib/statoProgetto";
-import { useAzioneInstalla } from "@/components/InstallaApp";
 
 type Icona = ComponentType<{ className?: string; strokeWidth?: number }>;
 type Voce = { etichetta: string; to: string; icona: Icona } | { etichetta: string; azione: () => void; icona: Icona };
@@ -39,7 +38,6 @@ export function AppHeader() {
   const router = useRouter();
   const percorso = useRouterState({ select: (s) => s.location.pathname });
   const [aperto, setAperto] = useState(false);
-  const installa = useAzioneInstalla();
   const tema = useTema();
   const lingua = useLingua();
   const zoom = useZoom();
@@ -126,7 +124,6 @@ export function AppHeader() {
     {
       titolo: "Informazioni",
       voci: [
-        ...(installa.stato !== "installata" ? [{ etichetta: "Installa l'app", azione: () => { setAperto(false); installa.avvia(); }, icona: Smartphone }] : []),
         { etichetta: "Termini d'uso", to: "/termini", icona: FileText },
         { etichetta: "Privacy", to: "/privacy", icona: Shield },
       ],
@@ -210,7 +207,6 @@ export function AppHeader() {
           ))}
         </div>
       </nav>
-      {installa.dialogo}
     </>
   );
 }

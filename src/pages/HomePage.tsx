@@ -3,7 +3,6 @@ import { ModuleCard } from "@/components/ModuleCard";
 import { Link } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
 import { Saetta } from "@/components/Saetta";
-import { PulsanteInstalla } from "@/components/InstallaApp";
 import { useComputo, useDatiEdificio } from "@/lib/progettoStore";
 import { applicaModifiche, generaComputo } from "@/calcoli/materiali/computo";
 import { avanzamento } from "@/calcoli/materiali/avanzamento";
@@ -31,7 +30,6 @@ export function HomePage() {
         <div className="mt-4 flex flex-wrap gap-3">
           {!user && <Button asChild variant="outline"><Link to="/auth">Accedi <ArrowRight strokeWidth={1.5} /></Link></Button>}
           <Button asChild><Link to="/assistente">Apri l’assistente di progetto <ArrowRight strokeWidth={1.5} /></Link></Button>
-          <PulsanteInstalla />
         </div>
       </div>
       <div className="hidden md:block"><Saetta saluto chiaro><strong>Ciao, sono Saetta!</strong> Ti accompagno nel progetto dell'LPS, dall'edificio fino al dossier. Apri l'assistente e ti dico da dove partire.</Saetta></div>

@@ -6,7 +6,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Camera, ImagePlus, CloudUpload, WifiOff, Wifi, FolderOpen } from "lucide-react";
 import { Link } from "@tanstack/react-router";
-import { elencaProgetti, leggiProgetto } from "@/lib/progetti.functions";
+import { elencaProgetti, leggiProgetto, progettiCondivisi, utenteId } from "@/lib/progetti.functions";
 import { salvaAttivo } from "@/components/ProjectSync";
 import { useAccesso } from "@/lib/accesso";
 import { Button } from "@/components/ui/button";
@@ -134,11 +134,11 @@ export function SopralluogoPage() {
 /** Nessun progetto aperto (es. progetto creato su un altro dispositivo, app riaperta): si sceglie qui, senza passare da Progetti. */
 function ScegliProgetto() {
   const accesso = useAccesso(), visitatore = !!accesso.profilo?.visitatore;
-  const [lista, setLista] = useState<{ id: string; codice: string; nome: string; comune: string; data_modifica: string }[] | null>(null), [errore, setErrore] = useState(""), [busy, setBusy] = useState(false);
-  useEffect(() => { if (visitatore) return; elencaProgetti({ data: { pagina: 0 } }).then((r) => setLista(r.righe)).catch((e: unknown) => setErrore(e instanceof Error ? e.message : "Progetti non letti.")); }, [visitatore]);
+  const [lista, setLista] = useState<{ id: string; codice: string; nome: string; comune: string; data_modifica: string; condiviso?: string }[] | null>(null), [errore, setErrore] = useState(""), [busy, setBusy] = useState(false);
+  useEffect(() => { if (visitatore) return; Promise.all([elencaProgetti({ data: { pagina: 0 } }), progettiCondivisi()]).then(([r, c]) => { const miei = new Set(r.righe.map((x) => x.id)); setLista([...r.righe, ...c.filter((x) => !miei.has(x.id)).map((x) => ({ ...x, condiviso: x.proprietario_nome || x.proprietario_email }))]); }).catch((e: unknown) => setErrore(e instanceof Error ? e.message : "Progetti non letti.")); }, [visitatore]);
   async function apri(id: string) {
     setBusy(true); setErrore("");
-    try { await salvaAttivo(); const p = await leggiProgetto({ data: { id } }); caricaSnapshot(p.dati); impostaAttivo({ id: p.id, codice: p.codice, nome: p.nome, proprietario: p.utente, salvato: JSON.stringify(snapshot()) }); }
+    try { await salvaAttivo(); const p = await leggiProgetto({ data: { id } }); caricaSnapshot(p.dati); impostaAttivo({ id: p.id, codice: p.codice, nome: p.nome, proprietario: await utenteId(), salvato: JSON.stringify(snapshot()) }); } // chi lavora (proprietario o collega) salva
     catch (e) { setErrore(e instanceof Error ? e.message : "Progetto non aperto."); }
     finally { setBusy(false); }
   }
@@ -148,7 +148,7 @@ function ScegliProgetto() {
       {errore && <p role="alert" className="mt-3 text-destructive">{errore}</p>}
       {lista === null && !errore ? <p className="mt-4 text-sm text-muted-foreground">Carico i progetti…</p> : lista && !lista.length ? <p className="mt-4">Non hai ancora progetti: <Link to="/progetti" className="text-primary underline">creane uno in Progetti</Link>.</p> :
         <ul className="mt-4 divide-y rounded-lg border">{(lista ?? []).map((p) => <li key={p.id} className="flex flex-wrap items-center justify-between gap-3 p-3">
-          <span><b>{p.codice ? `${p.codice} · ` : ""}{p.nome}</b><span className="block text-xs text-muted-foreground">{p.comune || "Comune non indicato"} · modificato il {new Date(p.data_modifica).toLocaleDateString("it-IT")}</span></span>
+          <span><b>{p.codice ? `${p.codice} · ` : ""}{p.nome}</b><span className="block text-xs text-muted-foreground">{p.condiviso ? `Condiviso da ${p.condiviso} · ` : ""}{p.comune || "Comune non indicato"} · modificato il {new Date(p.data_modifica).toLocaleDateString("it-IT")}</span></span>
           <Button disabled={busy} onClick={() => void apri(p.id)}><FolderOpen />Collega il sopralluogo</Button></li>)}</ul>}
       <p className="mt-3 text-sm"><Link to="/progetti" className="text-primary underline">Tutti i progetti</Link></p>
     </>}

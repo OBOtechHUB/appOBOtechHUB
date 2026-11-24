@@ -2,7 +2,6 @@ import { Link } from "@tanstack/react-router";
 import { ArrowDownToLine, ArrowRight, Box, Boxes, Check, ClipboardCheck, ClipboardList, Compass, Cpu, Download, Gauge, Package, Ruler, ShieldAlert } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Saetta, SaettaFigura } from "@/components/Saetta";
-import { PulsanteInstalla } from "@/components/InstallaApp";
 
 const VANTAGGI = [
   "Tutto il progetto dell'LPS in un unico strumento, dal rischio al dossier",
@@ -81,7 +80,7 @@ export function PanoramicaPage() {
 
       <section className="mt-14 grid items-center gap-6 rounded-2xl bg-muted p-6 md:grid-cols-[1fr_auto]" aria-label="Accesso">
         <Saetta saluto><strong>Vuoi usare lo strumento?</strong> L'accesso è riservato: invia la richiesta, l'amministratore la approva e ti comunica la password iniziale. Al primo accesso scegli la tua password e colleghi Microsoft Authenticator.</Saetta>
-        <div className="flex flex-wrap gap-3"><Button asChild size="lg"><Link to="/richiesta-accesso">Richiedi l'accesso</Link></Button><PulsanteInstalla /></div>
+        <div className="flex flex-wrap gap-3"><Button asChild size="lg"><Link to="/richiesta-accesso">Richiedi l'accesso</Link></Button></div>
       </section>
     </main>
   </>;
