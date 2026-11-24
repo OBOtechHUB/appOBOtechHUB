@@ -1,4 +1,8 @@
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { prezziListino, type VersioneListino } from "@/lib/listino";
+import type { VoceListino } from "@/lib/listinoMetel";
+import { trovaArticolo, useCatalogoObo } from "@/lib/catalogoObo";
+import { quantitaOrdine } from "@/calcoli/materiali/confezioni";
 import { CodiceObo } from "@/components/prodotti/CodiceObo";
 import { L } from "@/lib/lingua";
 import { Link } from "@tanstack/react-router";
@@ -25,6 +29,16 @@ import { DocumentiImpianto } from "@/components/progetto/DocumentiImpianto";
 import { OffertaMateriali } from "@/components/progetto/OffertaMateriali";
 import { RelazioneTecnica } from "@/components/progetto/RelazioneTecnica";
 
+/** Dove si completa un dato mancante del computo. */
+function DOVE_MANCANTE(m: string): { to: string; hash?: string; testo: string } | null {
+  if (/^Passo supporti/i.test(m)) return { to: "/computo-materiali", hash: "parametri", testo: "indicalo in Parametri di computo" };
+  if (/^Captazione/i.test(m)) return { to: "/edificio-3d", testo: "calcola la captazione in Edificio 3D" };
+  if (/^Calate/i.test(m)) return { to: "/calate", testo: "apri Calate e distanza di separazione" };
+  if (/^Terra/i.test(m)) return { to: "/edificio-3d", testo: "accetta l'impianto di terra in Edificio 3D" };
+  if (/^SPD/i.test(m)) return { to: "/spd", testo: "scegli gli SPD" };
+  if (/particolar/i.test(m)) return { to: "/particolari", testo: "apri Particolari costruttivi" };
+  return null;
+}
 export function ComputoMaterialiPage() {
   const {user}=useAuth();
   const c = useComputo(); const d = useDatiEdificio();
@@ -33,7 +47,17 @@ export function ComputoMaterialiPage() {
   const generato = daDistinta
     ? {righe:[...righeProposta(s),...base.righe.filter((r)=>!esterna.includes(r.provenienza)),...vento],mancanti:base.mancanti.filter((m)=>!esterna.includes(m)&&!m.startsWith("Passo supporti"))}
     : {righe:[...base.righe,...dettagli.righe,...righeProposta(s),...vento],mancanti:[...base.mancanti,...dettagli.mancanti]};
-  const righe = applicaModifiche(generato.righe, c.modifiche, c.catalogo, c.manuali);
+  const righeCalcolate = applicaModifiche(generato.righe, c.modifiche, c.catalogo, c.manuali);
+  // listino METEL (ultima versione caricata in Amministrazione): prezzi e confezioni; catalogo obo.it per i codici
+  const [listino, setListino] = useState<{ versione: VersioneListino | null; voci: Map<string, VoceListino> } | null>(null);
+  const codiciChiave = [...new Set(righeCalcolate.map((r) => r.codice).filter(Boolean))].sort().join(",");
+  useEffect(() => { if (!user || !codiciChiave) return; let vivo = true; prezziListino(codiciChiave.split(",")).then((l) => { if (vivo) setListino(l); }).catch(() => { if (vivo) setListino({ versione: null, voci: new Map() }); }); return () => { vivo = false; }; }, [codiciChiave, user]);
+  const { catalogo: catObo } = useCatalogoObo();
+  const righe = useMemo(() => righeCalcolate.map((r) => {
+    const v = listino?.voci.get(r.codice);
+    return { ...r, quantita: quantitaOrdine(r.quantita, v?.confezione), prezzo: r.prezzo ?? (v ? v.prezzo / Math.max(1, v.moltiplicatore) : undefined) };
+  }), [righeCalcolate, listino]);
+  const calcolata = useMemo(() => new Map(righeCalcolate.map((r) => [r.id, r.quantita])), [righeCalcolate]);
   const [codiceNuovo, setCodiceNuovo] = useState("");
   const [download, setDownload] = useState<{ blob: Blob; nome: string } | null>(null);
   const [busy, setBusy] = useState(false); const [errore, setErrore] = useState("");
@@ -61,11 +85,14 @@ export function ComputoMaterialiPage() {
       {download && <Button onClick={() => scarica(download.blob, download.nome)}><Download />Scarica {download.nome.endsWith("pdf") ? "PDF" : "Excel"}</Button>}
     </div>
     {errore && <p role="alert" className="mt-3 text-sm text-destructive">{errore}</p>}
+    {(() => { const n = righe.filter((x) => !x.codice).length; return n ? <p className="mt-3 rounded-md border-l-4 border-destructive bg-destructive/5 px-4 py-2 text-sm"><b>{n} {n === 1 ? "riga" : "righe"} senza codice OBO</b> nell'elenco materiali qui sotto (segnate in rosso): indica il codice.</p> : null; })()}
+    {generato.mancanti.length > 0 && <div className="mt-4 rounded-md border-l-4 border-amber-500 bg-amber-50 px-4 py-3 dark:bg-amber-950/40"><h2 className="font-semibold">Computo incompleto: {generato.mancanti.length} {generato.mancanti.length === 1 ? "dato mancante" : "dati mancanti"}</h2>
+      <ul className="mt-1 space-y-0.5 text-sm">{generato.mancanti.map((m) => { const dove = DOVE_MANCANTE(m); return <li key={m}>• {m}{dove ? <> — <Link to={dove.to as "/"} hash={dove.hash} className="font-medium text-primary underline">{dove.testo}</Link></> : null}</li>; })}</ul>
+      <p className="mt-1 text-xs text-muted-foreground">Le righe manuali non sostituiscono i risultati di progetto.</p></div>}
     <RelazioneTecnica righe={righe} mancanti={generato.mancanti} particolari={lib} />
     <DocumentiImpianto />
     <OffertaMateriali righe={righe} />
-    {generato.mancanti.length > 0 && <div className="mt-5 border-l-4 border-accent bg-secondary px-4 py-3"><h2 className="font-semibold">Computo incompleto</h2><p className="mt-1 text-sm text-muted-foreground">Dati mancanti: {generato.mancanti.join(", ")}. Le righe manuali non sostituiscono i risultati di progetto.</p></div>}
-    <section className="mt-6 border-t pt-5"><h2 className="font-display text-lg font-semibold">Parametri di computo</h2>
+    <section id="parametri" className="mt-6 border-t pt-5"><h2 className="font-display text-lg font-semibold">Parametri di computo</h2>
       <div className="mt-3 grid gap-4 sm:grid-cols-3">
         <Campo etichetta="Maggiorazione sfridi (%)"><input className={inputCls} type="number" min="0" step="1" value={c.configurazione.sfridoPercento} onChange={(e) => aggiornaComputo({ configurazione: { ...c.configurazione, sfridoPercento: Math.max(0, Number(e.target.value) || 0) } })} /></Campo>
         {coperture.coperture.map((copertura) => <Campo key={copertura} etichetta={`Passo supporti — ${copertura} (m)`}><input className={inputCls} type="number" min="0.01" step="0.1" placeholder="Da definire" value={c.configurazione.passoSupporti[copertura] ?? ""} onChange={(e) => {
@@ -80,9 +107,9 @@ export function ComputoMaterialiPage() {
       {categorie.map((categoria) => {
         const gruppo = righe.filter((r) => r.categoria === categoria); if (!gruppo.length) return null;
         return <div key={categoria} className="mt-5"><h3 className="border-b border-accent pb-2 font-mono text-sm uppercase">{categoria}</h3><div className="overflow-x-auto"><table className="w-full min-w-[760px] text-sm"><thead><tr className="border-b text-left">{["Codice", "Descrizione", "Quantità", "Unità", "Provenienza", ""].map((h) => <th key={h} className="p-2">{h}</th>)}</tr></thead><tbody>{gruppo.map((r) => <tr key={r.id} className="border-b">
-          <td className="p-2"><input aria-label={`Codice ${r.descrizione}`} maxLength={100} list="codici-catalogo" className={`${inputCls} w-36`} value={r.codice} onChange={(e) => modifica(r.id, { codice: e.target.value })} />{/^\d{7}$/.test(r.codice) && <span className="mt-1 block text-xs">Anteprima: <CodiceObo codice={r.codice} /></span>}{r.codice && !c.catalogo.some((a) => a.codice === r.codice && a.unita === r.unita) && <span className="mt-1 block text-xs text-accent">Codice/unità fuori catalogo</span>}</td>
+          <td className="p-2"><input aria-label={`Codice ${r.descrizione}`} maxLength={100} list="codici-catalogo" className={`${inputCls} w-36`} value={r.codice} onChange={(e) => modifica(r.id, { codice: e.target.value })} />{/^\d{7}$/.test(r.codice) && <span className="mt-1 block text-xs">Anteprima: <CodiceObo codice={r.codice} /></span>}{!r.codice && <span className="mt-1 block text-xs font-semibold text-destructive">Codice mancante: indicalo</span>}{r.codice && listino?.versione && !listino.voci.has(r.codice) && <span className="mt-1 block text-xs text-accent">Non nel listino {listino.versione.versione.split(" · ")[0]}</span>}{r.codice && catObo && !trovaArticolo(catObo, r.codice) && <span className="mt-1 block text-xs text-accent">Non trovato su obo.it</span>}</td>
           <td className="p-2">{r.provenienza === "Inserimento manuale" && !c.catalogo.some((a) => a.codice === r.codice) ? <input aria-label={`Descrizione riga ${r.id}`} maxLength={500} className={`${inputCls} min-w-44`} value={r.descrizione} onChange={(e) => aggiornaComputo({ manuali: c.manuali.map((m) => m.id === r.id ? { ...m, descrizione: e.target.value } : m) })} /> : r.descrizione}{r.manuale && <span className="mt-1 block text-xs text-muted-foreground">Modifica manuale</span>}</td>
-          <td className="p-2"><input aria-label={`Quantità ${r.descrizione}`} className={`${inputCls} w-28 font-mono`} type="number" min="0" step={r.unita === "pz" ? "1" : "0.01"} value={r.quantita} onChange={(e) => modifica(r.id, { quantita: Math.max(0, Number(e.target.value) || 0) })} /></td>
+          <td className="p-2"><input aria-label={`Quantità ${r.descrizione}`} className={`${inputCls} w-28 font-mono`} type="number" min="0" step="1" value={r.quantita} onChange={(e) => modifica(r.id, { quantita: Math.max(0, Math.ceil(Number(e.target.value) || 0)) })} />{(() => { const q = calcolata.get(r.id) ?? r.quantita, conf = listino?.voci.get(r.codice)?.confezione ?? 1; return q !== r.quantita || conf > 1 ? <span className="mt-1 block text-xs text-muted-foreground">calcolati {q.toLocaleString("it-IT", { maximumFractionDigits: 2 })}{conf > 1 ? ` · confezione ${conf}` : ""}</span> : null; })()}</td>
           <td className="p-2">{r.unita}</td><td className="p-2 text-muted-foreground">{r.provenienza.split(/(OBO-TBS-[A-Za-z0-9.-]+)/).map((parte,i)=>parte.startsWith("OBO-TBS-")?<RiferimentoParticolare key={i} riferimento={parte}/>:<span key={i}>{parte}</span>)}</td>
           <td className="p-2"><Button variant="ghost" size="icon" title={r.provenienza === "Inserimento manuale" ? "Elimina riga" : "Ripristina quantità e codice"} aria-label={`${r.provenienza === "Inserimento manuale" ? "Elimina" : "Ripristina"} ${r.descrizione}`} onClick={() => {
             const modifiche = { ...c.modifiche }; delete modifiche[r.id];

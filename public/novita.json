@@ -2,6 +2,18 @@
   "nota": "Registro degli aggiornamenti di Progettazione LPS. Una voce per aggiornamento, la più recente per prima (app: lps). Viene mostrato nella barra \"Aggiorna app\", nel riquadro Novità e nella pagina Novità di OBO Hub.",
   "aggiornamenti": [
     {
+      "id": "2026-11-24-lps-40",
+      "data": "2026-11-24",
+      "app": "lps",
+      "titolo": "Elenco materiali con listino e confezioni",
+      "voci": [
+        "Elenco materiali: quantità intere, arrotondate per eccesso alla confezione del listino METEL (sotto si vede la quantità calcolata)",
+        "Prezzi presi dal listino caricato in Amministrazione (prezzo / moltiplicatore): il totale ora si calcola",
+        "Controllo dei codici sul listino e su obo.it: «Non nel listino» o «Non trovato su obo.it» al posto di «fuori catalogo»",
+        "Dati mancanti del computo in alto, con il collegamento alla sezione dove completarli; righe senza codice segnate in rosso"
+      ]
+    },
+    {
       "id": "2026-11-24-lps-39",
       "data": "2026-11-24",
       "app": "lps",
