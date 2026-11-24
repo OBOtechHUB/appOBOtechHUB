@@ -1,6 +1,15 @@
 {
-  "fonte": "Barre filettate isFang 3B-G1…G4 (catalogo OBO, 270/340/430/500 mm per 1/2/3/4 blocchi FangFix): il massimo installabile è 4 blocchi per base. Istruzioni di montaggio OBO irod tele-air-termination rod system (2016), tabelle 1–8 e 9; catalogo OBO aste di captazione Ø 16 mm. I diametri segnati con stima non sono nelle istruzioni.",
+  "fonte": "Treppiedi isFang: istruzioni isCon 2025 Tab. 5 (B, D, L, H) e Tab. 6; blocchi aggiuntivi interni solo nei treppiedi da 1500 mm. Barre filettate isFang 3B-G1…G4 (catalogo OBO, 270/340/430/500 mm per 1/2/3/4 blocchi FangFix): il massimo installabile è 4 blocchi per base. Istruzioni di montaggio OBO irod tele-air-termination rod system (2016), tabelle 1–8 e 9; catalogo OBO aste di captazione Ø 16 mm. I diametri segnati con stima non sono nelle istruzioni.",
   "blocco": { "codice": "5403227", "tipo": "F-FIX-S16", "massa": 16, "diametro": 365, "accessori": [{ "codice": "5403238", "tipo": "F-FIX-B16 3B", "descrizione": "Protezione per blocco 16 kg" }, { "codice": "5408905", "tipo": "isFang 3B-G1…G4", "descrizione": "Barra filettata M16 V2A, lunghezza secondo il numero di blocchi" }] },
+  "treppiedi": [
+    { "codice": "5408930", "tipo": "isFang 3B-100-A", "B": 1026, "D": 50, "L": 600, "H": 885, "materiale": "V2A", "basiInterne": false },
+    { "codice": "5408932", "tipo": "isFang 3B-150-A", "B": 1500, "D": 50, "L": 900, "H": 1275, "materiale": "V2A", "basiInterne": true },
+    { "codice": "5408902", "tipo": "isFang 3B-250-A", "B": 2900, "D": 50, "L": 1450, "H": 2055, "materiale": "V2A", "basiInterne": false },
+    { "codice": "5408966", "tipo": "isFang 3B-100 AL", "B": 1000, "D": 40, "L": 600, "H": 885, "materiale": "Alu", "basiInterne": false },
+    { "codice": "5408967", "tipo": "isFang 3B-150 AL", "B": 1500, "D": 40, "L": 900, "H": 1275, "materiale": "Alu", "basiInterne": true },
+    { "codice": "5408968", "tipo": "isFang 3B-100", "B": 1000, "D": 40, "L": 600, "H": 885, "materiale": "V2A", "basiInterne": false },
+    { "codice": "5408969", "tipo": "isFang 3B-150", "B": 1500, "D": 40, "L": 900, "H": 1275, "materiale": "V2A", "basiInterne": true }
+  ],
   "barre": [
     { "blocchi": 1, "codice": "5408971", "tipo": "isFang 3B-G1", "lunghezza": 270 },
     { "blocchi": 2, "codice": "5408972", "tipo": "isFang 3B-G2", "lunghezza": 340 },

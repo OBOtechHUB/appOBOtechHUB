@@ -10,7 +10,7 @@ import { Campo, inputCls } from "@/components/Campo";
 import { CampoNumero } from "@/components/CampoNumero";
 import { useDatiEdificio } from "@/lib/progettoStore";
 import { aggiornaEsteso, relazioneSchema, useEsteso, ventoSchema, type DatiVento } from "@/lib/statoProgetto";
-import { ASTE, BARRE, MAX_BLOCCHI_BASE, barraPer, CATEGORIE, MATERIALI, ZONE, ce, pressioneBase, velocitaBase, velocitaPiccoKmh, verificaParete, proveBlocchi, zavorraSostegno, zavorraTabelle, zonaDa, type Materiale, type Parametri } from "@/calcoli/vento/vento";
+import { ASTE, BARRE, basiTreppiede, descriviBasi, TREPPIEDI, MAX_BLOCCHI_BASE, barraPer, CATEGORIE, MATERIALI, ZONE, ce, pressioneBase, velocitaBase, velocitaPiccoKmh, verificaParete, proveBlocchi, zavorraSostegno, zavorraTabelle, zonaDa, type Materiale, type Parametri } from "@/calcoli/vento/vento";
 import { scarica } from "@/lib/esportazioni";
 import { NOME_METODO, verificaVentoProgetto } from "@/calcoli/vento/progetto";
 import { tipoAsta } from "@/calcoli/relazione/testiProgetto";
@@ -78,12 +78,13 @@ export function VentoPage() {
     XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet([["Sistema", "Basi (piedi)", "Leva basi", "Blocchi per piede", "Blocchi totali", "Zavorra (kg)", "MEd = 1,5·M (kN·m)", "MRd ribaltamento (kN·m)", "HEd = 1,5·F (kN)", "HRd scorrimento (kN)", "Esito", "Barra filettata per piede"],
       ...ASTE.sostegni.flatMap((so) => proveBlocchi(so, P).map((x) => [so.nome, x.basi, x.leva, x.perBase, x.totali, x.zavorra, Number(x.MEd.toFixed(2)), Number(x.MRd.toFixed(2)), Number(x.HEd.toFixed(2)), Number(x.HRd.toFixed(2)), x.ok ? "verificato" : "NO", x.barra ?? ""]))]), "Verifica blocchi irod");
     XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet([["Blocchi per base", "Barra art.", "Tipo", "Lunghezza (mm)"], ...BARRE.map((b) => [b.blocchi, b.codice, b.tipo, b.lunghezza])]), "Barre filettate");
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet([["Tipo", "Art.", "B ingombro (mm)", "D attacco asta (mm)", "L gamba (mm)", "H (mm)", "Materiale", "Basi interne"], ...TREPPIEDI.map((t) => [t.tipo, t.codice, t.B, t.D, t.L, t.H, t.materiale, t.basiInterne ? "sì (3 in più)" : "no"])]), "Treppiedi isFang");
     XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet([["Tabella OBO", "Altezza (m)", "Materiale", "Asta", "Sostegno", "Vento di picco in sommità (km/h)", "Blocchi 16 kg", "Zavorra (kg)", "Barra filettata per piede", "Vento massimo con 15 blocchi (km/h)"],
-      ...tabelle.map((t) => [t.tabella, t.altezza, t.materiale ?? "", t.asta, t.sostegno, Math.round(t.vento), t.blocchi ?? "oltre la tabella", t.zavorra ?? "", t.blocchi != null ? barraTxt(t.blocchi / 3) : "", t.ventoMax])]), "isFang su treppiede");
+      ...tabelle.map((t) => [t.tabella, t.altezza, t.materiale ?? "", t.asta, t.sostegno, Math.round(t.vento), t.blocchi ?? "oltre la tabella", t.zavorra ?? "", t.blocchi != null ? descriviBasi(basiTreppiede(t.blocchi, t.sostegno).basi) : "", t.ventoMax])]), "isFang su treppiede");
     XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet([["Asta", "Ø (mm)", "Lunghezza (m)", "Interasse supporti (m)", "Forza vento (kN)", "Reazione supporto superiore (kN)", "Reazione supporto inferiore (kN)", "Momento al supporto superiore (kN·m)", "σ (MPa)", "fd (MPa)", "Sfruttamento", "Esito"],
       ...parete.map((r) => [r.nome, r.d, r.l, r.s, Number(r.F.toFixed(3)), Number(r.R1.toFixed(3)), Number(r.R2.toFixed(3)), Number(r.M.toFixed(4)), Math.round(r.sigma), r.fd, Number(r.sfruttamento.toFixed(2)), r.esito === "ok" ? "verificato" : "non verificato"])]), "Aste a parete");
     if (progetto) XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet([["Art. asta", "Descrizione", "N° aste", "Altezza (m)", "Quota base (m)", "Metodo", "Vento in punta (km/h)", "F (kN)", "M base (kN·m)", "Basi", "Blocchi per base", "Blocchi per asta", "Barra per base", "σ / fd (MPa)", "Esito", "Note"],
-      ...progetto.gruppi.map((g) => [g.codice, g.nome, g.numero, g.altezza, g.quotaBase, NOME_METODO[g.metodo], Math.round(g.vento), Number(g.F.toFixed(3)), Number(g.M.toFixed(3)), g.basi ?? "", g.perBase ?? "", g.blocchi ?? "", g.barra ? `${g.barra.tipo} (${g.barra.codice})` : "", g.parete ? `${Math.round(g.parete.sigma)} / ${g.parete.fd}` : "", g.esito === "ok" ? "verificata" : "NON verificata", g.note.join(" ")]),
+      ...progetto.gruppi.map((g) => [g.codice, g.nome, g.numero, g.altezza, g.quotaBase, NOME_METODO[g.metodo], Math.round(g.vento), Number(g.F.toFixed(3)), Number(g.M.toFixed(3)), g.basi ?? "", g.perBase ?? "", g.blocchi ?? "", g.basiTreppiede?.length ? descriviBasi(g.basiTreppiede) : g.barra ? `${g.barra.tipo} (${g.barra.codice})` : "", g.parete ? `${Math.round(g.parete.sigma)} / ${g.parete.fd}` : "", g.esito === "ok" ? "verificata" : "NON verificata", g.note.join(" ")]),
       [], ["Zavorre e accessori"], ...progetto.computo.map((c) => [c.codice, c.descrizione, c.quantita])]), "Aste del progetto");
     const dati = XLSX.write(wb, { type: "array", bookType: "xlsx" }) as ArrayBuffer;
     scarica(new Blob([dati], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" }), `Vento_zavorre_aste_${(ed.comune || "progetto").replace(/[^\w-]+/g, "_")}.xlsx`);
@@ -133,7 +134,7 @@ export function VentoPage() {
                   <td className="p-1 text-xs">{NOME_METODO[g.metodo]}</td><td className="p-1 text-right">{g.numero}</td>
                   <td className="p-1 text-right">{f(g.altezza, 1)} m / {f(g.quotaBase, 1)} m</td><td className="p-1 text-right">{Math.round(g.vento)} km/h</td>
                   <td className="p-1 text-right font-semibold">{g.metodo === "parete" ? (g.parete ? `σ ${f(g.parete.sigma, 0)}/${g.parete.fd} MPa` : "–") : g.blocchi != null ? `${g.blocchi}${g.basi && g.basi > 1 ? ` (${g.basi}×${g.perBase})` : ""}` : "oltre"}</td>
-                  <td className="p-1 text-xs">{g.barra ? `${g.barra.tipo} (${g.barra.codice})` : "–"}</td>
+                  <td className="p-1 text-xs">{g.basiTreppiede?.length ? descriviBasi(g.basiTreppiede) : g.barra ? `${g.barra.tipo} (${g.barra.codice})` : "–"}</td>
                   <td className="p-1"><Esito ok={g.esito === "ok"} />{g.stima ? <span className="ml-1 text-xs text-muted-foreground">stima</span> : null}</td>
                 </tr>))}</tbody>
             </table>
@@ -176,7 +177,7 @@ export function VentoPage() {
 
       <section className="rounded-lg border bg-card p-4">
         <h2 className="mb-1 font-semibold">Aste isFang su treppiede (tabelle del catalogo OBO)</h2>
-        <p className="mb-3 text-sm text-muted-foreground">Raffica di picco alla sommità dell'asta confrontata con le velocità ammesse dal catalogo OBO per 3, 6, 9, 12 o 15 blocchi.</p>
+        <p className="mb-3 text-sm text-muted-foreground">Raffica di picco alla sommità dell'asta confrontata con le velocità ammesse dal catalogo OBO per 3, 6, 9, 12 o 15 blocchi. Una base per piede con 1–4 blocchi; oltre 12 blocchi i treppiedi da 1500 mm hanno 3 basi interne in più (istruzioni isCon).</p>
         <div className="overflow-x-auto">
           <table className="w-full min-w-[700px] text-sm">
             <thead><tr className="border-b text-left text-xs text-muted-foreground"><th className="p-1">Asta</th><th className="p-1">Tipo</th><th className="p-1 text-right">Altezza</th><th className="p-1 text-right">Raffica in sommità</th><th className="p-1 text-right">Blocchi 16 kg</th><th className="p-1 text-right">Zavorra</th><th className="p-1">Barra per piede</th></tr></thead>
@@ -184,10 +185,19 @@ export function VentoPage() {
               <tr key={t.asta + t.tabella} className="border-b">
                 <td className="p-1 font-mono text-xs">{t.asta}</td><td className="p-1 text-xs">{t.tabella.replace("Aste di captazione ", "")}{t.materiale ? ` (${t.materiale})` : ""}</td>
                 <td className="p-1 text-right">{f(t.altezza, 1)} m</td><td className="p-1 text-right">{Math.round(t.vento)} km/h</td>
-                <td className="p-1 text-right font-semibold">{t.blocchi ?? <span className="text-red-700">oltre {t.ventoMax} km/h</span>}</td><td className="p-1 text-right">{t.zavorra != null ? `${t.zavorra} kg` : "–"}</td><td className="p-1 text-xs">{t.blocchi != null ? `3 × ${barraTxt(t.blocchi / 3)}` : "–"}</td>
+                <td className="p-1 text-right font-semibold">{t.blocchi ?? <span className="text-red-700">oltre {t.ventoMax} km/h</span>}</td><td className="p-1 text-right">{t.zavorra != null ? `${t.zavorra} kg` : "–"}</td><td className="p-1 text-xs">{t.blocchi != null ? (() => { const d = basiTreppiede(t.blocchi, t.sostegno); return <>{descriviBasi(d.basi)}{d.nota && !d.installabile ? <span className="block text-amber-700">{d.nota}</span> : null}</>; })() : "–"}</td>
               </tr>))}</tbody>
           </table>
         </div>
+              <details className="mt-3">
+          <summary className="cursor-pointer text-sm font-medium">Treppiedi isFang (istruzioni isCon, Tab. 5)</summary>
+          <div className="mt-2 overflow-x-auto">
+            <table className="w-full min-w-[600px] text-xs">
+              <thead><tr className="border-b text-left text-muted-foreground"><th className="p-1">Tipo</th><th className="p-1">Art.</th><th className="p-1 text-right">B</th><th className="p-1 text-right">Ø asta</th><th className="p-1 text-right">L gamba</th><th className="p-1 text-right">H</th><th className="p-1">Materiale</th><th className="p-1">Basi interne</th></tr></thead>
+              <tbody>{TREPPIEDI.map((t) => <tr key={t.codice} className="border-b"><td className="p-1">{t.tipo}</td><td className="p-1 font-mono">{t.codice}</td><td className="p-1 text-right">{t.B} mm</td><td className="p-1 text-right">{t.D} mm</td><td className="p-1 text-right">{t.L} mm</td><td className="p-1 text-right">{t.H} mm</td><td className="p-1">{t.materiale}</td><td className="p-1">{t.basiInterne ? "sì, 3 in più" : "no"}</td></tr>)}</tbody>
+            </table>
+          </div>
+        </details>
       </section>
 
       <section className="rounded-lg border bg-card p-4">

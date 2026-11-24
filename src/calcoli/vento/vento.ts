@@ -230,4 +230,23 @@ export const ASTE = aste;
 /** Barre filettate isFang 3B per impilare i blocchi: G1…G4 per 1…4 blocchi (massimo installabile 4 per base). */
 export const BARRE = aste.barre;
 export const MAX_BLOCCHI_BASE = Math.max(...aste.barre.map((b) => b.blocchi));
+/** Treppiedi isFang (istruzioni isCon Tab. 5): ingombro B, attacco D, gamba L, altezza H (mm). */
+export const TREPPIEDI = aste.treppiedi;
+export interface BaseTreppiede { posizione: "esterna" | "interna"; n: number; perBase: number; barra: (typeof aste.barre)[number] | null }
+/**
+ * Come si dispongono i blocchi della tabella OBO sul treppiede: una base per piede (3) con 1–4 blocchi;
+ * oltre 12 blocchi, nei treppiedi da 1500 mm, altre 3 basi interne (istruzioni isCon §5.5.1).
+ */
+export function basiTreppiede(blocchi: number, sostegno: string): { basi: BaseTreppiede[]; installabile: boolean; nota: string | null } {
+  const t = aste.treppiedi.find((x) => x.codice === sostegno);
+  const barra = (k: number) => aste.barre.find((b) => b.blocchi >= k) ?? null;
+  const perPiede = Math.ceil(blocchi / 3);
+  if (perPiede <= MAX_BLOCCHI_BASE) return { basi: [{ posizione: "esterna", n: 3, perBase: perPiede, barra: barra(perPiede) }], installabile: true, nota: null };
+  if (t?.basiInterne) {
+    const kEst = Math.min(MAX_BLOCCHI_BASE, Math.ceil(blocchi / 6)), kInt = Math.ceil((blocchi - 3 * kEst) / 3);
+    return { basi: [{ posizione: "esterna", n: 3, perBase: kEst, barra: barra(kEst) }, { posizione: "interna", n: 3, perBase: kInt, barra: barra(kInt) }], installabile: true, nota: `${blocchi} blocchi: 3 basi ai piedi e 3 basi interne (treppiede da 1500 mm).` };
+  }
+  return { basi: [{ posizione: "esterna", n: 3, perBase: perPiede, barra: null }], installabile: false, nota: `${blocchi} blocchi = ${perPiede} per piede: la barra G4 ne porta 4 e il treppiede ${t?.tipo ?? sostegno} non prevede basi interne: chiedere a OBO.` };
+}
+export const descriviBasi = (b: BaseTreppiede[]) => b.map((x) => `${x.n} basi ${x.posizione === "esterna" ? "ai piedi" : "interne"} × ${x.perBase} ${x.perBase === 1 ? "blocco" : "blocchi"}${x.barra ? ` (${x.barra.tipo} ${x.barra.codice})` : " (nessuna barra a catalogo)"}`).join(" + ");
 export const barraPer = (blocchi: number | null | undefined) => (blocchi == null ? null : aste.barre.find((b) => b.blocchi >= blocchi) ?? null);

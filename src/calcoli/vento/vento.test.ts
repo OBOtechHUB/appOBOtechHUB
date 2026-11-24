@@ -73,3 +73,14 @@ describe("prove dei blocchi", () => {
     expect(pr.find((x) => x.ok)?.perBase).toBe(zavorraSostegno(s, PARAMETRI_BASE).perBase);
   });
 });
+
+describe("basi dei treppiedi isFang", () => {
+  it("fino a 12 blocchi una base per piede, 15 blocchi con basi interne solo nei treppiedi da 1500 mm", async () => {
+    const { basiTreppiede } = await import("./vento");
+    expect(basiTreppiede(9, "5408967").basi).toEqual([expect.objectContaining({ posizione: "esterna", n: 3, perBase: 3 })]);
+    const d15 = basiTreppiede(15, "5408967");
+    expect(d15.installabile).toBe(true);
+    expect(d15.basi.map((b) => [b.posizione, b.perBase, b.barra?.codice])).toEqual([["esterna", 3, "5408973"], ["interna", 2, "5408972"]]);
+    expect(basiTreppiede(15, "5408966").installabile).toBe(false);
+  });
+});

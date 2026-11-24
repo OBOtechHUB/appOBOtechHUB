@@ -9,7 +9,7 @@
  * È un predimensionamento: i numeri definitivi li conferma lo strutturista (istruzioni OBO §3.6).
  */
 import type { Asta } from "@/calcoli/edificio/tipi";
-import { ASTE, BARRE, CF0, MAX_BLOCCHI_BASE, barraPer, G, MASSA_BLOCCO, MATERIALI, azioneAsta, psiLambda, velocitaPiccoKmh, verificaParete, zavorraSostegno, zavorraTabelle, type Materiale, type Parametri } from "./vento";
+import { ASTE, BARRE, basiTreppiede, type BaseTreppiede, CF0, MAX_BLOCCHI_BASE, barraPer, G, MASSA_BLOCCO, MATERIALI, azioneAsta, psiLambda, velocitaPiccoKmh, verificaParete, zavorraSostegno, zavorraTabelle, type Materiale, type Parametri } from "./vento";
 
 export type TipoFissaggio = "isolata" | "treppiede" | "basamento" | "fissa";
 export type MetodoVento = "irod" | "tabella" | "treppiede" | "basamento" | "parete";
@@ -27,7 +27,7 @@ export interface VerificaGruppo {
   chiave: string; codice: string; nome: string; numero: number; altezza: number; quotaBase: number; tipo: TipoFissaggio; metodo: MetodoVento;
   /** velocità di picco del vento in punta (km/h) */ vento: number;
   /** forza del vento e momento alla base, valori caratteristici (kN, kN·m) */ F: number; M: number;
-  diametro: number; basi: number | null; perBase: number | null; /** barra filettata per base */ barra: { codice: string; tipo: string; lunghezza: number } | null; blocchi: number | null; zavorraKg: number | null;
+  diametro: number; basi: number | null; perBase: number | null; /** treppiede isFang: basi ai piedi e interne */ basiTreppiede?: BaseTreppiede[] | null; /** barra filettata per base */ barra: { codice: string; tipo: string; lunghezza: number } | null; blocchi: number | null; zavorraKg: number | null;
   ribaltamento: { sollecitante: number; resistente: number } | null; scorrimento: { sollecitante: number; resistente: number } | null;
   /** solo aste a parete */ parete: { s: number; sigma: number; fd: number; sfruttamento: number; R1: number; R2: number; materiale: string } | null;
   esito: "ok" | "no" | "oltre"; stima: boolean; note: string[];
@@ -102,8 +102,10 @@ export function verificaVentoProgetto(aste: Asta[], articoli: Record<string, Art
       const t = zavorraTabelle(p).find((r) => r.asta === a.codiceOBO);
       if (t) {
         if (Math.abs(t.altezza - a.altezza) > 0.05) note.push(`Altezza nel modello ${a.altezza} m, nella tabella OBO ${t.altezza} m: vale la tabella dell'articolo.`);
-        out.push({ ...base, vento: t.vento, metodo: "tabella", F: az.F, M: az.M, diametro: d, barra: null, basi: 3, perBase: t.blocchi != null ? t.blocchi / 3 : null, blocchi: t.blocchi, zavorraKg: t.zavorra,
-          ribaltamento: null, scorrimento: null, parete: null, esito: t.blocchi != null ? "ok" : "oltre", stima: false,
+        const disp = t.blocchi != null ? basiTreppiede(t.blocchi, t.sostegno) : null;
+        if (disp?.nota) note.push(disp.nota);
+        out.push({ ...base, vento: t.vento, metodo: "tabella", F: az.F, M: az.M, diametro: d, barra: disp?.basi.length === 1 && disp.basi[0]!.barra ? { codice: disp.basi[0]!.barra.codice, tipo: disp.basi[0]!.barra.tipo, lunghezza: disp.basi[0]!.barra.lunghezza } : null, basiTreppiede: disp?.basi ?? null, basi: disp ? disp.basi.reduce((x, b) => x + b.n, 0) : 3, perBase: disp?.basi.length === 1 ? disp.basi[0]!.perBase : null, blocchi: t.blocchi, zavorraKg: t.zavorra,
+          ribaltamento: null, scorrimento: null, parete: null, esito: t.blocchi != null && disp?.installabile !== false ? "ok" : "oltre", stima: false,
           note: [...note, `Treppiede art. ${t.sostegno}; tabella valida fino a ${t.ventoMax} km/h.`, ...(t.blocchi == null ? [`La velocità di picco in punta (${Math.round(t.vento)} km/h) supera la tabella OBO: asta più corta, altro sostegno o calcolo dello strutturista.`] : [])] });
         continue;
       }
@@ -140,7 +142,7 @@ export function verificaVentoProgetto(aste: Asta[], articoli: Record<string, Art
       parete: { s: e.s, sigma: e.sigma, fd: e.fd, sfruttamento: e.sfruttamento, R1: e.R1, R2: e.R2, materiale: mat.nome }, esito: e.esito, stima: !daCatalogo,
       note: [...note, ...(e.esito === "no" ? ["Tensione oltre la resistenza: avvicinare i supporti, aumentare il diametro o scegliere un materiale più resistente."] : [])] });
   }
-  for (const g of out) if (g.metodo !== "parete" && g.perBase != null) {
+  for (const g of out) if (g.metodo !== "parete" && g.perBase != null && !g.basiTreppiede?.length) {
     const b = barraPer(g.perBase);
     if (b) g.barra = { codice: b.codice, tipo: b.tipo, lunghezza: b.lunghezza };
     else g.note.push(`${g.perBase} blocchi per base: la barra più lunga a catalogo (isFang 3B-G4, 500 mm) porta 4 blocchi; verificare con OBO il fissaggio.`);
@@ -151,6 +153,7 @@ export function verificaVentoProgetto(aste: Asta[], articoli: Record<string, Art
   const barre = new Map<string, number>();
   for (const g of out) if (g.blocchi != null && g.metodo !== "parete") {
     blocchi += g.blocchi * g.numero;
+    if (g.basiTreppiede?.length) { for (const bt of g.basiTreppiede) { const b = bt.barra ?? BARRE.at(-1)!; barre.set(b.codice, (barre.get(b.codice) ?? 0) + bt.n * g.numero); } continue; }
     const b = g.barra ?? (g.perBase != null ? BARRE.at(-1)! : null);
     if (b) barre.set(b.codice, (barre.get(b.codice) ?? 0) + (g.basi ?? 0) * g.numero);
   }

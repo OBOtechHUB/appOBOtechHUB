@@ -29,7 +29,7 @@ import blocchiTreppiede from "@/dati/captazione/blocchiTreppiede.json";
 import { NOME_TIPO, blocchiPerVento, fraseCalate, fraseIntervento, fraseSoluzione, frasiStatoDiFatto, tipoAsta, verificaCorpi, type InfoArticolo, type TipoAsta } from "./testiProgetto";
 import { schemaBlocchi } from "./grafici";
 import { NOME_METODO, verificaVentoProgetto, type DatiVentoProgetto } from "@/calcoli/vento/progetto";
-import { CATEGORIE as CATEGORIE_VENTO, ZONE as ZONE_VENTO, ce as ceVento, pressioneBase, velocitaBase } from "@/calcoli/vento/vento";
+import { descriviBasi, CATEGORIE as CATEGORIE_VENTO, ZONE as ZONE_VENTO, ce as ceVento, pressioneBase, velocitaBase } from "@/calcoli/vento/vento";
 import { disegnoDaComponenti, disegnoSchema, svgTipologico, type IndiceDisegniObo } from "@/calcoli/particolari/tipologico";
 import { ruoloDi } from "@/calcoli/particolari/allinea";
 import { traduciDocumento } from "./traduzione";
@@ -719,7 +719,7 @@ export function relazioneTecnica(x: IngressoRelazione): Documento {
       tabN("Aste su sostegno: azione del vento e blocchi FangFix da 16 kg (art. 5403227)", ["Art. asta", "Sostegno / metodo", "N°", "H (m)", "Quota base (m)", "Vento in punta (km/h)", "F (kN)", "M base (kN·m)", "Blocchi per asta", "Barra per base", "MEd / MRd (kN·m)", "Esito"],
         sost.map((g) => [[{ t: g.codice || "—", b: true }], NOME_METODO[g.metodo], String(g.numero), it(g.altezza, 2), it(g.quotaBase, 1), it(g.vento, 0), it(g.F, 3), it(g.M, 3),
           g.blocchi != null ? `${g.blocchi}${g.basi && g.basi > 1 ? ` (${g.basi} × ${g.perBase})` : ""} = ${it(g.blocchi * 16, 0)} kg` : rosso("oltre il massimo"),
-          g.barra ? `${g.barra.tipo} (${g.barra.codice})` : "—",
+          g.basiTreppiede && g.basiTreppiede.length > 1 ? descriviBasi(g.basiTreppiede) : g.barra ? `${g.barra.tipo} (${g.barra.codice})` : "—",
           g.ribaltamento ? `${it(g.ribaltamento.sollecitante, 2)} / ${it(g.ribaltamento.resistente, 2)}` : "tabella OBO",
           g.esito === "ok" ? (g.stima ? "OK (stima)" : "OK") : rosso("NON VERIFICATA")]), [1.2, 2.2, 0.5, 0.7, 0.8, 0.9, 0.7, 0.8, 1.4, 1.5, 1.3, 1]);
     }
@@ -731,7 +731,7 @@ export function relazioneTecnica(x: IngressoRelazione): Documento {
     B.push(p([{ t: ko.length ? `${ko.reduce((a, g) => a + g.numero, 0)} aste non risultano verificate (righe in rosso): ` : "Tutte le aste del progetto risultano verificate al vento. ", b: true }, ...(ko.length ? [dc("cambiare sostegno, altezza o fissaggio delle aste segnate e ripetere la verifica")] : [])]));
     if (ev.computo.length) {
       tabN("Zavorre e accessori risultanti dalla verifica al vento", ["Art.", "Descrizione", "Quantità"], ev.computo.map((c) => [[{ t: c.codice, b: true }], c.descrizione, `${c.quantita} pz`]), [1.4, 8, 1.6]);
-      B.push(p(`In totale ${ev.blocchiTotali} blocchi da 16 kg (${it(ev.blocchiTotali * 16, 0)} kg di zavorra): il carico dei sostegni e dei blocchi va confrontato con la portata della copertura. Ogni base di blocchi ha una barra filettata M16 isFang 3B della lunghezza adatta al numero di blocchi (G1 270 mm per 1 blocco, G2 340 mm per 2, G3 430 mm per 3, G4 500 mm per 4: massimo installabile 4 blocchi per base) e una protezione per ogni blocco (istruzioni OBO); sotto i blocchi va posato un appoggio protettivo concordato con il copritetto.`));
+      B.push(p(`In totale ${ev.blocchiTotali} blocchi da 16 kg (${it(ev.blocchiTotali * 16, 0)} kg di zavorra): il carico dei sostegni e dei blocchi va confrontato con la portata della copertura. Ogni base di blocchi ha una barra filettata M16 isFang 3B della lunghezza adatta al numero di blocchi (G1 270 mm per 1 blocco, G2 340 mm per 2, G3 430 mm per 3, G4 500 mm per 4: massimo installabile 4 blocchi per base; nei treppiedi isFang da 1500 mm oltre 12 blocchi si aggiungono 3 basi interne) e una protezione per ogni blocco (istruzioni OBO); sotto i blocchi va posato un appoggio protettivo concordato con il copritetto.`));
     }
     const note = [...new Set(ev.gruppi.flatMap((g) => g.note.map((n) => `${g.codice || "asta senza articolo"}: ${n}`)))];
     if (note.length) B.push(p("Note alla verifica:", { dimensione: 9 }), el(...note.slice(0, 20)));

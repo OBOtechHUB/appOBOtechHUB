@@ -11,7 +11,8 @@
         "Barre filettate isFang 3B-G1, G2, G3, G4 (270, 340, 430, 500 mm) per 1, 2, 3, 4 blocchi: ogni base mostra la barra da installare; il massimo installabile è 4 blocchi per base",
         "La relazione tecnica (13.1) riporta parametri del vento, tabelle di verifica di tutte le aste, esito e zavorre; il computo materiali aggiunge blocchi 5403227, protezioni 5403238 e le barre giuste",
         "Excel della pagina con il foglio «Aste del progetto»",
-        "Irod: dettaglio di tutte le verifiche da 1 a 4 blocchi per piede con la barra da installare (come l'Excel), anche nei fogli «Verifica blocchi irod» e «Barre filettate» dell'Excel della pagina"
+        "Irod: dettaglio di tutte le verifiche da 1 a 4 blocchi per piede con la barra da installare (come l'Excel), anche nei fogli «Verifica blocchi irod» e «Barre filettate» dell'Excel della pagina",
+        "Treppiedi isFang dalle istruzioni isCon (ingombro, gamba, altezza): fino a 12 blocchi una base per piede, oltre 12 i treppiedi da 1500 mm usano 3 basi interne in più, ognuna con la sua barra; tabella dei treppiedi nella pagina e nell'Excel"
       ]
     },
     {
