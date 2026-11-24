@@ -208,3 +208,7 @@ export function verificaParete(a: { id: string; nome: string; d: number; l: numb
 }
 
 export const ASTE = aste;
+/** Barre filettate isFang 3B per impilare i blocchi: G1…G4 per 1…4 blocchi (massimo installabile 4 per base). */
+export const BARRE = aste.barre;
+export const MAX_BLOCCHI_BASE = Math.max(...aste.barre.map((b) => b.blocchi));
+export const barraPer = (blocchi: number | null | undefined) => (blocchi == null ? null : aste.barre.find((b) => b.blocchi >= blocchi) ?? null);

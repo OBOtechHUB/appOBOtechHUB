@@ -160,6 +160,7 @@ export function RelazioneTecnica({ righe, mancanti, particolari }: { righe: Riga
         modello: s.modello, aste: s.aste, conduttori: s.conduttori, picchetti: s.picchetti, terra: s.terra,
         separazione: s.separazione, rischio, risultati: c.risultati, righe, mancanti, particolari, dati: r, data: new Date(),
         articoli: await articoliAste(s.aste.map((a) => a.codiceOBO)),
+        vento: s.vento,
         immagini: {
           logo: await logoObo(),
           stemma: stemma ? await preparaImmagine(stemma, false, 800) : stemmaAuto ? await preparaImmagine(stemmaAuto.blob, false, 800) : undefined,

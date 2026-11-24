@@ -28,6 +28,8 @@ import { l1Norma } from "@/calcoli/terra/proponiTerra";
 import blocchiTreppiede from "@/dati/captazione/blocchiTreppiede.json";
 import { NOME_TIPO, blocchiPerVento, fraseCalate, fraseIntervento, fraseSoluzione, frasiStatoDiFatto, tipoAsta, verificaCorpi, type InfoArticolo, type TipoAsta } from "./testiProgetto";
 import { schemaBlocchi } from "./grafici";
+import { NOME_METODO, verificaVentoProgetto, type DatiVentoProgetto } from "@/calcoli/vento/progetto";
+import { CATEGORIE as CATEGORIE_VENTO, ZONE as ZONE_VENTO, ce as ceVento, pressioneBase, velocitaBase } from "@/calcoli/vento/vento";
 import { disegnoDaComponenti, disegnoSchema, svgTipologico, type IndiceDisegniObo } from "@/calcoli/particolari/tipologico";
 import { ruoloDi } from "@/calcoli/particolari/allinea";
 import { traduciDocumento } from "./traduzione";
@@ -102,6 +104,8 @@ export interface IngressoRelazione {
   creditoStemma?: string | undefined;
   /** disegni 2D OBO copiati nell'app, per i tipologici disegnati con i blocchi OBO */
   disegniObo?: IndiceDisegniObo | null | undefined;
+  /** parametri del vento (pagina Vento e zavorre): se ci sono, la relazione riporta la verifica al vento di tutte le aste */
+  vento?: DatiVentoProgetto | undefined;
   data: Date;
 }
 
@@ -672,9 +676,9 @@ export function relazioneTecnica(x: IngressoRelazione): Documento {
   if (ver) B.push(tab(["Verifica della captazione", "Valore"], [["Superficie protetta dalla sfera rotolante", `${it(ver.areaProtettaSfera, 1)} m²`], ["Superficie protetta dalla maglia", `${it(ver.areaProtettaMaglia, 1)} m²`], ["Superficie esposta", `${it(ver.areaEsposta, 1)} m²`], ["Maglie conformi", `${ver.maglie.filter((m) => m.conforme).length} su ${ver.maglie.length}`]], [6, 5]), ...(ver.areaEsposta > 0.5 ? [p([{ t: `Attenzione: ${it(ver.areaEsposta, 1)} m² di copertura risultano esposti. `, b: true }, dc("integrare la captazione o motivare")])] : []));
   const asteTreppiede = x.aste.filter((a) => { const t2 = tipi.get(a.id); return t2 === "treppiede" || t2 === "isolata"; });
   if (asteTreppiede.length) {
-    B.push(p("Aste su treppiede: in funzione della velocità del vento di progetto è necessario scegliere il numero di blocchi in calcestruzzo che sostengono ogni asta. Va inoltre considerato il peso complessivo della struttura che sostiene l'asta (asta, treppiede, blocchi) rispetto alla portata della copertura."));
-    const bl = blocchiPerVento(asteTreppiede, r.ventoKmh);
-    if (r.ventoKmh != null && bl.length) {
+    B.push(p(x.vento ? "Aste su treppiede: il numero di blocchi in calcestruzzo di ogni asta è scelto con la verifica al vento riportata più avanti; le tabelle seguenti del catalogo OBO ne sono il riferimento. Va inoltre considerato il peso complessivo della struttura che sostiene l'asta (asta, treppiede, blocchi) rispetto alla portata della copertura." : "Aste su treppiede: in funzione della velocità del vento di progetto è necessario scegliere il numero di blocchi in calcestruzzo che sostengono ogni asta. Va inoltre considerato il peso complessivo della struttura che sostiene l'asta (asta, treppiede, blocchi) rispetto alla portata della copertura."));
+    const bl = x.vento ? [] : blocchiPerVento(asteTreppiede, r.ventoKmh);
+    if (x.vento) { /* blocchi dalla verifica al vento */ } else if (r.ventoKmh != null && bl.length) {
       tabN(`Blocchi in calcestruzzo per le aste su treppiede del progetto – velocità del vento di progetto ${it(r.ventoKmh, 0)} km/h (tabelle del catalogo OBO)`, ["Art. asta", "Altezza (m)", "N° aste", "Blocchi per asta", "Peso blocchi per asta", "Blocchi totali"], bl.map((b) => [[{ t: b.codice, b: true }], it(b.altezza, 1), String(b.numero), b.blocchi ?? [{ t: `oltre ${b.ventoMax} km/h: non ammesso`, b: true, colore: "C62828" }], b.pesoKg != null ? `${b.pesoKg} kg` : "—", b.blocchi ? `${Number(b.blocchi.split(" x ")[0]) * b.numero} × 16 kg` : "—"]), [1.6, 1.1, 1, 1.6, 1.8, 1.8]);
       const tot = bl.reduce((a, b) => a + (b.blocchi ? Number(b.blocchi.split(" x ")[0]) * b.numero : 0), 0);
       B.push(p(`In totale sono necessari ${tot} blocchi da 16 kg (${it(tot * 16, 0)} kg)${bl.some((b) => !b.blocchi) ? "; per le aste segnate la velocità di progetto supera i valori del catalogo: valutare un'asta più corta o un altro sistema di fissaggio" : ""}.`));
@@ -690,6 +694,48 @@ export function relazioneTecnica(x: IngressoRelazione): Documento {
       ], [2.6, ...cols.map(() => 1), 1.6]);
       { const b = B.pop()!; B.push(b.tipo === "tabella" ? { ...b, dimensione: cols.length > 5 ? 7.5 : 8.5, evidenziaColonna: cols.findIndex((c) => asteTreppiede.some((a) => a.codiceOBO === c.asta)) + 1 || undefined } as Blocco : b); }
     }
+  }
+  if (x.vento && x.aste.length) {
+    const vv = x.vento, ev = verificaVentoProgetto(x.aste, articoli, vv, (a) => tipi.get(a.id) ?? "fissa");
+    const vb = velocitaBase(vv.zona, vv.altitudine), cat = CATEGORIE_VENTO.find((c) => c.cat === vv.categoria)!, zn = ZONE_VENTO.find((z) => z.zona === vv.zona)!;
+    B.push(h3("Verifica al vento e zavorre delle aste"),
+      p("L'azione del vento sulle aste è calcolata secondo le NTC 2018 (§3.3) e la UNI EN 1991-1-4 con l'Annesso Nazionale italiano, per un periodo di ritorno di 50 anni. La pressione di picco alla quota z è qp(z) = qb · ce(z), con qb = ½ · ρ · vb² (ρ = 1,25 kg/m³) e il coefficiente di esposizione ce(z) della categoria di esposizione del sito. Ogni asta è un cilindro: la forza è F = cf · qp(z) · d · dz integrata lungo l'asta, con cf = 1,2 · ψλ (EN 1991-1-4 §7.9, ψλ dalla snellezza). Le verifiche di equilibrio (EQU) amplificano il vento con γQ = 1,5 e riducono i pesi favorevoli con γG = 0,9: ribaltamento attorno alla retta tra due piedi del sostegno e scorrimento con coefficiente di attrito μ. Per le aste fissate alla struttura si verifica la tensione di flessione dell'asta al supporto superiore."),
+    );
+    tabN("Parametri del vento del sito", ["Parametro", "Valore"], [
+      ["Zona (NTC 2018 Tab. 3.3.I)", `${vv.zona} – ${zn.descrizione}${vv.regione ? ` (${vv.regione}${vv.provincia ? `, ${vv.provincia}` : ""})` : ""}`],
+      ["vb,0 · a0 · ks", `${it(zn.vb0, 0)} m/s · ${it(zn.a0, 0)} m · ${it(zn.ks, 2)}`],
+      ["Altitudine del sito as", `${it(vv.altitudine, 0)} m s.l.m. (ca = ${it(vb.ca, 3)})`],
+      ["Velocità di riferimento vb", `${it(vb.vb, 2)} m/s`],
+      ["Pressione cinetica di riferimento qb", `${it(pressioneBase(vb.vb), 0)} N/m²`],
+      ["Categoria di esposizione", `${cat.cat} (kr = ${it(cat.kr, 2)}, z0 = ${it(cat.z0, 2)} m, zmin = ${it(cat.zmin, 0)} m)`],
+      ["ce a 10 m", it(ceVento(10, vv.categoria), 3)],
+      ["Attrito blocchi–copertura μ", it(vv.mu, 2)],
+      ["Coefficienti parziali", "γQ = 1,5 (vento) · γG = 0,9 (pesi favorevoli)"],
+      ["Aste a parete: interasse supporti · materiale", `${it(vv.interasseParete, 2)} m · ${vv.materialeParete === "AL" ? "alluminio" : vv.materialeParete === "VA" ? "acciaio inox V2A" : "acciaio zincato a caldo"}`],
+    ], [6, 7]);
+    const sost = ev.gruppi.filter((g) => g.metodo !== "parete"), par = ev.gruppi.filter((g) => g.metodo === "parete");
+    const rosso = (t: string): Testo => [{ t, b: true, colore: "C62828" }];
+    if (sost.length) {
+      tabN("Aste su sostegno: azione del vento e blocchi FangFix da 16 kg (art. 5403227)", ["Art. asta", "Sostegno / metodo", "N°", "H (m)", "Quota base (m)", "Vento in punta (km/h)", "F (kN)", "M base (kN·m)", "Blocchi per asta", "Barra per base", "MEd / MRd (kN·m)", "Esito"],
+        sost.map((g) => [[{ t: g.codice || "—", b: true }], NOME_METODO[g.metodo], String(g.numero), it(g.altezza, 2), it(g.quotaBase, 1), it(g.vento, 0), it(g.F, 3), it(g.M, 3),
+          g.blocchi != null ? `${g.blocchi}${g.basi && g.basi > 1 ? ` (${g.basi} × ${g.perBase})` : ""} = ${it(g.blocchi * 16, 0)} kg` : rosso("oltre il massimo"),
+          g.barra ? `${g.barra.tipo} (${g.barra.codice})` : "—",
+          g.ribaltamento ? `${it(g.ribaltamento.sollecitante, 2)} / ${it(g.ribaltamento.resistente, 2)}` : "tabella OBO",
+          g.esito === "ok" ? (g.stima ? "OK (stima)" : "OK") : rosso("NON VERIFICATA")]), [1.2, 2.2, 0.5, 0.7, 0.8, 0.9, 0.7, 0.8, 1.4, 1.5, 1.3, 1]);
+    }
+    if (par.length) {
+      tabN("Aste fissate alla struttura con due supporti: verifica a flessione", ["Art. asta", "N°", "Ø (mm)", "L (m)", "Quota base (m)", "Vento in punta (km/h)", "Interasse supporti (m)", "R sup. / inf. (kN)", "σ / fd (MPa)", "Sfruttamento", "Esito"],
+        par.map((g) => [[{ t: g.codice || "—", b: true }], String(g.numero), it(g.diametro, 1), it(g.altezza, 2), it(g.quotaBase, 1), it(g.vento, 0), it(g.parete!.s, 2), `${it(g.parete!.R1, 3)} / ${it(Math.abs(g.parete!.R2), 3)}`, `${it(g.parete!.sigma, 0)} / ${it(g.parete!.fd, 0)}`, `${it(g.parete!.sfruttamento * 100, 0)} %`, g.esito === "ok" ? "OK" : rosso("NON VERIFICATA")]), [1.3, 0.6, 0.8, 0.8, 0.9, 1, 1, 1.4, 1.2, 1, 1.1]);
+    }
+    const ko = ev.gruppi.filter((g) => g.esito !== "ok");
+    B.push(p([{ t: ko.length ? `${ko.reduce((a, g) => a + g.numero, 0)} aste non risultano verificate (righe in rosso): ` : "Tutte le aste del progetto risultano verificate al vento. ", b: true }, ...(ko.length ? [dc("cambiare sostegno, altezza o fissaggio delle aste segnate e ripetere la verifica")] : [])]));
+    if (ev.computo.length) {
+      tabN("Zavorre e accessori risultanti dalla verifica al vento", ["Art.", "Descrizione", "Quantità"], ev.computo.map((c) => [[{ t: c.codice, b: true }], c.descrizione, `${c.quantita} pz`]), [1.4, 8, 1.6]);
+      B.push(p(`In totale ${ev.blocchiTotali} blocchi da 16 kg (${it(ev.blocchiTotali * 16, 0)} kg di zavorra): il carico dei sostegni e dei blocchi va confrontato con la portata della copertura. Ogni base di blocchi ha una barra filettata M16 isFang 3B della lunghezza adatta al numero di blocchi (G1 270 mm per 1 blocco, G2 340 mm per 2, G3 430 mm per 3, G4 500 mm per 4: massimo installabile 4 blocchi per base) e una protezione per ogni blocco (istruzioni OBO); sotto i blocchi va posato un appoggio protettivo concordato con il copritetto.`));
+    }
+    const note = [...new Set(ev.gruppi.flatMap((g) => g.note.map((n) => `${g.codice || "asta senza articolo"}: ${n}`)))];
+    if (note.length) B.push(p("Note alla verifica:", { dimensione: 9 }), el(...note.slice(0, 20)));
+    B.push(p("La verifica è un predimensionamento: le istruzioni OBO richiedono che il numero definitivo dei blocchi e il fissaggio siano confermati dallo strutturista per il progetto specifico, anche in relazione alla portata della copertura.", { dimensione: 9 }));
   }
   fig(piantaCopertura(corpi, x.conduttori, x.aste), "Pianta schematica della copertura con captatori, conduttori e calate (dal modello di progetto; il disegno esecutivo è nelle tavole allegate)");
   B.push(

@@ -10,8 +10,11 @@ import { Campo, inputCls } from "@/components/Campo";
 import { CampoNumero } from "@/components/CampoNumero";
 import { useDatiEdificio } from "@/lib/progettoStore";
 import { aggiornaEsteso, relazioneSchema, useEsteso, ventoSchema, type DatiVento } from "@/lib/statoProgetto";
-import { ASTE, CATEGORIE, MATERIALI, ZONE, ce, pressioneBase, velocitaBase, velocitaPiccoKmh, verificaParete, zavorraSostegno, zavorraTabelle, zonaDa, type Materiale, type Parametri } from "@/calcoli/vento/vento";
+import { ASTE, BARRE, MAX_BLOCCHI_BASE, barraPer, CATEGORIE, MATERIALI, ZONE, ce, pressioneBase, velocitaBase, velocitaPiccoKmh, verificaParete, zavorraSostegno, zavorraTabelle, zonaDa, type Materiale, type Parametri } from "@/calcoli/vento/vento";
 import { scarica } from "@/lib/esportazioni";
+import { NOME_METODO, verificaVentoProgetto } from "@/calcoli/vento/progetto";
+import { tipoAsta } from "@/calcoli/relazione/testiProgetto";
+import { infoArticoli, useCatalogoObo } from "@/lib/catalogoObo";
 
 const f = (v: number | null | undefined, d = 2) => (v == null || !Number.isFinite(v) ? "–" : v.toLocaleString("it-IT", { minimumFractionDigits: d, maximumFractionDigits: d }));
 const Esito = ({ ok }: { ok: boolean }) => (ok ? <CheckCircle2 className="inline size-4 text-green-600" aria-label="verificato" /> : <XCircle className="inline size-4 text-red-600" aria-label="non verificato" />);
@@ -28,6 +31,14 @@ export function VentoPage() {
   const tabelle = useMemo(() => zavorraTabelle(P), [JSON.stringify(P)]); // eslint-disable-line react-hooks/exhaustive-deps
   const parete = useMemo(() => ASTE.parete.map((a) => verificaParete(a, v.interasseParete, v.materialeParete, P)), [JSON.stringify(P), v.interasseParete, v.materialeParete]); // eslint-disable-line react-hooks/exhaustive-deps
   const v10 = velocitaPiccoKmh(v.quotaBase + 10, P);
+  const { catalogo } = useCatalogoObo();
+  const fissaggio = relazioneSchema.parse(est.relazione ?? {}).fissaggioAste;
+  const progetto = useMemo(() => {
+    if (!est.aste.length) return null;
+    const art = catalogo ? infoArticoli(catalogo, est.aste.map((a) => a.codiceOBO)) : {};
+    return verificaVentoProgetto(est.aste, art, v, (a) => tipoAsta(a.codiceOBO, art, fissaggio));
+  }, [est.aste, catalogo, JSON.stringify(v), fissaggio]); // eslint-disable-line react-hooks/exhaustive-deps
+  const barraTxt = (k: number | null) => { const b = barraPer(k); return b ? `${b.tipo} (${b.codice}, ${b.lunghezza} mm)` : k != null ? "nessuna a catalogo" : "–"; };
 
   /** Zona dalla regione (Photon) e altitudine (Open-Meteo) delle coordinate del progetto. */
   async function daLocalita() {
@@ -62,12 +73,15 @@ export function VentoPage() {
       ["Categoria di esposizione", v.categoria], ["Quota della base dal suolo (m)", v.quotaBase], ["ce a 10 m sopra la base", Number(ce(v.quotaBase + 10, v.categoria).toFixed(3))], ["Attrito μ", v.mu],
       ["Coefficienti", "vento γQ = 1,5; pesi γG = 0,9; cf,0 = 1,2; cs·cd = 1"], [], ["Predimensionamento: il numero definitivo dei blocchi va confermato dallo strutturista (istruzioni OBO irod §3.6)."]];
     XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(par), "Località");
-    XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet([["Sistema", "Codice", "Altezza (m)", "Forza vento (kN)", "Momento base (kN·m)", "Basi", "Blocchi per base", "Blocchi totali", "Zavorra (kg)", "Verifica che governa", "Esito", "Note"],
-      ...sostegni.map((s) => [s.nome, s.codice, s.altezza, Number(s.azione.F.toFixed(2)), Number(s.azione.M.toFixed(2)), s.basi, s.perBase ?? "oltre 5", s.totali ?? "", s.zavorra ?? "", s.governa ?? "", s.esito === "ok" ? "verificato" : "serve strutturista", s.note.join(" ")])]), "irod su sostegno");
-    XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet([["Tabella OBO", "Altezza (m)", "Materiale", "Asta", "Sostegno", "Vento di picco in sommità (km/h)", "Blocchi 16 kg", "Zavorra (kg)", "Vento massimo con 15 blocchi (km/h)"],
-      ...tabelle.map((t) => [t.tabella, t.altezza, t.materiale ?? "", t.asta, t.sostegno, Math.round(t.vento), t.blocchi ?? "oltre la tabella", t.zavorra ?? "", t.ventoMax])]), "isFang su treppiede");
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet([["Sistema", "Codice", "Altezza (m)", "Forza vento (kN)", "Momento base (kN·m)", "Basi", "Blocchi per base", "Blocchi totali", "Zavorra (kg)", "Barra filettata per base", "Verifica che governa", "Esito", "Note"],
+      ...sostegni.map((s) => [s.nome, s.codice, s.altezza, Number(s.azione.F.toFixed(2)), Number(s.azione.M.toFixed(2)), s.basi, s.perBase ?? `oltre ${MAX_BLOCCHI_BASE}`, s.totali ?? "", s.zavorra ?? "", s.perBase != null ? barraTxt(s.perBase) : "", s.governa ?? "", s.esito === "ok" ? "verificato" : "serve strutturista", s.note.join(" ")])]), "irod su sostegno");
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet([["Tabella OBO", "Altezza (m)", "Materiale", "Asta", "Sostegno", "Vento di picco in sommità (km/h)", "Blocchi 16 kg", "Zavorra (kg)", "Barra filettata per piede", "Vento massimo con 15 blocchi (km/h)"],
+      ...tabelle.map((t) => [t.tabella, t.altezza, t.materiale ?? "", t.asta, t.sostegno, Math.round(t.vento), t.blocchi ?? "oltre la tabella", t.zavorra ?? "", t.blocchi != null ? barraTxt(t.blocchi / 3) : "", t.ventoMax])]), "isFang su treppiede");
     XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet([["Asta", "Ø (mm)", "Lunghezza (m)", "Interasse supporti (m)", "Forza vento (kN)", "Reazione supporto superiore (kN)", "Reazione supporto inferiore (kN)", "Momento al supporto superiore (kN·m)", "σ (MPa)", "fd (MPa)", "Sfruttamento", "Esito"],
       ...parete.map((r) => [r.nome, r.d, r.l, r.s, Number(r.F.toFixed(3)), Number(r.R1.toFixed(3)), Number(r.R2.toFixed(3)), Number(r.M.toFixed(4)), Math.round(r.sigma), r.fd, Number(r.sfruttamento.toFixed(2)), r.esito === "ok" ? "verificato" : "non verificato"])]), "Aste a parete");
+    if (progetto) XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet([["Art. asta", "Descrizione", "N° aste", "Altezza (m)", "Quota base (m)", "Metodo", "Vento in punta (km/h)", "F (kN)", "M base (kN·m)", "Basi", "Blocchi per base", "Blocchi per asta", "Barra per base", "σ / fd (MPa)", "Esito", "Note"],
+      ...progetto.gruppi.map((g) => [g.codice, g.nome, g.numero, g.altezza, g.quotaBase, NOME_METODO[g.metodo], Math.round(g.vento), Number(g.F.toFixed(3)), Number(g.M.toFixed(3)), g.basi ?? "", g.perBase ?? "", g.blocchi ?? "", g.barra ? `${g.barra.tipo} (${g.barra.codice})` : "", g.parete ? `${Math.round(g.parete.sigma)} / ${g.parete.fd}` : "", g.esito === "ok" ? "verificata" : "NON verificata", g.note.join(" ")]),
+      [], ["Zavorre e accessori"], ...progetto.computo.map((c) => [c.codice, c.descrizione, c.quantita])]), "Aste del progetto");
     const dati = XLSX.write(wb, { type: "array", bookType: "xlsx" }) as ArrayBuffer;
     scarica(new Blob([dati], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" }), `Vento_zavorre_aste_${(ed.comune || "progetto").replace(/[^\w-]+/g, "_")}.xlsx`);
   }
@@ -103,17 +117,40 @@ export function VentoPage() {
         <p className="mt-2 text-xs text-muted-foreground">{ZONE.find((z) => z.zona === v.zona)?.descrizione}. La quota della base è l'altezza dal suolo dove appoggia l'asta (es. tetto: altezza dell'edificio). <button type="button" className="underline" onClick={usaNellaRelazione}><Send className="inline size-3" /> Usa la velocità per la relazione</button></p>
       </section>
 
+      <section className="rounded-lg border bg-card p-4" aria-labelledby="h-aste-progetto">
+        <h2 id="h-aste-progetto" className="mb-1 font-semibold">Aste del progetto</h2>
+        {!progetto ? <p className="text-sm text-muted-foreground">Il progetto non ha ancora aste: disegnale in <Link to="/edificio-3d" className="underline">Edificio 3D</Link>. La verifica di ogni asta entra nella relazione tecnica e nel computo.</p> : <>
+          <p className="mb-3 text-sm text-muted-foreground">Ogni asta del modello con la quota della sua base, il tipo di fissaggio (Dati della relazione: {fissaggio}) e i dati del catalogo OBO. Questi risultati entrano nella relazione tecnica (13.1) e nel computo materiali.</p>
+          <div className="overflow-x-auto">
+            <table className="w-full min-w-[860px] text-sm">
+              <thead><tr className="border-b text-left text-xs text-muted-foreground"><th className="p-1">Asta</th><th className="p-1">Metodo</th><th className="p-1 text-right">N°</th><th className="p-1 text-right">H / quota</th><th className="p-1 text-right">Vento in punta</th><th className="p-1 text-right">Blocchi per asta</th><th className="p-1">Barra per base</th><th className="p-1">Esito</th></tr></thead>
+              <tbody>{progetto.gruppi.map((g) => (
+                <tr key={g.chiave} className="border-b align-top">
+                  <td className="p-1"><span className="font-mono text-xs">{g.codice || "—"}</span> <span className="text-xs text-muted-foreground">{g.nome.slice(0, 60)}</span>{g.note.map((n) => <span key={n} className="block text-xs text-amber-700">{n}</span>)}</td>
+                  <td className="p-1 text-xs">{NOME_METODO[g.metodo]}</td><td className="p-1 text-right">{g.numero}</td>
+                  <td className="p-1 text-right">{f(g.altezza, 1)} m / {f(g.quotaBase, 1)} m</td><td className="p-1 text-right">{Math.round(g.vento)} km/h</td>
+                  <td className="p-1 text-right font-semibold">{g.metodo === "parete" ? (g.parete ? `σ ${f(g.parete.sigma, 0)}/${g.parete.fd} MPa` : "–") : g.blocchi != null ? `${g.blocchi}${g.basi && g.basi > 1 ? ` (${g.basi}×${g.perBase})` : ""}` : "oltre"}</td>
+                  <td className="p-1 text-xs">{g.barra ? `${g.barra.tipo} (${g.barra.codice})` : "–"}</td>
+                  <td className="p-1"><Esito ok={g.esito === "ok"} />{g.stima ? <span className="ml-1 text-xs text-muted-foreground">stima</span> : null}</td>
+                </tr>))}</tbody>
+            </table>
+          </div>
+          {progetto.computo.length > 0 && <p className="mt-2 text-sm">Zavorre: {progetto.computo.map((c) => `${c.quantita} × ${c.codice}`).join(" · ")} — {progetto.blocchiTotali * 16} kg di blocchi.</p>}
+          {progetto.datiMancanti.length > 0 && <p className="mt-1 text-xs text-amber-700">Dati da completare: {progetto.datiMancanti.join("; ")}.</p>}
+        </>}
+      </section>
+
       <section className="rounded-lg border bg-card p-4">
         <h2 className="mb-1 font-semibold">Aste irod 10–19 m su sostegno a gambe</h2>
-        <p className="mb-3 text-sm text-muted-foreground">Ribaltamento attorno alla retta tra due piedi e scorrimento; una base di blocchi per ogni piede, da 1 a 5 blocchi per base (istruzioni OBO irod).</p>
+        <p className="mb-3 text-sm text-muted-foreground">Ribaltamento attorno alla retta tra due piedi e scorrimento; una base di blocchi per ogni piede, da 1 a {MAX_BLOCCHI_BASE} blocchi per base: la barra filettata più lunga a catalogo (isFang 3B-G4, 500 mm) porta 4 blocchi. Barre: {BARRE.map((b) => `${b.tipo} ${b.codice} = ${b.blocchi} ${b.blocchi === 1 ? "blocco" : "blocchi"}`).join(" · ")}.</p>
         <div className="overflow-x-auto">
           <table className="w-full min-w-[760px] text-sm">
-            <thead><tr className="border-b text-left text-xs text-muted-foreground"><th className="p-1">Sistema</th><th className="p-1 text-right">Forza vento</th><th className="p-1 text-right">Momento base</th><th className="p-1 text-right">Basi</th><th className="p-1 text-right">Blocchi per base</th><th className="p-1 text-right">Blocchi totali</th><th className="p-1 text-right">Zavorra</th><th className="p-1">Esito</th></tr></thead>
+            <thead><tr className="border-b text-left text-xs text-muted-foreground"><th className="p-1">Sistema</th><th className="p-1 text-right">Forza vento</th><th className="p-1 text-right">Momento base</th><th className="p-1 text-right">Basi</th><th className="p-1 text-right">Blocchi per base</th><th className="p-1 text-right">Blocchi totali</th><th className="p-1 text-right">Zavorra</th><th className="p-1">Barra per base</th><th className="p-1">Esito</th></tr></thead>
             <tbody>{sostegni.map((s) => (
               <tr key={s.id} className="border-b align-top">
                 <td className="p-1"><b>{s.nome}</b> <span className="text-xs text-muted-foreground">art. {s.codice}</span>{s.note.map((n) => <span key={n} className="block text-xs text-amber-700">{n}</span>)}</td>
                 <td className="p-1 text-right">{f(s.azione.F)} kN</td><td className="p-1 text-right">{f(s.azione.M)} kN·m</td>
-                <td className="p-1 text-right">{s.basi}</td><td className="p-1 text-right font-semibold">{s.perBase ?? "> 5"}</td><td className="p-1 text-right font-semibold">{s.totali ?? "–"}</td><td className="p-1 text-right">{s.zavorra != null ? `${s.zavorra} kg` : "–"}</td>
+                <td className="p-1 text-right">{s.basi}</td><td className="p-1 text-right font-semibold">{s.perBase ?? `> ${MAX_BLOCCHI_BASE}`}</td><td className="p-1 text-right font-semibold">{s.totali ?? "–"}</td><td className="p-1 text-right">{s.zavorra != null ? `${s.zavorra} kg` : "–"}</td><td className="p-1 text-xs">{s.perBase != null ? `${s.basi} × ${barraTxt(s.perBase)}` : "–"}</td>
                 <td className="p-1"><Esito ok={s.esito === "ok"} /> {s.governa ?? "serve strutturista"}</td>
               </tr>))}</tbody>
           </table>
@@ -125,12 +162,12 @@ export function VentoPage() {
         <p className="mb-3 text-sm text-muted-foreground">Raffica di picco alla sommità dell'asta confrontata con le velocità ammesse dal catalogo OBO per 3, 6, 9, 12 o 15 blocchi.</p>
         <div className="overflow-x-auto">
           <table className="w-full min-w-[700px] text-sm">
-            <thead><tr className="border-b text-left text-xs text-muted-foreground"><th className="p-1">Asta</th><th className="p-1">Tipo</th><th className="p-1 text-right">Altezza</th><th className="p-1 text-right">Raffica in sommità</th><th className="p-1 text-right">Blocchi 16 kg</th><th className="p-1 text-right">Zavorra</th></tr></thead>
+            <thead><tr className="border-b text-left text-xs text-muted-foreground"><th className="p-1">Asta</th><th className="p-1">Tipo</th><th className="p-1 text-right">Altezza</th><th className="p-1 text-right">Raffica in sommità</th><th className="p-1 text-right">Blocchi 16 kg</th><th className="p-1 text-right">Zavorra</th><th className="p-1">Barra per piede</th></tr></thead>
             <tbody>{tabelle.map((t) => (
               <tr key={t.asta + t.tabella} className="border-b">
                 <td className="p-1 font-mono text-xs">{t.asta}</td><td className="p-1 text-xs">{t.tabella.replace("Aste di captazione ", "")}{t.materiale ? ` (${t.materiale})` : ""}</td>
                 <td className="p-1 text-right">{f(t.altezza, 1)} m</td><td className="p-1 text-right">{Math.round(t.vento)} km/h</td>
-                <td className="p-1 text-right font-semibold">{t.blocchi ?? <span className="text-red-700">oltre {t.ventoMax} km/h</span>}</td><td className="p-1 text-right">{t.zavorra != null ? `${t.zavorra} kg` : "–"}</td>
+                <td className="p-1 text-right font-semibold">{t.blocchi ?? <span className="text-red-700">oltre {t.ventoMax} km/h</span>}</td><td className="p-1 text-right">{t.zavorra != null ? `${t.zavorra} kg` : "–"}</td><td className="p-1 text-xs">{t.blocchi != null ? `3 × ${barraTxt(t.blocchi / 3)}` : "–"}</td>
               </tr>))}</tbody>
           </table>
         </div>

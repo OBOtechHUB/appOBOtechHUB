@@ -44,6 +44,13 @@ export function trovaArticolo(c: CatalogoObo, codice: string): { prodotto: Prodo
   return null;
 }
 
+/** Nome e dati tecnici degli articoli (per tipo delle aste e verifica al vento). */
+export function infoArticoli(c: CatalogoObo, codici: string[]): Record<string, { nome: string; dati: Record<string, string> }> {
+  const out: Record<string, { nome: string; dati: Record<string, string> }> = {};
+  for (const k of new Set(codici.filter(Boolean))) { const a = trovaArticolo(c, k); if (a) out[k] = { nome: `${a.prodotto.nome} ${a.variante?.valori.join(" ") ?? ""}`.trim(), dati: a.prodotto.datiTecnici }; }
+  return out;
+}
+
 /** Ricerca testuale su nome, codici, tipi delle varianti e dati tecnici principali. */
 export function cercaProdotti(c: CatalogoObo, testo: string, categoria: string | null): ProdottoObo[] {
   const parole = testo.toLowerCase().split(/\s+/).filter(Boolean);
