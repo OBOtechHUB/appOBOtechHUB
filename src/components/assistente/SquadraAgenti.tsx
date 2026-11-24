@@ -64,7 +64,7 @@ export function SquadraAgenti({ passi }: { passi: Passo[] }) {
     if (v("provincia")) rel.provincia = v("provincia")!.valore;
     const des = v("destinazione")?.valore ?? "";
     if (/abitativ|residenz/.test(des)) rel.destinazione = "abitativa"; else if (/ricettiv|alberghier/.test(des)) rel.destinazione = "ricettiva"; else if (/promiscu/.test(des)) rel.destinazione = "promiscua";
-    aggiornaEsteso({ relazione: rel });
+    aggiornaEsteso({ relazione: rel } as Parameters<typeof aggiornaEsteso>[0]); // i campi mancanti li completa lo schema
     const atex = lettura.dati.some((x) => x.campo === "atex");
     setMsg(`Dati applicati al progetto${atex ? ". Attenzione: i documenti citano zone ATEX, tienine conto nel rischio e nelle distanze di separazione" : ""}. Prossimo: il geometra ricostruisce l'edificio.`);
     setLettura(null);
