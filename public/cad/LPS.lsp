@@ -9,7 +9,10 @@
 ;;;   LPS            elenco dei comandi
 ;;;   LPS-AUTO       costruisce il disegno dal .lpsdati della cartella del disegno, senza domande,
 ;;;                  inserisce la distinta e salva il DWG
-;;;   LPS-IMPORTA    disegna in 3D il progetto esportato dal sito (file .lpsdati)
+;;;   LPS-IMPORTA    disegna in 3D il progetto esportato dal sito (file .lpsdati), come LPS-AUTO:
+;;;                  legenda, particolari, distinta, squadratura ISO (A3...A0) e testalino compilato
+;;;   LPS-SQUADRA    squadratura con testalino intorno a una finestra (formato e scala automatici o scelti)
+;;;                  formato/scala fissi per AUTO e IMPORTA: (setq *LPS-FORMATO* "A1" *LPS-SCALA-TAVOLA* 200)
 ;;;   LPS-SFERA      disegna la sfera rotolante di un livello in un punto
 ;;;   LPS-ESPORTA    esporta i contorni dell'edificio verso il sito (edificio_da_CAD.json)
 ;;;   LPS-DISTINTA   distinta dei componenti disegnati (codici OBO, pezzi e metri) + CSV
@@ -25,7 +28,7 @@
 ;;; il comando converte nelle unita' del disegno (INSUNITS).
 ;;; ==========================================================================
 
-(setq *LPS-VERSIONE* "3.2")
+(setq *LPS-VERSIONE* "3.3")
 (if vl-load-com (vl-load-com))
 
 ;;; --------------------------------------------------------------------------
@@ -536,6 +539,7 @@
   (lps:msg "  LPS-NUMERA    numera le calate C1, C2... cliccando nell'ordine")
   (lps:msg "  LPS-TABELLA   inserisce la distinta dei materiali come tabella")
   (lps:msg "  LPS-TESTALINO disegna il testalino OBO sul layer LPS-CART")
+  (lps:msg "  LPS-SQUADRA   squadratura A3...A0 con testalino intorno al disegno (formato e scala a scelta)")
   (lps:msg "  LPS-LEGENDA   disegna la legenda dei layer predefiniti sul layer LPS-LEGE")
   (lps:msg "  Standard OBO: layer LPS-*, blocchi OBO_<codice> con attributi CODICE/DESCRIZIONE/TIPO.")
   (lps:msg "  Simboli per tavole 1:200: (setq *LPS-SCALA-SIMBOLI* 2.0) prima di LPS-IMPORTA.")
@@ -615,10 +619,22 @@
   (lps:inizio)
   (lps:cartella-blocchi)
   (setq file (getfiled "File di progetto LPS" "" "lpsdati" 0))
-  (if file (lps:importa file nil))
+  (if file (lps:costruisci file nil))
   (lps:fine)
   (if file (command "_.ZOOM" "_E"))
   (princ))
+
+;; disegno completo come LPS-AUTO: modello, legenda e particolari, distinta (tabella e CSV), squadratura e testalino
+(defun lps:costruisci (file auto / e0 tab)
+  (setq e0 (entlast))
+  (if (lps:importa file auto)
+    (progn
+      (setq tab (lps:distinta-tab))
+      (lps:tabella-distinta tab)
+      (lps:distinta-csv tab)
+      (setq *LPS-ULTIMO-BB* (lps:ingombro-da e0))
+      (lps:squadratura *LPS-ULTIMO-BB* *LPS-FORMATO* *LPS-SCALA-TAVOLA*)
+      T)))
 
 ;; primo file .lpsdati nella cartella del disegno (nil se il disegno non e' salvato o non c'e')
 (defun lps:file-progetto (/ d l)
@@ -675,11 +691,7 @@
      (lps:inizio)
      (lps:cartella-blocchi)
      (lps:msg (strcat "LPS-AUTO: costruzione da " file))
-     (if (lps:importa file T)
-       (progn
-         (setq tab (lps:distinta-tab))
-         (lps:tabella-distinta tab)
-         (lps:distinta-csv tab)))
+     (lps:costruisci file T)
      (lps:fine)
      (command "_.ZOOM" "_E")
      (lps:salva-dwg)))
@@ -917,6 +929,96 @@
   (princ))
 
 ;;; --------------------------------------------------------------------------
+;;; Squadratura ISO (A3...A0) con testalino, intorno al disegno costruito
+;;; --------------------------------------------------------------------------
+
+;; formati orizzontali in mm di carta
+(setq *LPS-FORMATI* '(("A3" 420.0 297.0) ("A2" 594.0 420.0) ("A1" 841.0 594.0) ("A0" 1189.0 841.0)))
+;; scale tentate in ordine (per ogni scala si prova dal formato piu' piccolo)
+(setq *LPS-SCALE-TAVOLA* '(50 100 200 250 500 1000 2000 5000))
+
+;; ingombro (xmin ymin xmax ymax) delle entita' create dopo e0 (nil = tutto il disegno)
+(defun lps:ingombro-da (e0 / e o mn mx r bb)
+  (setq e (if e0 (entnext e0) (entnext)))
+  (while e
+    (setq o (vl-catch-all-apply 'vlax-ename->vla-object (list e)))
+    (if (not (vl-catch-all-error-p o))
+      (progn
+        (setq bb (vl-catch-all-apply 'vla-GetBoundingBox (list o 'mn 'mx)))
+        (if (and (not (vl-catch-all-error-p bb)) mn mx)
+          (setq mn (vlax-safearray->list mn) mx (vlax-safearray->list mx)
+                r (if r (list (min (car r) (car mn)) (min (cadr r) (cadr mn)) (max (caddr r) (car mx)) (max (cadddr r) (cadr mx)))
+                        (list (car mn) (cadr mn) (car mx) (cadr mx)))))))
+    (setq mn nil mx nil e (entnext e)))
+  r)
+
+;; il disegno (dx dy in mm di carta) entra nel formato (W H) accanto o sopra al testalino 175 x 106?
+(defun lps:entra (dx dy w h / wu hu)
+  (setq wu (- w 30.0) hu (- h 20.0))
+  (or (and (<= dx (- wu 185.0)) (<= dy hu)) (and (<= dx wu) (<= dy (- hu 116.0)))))
+
+;; sceglie (formato scala) per l'ingombro bb (unita' disegno); fmt/sc forzati se non nil
+(defun lps:scegli-tavola (bb fmt sc / f dx dy ris lf ls)
+  (setq f (lps:fattore) dx (- (caddr bb) (car bb)) dy (- (cadddr bb) (cadr bb)))
+  (setq lf (if fmt (list (assoc fmt *LPS-FORMATI*)) *LPS-FORMATI*) ls (if sc (list sc) *LPS-SCALE-TAVOLA*))
+  (foreach s ls
+    (foreach fo lf
+      (if (and (not ris) fo (lps:entra (/ dx (* (/ s 1000.0) f)) (/ dy (* (/ s 1000.0) f)) (cadr fo) (caddr fo)))
+        (setq ris (list (car fo) s)))))
+  (if ris ris (list (if fmt fmt "A0") (if sc sc (last *LPS-SCALE-TAVOLA*)))))
+
+;; disegna foglio, cornice e testalino compilato dal record PROGETTO; restituisce (formato scala)
+(defun lps:squadratura (bb fmt sc / sv fo w h k cx cy x0 y0 dx dy zx0 zy0 zx1 zy1 lay pr o)
+  (if bb
+    (progn
+      (setq sv (lps:scegli-tavola bb fmt sc) fo (assoc (car sv) *LPS-FORMATI*) w (cadr fo) h (caddr fo)
+            k (* (/ (cadr sv) 1000.0) (lps:fattore)) lay (lps:layer "CARTIGLIO") pr *LPS-PROGETTO*)
+      ;; area utile: margine 20 mm a sinistra (rilegatura) e 10 mm sugli altri lati.
+      ;; Il disegno sta a sinistra del testalino (in basso a destra) se c'entra, altrimenti sopra; centrato nella sua zona.
+      (setq dx (/ (- (caddr bb) (car bb)) k) dy (/ (- (cadddr bb) (cadr bb)) k))
+      (if (and (<= dx (- w 30.0 185.0)) (<= dy (- h 20.0)))
+        (setq zx0 20.0 zy0 10.0 zx1 (- w 10.0 185.0) zy1 (- h 10.0))
+        (setq zx0 20.0 zy0 (+ 10.0 116.0) zx1 (- w 10.0) zy1 (- h 10.0)))
+      (setq cx (/ (+ (car bb) (caddr bb)) 2.0) cy (/ (+ (cadr bb) (cadddr bb)) 2.0)
+            x0 (- cx (* k (/ (+ zx0 zx1) 2.0))) y0 (- cy (* k (/ (+ zy0 zy1) 2.0))))
+      (defun lps:sq-p (x y) (list (+ x0 (* x k)) (+ y0 (* y k)) 0.0))
+      (lps:poli3d (list (lps:sq-p 0 0) (lps:sq-p w 0) (lps:sq-p w h) (lps:sq-p 0 h)) T lay)
+      (lps:poli3d (list (lps:sq-p 20 10) (lps:sq-p (- w 10) 10) (lps:sq-p (- w 10) (- h 10)) (lps:sq-p 20 (- h 10))) T lay)
+      (setq o (lps:sq-p (- w 10.0 175.0) 10.0))
+      (lps:testalino-disegna o k
+        (if (and pr (nth 8 pr)) (nth 8 pr) "")                       ; committente
+        (if pr (nth 2 pr) "")                                         ; opera
+        (if pr (nth 3 pr) "")                                         ; comune
+        (if pr (nth 1 pr) "")                                         ; codice
+        (if pr (nth 4 pr) "")                                         ; LPL
+        (if (and pr (nth 7 pr) (/= (nth 7 pr) "")) (nth 7 pr) (lps:oggi))
+        (if (and pr (nth 6 pr) (/= (nth 6 pr) "")) (nth 6 pr) "A")
+        (if (and pr (nth 9 pr)) (nth 9 pr) "")                        ; progettista
+        "MODELLO 3D LPS - CAPTAZIONE, CALATE, TERRA, LEGENDA E PARTICOLARI"
+        (if (and pr (nth 1 pr) (/= (nth 1 pr) "")) (strcat (nth 1 pr) "-LPS") "LPS-3D")
+        (itoa (cadr sv)) (car sv))
+      (setq *LPS-ULTIMA-TAVOLA* (list (car sv) (cadr sv) x0 y0 w h))
+      (lps:msg (strcat "Squadratura " (car sv) " in scala 1:" (itoa (cadr sv)) " con testalino sul layer " lay
+                       ". Per cambiarla: LPS-SQUADRA."))
+      sv)))
+
+;; LPS-SQUADRA: squadratura intorno a una finestra scelta (Invio = ultimo disegno costruito)
+(defun c:LPS-SQUADRA (/ a b bb fmt sc)
+  (lps:inizio)
+  (setq a (getpoint "\nPrimo angolo dell'area da squadrare <ultimo disegno LPS>: "))
+  (if a (setq b (getcorner a "\nAngolo opposto: ")))
+  (setq bb (if (and a b) (list (min (car a) (car b)) (min (cadr a) (cadr b)) (max (car a) (car b)) (max (cadr a) (cadr b))) *LPS-ULTIMO-BB*))
+  (if (not bb) (setq bb (list (car (getvar "EXTMIN")) (cadr (getvar "EXTMIN")) (car (getvar "EXTMAX")) (cadr (getvar "EXTMAX")))))
+  (initget "A3 A2 A1 A0 Auto")
+  (setq fmt (getkword "\nFormato [A3/A2/A1/A0/Auto] <Auto>: "))
+  (if (or (not fmt) (= fmt "Auto")) (setq fmt nil))
+  (initget 6)
+  (setq sc (getint "\nScala 1:<automatica>: "))
+  (lps:squadratura bb fmt sc)
+  (lps:fine)
+  (princ))
+
+;;; --------------------------------------------------------------------------
 ;;; Testalino e legenda dei layer (misure in mm sulla carta)
 ;;; --------------------------------------------------------------------------
 
@@ -937,22 +1039,8 @@
   (setq r (getstring T (strcat "\n" domanda (if (/= pred "") (strcat " <" pred ">") "") ": ")))
   (if (= r "") pred r))
 
-(defun c:LPS-TESTALINO (/ k o x0 y0 x1 xm y lay campi cm op co cd lpl dt rv pg tv st sc)
-  (lps:inizio)
-  (setq o (getpoint "\nAngolo in basso a sinistra del testalino: "))
-  (if o
-    (progn
-      (setq k (lps:chiedi-k) sc (rtos (/ k (lps:fattore) 0.001) 2 0))
-      (setq cm (lps:chiedi-testo "Committente" "")
-            op (lps:chiedi-testo "Opera" "")
-            co (lps:chiedi-testo "Comune" "")
-            cd (lps:chiedi-testo "Codice progetto (CRM)" "")
-            lpl (lps:chiedi-lpl)
-            dt (lps:chiedi-testo "Data" (lps:oggi))
-            rv (lps:chiedi-testo "Revisione" "A")
-            pg (lps:chiedi-testo "Progettista" "")
-            st (lps:chiedi-testo "Titolo della tavola" "PIANTA COPERTURE - CAPTAZIONE, CALATE E IMPIANTO DI TERRA")
-            tv (lps:chiedi-testo "Numero tavola" "LPS-01"))
+;; testalino OBO 175 x 106 mm: o = angolo in basso a sinistra, k = unita' disegno per 1 mm di carta
+(defun lps:testalino-disegna (o k cm op co cd lpl dt rv pg st tv sc fmt / x0 x1 xm y0 y lay campi)
       (setq lay (lps:layer "CARTIGLIO") x0 0.0 x1 175.0 xm 87.5 y0 0.0)
       ;; punto e linea in mm di carta
       ;; o, k e lay sono visibili nelle funzioni chiamate da qui (scope dinamico di AutoLISP)
@@ -972,7 +1060,7 @@
       (setq campi (list (list "COMMITTENTE" cm nil nil) (list "OPERA" op nil nil)
                         (list "COMUNE" co "CODICE PROGETTO (CRM)" cd)
                         (list "LIVELLO DI PROTEZIONE" (strcat "LPL " lpl) "NORMA" "CEI EN IEC 62305:2026-10")
-                        (list "SCALA" (strcat "1:" sc) "FORMATO" "")
+                        (list "SCALA" (strcat "1:" sc) "FORMATO" fmt)
                         (list "DATA" dt "REVISIONE" (strcat "Rev. " rv))))
       (foreach c campi
         (lps:tl-t 2 (- y 2.4) 1.6 (car c) 0)
@@ -995,7 +1083,26 @@
       (lps:tl-t 72 (- y 2.6) 1.6 "TIMBRO E FIRMA" 0)
       (lps:tl-t 139 (- y 2.6) 1.6 "TAVOLA" 0)
       (lps:tl-t 156 3.5 4.4 tv 1)
-      (lps:msg (strcat "Testalino disegnato sul layer " lay " (175 x 106 mm a scala 1:" sc ")."))))
+  T)
+
+(defun c:LPS-TESTALINO (/ k o x0 y0 x1 xm y lay campi cm op co cd lpl dt rv pg tv st sc)
+  (lps:inizio)
+  (setq o (getpoint "\nAngolo in basso a sinistra del testalino: "))
+  (if o
+    (progn
+      (setq k (lps:chiedi-k) sc (rtos (/ k (lps:fattore) 0.001) 2 0))
+      (setq cm (lps:chiedi-testo "Committente" "")
+            op (lps:chiedi-testo "Opera" "")
+            co (lps:chiedi-testo "Comune" "")
+            cd (lps:chiedi-testo "Codice progetto (CRM)" "")
+            lpl (lps:chiedi-lpl)
+            dt (lps:chiedi-testo "Data" (lps:oggi))
+            rv (lps:chiedi-testo "Revisione" "A")
+            pg (lps:chiedi-testo "Progettista" "")
+            st (lps:chiedi-testo "Titolo della tavola" "PIANTA COPERTURE - CAPTAZIONE, CALATE E IMPIANTO DI TERRA")
+            tv (lps:chiedi-testo "Numero tavola" "LPS-01"))
+      (lps:testalino-disegna o k cm op co cd lpl dt rv pg st tv sc "")
+      (lps:msg (strcat "Testalino disegnato sul layer " (lps:layer "CARTIGLIO") " (175 x 106 mm a scala 1:" sc ")."))))
   (lps:fine)
   (princ))
 

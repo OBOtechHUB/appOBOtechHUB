@@ -2,6 +2,18 @@
   "nota": "Registro degli aggiornamenti di Progettazione LPS. Una voce per aggiornamento, la più recente per prima (app: lps). Viene mostrato nella barra \"Aggiorna app\", nel riquadro Novità e nella pagina Novità di OBO Hub.",
   "aggiornamenti": [
     {
+      "id": "2026-11-24-lps-44",
+      "data": "2026-11-24",
+      "app": "lps",
+      "titolo": "LPS.lsp 3.3: squadratura A3–A0 e file con codice e revisione",
+      "voci": [
+        "LPS-IMPORTA costruisce il disegno come LPS-AUTO: modello, legenda, particolari, distinta (tabella e CSV)",
+        "Squadratura automatica nel formato ISO adatto (A3, A2, A1, A0) e in scala 1:50…1:5000, con il testalino OBO compilato (committente, opera, comune, codice, LPL, data, revisione, progettista)",
+        "Nuovo comando LPS-SQUADRA per scegliere formato e scala; per fissarli: (setq *LPS-FORMATO* \"A1\" *LPS-SCALA-TAVOLA* 200)",
+        "File del progetto con codice CRM e revisione: P-2026-0142_LPS_RevA.lpsdati (…_RevB_bozza se la revisione non è ancora emessa), anche per DXF, PDF, IFC e ZIP del pacchetto CAD"
+      ]
+    },
+    {
       "id": "2026-11-24-lps-43",
       "data": "2026-11-24",
       "app": "lps",

@@ -6,7 +6,7 @@
  * (accenti tolti), così ZWCAD e AutoCAD li leggono uguali qualunque sia la codifica.
  *
  *   (LPSDATI 1)
- *   (PROGETTO "codice" "nome" "comune" "LPL" raggio)
+ *   (PROGETTO "codice" "nome" "comune" "LPL" raggio "rev" "data" "committente" "progettista" "indirizzo" "file")
  *   (CORPO "id" "nome" quotaBase altezzaGronda "piano|falde|altro" colmo|nil ((x y) ...))
  *   (ASTA "id" x y zBase altezza diametro "codice" "origine")
  *   (CONDUTTORE "captazione|calata|terra|anello" "materiale" sezione "codice" ((x y z) ...))
@@ -31,7 +31,7 @@ export interface ComponenteCAD { tipo?: string | undefined; x: number; y: number
 export interface PicchettoCAD { id?: string | undefined; x: number; y: number; z?: number | undefined; lunghezza: number; diametro?: number | undefined; codiceOBO?: string | undefined }
 
 export interface ProgettoCAD {
-  progetto: { codice?: string; nome?: string; comune?: string; lpl?: string; raggio?: number };
+  progetto: { codice?: string; nome?: string; comune?: string; lpl?: string; raggio?: number; rev?: string; data?: string; committente?: string; progettista?: string; indirizzo?: string; file?: string };
   edificio: { corpi: Corpo[] };
   aste?: AstaCAD[] | undefined;
   conduttori?: ConduttoreCAD[] | undefined;
@@ -80,7 +80,7 @@ export function generaFileCAD(pr: ProgettoCAD, esposte: ZoneEsposte[] = []): str
   const p = pr.progetto;
   r.push(";; Progettazione LPS - dati per LPS.lsp (ZWCAD / AutoCAD) - coordinate in metri");
   r.push("(LPSDATI 1)");
-  r.push(`(PROGETTO ${testoLisp(p.codice)} ${testoLisp(p.nome)} ${testoLisp(p.comune)} ${testoLisp(p.lpl)} ${numeroLisp(p.raggio ?? null)})`);
+  r.push(`(PROGETTO ${testoLisp(p.codice)} ${testoLisp(p.nome)} ${testoLisp(p.comune)} ${testoLisp(p.lpl)} ${numeroLisp(p.raggio ?? null)} ${testoLisp(p.rev)} ${testoLisp(p.data)} ${testoLisp(p.committente)} ${testoLisp(p.progettista)} ${testoLisp(p.indirizzo)} ${testoLisp(p.file)})`);
   if (pr.origine) r.push(`(ORIGINE ${numeroLisp(pr.origine[0])} ${numeroLisp(pr.origine[1])} ${numeroLisp(pr.origine[2])})`);
   // distinta raggruppata per codice (serve prima dei componenti: il LISP la usa per le descrizioni dei blocchi)
   const voci = new Map<string, { d: string; q: number; u: string }>();
