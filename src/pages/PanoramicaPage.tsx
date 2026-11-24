@@ -1,4 +1,5 @@
 import { Link } from "@tanstack/react-router";
+import { CinemaFulmini } from "@/components/CinemaFulmini";
 import { ArrowDownToLine, ArrowRight, Box, Boxes, Check, ClipboardCheck, ClipboardList, Compass, Cpu, Download, Gauge, Package, Ruler, ShieldAlert } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Saetta, SaettaFigura } from "@/components/Saetta";
@@ -34,7 +35,8 @@ const STRUMENTI = [
 /** Panoramica pubblica dello strumento (visibile senza accesso). */
 export function PanoramicaPage() {
   return <>
-    <section className="relative overflow-hidden bg-ardesia text-white">
+    <CinemaFulmini />
+    <section id="inizio-app" className="relative scroll-mt-14 overflow-hidden bg-ardesia text-white">
       <div className="mx-auto grid max-w-6xl gap-8 px-4 py-14 md:grid-cols-[1fr_auto] md:items-center md:py-20">
         <div>
           <p className="text-sm font-semibold uppercase tracking-wide text-primary">Progettazione LPS – smart planning</p>
