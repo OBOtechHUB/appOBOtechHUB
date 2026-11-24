@@ -159,7 +159,7 @@ export function CinemaFulmini() {
         const u = (a: number) => x0 + a * w, v = (b: number) => y0 + b * h;
         const muro = ctx.createLinearGradient(0, y0, 0, y0 + h); muro.addColorStop(0, "#f4e7d2"); muro.addColorStop(1, "#e3cfb1"); ctx.fillStyle = muro; ctx.fillRect(x0, y0, w, h);
         ctx.fillStyle = "#b98d5f"; ctx.fillRect(x0, v(0.78), w, h * 0.22); // pavimento
-        const tondo = (x: number, y: number, ww: number, hh: number) => { ctx.beginPath(); if ("roundRect" in ctx) ctx.roundRect(x, y, ww, hh, 12 * dpr); else ctx.rect(x, y, ww, hh); ctx.fill(); };
+        const tondo = (x: number, y: number, ww: number, hh: number) => { ctx.beginPath(); const c2 = ctx as CanvasRenderingContext2D & { roundRect?: (x: number, y: number, w: number, h: number, r: number) => void }; if (typeof c2.roundRect === "function") c2.roundRect(x, y, ww, hh, 12 * dpr); else c2.rect(x, y, ww, hh); ctx.fill(); };
         ctx.fillStyle = "#41525d"; tondo(u(0.1), v(0.55), w * 0.42, h * 0.2); // divano
         ctx.fillStyle = "#56656f"; tondo(u(0.08), v(0.47), w * 0.46, h * 0.12);
         ctx.fillStyle = "#1b1f23"; ctx.fillRect(u(0.62), v(0.3), w * 0.26, h * 0.22); // televisore acceso
