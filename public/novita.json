@@ -2,6 +2,17 @@
   "nota": "Registro degli aggiornamenti di Progettazione LPS. Una voce per aggiornamento, la più recente per prima (app: lps). Viene mostrato nella barra \"Aggiorna app\", nel riquadro Novità e nella pagina Novità di OBO Hub.",
   "aggiornamenti": [
     {
+      "id": "2026-11-24-lps-52",
+      "data": "2026-11-24",
+      "app": "lps",
+      "titolo": "Introduzione cinematografica: la tempesta",
+      "voci": [
+        "Nella pagina iniziale, scorrendo, si attraversa una tempesta: la telecamera scende dalle nuvole all'edificio, la sfera rotolante scorre sul tetto, il fulmine colpisce l'asta, la corrente scende dalle calate al dispersore e poi si entra dalla finestra nel salotto protetto dagli SPD",
+        "Cinque capitoli con titoli grandi, lampi, pioggia e onde nel terreno, tutto disegnato dall'app (nessuna foto)",
+        "«Salta l'introduzione» porta subito agli strumenti; «Inizia il progetto» apre l'assistente; con «riduci movimento» resta un'immagine ferma"
+      ]
+    },
+    {
       "id": "2026-11-24-lps-51",
       "data": "2026-11-24",
       "app": "lps",
