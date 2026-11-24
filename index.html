@@ -36,8 +36,8 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600;700&display=swap" />
     <script>
-      // animazione di apertura comune a tutte le app di OBO Hub (file pubblicato dal sito di OBO Hub, stesso indirizzo)
-      try { if (/github\.io$/.test(location.hostname)) { var b = document.createElement("script"); b.src = "/benvenuto.js"; b.dataset.app = "Progettazione LPS"; document.head.appendChild(b); } } catch (e) {}
+      // animazione di apertura e sigla di 2-3 secondi comuni a tutte le app di OBO Hub (file pubblicati dal sito di OBO Hub, stesso indirizzo)
+      try { if (/github\.io$/.test(location.hostname)) { var b = document.createElement("script"); b.src = "/benvenuto.js"; b.dataset.app = "Progettazione LPS"; document.head.appendChild(b); var sg = document.createElement("script"); sg.src = "/splash.js"; sg.setAttribute("data-sigla", "lps"); document.head.appendChild(sg); } } catch (e) {}
     </script>
   </head>
   <body>

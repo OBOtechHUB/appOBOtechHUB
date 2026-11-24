@@ -3,7 +3,6 @@ import { ModuleCard } from "@/components/ModuleCard";
 import { Link } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
 import { Saetta } from "@/components/Saetta";
-import { CinemaFulmini } from "@/components/CinemaFulmini";
 import { useComputo, useDatiEdificio } from "@/lib/progettoStore";
 import { applicaModifiche, generaComputo } from "@/calcoli/materiali/computo";
 import { avanzamento } from "@/calcoli/materiali/avanzamento";
@@ -24,7 +23,6 @@ export function HomePage() {
   const progresso = { moduli, completi, percento: Math.round(completi / moduli.length * 100) };
   return (
     <>
-    <CinemaFulmini />
     <section id="inizio-app" className="scroll-mt-14 bg-ardesia text-white">
       <div className="mx-auto grid max-w-5xl gap-4 px-4 py-6 md:grid-cols-[1fr_auto] md:items-end"><div>
         <h1 className="text-2xl font-bold leading-tight sm:text-3xl">Progettazione LPS – protezione contro i fulmini</h1>

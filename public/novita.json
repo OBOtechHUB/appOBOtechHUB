@@ -2,6 +2,17 @@
   "nota": "Registro degli aggiornamenti di Progettazione LPS. Una voce per aggiornamento, la più recente per prima (app: lps). Viene mostrato nella barra \"Aggiorna app\", nel riquadro Novità e nella pagina Novità di OBO Hub.",
   "aggiornamenti": [
     {
+      "id": "2026-11-24-lps-53",
+      "data": "2026-11-24",
+      "app": "lps",
+      "titolo": "Sigla d'apertura al posto dell'introduzione lunga",
+      "voci": [
+        "All'apertura dell'app una sigla di 2-3 secondi a tutto schermo: tempesta, il fulmine colpisce l'asta, la corrente va a terra, compare «Progettazione LPS», poi sparisce",
+        "Una volta per sessione; un tocco o un tasto la chiudono subito",
+        "Tolta l'introduzione lunga da scorrere nella pagina iniziale"
+      ]
+    },
+    {
       "id": "2026-11-24-lps-52",
       "data": "2026-11-24",
       "app": "lps",
