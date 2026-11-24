@@ -10,7 +10,7 @@ import { Campo, inputCls } from "@/components/Campo";
 import { CampoNumero } from "@/components/CampoNumero";
 import { useDatiEdificio } from "@/lib/progettoStore";
 import { aggiornaEsteso, relazioneSchema, useEsteso, ventoSchema, type DatiVento } from "@/lib/statoProgetto";
-import { ASTE, BARRE, MAX_BLOCCHI_BASE, barraPer, CATEGORIE, MATERIALI, ZONE, ce, pressioneBase, velocitaBase, velocitaPiccoKmh, verificaParete, zavorraSostegno, zavorraTabelle, zonaDa, type Materiale, type Parametri } from "@/calcoli/vento/vento";
+import { ASTE, BARRE, MAX_BLOCCHI_BASE, barraPer, CATEGORIE, MATERIALI, ZONE, ce, pressioneBase, velocitaBase, velocitaPiccoKmh, verificaParete, proveBlocchi, zavorraSostegno, zavorraTabelle, zonaDa, type Materiale, type Parametri } from "@/calcoli/vento/vento";
 import { scarica } from "@/lib/esportazioni";
 import { NOME_METODO, verificaVentoProgetto } from "@/calcoli/vento/progetto";
 import { tipoAsta } from "@/calcoli/relazione/testiProgetto";
@@ -75,6 +75,9 @@ export function VentoPage() {
     XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(par), "Località");
     XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet([["Sistema", "Codice", "Altezza (m)", "Forza vento (kN)", "Momento base (kN·m)", "Basi", "Blocchi per base", "Blocchi totali", "Zavorra (kg)", "Barra filettata per base", "Verifica che governa", "Esito", "Note"],
       ...sostegni.map((s) => [s.nome, s.codice, s.altezza, Number(s.azione.F.toFixed(2)), Number(s.azione.M.toFixed(2)), s.basi, s.perBase ?? `oltre ${MAX_BLOCCHI_BASE}`, s.totali ?? "", s.zavorra ?? "", s.perBase != null ? barraTxt(s.perBase) : "", s.governa ?? "", s.esito === "ok" ? "verificato" : "serve strutturista", s.note.join(" ")])]), "irod su sostegno");
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet([["Sistema", "Basi (piedi)", "Leva basi", "Blocchi per piede", "Blocchi totali", "Zavorra (kg)", "MEd = 1,5·M (kN·m)", "MRd ribaltamento (kN·m)", "HEd = 1,5·F (kN)", "HRd scorrimento (kN)", "Esito", "Barra filettata per piede"],
+      ...ASTE.sostegni.flatMap((so) => proveBlocchi(so, P).map((x) => [so.nome, x.basi, x.leva, x.perBase, x.totali, x.zavorra, Number(x.MEd.toFixed(2)), Number(x.MRd.toFixed(2)), Number(x.HEd.toFixed(2)), Number(x.HRd.toFixed(2)), x.ok ? "verificato" : "NO", x.barra ?? ""]))]), "Verifica blocchi irod");
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet([["Blocchi per base", "Barra art.", "Tipo", "Lunghezza (mm)"], ...BARRE.map((b) => [b.blocchi, b.codice, b.tipo, b.lunghezza])]), "Barre filettate");
     XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet([["Tabella OBO", "Altezza (m)", "Materiale", "Asta", "Sostegno", "Vento di picco in sommità (km/h)", "Blocchi 16 kg", "Zavorra (kg)", "Barra filettata per piede", "Vento massimo con 15 blocchi (km/h)"],
       ...tabelle.map((t) => [t.tabella, t.altezza, t.materiale ?? "", t.asta, t.sostegno, Math.round(t.vento), t.blocchi ?? "oltre la tabella", t.zavorra ?? "", t.blocchi != null ? barraTxt(t.blocchi / 3) : "", t.ventoMax])]), "isFang su treppiede");
     XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet([["Asta", "Ø (mm)", "Lunghezza (m)", "Interasse supporti (m)", "Forza vento (kN)", "Reazione supporto superiore (kN)", "Reazione supporto inferiore (kN)", "Momento al supporto superiore (kN·m)", "σ (MPa)", "fd (MPa)", "Sfruttamento", "Esito"],
@@ -155,6 +158,20 @@ export function VentoPage() {
               </tr>))}</tbody>
           </table>
         </div>
+              <details className="mt-3">
+          <summary className="cursor-pointer text-sm font-medium">Dettaglio delle verifiche: da 1 a {MAX_BLOCCHI_BASE} blocchi per piede</summary>
+          <div className="mt-2 overflow-x-auto">
+            <table className="w-full min-w-[760px] text-xs">
+              <thead><tr className="border-b text-left text-muted-foreground"><th className="p-1">Sistema</th><th className="p-1 text-right">Basi</th><th className="p-1 text-right">Blocchi per piede</th><th className="p-1 text-right">Totali</th><th className="p-1 text-right">MEd / MRd (kN·m)</th><th className="p-1 text-right">HEd / HRd (kN)</th><th className="p-1">Barra per piede</th><th className="p-1">Esito</th></tr></thead>
+              <tbody>{ASTE.sostegni.flatMap((so) => proveBlocchi(so, P).map((x) => (
+                <tr key={`${so.id}-${x.basi}-${x.perBase}`} className={`border-b ${x.ok ? "bg-green-50 dark:bg-green-950/30" : ""}`}>
+                  <td className="p-1">{so.nome}</td><td className="p-1 text-right">{x.basi}{x.leva !== 1 ? ` (leva ${f(x.leva)})` : ""}</td><td className="p-1 text-right">{x.perBase}</td><td className="p-1 text-right">{x.totali} = {x.zavorra} kg</td>
+                  <td className="p-1 text-right">{f(x.MEd)} / {f(x.MRd)}</td><td className="p-1 text-right">{f(x.HEd)} / {f(x.HRd)}</td><td className="p-1">{x.barra ?? "–"}</td><td className="p-1"><Esito ok={x.ok} /></td>
+                </tr>)))}</tbody>
+            </table>
+          </div>
+          <p className="mt-1 text-xs text-muted-foreground">Si sceglie la prima riga verificata (prima con meno basi). Ribaltamento: MRd = 0,9·g·(massa·a + blocchi·a·leva); scorrimento: HRd = μ·0,9·g·massa totale.</p>
+        </details>
       </section>
 
       <section className="rounded-lg border bg-card p-4">

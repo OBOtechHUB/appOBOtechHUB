@@ -140,6 +140,25 @@ export interface EsitoSostegno {
   braccio: number; ribaltamento: { sollecitante: number; resistente: number } | null; scorrimento: { sollecitante: number; resistente: number } | null;
   governa: "ribaltamento" | "scorrimento" | null; esito: "ok" | "oltre"; stima: boolean; note: string[];
 }
+export interface ProvaBlocchi { basi: number; leva: number; perBase: number; totali: number; zavorra: number; MEd: number; MRd: number; HEd: number; HRd: number; ok: boolean; barra: string | null }
+/** Tutte le prove da 1 al massimo di blocchi per base, per ogni numero di basi del sostegno (dettaglio della scelta). */
+export function proveBlocchi(s: Sostegno, p: Parametri): ProvaBlocchi[] {
+  const az = azioneAsta(s.tronchi as Tronco[], s.altezza, p);
+  const braccio = (Math.min(...s.ingombro) / 2) * Math.cos(Math.PI / s.gambe);
+  const leve = ("leveBasi" in s ? (s.leveBasi as number[]) : null) ?? s.basi.map(() => 1);
+  const out: ProvaBlocchi[] = [];
+  s.basi.forEach((nb, i) => {
+    const leva = leve[i] ?? 1;
+    for (let k = 1; k <= s.bloccoMaxPerBase; k++) {
+      const mb = nb * k * MASSA_BLOCCO;
+      const MEd = p.gammaQ * az.M, HEd = p.gammaQ * az.F;
+      const MRd = (p.gammaG * G * (s.massa * braccio + mb * braccio * leva)) / 1000, HRd = (p.mu * p.gammaG * G * (s.massa + mb)) / 1000;
+      const b = aste.barre.find((x) => x.blocchi >= k);
+      out.push({ basi: nb, leva, perBase: k, totali: nb * k, zavorra: mb, MEd, MRd, HEd, HRd, ok: MRd >= MEd && HRd >= HEd, barra: b ? `${b.tipo} (${b.codice}, ${b.lunghezza} mm)` : null });
+    }
+  });
+  return out;
+}
 export function zavorraSostegno(s: Sostegno, p: Parametri): EsitoSostegno {
   const az = azioneAsta(s.tronchi as Tronco[], s.altezza, p);
   const R = Math.min(...s.ingombro) / 2, braccio = R * Math.cos(Math.PI / s.gambe);

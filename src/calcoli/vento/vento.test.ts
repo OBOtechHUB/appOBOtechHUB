@@ -62,3 +62,14 @@ describe("aste e zavorre", () => {
     expect(r.sigma).toBeGreaterThan(0);
   });
 });
+
+describe("prove dei blocchi", () => {
+  it("da 1 a 4 blocchi per piede con la barra giusta, la prima verificata è la scelta", async () => {
+    const { ASTE, PARAMETRI_BASE, proveBlocchi, zavorraSostegno } = await import("./vento");
+    const s = ASTE.sostegni[0]!;
+    const pr = proveBlocchi(s, PARAMETRI_BASE);
+    expect(pr.length).toBe(4);
+    expect(pr[3]!.barra).toContain("5408905");
+    expect(pr.find((x) => x.ok)?.perBase).toBe(zavorraSostegno(s, PARAMETRI_BASE).perBase);
+  });
+});
