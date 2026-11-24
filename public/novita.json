@@ -2,6 +2,17 @@
   "nota": "Registro degli aggiornamenti di Progettazione LPS. Una voce per aggiornamento, la più recente per prima (app: lps). Viene mostrato nella barra \"Aggiorna app\", nel riquadro Novità e nella pagina Novità di OBO Hub.",
   "aggiornamenti": [
     {
+      "id": "2026-11-24-lps-45",
+      "data": "2026-11-24",
+      "app": "lps",
+      "titolo": "Pianta 2D: altezze, prospetti e blocchi sul tetto",
+      "voci": [
+        "Edificio 3D, nuova sezione «Pianta 2D, altezze e blocchi sul tetto»: tocchi un corpo e ne modifichi quota base, gronda, copertura e colmo",
+        "Blocchi sul tetto (UTA, volumi tecnici, torrini, vani scala) puntati in pianta con un rettangolo o un poligono e altezza manuale: la base si appoggia da sola sulla copertura sotto",
+        "Altezze da un prospetto o da una sezione 2D (PDF o immagine): calibri con due punti a distanza nota, tocchi la linea di terra e il punto più alto; la quota va in gronda, colmo, quota base o nel nuovo blocco"
+      ]
+    },
+    {
       "id": "2026-11-24-lps-44",
       "data": "2026-11-24",
       "app": "lps",
