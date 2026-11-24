@@ -10,7 +10,7 @@ import type { PoliCad, TestoCad } from "@/calcoli/importazione/analisiPianta";
 export type { PoliCad, TestoCad } from "@/calcoli/importazione/analisiPianta";
 
 import { letturaDaPolilinee, type LetturaCad } from "@/lib/letturaCad";
-import { trattiDaEntita, type EntitaCad } from "@/calcoli/importazione/contorni";
+import { spostaEntita, trattiDaEntita, type EntitaCad } from "@/calcoli/importazione/contorni";
 export { letturaDaPolilinee, type LetturaCad } from "@/lib/letturaCad";
 
 type Vertice = { x?: unknown; y?: unknown; point?: { x?: unknown; y?: unknown } };
@@ -53,14 +53,11 @@ export function blocchiDaDatabase(db: DbDwg): Record<string, EntitaCad[]> {
   for (const v of voci as { name?: string; entities?: EntitaCad[]; basePoint?: { x?: number; y?: number }; origin?: { x?: number; y?: number } }[]) {
     if (!v?.name || !Array.isArray(v.entities) || /^\*(model|paper)_space/i.test(v.name)) continue;
     const b = v.basePoint ?? v.origin, dx = -(b?.x ?? 0), dy = -(b?.y ?? 0);
-    out[v.name] = dx || dy ? v.entities.map((e) => sposta(e, dx, dy)) : v.entities;
+    out[v.name] = dx || dy ? v.entities.map((e) => spostaEntita(e, dx, dy)) : v.entities;
   }
   return out;
 }
-function sposta(e: EntitaCad, dx: number, dy: number): EntitaCad {
-  const m = <T,>(p: T): T => { const q = p as { x?: unknown; y?: unknown } | undefined; return q && typeof q.x === "number" && typeof q.y === "number" ? ({ ...q, x: q.x + dx, y: q.y + dy } as T) : p; };
-  return { ...e, vertices: e.vertices?.map(m), startPoint: m(e.startPoint), endPoint: m(e.endPoint), center: m(e.center), position: m(e.position), insertionPoint: m(e.insertionPoint), controlPoints: e.controlPoints?.map(m), fitPoints: e.fitPoints?.map(m) };
-}
+
 let libreria: Promise<{ lib: Libreria; tipoDwg: number }> | null = null;
 
 async function caricaLibreria(cartellaWasm?: string) {

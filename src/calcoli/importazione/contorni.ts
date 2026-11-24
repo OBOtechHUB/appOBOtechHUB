@@ -84,13 +84,13 @@ export function contorniDaTratti(tratti: PoliCad[]): { chiusi: PoliCad[]; appros
 }
 
 // ---------------------------------------------------------------- entità CAD (dxf-parser e LibreDWG) → tratti
-type Pt = { x?: unknown; y?: unknown; point?: { x?: unknown; y?: unknown } } | undefined;
+type Pt = { x?: unknown; y?: unknown; point?: { x?: unknown; y?: unknown } | undefined } | undefined;
 export interface EntitaCad {
-  type?: string; layer?: string; isInPaperSpace?: boolean; inPaperSpace?: boolean; paperSpace?: boolean;
-  vertices?: Pt[]; shape?: boolean; flag?: number; closed?: boolean;
-  startPoint?: Pt; endPoint?: Pt; center?: Pt; centre?: Pt; radius?: number; startAngle?: number; endAngle?: number;
-  controlPoints?: Pt[]; fitPoints?: Pt[]; majorAxisEndPoint?: Pt; axisRatio?: number;
-  name?: string; blockName?: string; position?: Pt; insertionPoint?: Pt; xScale?: number; yScale?: number; rotation?: number;
+  type?: string | undefined; layer?: string | undefined; isInPaperSpace?: boolean | undefined; inPaperSpace?: boolean | undefined; paperSpace?: boolean | undefined;
+  vertices?: Pt[] | undefined; shape?: boolean | undefined; flag?: number | undefined; closed?: boolean | undefined;
+  startPoint?: Pt | undefined; endPoint?: Pt | undefined; center?: Pt | undefined; centre?: Pt | undefined; radius?: number | undefined; startAngle?: number | undefined; endAngle?: number | undefined;
+  controlPoints?: Pt[] | undefined; fitPoints?: Pt[] | undefined; majorAxisEndPoint?: Pt | undefined; axisRatio?: number | undefined;
+  name?: string | undefined; blockName?: string | undefined; position?: Pt | undefined; insertionPoint?: Pt | undefined; xScale?: number | undefined; yScale?: number | undefined; rotation?: number | undefined;
 }
 const n = (v: unknown) => (typeof v === "number" && Number.isFinite(v) ? v : null);
 const xy = (p: Pt): P2 | null => { const x = n(p?.x) ?? n(p?.point?.x), y = n(p?.y) ?? n(p?.point?.y); return x !== null && y !== null ? [x, y] : null; };
@@ -136,4 +136,10 @@ export function trattiDaEntita(entita: EntitaCad[], blocchi: Record<string, Enti
   };
   visita(entita, (p) => p, 0);
   return out;
+}
+
+/** Entità spostata di (dx, dy): serve per riportare i blocchi al loro punto base. */
+export function spostaEntita(e: EntitaCad, dx: number, dy: number): EntitaCad {
+  const m = (p: Pt): Pt => (p && typeof p.x === "number" && typeof p.y === "number" ? { ...p, x: p.x + dx, y: p.y + dy } : p);
+  return { ...e, vertices: e.vertices?.map(m), startPoint: m(e.startPoint), endPoint: m(e.endPoint), center: m(e.center), position: m(e.position), insertionPoint: m(e.insertionPoint), controlPoints: e.controlPoints?.map(m), fitPoints: e.fitPoints?.map(m) };
 }

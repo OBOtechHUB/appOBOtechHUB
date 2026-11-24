@@ -4,7 +4,7 @@ import {locale} from "@/calcoli/edificio/geometria";
 import {unitaDaInsunits,type Unita} from "@/calcoli/importazione/scala";
 import {letturaDaPolilinee,type LetturaCad} from "@/lib/letturaCad";
 import type {PoliCad,TestoCad} from "@/calcoli/importazione/analisiPianta";
-import {trattiDaEntita,type EntitaCad} from "@/calcoli/importazione/contorni";
+import {spostaEntita,trattiDaEntita,type EntitaCad} from "@/calcoli/importazione/contorni";
 /** DXF: polilinee (chiuse = impronte), testi (altezze e nomi) e unità dichiarata; `scala` moltiplica le coordinate dei corpi. */
 export async function leggiDXF(file:File,scala:number):Promise<LetturaCad>{const {default:DxfParser}=await import("dxf-parser");const data=new DxfParser().parseSync(await file.text());if(!data)throw new Error("DXF non leggibile.");
   type Ent={type:string;layer?:string;shape?:boolean;vertices?:{x:number;y:number}[];text?:string;startPoint?:{x:number;y:number};position?:{x:number;y:number}};
@@ -44,7 +44,7 @@ export async function leggiMesh(files:File[],scala:number,verticaleZ=false):Prom
   if(!object)throw new Error("Geometria non disponibile.");object.updateMatrixWorld(true);
   // tutti i triangoli in coordinate del mondo (Z in alto)
   const tri:number[]=[];const v=new THREE.Vector3();
-  object.traverse((o)=>{if(!(o instanceof THREE.Mesh))return;const g=o.geometry as InstanceType<typeof THREE.BufferGeometry>;const a=g.getAttribute("position");if(!a)return;const idx=g.index;const n=idx?idx.count:a.count;
+  object.traverse((o)=>{if(!(o instanceof THREE.Mesh))return;const g=o.geometry as InstanceType<typeof THREE.BufferGeometry>;const a=g.getAttribute("position") as InstanceType<typeof THREE.BufferAttribute>|undefined;if(!a)return;const idx=g.index;const n=idx?idx.count:a.count;
     for(let k=0;k<n;k++){const i=idx?idx.getX(k):k;v.fromBufferAttribute(a,i).applyMatrix4(o.matrixWorld).multiplyScalar(scala);if(verticaleZ)tri.push(v.x,v.y,v.z);else tri.push(v.x,v.z,v.y);}});
   if(tri.length<9)throw new Error("Nel file non c'è geometria 3D leggibile (il modello potrebbe contenere solo dati senza forme): prova a esportarlo di nuovo dal programma BIM/CAD, oppure in OBJ, GLB o STEP.");
   const nV=tri.length/3;let minX=Infinity,maxX=-Infinity,minY=Infinity,maxY=-Infinity,minZ=Infinity,maxZ=-Infinity;
@@ -114,8 +114,3 @@ export function semplificaTriangoli(tri:number[],max=MAX_TRIANGOLI):number[]{
   return out;
 }
 
-/** Entità di un blocco riportata al punto base del blocco (punto di inserimento = origine). */
-function spostaEntita(e:EntitaCad,dx:number,dy:number):EntitaCad{
-  const m=(p:{x?:unknown;y?:unknown}|undefined)=>p&&typeof p.x==="number"&&typeof p.y==="number"?{...p,x:p.x+dx,y:p.y+dy}:p;
-  return {...e,vertices:e.vertices?.map((v)=>m(v as {x?:unknown;y?:unknown})),startPoint:m(e.startPoint as {x?:unknown;y?:unknown}),endPoint:m(e.endPoint as {x?:unknown;y?:unknown}),center:m(e.center as {x?:unknown;y?:unknown}),position:m(e.position as {x?:unknown;y?:unknown}),insertionPoint:m(e.insertionPoint as {x?:unknown;y?:unknown}),controlPoints:e.controlPoints?.map((v)=>m(v as {x?:unknown;y?:unknown})),fitPoints:e.fitPoints?.map((v)=>m(v as {x?:unknown;y?:unknown}))};
-}
