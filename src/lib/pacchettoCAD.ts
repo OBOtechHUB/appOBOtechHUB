@@ -7,6 +7,7 @@ export function leggimiCAD(nome: string): string {
     `  ${nome}.dxf       tavole 2D: LPS-01 pianta coperture, LPS-02 prospetti con sfera rotolante,`,
     "                     LPS-03 calate e impianto di terra, LPS-04 particolari costruttivi",
     `  ${nome}_tavole.pdf le stesse tavole in PDF vettoriale, pronte da stampare`,
+    `  ${nome}_LPS.ifc    modello BIM IFC4 (edificio, aste, conduttori, picchetti) per Revit, ArchiCAD, Solibri`,
     `  ${nome}.lpsdati   dati del progetto per il modello 3D e la distinta`,
     "  LPS.lsp            programma per AutoCAD e ZWCAD",
     "",

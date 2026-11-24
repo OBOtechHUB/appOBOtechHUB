@@ -2,6 +2,17 @@
   "nota": "Registro degli aggiornamenti di Progettazione LPS. Una voce per aggiornamento, la più recente per prima (app: lps). Viene mostrato nella barra \"Aggiorna app\", nel riquadro Novità e nella pagina Novità di OBO Hub.",
   "aggiornamenti": [
     {
+      "id": "2026-11-24-lps-37",
+      "data": "2026-11-24",
+      "app": "lps",
+      "titolo": "Esportazione IFC (BIM)",
+      "voci": [
+        "Edificio 3D → «Modello IFC»: scarica il progetto in IFC4 con edificio, aste di captazione, conduttori (captazione, calate, terra) e picchetti, con codice OBO, materiale, sezione e lunghezza nelle proprietà «OBO_LPS»",
+        "Il file .ifc è anche nel pacchetto per AutoCAD e ZWCAD",
+        "Si apre in Revit, ArchiCAD, Solibri, BIMcollab e negli altri programmi BIM; l'importazione di file IFC c'era già (Edificio 3D → Importa file)"
+      ]
+    },
+    {
       "id": "2026-11-24-lps-36",
       "data": "2026-11-24",
       "app": "lps",
