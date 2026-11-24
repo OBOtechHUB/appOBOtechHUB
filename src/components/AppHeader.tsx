@@ -3,7 +3,7 @@ import { Link, useNavigate, useRouter, useRouterState } from "@tanstack/react-ro
 import { useQueryClient } from "@tanstack/react-query";
 import {
   ArrowDownToLine, ShieldCheck, Box, Boxes, Cpu, ShieldAlert, Building2, Package, ClipboardCheck, Compass, Gauge, ChevronLeft, ClipboardList, Download, FileText, FolderOpen, Info, LogIn, LogOut,
-  Languages, LayoutGrid, ZoomIn, ZoomOut, Mail, Moon, Sun, SunMoon, Menu, Ruler, Search, Smartphone, Shield, SlidersHorizontal, User, UserPlus, Wrench, X,
+  Languages, LayoutGrid, Sparkles, ZoomIn, ZoomOut, Mail, Moon, Sun, SunMoon, Menu, Ruler, Search, Smartphone, Shield, SlidersHorizontal, User, UserPlus, Wrench, X,
   BookOpen, Inbox, BarChart3, Camera, Wind } from "lucide-react";
 import { useAuth } from "@/lib/auth";
 import { NOMI_TEMA, cambiaZoom, impostaTema, useTema, useZoom, type Tema } from "@/lib/tema";
@@ -119,6 +119,7 @@ export function AppHeader() {
       titolo: "Aiuto",
       voci: [
         { etichetta: "Guida", to: "/guida", icona: Info },
+        { etichetta: "Novità delle app", azione: () => { setAperto(false); window.location.assign(`${URL_HUB}novita.html?app=lps`); }, icona: Sparkles },
         { etichetta: "Contatti", to: "/contatti", icona: Mail },
       ],
     },
