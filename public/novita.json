@@ -2,6 +2,17 @@
   "nota": "Registro degli aggiornamenti di Progettazione LPS. Una voce per aggiornamento, la più recente per prima (app: lps). Viene mostrato nella barra \"Aggiorna app\", nel riquadro Novità e nella pagina Novità di OBO Hub.",
   "aggiornamenti": [
     {
+      "id": "2026-11-24-lps-36",
+      "data": "2026-11-24",
+      "app": "lps",
+      "titolo": "Sopralluogo: scegli il progetto dalla pagina",
+      "voci": [
+        "Se non c'è un progetto aperto (per esempio creato su un altro dispositivo o app riaperta sul telefono), la pagina Sopralluogo mostra i tuoi progetti con «Collega il sopralluogo»",
+        "In alto il progetto collegato e «Cambia progetto»",
+        "«Salva lavoro corrente come progetto» ora apre subito il progetto creato"
+      ]
+    },
+    {
       "id": "2026-11-24-lps-35",
       "data": "2026-11-24",
       "app": "lps",

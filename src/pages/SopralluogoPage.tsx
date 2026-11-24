@@ -4,11 +4,15 @@
  * torna; quelle segnate vanno nella relazione. Tutto resta nel progetto attivo (`esteso.sopralluogo`).
  */
 import { useEffect, useRef, useState } from "react";
-import { Camera, ImagePlus, CloudUpload, WifiOff, Wifi } from "lucide-react";
+import { Camera, ImagePlus, CloudUpload, WifiOff, Wifi, FolderOpen } from "lucide-react";
+import { Link } from "@tanstack/react-router";
+import { elencaProgetti, leggiProgetto } from "@/lib/progetti.functions";
+import { salvaAttivo } from "@/components/ProjectSync";
+import { useAccesso } from "@/lib/accesso";
 import { Button } from "@/components/ui/button";
 import { PageTitle } from "@/components/PageTitle";
 import { useDatiEdificio } from "@/lib/progettoStore";
-import { aggiornaEsteso, leggiAttivo, leggiEsteso, useAttivo, useEsteso, sopralluogoSchema, type Sopralluogo } from "@/lib/statoProgetto";
+import { caricaSnapshot, impostaAttivo, snapshot, aggiornaEsteso, leggiAttivo, leggiEsteso, useAttivo, useEsteso, sopralluogoSchema, type Sopralluogo } from "@/lib/statoProgetto";
 import { PulsanteDetta, NoteVocali } from "@/components/sopralluogo/Voce";
 import { fotoInCoda, percorsoFoto, riduciFoto, salvaFoto, scaricaFoto, sincronizzaFoto } from "@/lib/fotoSopralluogo";
 
@@ -60,13 +64,14 @@ export function SopralluogoPage() {
     } finally { setOccupato(false); aggiornaCoda(); if (fotoRef.current) fotoRef.current.value = ""; if (galleriaRef.current) galleriaRef.current.value = ""; }
   }
 
-  if (!attivo) return <main className="mx-auto max-w-3xl px-4 py-8"><PageTitle titolo="Sopralluogo" /><p className="mt-4 text-muted-foreground">Apri prima un progetto salvato (Progetti): le foto del sopralluogo si salvano nel progetto.</p></main>;
+  if (!attivo) return <ScegliProgetto />;
   const vis = [...so.foto].reverse().filter((f) => filtro === "tutte" || f.categoria === filtro);
   const conta = (c: Categoria | "tutte") => (c === "tutte" ? so.foto.length : so.foto.filter((f) => f.categoria === c).length);
   return <main className="mx-auto max-w-3xl space-y-4 px-4 py-6">
     <PageTitle titolo="Sopralluogo" />
     <div className="flex flex-wrap items-center gap-2 text-sm">
-      <span className="font-semibold">{d.nomeProgetto || "Progetto"}{d.comune ? ` – ${d.comune}` : ""}</span>
+      <span className="font-semibold">{attivo.codice ? `${attivo.codice} · ` : ""}{attivo.nome || d.nomeProgetto || "Progetto"}{d.comune ? ` – ${d.comune}` : ""}</span>
+      <Link to="/progetti" className="text-xs text-primary underline">Cambia progetto</Link>
       <span className={`inline-flex items-center gap-1 rounded px-2 py-0.5 ${online ? "bg-green-600/15" : "bg-amber-500/20"}`}>{online ? <Wifi className="h-4 w-4" /> : <WifiOff className="h-4 w-4" />}{online ? "In linea" : "Senza rete: le foto restano sul telefono"}</span>
       {inCoda > 0 && <Button type="button" size="sm" variant="outline" onClick={() => void sincronizzaFoto().then(setInCoda)}><CloudUpload />{inCoda} foto da caricare</Button>}
     </div>
@@ -123,5 +128,29 @@ export function SopralluogoPage() {
       <p className="mb-3 text-sm text-muted-foreground">Registra un appunto a voce (fino a 5 minuti): resta nel progetto, si ascolta da qualsiasi dispositivo e puoi scriverne un riassunto. Per un vocale su una foto, apri la foto.</p>
       <NoteVocali progetto={attivo.id} vocali={so.vocali} onVocali={(v) => setSo({ vocali: v })} />
     </section>
+  </main>;
+}
+
+/** Nessun progetto aperto (es. progetto creato su un altro dispositivo, app riaperta): si sceglie qui, senza passare da Progetti. */
+function ScegliProgetto() {
+  const accesso = useAccesso(), visitatore = !!accesso.profilo?.visitatore;
+  const [lista, setLista] = useState<{ id: string; codice: string; nome: string; comune: string; data_modifica: string }[] | null>(null), [errore, setErrore] = useState(""), [busy, setBusy] = useState(false);
+  useEffect(() => { if (visitatore) return; elencaProgetti({ data: { pagina: 0 } }).then((r) => setLista(r.righe)).catch((e: unknown) => setErrore(e instanceof Error ? e.message : "Progetti non letti.")); }, [visitatore]);
+  async function apri(id: string) {
+    setBusy(true); setErrore("");
+    try { await salvaAttivo(); const p = await leggiProgetto({ data: { id } }); caricaSnapshot(p.dati); impostaAttivo({ id: p.id, codice: p.codice, nome: p.nome, proprietario: p.utente, salvato: JSON.stringify(snapshot()) }); }
+    catch (e) { setErrore(e instanceof Error ? e.message : "Progetto non aperto."); }
+    finally { setBusy(false); }
+  }
+  return <main className="mx-auto max-w-3xl px-4 py-8"><PageTitle titolo="Sopralluogo" />
+    {visitatore ? <p className="mt-4 text-muted-foreground">I visitatori non salvano progetti nel cloud: il sopralluogo si fa con il proprio account.</p> : <>
+      <p className="mt-4 text-muted-foreground">Scegli il progetto a cui collegare il sopralluogo: foto, note e vocali si salvano in quel progetto.</p>
+      {errore && <p role="alert" className="mt-3 text-destructive">{errore}</p>}
+      {lista === null && !errore ? <p className="mt-4 text-sm text-muted-foreground">Carico i progetti…</p> : lista && !lista.length ? <p className="mt-4">Non hai ancora progetti: <Link to="/progetti" className="text-primary underline">creane uno in Progetti</Link>.</p> :
+        <ul className="mt-4 divide-y rounded-lg border">{(lista ?? []).map((p) => <li key={p.id} className="flex flex-wrap items-center justify-between gap-3 p-3">
+          <span><b>{p.codice ? `${p.codice} · ` : ""}{p.nome}</b><span className="block text-xs text-muted-foreground">{p.comune || "Comune non indicato"} · modificato il {new Date(p.data_modifica).toLocaleDateString("it-IT")}</span></span>
+          <Button disabled={busy} onClick={() => void apri(p.id)}><FolderOpen />Collega il sopralluogo</Button></li>)}</ul>}
+      <p className="mt-3 text-sm"><Link to="/progetti" className="text-primary underline">Tutti i progetti</Link></p>
+    </>}
   </main>;
 }
