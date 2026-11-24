@@ -4,6 +4,10 @@ import { copyFileSync, existsSync, mkdirSync, readdirSync } from "node:fs";
 import { join } from "node:path";
 const sorgente = "node_modules/@mlightcad/libredwg-web/wasm";
 const dest = "public/wasm";
-if (!existsSync(sorgente)) { console.warn("copia-wasm: libredwg-web non installato, salto"); process.exit(0); }
 mkdirSync(dest, { recursive: true });
-for (const f of readdirSync(sorgente)) if (f.endsWith(".wasm")) { copyFileSync(join(sorgente, f), join(dest, f)); console.log("copia-wasm:", f); }
+if (!existsSync(sorgente)) console.warn("copia-wasm: libredwg-web non installato, salto");
+else for (const f of readdirSync(sorgente)) if (f.endsWith(".wasm")) { copyFileSync(join(sorgente, f), join(dest, f)); console.log("copia-wasm:", f); }
+
+// web-ifc: il .wasm deve essere della stessa versione della libreria installata (importazione IFC)
+const ifc = "node_modules/web-ifc/web-ifc.wasm";
+if (existsSync(ifc)) { copyFileSync(ifc, join(dest, "web-ifc.wasm")); console.log("copia-wasm: web-ifc.wasm"); }

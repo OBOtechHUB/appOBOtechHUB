@@ -2,6 +2,16 @@
   "nota": "Registro degli aggiornamenti di Progettazione LPS. Una voce per aggiornamento, la più recente per prima (app: lps). Viene mostrato nella barra \"Aggiorna app\", nel riquadro Novità e nella pagina Novità di OBO Hub.",
   "aggiornamenti": [
     {
+      "id": "2026-11-24-lps-38",
+      "data": "2026-11-24",
+      "app": "lps",
+      "titolo": "Importazione di DWG, DXF e IFC più tollerante",
+      "voci": [
+        "DWG e DXF senza polilinee chiuse: l'app legge anche linee, archi, cerchi, spline, polilinee aperte e blocchi, unisce i tratti che si toccano in contorni chiusi e, se non si chiude niente, usa il contorno esterno del layer: il disegno si importa sempre",
+        "IFC e modelli 3D grandi: il modello viene semplificato (fino a 60.000 triangoli) invece di dare «mesh vuota o troppo complessa»; impronta reale dell'edificio; il lettore IFC viene aggiornato insieme alla libreria"
+      ]
+    },
+    {
       "id": "2026-11-24-lps-37",
       "data": "2026-11-24",
       "app": "lps",

@@ -10,6 +10,7 @@ import type { PoliCad, TestoCad } from "@/calcoli/importazione/analisiPianta";
 export type { PoliCad, TestoCad } from "@/calcoli/importazione/analisiPianta";
 
 import { letturaDaPolilinee, type LetturaCad } from "@/lib/letturaCad";
+import { trattiDaEntita, type EntitaCad } from "@/calcoli/importazione/contorni";
 export { letturaDaPolilinee, type LetturaCad } from "@/lib/letturaCad";
 
 type Vertice = { x?: unknown; y?: unknown; point?: { x?: unknown; y?: unknown } };
@@ -43,7 +44,23 @@ export function testiDaDatabase(db: { entities?: unknown[] }): TestoCad[] {
   return out;
 }
 
-type Libreria = { dwg_read_data: (c: ArrayBuffer, t: number) => number | undefined; convert: (p: number) => { entities?: unknown[]; header?: { INSUNITS?: number } }; dwg_free: (p: number) => void };
+type DbDwg = { entities?: unknown[]; header?: { INSUNITS?: number }; tables?: Record<string, { entries?: unknown[] }>; blocks?: unknown };
+type Libreria = { dwg_read_data: (c: ArrayBuffer, t: number) => number | undefined; convert: (p: number) => DbDwg; dwg_free: (p: number) => void };
+/** Definizioni dei blocchi (per esplodere gli INSERT), comunque LibreDWG le restituisca. */
+export function blocchiDaDatabase(db: DbDwg): Record<string, EntitaCad[]> {
+  const out: Record<string, EntitaCad[]> = {};
+  const voci = [...(db.tables?.["BLOCK_RECORD"]?.entries ?? []), ...(Array.isArray(db.blocks) ? db.blocks : Object.values((db.blocks ?? {}) as Record<string, unknown>))];
+  for (const v of voci as { name?: string; entities?: EntitaCad[]; basePoint?: { x?: number; y?: number }; origin?: { x?: number; y?: number } }[]) {
+    if (!v?.name || !Array.isArray(v.entities) || /^\*(model|paper)_space/i.test(v.name)) continue;
+    const b = v.basePoint ?? v.origin, dx = -(b?.x ?? 0), dy = -(b?.y ?? 0);
+    out[v.name] = dx || dy ? v.entities.map((e) => sposta(e, dx, dy)) : v.entities;
+  }
+  return out;
+}
+function sposta(e: EntitaCad, dx: number, dy: number): EntitaCad {
+  const m = <T,>(p: T): T => { const q = p as { x?: unknown; y?: unknown } | undefined; return q && typeof q.x === "number" && typeof q.y === "number" ? ({ ...q, x: q.x + dx, y: q.y + dy } as T) : p; };
+  return { ...e, vertices: e.vertices?.map(m), startPoint: m(e.startPoint), endPoint: m(e.endPoint), center: m(e.center), position: m(e.position), insertionPoint: m(e.insertionPoint), controlPoints: e.controlPoints?.map(m), fitPoints: e.fitPoints?.map(m) };
+}
 let libreria: Promise<{ lib: Libreria; tipoDwg: number }> | null = null;
 
 async function caricaLibreria(cartellaWasm?: string) {
@@ -69,8 +86,9 @@ export async function leggiDWG(file: File, cartellaWasm?: string): Promise<Lettu
   if (ptr === undefined || ptr === 0) throw new Error("DWG non leggibile (versione non supportata o file danneggiato): salvalo come DXF dal CAD.");
   try {
     const db = lettore.lib.convert(ptr);
-    const poli = polilineeDaDatabase(db);
-    if (!poli.length) throw new Error("Nel DWG non ci sono polilinee: l'impronta dell'edificio va disegnata con polilinee chiuse.");
+    // tutte le linee del disegno: polilinee, linee, archi, cerchi, spline, blocchi (non solo polilinee chiuse)
+    const poli = trattiDaEntita((db.entities ?? []) as EntitaCad[], blocchiDaDatabase(db));
+    if (!poli.length) throw new Error("Nel DWG non ci sono linee nello spazio modello: forse il disegno è solo nello spazio carta. Prova a salvarlo di nuovo dal CAD, oppure importa il PDF della pianta.");
     return letturaDaPolilinee(poli, unitaDaInsunits(db.header?.INSUNITS), "DWG", testiDaDatabase(db));
   } finally {
     try { lettore.lib.dwg_free(ptr); } catch { /* memoria già liberata */ }

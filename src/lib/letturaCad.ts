@@ -1,7 +1,8 @@
 /** Lettura comune di DXF e DWG: polilinee chiuse, layer, unità dichiarata e testi. Logica senza dipendenze dal browser. */
 import { corpoSchema, type Corpo } from "@/calcoli/edificio/tipi";
 import type { Unita } from "@/calcoli/importazione/scala";
-import { polilineeChiuse, type PoliCad, type TestoCad } from "@/calcoli/importazione/analisiPianta";
+import { type PoliCad, type TestoCad } from "@/calcoli/importazione/analisiPianta";
+import { contorniDaTratti } from "@/calcoli/importazione/contorni";
 
 /** Struttura comune alla lettura di DXF e DWG: unità, ingombro, layer e corpi da un layer. */
 export interface LetturaCad {
@@ -14,11 +15,18 @@ export interface LetturaCad {
   poligoni: PoliCad[];
   /** testi del disegno (per leggere altezze e nomi) */
   testi: TestoCad[];
+  /** nessun contorno chiuso nel disegno: i poligoni sono i contorni esterni dei layer, da controllare */
+  approssimato?: boolean;
 }
 
-/** Polilinee chiuse (flag "chiusa" oppure ultimo vertice uguale al primo) → lettura comune. */
+/**
+ * Tratti del disegno → lettura comune: polilinee chiuse, tratti (linee, archi, polilinee aperte) uniti in contorni chiusi;
+ * se non si chiude niente, il contorno esterno di ogni layer (approssimato).
+ */
 export function letturaDaPolilinee(poli: PoliCad[], unita: Unita | null, prefisso = "DXF", testi: TestoCad[] = []): LetturaCad {
-  const chiuse = polilineeChiuse(poli);
+  const { chiusi, approssimati } = contorniDaTratti(poli);
+  const approssimato = !chiusi.length && approssimati.length > 0;
+  const chiuse = approssimato ? approssimati : chiusi;
   const ingombro = (layer?: string) => {
     const sel = chiuse.filter((p) => !layer || p.layer === layer);
     const xs = sel.flatMap((p) => p.punti.map((q) => q[0])), ys = sel.flatMap((p) => p.punti.map((q) => q[1]));
@@ -28,7 +36,7 @@ export function letturaDaPolilinee(poli: PoliCad[], unita: Unita | null, prefiss
   const conChiuse = [...new Set(chiuse.map((p) => p.layer))];
   const layers = [...conChiuse, ...[...new Set(poli.map((p) => p.layer))].filter((l) => !conChiuse.includes(l))];
   return {
-    unita, dimensioni: ingombro(), ingombro, layers, poligoni: chiuse, testi,
+    unita, dimensioni: ingombro(), ingombro, layers, poligoni: chiuse, testi, approssimato,
     corpi: (layer: string) => chiuse.filter((p) => p.layer === layer).map((p, i) => corpoSchema.parse({ id: crypto.randomUUID(), nome: `${prefisso} ${i + 1}`, impronta: p.punti, quotaBase: 0, altezzaGronda: 0, tipoTetto: "piano", altezzaColmo: 0 })),
   };
 }

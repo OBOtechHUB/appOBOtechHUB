@@ -30,5 +30,6 @@ describe("lettura DWG", () => {
     const l = await leggiDWG(f, "./node_modules/@mlightcad/libredwg-web/wasm");
     expect(l.unita).toBe("mm");
     expect(l.layers.length).toBeGreaterThan(0);
+    expect(l.poligoni.length).toBeGreaterThan(0); // linee e archi uniti o contorno del layer: si importa sempre
   }, 60000);
 });

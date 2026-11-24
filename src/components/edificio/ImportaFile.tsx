@@ -62,7 +62,7 @@ export function ImportaFile({ onImporta, paginaIntera = false }: { onImporta: (m
     await esegui(async () => {
       if (/\.(dxf|dwg)$/i.test(main.name)) {
         const r: LetturaCad = /\.dwg$/i.test(main.name) ? await leggiDWG(main) : await leggiDXF(main, 1);
-        if (!r.layers.length) throw new Error("Nel DXF non ci sono polilinee: l'impronta dell'edificio va disegnata con polilinee chiuse.");
+        if (!r.layers.length || !r.poligoni.length) throw new Error("Nel disegno non ci sono linee utilizzabili nello spazio modello: prova a salvarlo di nuovo dal CAD oppure importa il PDF della pianta.");
         setDxf(r); setTipo("dxf"); setScelte({});
         const conChiuse = [...new Set(r.poligoni.map((p) => p.layer))];
         const edificio = conChiuse.filter((l) => /edif|build|bldg|sagoma|contorn|pianta|copert|tetto|roof|fabbric|impiant|uta\b|hvac|lucern|skylight|torrin|camin|cupol/i.test(l));
@@ -186,6 +186,7 @@ export function ImportaFile({ onImporta, paginaIntera = false }: { onImporta: (m
       {main && <span className="ml-3 text-sm text-muted-foreground">{main.name}{files.length > 1 ? ` + ${files.length - 1} file collegati` : ""}</span>}
       {errore && <p role="alert" className="border-l-4 border-destructive pl-3 text-sm text-destructive">{errore}</p>}
       {fatto && <p role="status" className="border-l-4 border-accent pl-3 text-sm">{fatto}</p>}
+      {tipo === "dxf" && dxf?.approssimato && <p className="border-l-4 border-amber-500 pl-3 text-sm">Nel disegno non ci sono contorni chiusi: ho usato il contorno esterno delle linee di ogni layer. Scegli il layer dell'edificio, controlla l'impronta nell'anteprima e correggila dopo in Edificio 3D se serve.</p>}
       {lps && <section className="rounded-md border border-primary p-4" aria-labelledby="h-ifc-lps">
         <h3 id="h-ifc-lps" className="font-display text-lg font-semibold">File IFC di Progettazione LPS</h3>
         <p className="mt-1 text-sm">Contiene {lps.corpi.length} corpi dell'edificio, {lps.aste.length} aste, {lps.conduttori.length} conduttori e {lps.picchetti.length} picchetti, con codici OBO, materiali e sezioni. Vengono aggiunti al progetto (quello che c'è già resta).</p>
