@@ -2,6 +2,16 @@
   "nota": "Registro degli aggiornamenti di Progettazione LPS. Una voce per aggiornamento, la più recente per prima (app: lps). Viene mostrato nella barra \"Aggiorna app\", nel riquadro Novità e nella pagina Novità di OBO Hub.",
   "aggiornamenti": [
     {
+      "id": "2026-11-24-lps-46",
+      "data": "2026-11-24",
+      "app": "lps",
+      "titolo": "Progetto unico per tutte le app",
+      "voci": [
+        "Il progetto è uno solo per tutte le app di OBO Hub: in Progetti c'è il collegamento alle soluzioni dello stesso progetto (zavorra WRR, torrette, carichi della Mappa con lo stesso CRM)",
+        "I progetti creati dalla pagina Progetti di OBO Hub si aprono anche qui, come progetti nuovi con il loro nome"
+      ]
+    },
+    {
       "id": "2026-11-24-lps-45",
       "data": "2026-11-24",
       "app": "lps",

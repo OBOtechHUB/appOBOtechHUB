@@ -138,7 +138,7 @@ function ScegliProgetto() {
   useEffect(() => { if (visitatore) return; Promise.all([elencaProgetti({ data: { pagina: 0 } }), progettiCondivisi()]).then(([r, c]) => { const miei = new Set(r.righe.map((x) => x.id)); setLista([...r.righe, ...c.filter((x) => !miei.has(x.id)).map((x) => ({ ...x, condiviso: x.proprietario_nome || x.proprietario_email }))]); }).catch((e: unknown) => setErrore(e instanceof Error ? e.message : "Progetti non letti.")); }, [visitatore]);
   async function apri(id: string) {
     setBusy(true); setErrore("");
-    try { await salvaAttivo(); const p = await leggiProgetto({ data: { id } }); caricaSnapshot(p.dati); impostaAttivo({ id: p.id, codice: p.codice, nome: p.nome, proprietario: await utenteId(), salvato: JSON.stringify(snapshot()) }); } // chi lavora (proprietario o collega) salva
+    try { await salvaAttivo(); const p = await leggiProgetto({ data: { id } }); caricaSnapshot(p.dati, p.nome); impostaAttivo({ id: p.id, codice: p.codice, nome: p.nome, proprietario: await utenteId(), salvato: JSON.stringify(snapshot()) }); } // chi lavora (proprietario o collega) salva
     catch (e) { setErrore(e instanceof Error ? e.message : "Progetto non aperto."); }
     finally { setBusy(false); }
   }

@@ -40,12 +40,12 @@ export function RichiestePage() {
     const dati = { ...s, edificio: { ...s.edificio, nomeProgetto: nome, comune: r.comune }, esteso: { ...s.esteso, relazione: { committente: r.cliente } } };
     const p = await creaProgetto({ data: { codice: "", nome, comune: r.comune, dati: dati as never } });
     await aggiornaRichiesta(r.id, { progetto: p.id, stato: r.stato === "nuova" || r.stato === "in-carico" ? "in-lavorazione" : r.stato, tecnico: r.tecnico || mioNome });
-    caricaSnapshot(p.dati); impostaAttivo({ id: p.id, codice: p.codice, nome: p.nome, proprietario: p.utente, salvato: JSON.stringify(snapshot()) });
+    caricaSnapshot(p.dati, p.nome); impostaAttivo({ id: p.id, codice: p.codice, nome: p.nome, proprietario: p.utente, salvato: JSON.stringify(snapshot()) });
     await navigate({ to: "/dati-edificio" });
   }
   async function apriProgetto(id: string) {
     await salvaAttivo(); const p = await leggiProgetto({ data: { id } });
-    caricaSnapshot(p.dati); impostaAttivo({ id: p.id, codice: p.codice, nome: p.nome, proprietario: p.utente, salvato: JSON.stringify(snapshot()) });
+    caricaSnapshot(p.dati, p.nome); impostaAttivo({ id: p.id, codice: p.codice, nome: p.nome, proprietario: p.utente, salvato: JSON.stringify(snapshot()) });
     await navigate({ to: "/dati-edificio" });
   }
 

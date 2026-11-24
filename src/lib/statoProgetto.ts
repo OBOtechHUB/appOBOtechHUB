@@ -83,7 +83,8 @@ export function useEsteso() { return useSyncExternalStore((f)=>{listeners.add(f)
 export const snapshotSchema=z.object({versione:z.literal(1), edificio:edificioSchema,computo:computoSchema,esteso:estesoSchema});
 export function snapshot(){return {versione:1 as const,...leggiStatoBase(),esteso};}
 export function snapshotVuoto(){return {versione:1 as const,edificio:datiIniziali,computo:computoIniziale,esteso:estesoIniziale};}
-export function caricaSnapshot(input: unknown){const d=snapshotSchema.parse(input);sostituisciStatoBase(d.edificio,d.computo as DatiComputo);esteso=d.esteso;caricato=true;listeners.forEach((f)=>f());}
+/** progetto creato dalla pagina Progetti di OBO Hub (dati vuoti): si parte da un progetto nuovo */
+export function caricaSnapshot(input: unknown, nome?: string){const vuoto=!input||typeof input!=="object"||!("versione" in input);const base=snapshotVuoto();if(vuoto&&nome)base.edificio={...base.edificio,nomeProgetto:nome};const d=snapshotSchema.parse(vuoto?base:input);sostituisciStatoBase(d.edificio,d.computo as DatiComputo);esteso=d.esteso;caricato=true;listeners.forEach((f)=>f());}
 export type Attivo={id:string;codice:string;nome:string;proprietario:string;salvato:string};
 let attivo:Attivo|null=null;
 const attivi=new Set<()=>void>();

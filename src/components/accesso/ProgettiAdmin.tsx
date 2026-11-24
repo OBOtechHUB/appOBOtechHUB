@@ -66,7 +66,7 @@ export function ProgettiAdmin({ profili }: { profili: Profilo[] }) {
     const dati = snapshotSchema.parse(await leggiDati(r));
     await salvaAttivo();
     const p = await creaProgetto({ data: { codice: r.codice, nome: `${r.nome} (copia da ${email(r)})`.slice(0, 200), comune: r.comune, dati } });
-    caricaSnapshot(p.dati);
+    caricaSnapshot(p.dati, p.nome);
     impostaAttivo({ id: p.id, codice: p.codice, nome: p.nome, proprietario: p.utente, salvato: JSON.stringify(snapshot()) });
     await navigate({ to: "/strumenti" });
   });
