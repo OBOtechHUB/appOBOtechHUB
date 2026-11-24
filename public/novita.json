@@ -2,6 +2,18 @@
   "nota": "Registro degli aggiornamenti di Progettazione LPS. Una voce per aggiornamento, la più recente per prima (app: lps). Viene mostrato nella barra \"Aggiorna app\", nel riquadro Novità e nella pagina Novità di OBO Hub.",
   "aggiornamenti": [
     {
+      "id": "2026-11-24-lps-48",
+      "data": "2026-11-24",
+      "app": "lps",
+      "titolo": "Modello 3D vero per AutoCAD e ZWCAD",
+      "voci": [
+        "Edificio 3D, nuovo pulsante «Modello 3D CAD» (anche nel pacchetto AutoCAD/ZWCAD come <nome>_3D.dxf): si apre e si ruota con 3DORBIT anche in AutoCAD LT",
+        "Edificio reale: se il progetto viene da un IFC o da un modello 3D, nel CAD finisce la geometria vera; dai disegni 2D l'edificio è estruso dalla pianta, con le falde",
+        "Aste e picchetti a cilindro, conduttori a tubo con il diametro dalla sezione, supporti, morsetti e compensatori a grandezza reale, su layer LPS-3D-…",
+        "LPS.lsp 3.5: anche LPS-AUTO e LPS-IMPORTA disegnano conduttori a tubo, componenti in 3D e l'edificio reale da IFC/3D (si spegne con (setq *LPS-3D-REALE* nil))"
+      ]
+    },
+    {
       "id": "2026-11-24-lps-47",
       "data": "2026-11-24",
       "app": "lps",

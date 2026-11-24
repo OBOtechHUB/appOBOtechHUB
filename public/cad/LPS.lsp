@@ -28,7 +28,7 @@
 ;;; il comando converte nelle unita' del disegno (INSUNITS).
 ;;; ==========================================================================
 
-(setq *LPS-VERSIONE* "3.4")
+(setq *LPS-VERSIONE* "3.5")
 (if vl-load-com (vl-load-com))
 
 ;;; --------------------------------------------------------------------------
@@ -218,6 +218,91 @@
   (entlast))
 
 ;;; --------------------------------------------------------------------------
+;;; Geometria 3D a mesh (polyface): funziona anche in AutoCAD LT e ZWCAD, si ruota e si ombreggia
+;;; --------------------------------------------------------------------------
+
+;; T = conduttori a tubo e componenti in 3D a grandezza reale (nil = solo linee e simboli come prima)
+(if (not (boundp '*LPS-3D-REALE*)) (setq *LPS-3D-REALE* T))
+
+;; polyface mesh: vertici (punti del disegno) e facce (liste di 3 o 4 indici da 1)
+(defun lps:pface (vv ff lay)
+  (entmake (list '(0 . "POLYLINE") (cons 8 lay) '(66 . 1) '(10 0.0 0.0 0.0) '(70 . 64) (cons 71 (length vv)) (cons 72 (length ff))))
+  (foreach p vv (entmake (list '(0 . "VERTEX") (cons 8 lay) (cons 10 p) '(70 . 192))))
+  (foreach f ff
+    (entmake (list '(0 . "VERTEX") (cons 8 lay) '(10 0.0 0.0 0.0) '(70 . 128)
+                   (cons 71 (nth 0 f)) (cons 72 (nth 1 f)) (cons 73 (nth 2 f)) (cons 74 (if (nth 3 f) (nth 3 f) 0)))))
+  (entmake (list '(0 . "SEQEND") (cons 8 lay)))
+  (entlast))
+
+(defun lps:v- (a b) (mapcar '- a b))
+(defun lps:v+ (a b) (mapcar '+ a b))
+(defun lps:v* (a k) (mapcar '(lambda (x) (* x k)) a))
+(defun lps:vx (a b) (list (- (* (cadr a) (caddr b)) (* (caddr a) (cadr b))) (- (* (caddr a) (car b)) (* (car a) (caddr b))) (- (* (car a) (cadr b)) (* (cadr a) (car b)))))
+(defun lps:vn (a / l) (setq l (sqrt (apply '+ (mapcar '* a a)))) (if (> l 1e-12) (lps:v* a (/ 1.0 l)) a))
+
+;; tubo a 8 lati da a a b (punti del disegno), raggio r in unita' del disegno; tappi se chiuso
+(defun lps:tubo (a b rr lay chiuso / u v w n i ang vv ff k)
+  (setq u (lps:vn (lps:v- b a)) n 8)
+  (if (< (sqrt (apply '+ (mapcar '* (lps:v- b a) (lps:v- b a)))) 1e-9)
+    nil
+    (progn
+      (setq v (lps:vn (lps:vx u (if (> (abs (caddr u)) 0.9) '(1.0 0.0 0.0) '(0.0 0.0 1.0)))) w (lps:vx u v) i 0)
+      (while (< i n)
+        (setq ang (/ (* 2.0 pi i) n)
+              k (lps:v+ (lps:v* v (* rr (cos ang))) (lps:v* w (* rr (sin ang))))
+              vv (append vv (list (lps:v+ a k))))
+        (setq i (1+ i)))
+      (setq i 0)
+      (while (< i n) (setq vv (append vv (list (lps:v+ (nth i vv) (lps:v- b a))))) (setq i (1+ i)))
+      (setq i 0)
+      (while (< i n)
+        (setq ff (cons (list (1+ i) (1+ (rem (1+ i) n)) (+ n 1 (rem (1+ i) n)) (+ n 1 i)) ff))
+        (setq i (1+ i)))
+      (if chiuso
+        (progn
+          (setq vv (append vv (list a b)))
+          (setq i 0)
+          (while (< i n)
+            (setq ff (cons (list (+ (* 2 n) 1) (1+ (rem (1+ i) n)) (1+ i)) ff)
+                  ff (cons (list (+ (* 2 n) 2) (+ n 1 i) (+ n 1 (rem (1+ i) n))) ff))
+            (setq i (1+ i)))))
+      (lps:pface vv (reverse ff) lay))))
+
+;; cilindro verticale chiuso: centro della base c (punto del disegno), raggio e altezza in metri
+(defun lps:cil (c rm hm lay)
+  (lps:tubo c (list (car c) (cadr c) (+ (caddr c) (* hm *LPS-F*))) (* rm *LPS-F*) lay T))
+
+;; scatola: centro della base c, dimensioni in metri, rotazione in gradi intorno a Z
+(defun lps:scatola (c dx dy dz rot lay / a co si q vv)
+  (setq a (* pi (/ rot 180.0)) co (cos a) si (sin a))
+  (defun lps:sc-p (x y z) (list (+ (car c) (* *LPS-F* (- (* x co) (* y si)))) (+ (cadr c) (* *LPS-F* (+ (* x si) (* y co)))) (+ (caddr c) (* *LPS-F* z))))
+  (setq dx (/ dx 2.0) dy (/ dy 2.0))
+  (setq vv (list (lps:sc-p (- dx) (- dy) 0) (lps:sc-p dx (- dy) 0) (lps:sc-p dx dy 0) (lps:sc-p (- dx) dy 0)
+                 (lps:sc-p (- dx) (- dy) dz) (lps:sc-p dx (- dy) dz) (lps:sc-p dx dy dz) (lps:sc-p (- dx) dy dz)))
+  (lps:pface vv '((1 2 3 4) (5 6 7 8) (1 2 6 5) (2 3 7 6) (3 4 8 7) (4 1 5 8)) lay))
+
+;; corpo 3D a grandezza reale di supporti, morsetti e compensatori (oltre al blocco con il codice)
+(defun lps:corpo-componente (tipo chiave pt rot lay / t2)
+  (setq t2 (strcase (if tipo tipo "")))
+  (cond
+    ((wcmatch t2 "*COMPENS*") (lps:scatola pt 0.12 0.03 0.04 rot lay))
+    ((= chiave "MORSETTI") (lps:scatola pt 0.05 0.04 0.025 rot lay))
+    ((wcmatch t2 "*PARETE*,*MURO*,*FACCIATA*,*GRONDA*") (lps:scatola pt 0.035 0.03 0.06 rot lay))
+    ((wcmatch t2 "*CLS*,*CEMENTO*,*BASE*,*PIANO*,*FB*,*TETTO*")
+     (lps:cil pt 0.075 0.07 lay) (lps:cil (list (car pt) (cadr pt) (+ (caddr pt) (* 0.07 *LPS-F*))) 0.012 0.03 lay))
+    (T (lps:cil pt 0.05 0.05 lay))))
+
+;; (TRIANGOLI "id" quotaBase x1 y1 z1 x2 y2 z2 x3 y3 z3 ...): edificio reale come 3DFACE
+(defun lps:triangoli (r / zb l lay a b c)
+  (setq zb (lps:num (nth 2 r)) l (cdddr r) lay (lps:layer "EDIFICIO"))
+  (while (>= (length l) 9)
+    (setq a (lps:p (nth 0 l) (nth 1 l) (+ zb (nth 2 l))) b (lps:p (nth 3 l) (nth 4 l) (+ zb (nth 5 l))) c (lps:p (nth 6 l) (nth 7 l) (+ zb (nth 8 l))))
+    (lps:faccia a b c c lay)
+    (lps:estendi (nth 0 l) (nth 1 l))
+    (repeat 9 (setq l (cdr l))))
+  (setq *LPS-CONTA-TRI* (1+ *LPS-CONTA-TRI*)))
+
+;;; --------------------------------------------------------------------------
 ;;; Blocchi OBO
 ;;; --------------------------------------------------------------------------
 
@@ -329,12 +414,15 @@
         lay (lps:layer "EDIFICIO"))
   (setq pd (mapcar '(lambda (p) (lps:p (car p) (cadr p) 0.0)) pts))
   (foreach p pts (lps:estendi (car p) (cadr p)))
-  (if *LPS-SOLIDI*
-    (progn
+  (cond
+    ;; edificio reale (IFC / modello 3D): le facce arrivano dai record TRIANGOLI, qui solo il contorno a terra
+    ((eq (nth 8 r) 'MESH)
+     (lps:poli3d (mapcar '(lambda (p) (lps:p (car p) (cadr p) base)) pts) T lay))
+    (*LPS-SOLIDI*
       (setq ent (lps:contorno (mapcar '(lambda (p) (list (car p) (cadr p))) pd)
                               (+ (caddr *LPS-ORIGINE*) (* base *LPS-F*)) lay))
       (lps:comando (list "_.EXTRUDE" ent "" (* gronda *LPS-F*))))
-    (progn
+    (T
       ;; pareti come 3DFACE e contorno della copertura
       (setq n (length pts) i 0)
       (while (< i n)
@@ -366,16 +454,18 @@
     (progn
       (setvar "CLAYER" lay)
       (setq ent (lps:comando (list "_.CYLINDER" base (* (/ d 2.0) *LPS-F*) (* h *LPS-F*)))))
-    (progn
-      (setq ent (lps:linea base punta lay))
-      (lps:cerchio base (* (/ d 2.0) *LPS-F*) lay)))
+    (if *LPS-3D-REALE*
+      (setq ent (lps:cil base (/ d 2.0) h lay))
+      (progn
+        (setq ent (lps:linea base punta lay))
+        (lps:cerchio base (* (/ d 2.0) *LPS-F*) lay))))
   (lps:xdata ent cod "asta" 1.0 "pz")
   (lps:simbolo-2d cod "asta" base (lps:layer "ASTE"))
   (lps:testo punta (* 0.2 *LPS-F*) (if (= cod "") id (strcat id " " cod)) (lps:layer "TESTI"))
   (setq *LPS-CONTA-ASTE* (1+ *LPS-CONTA-ASTE*)))
 
 ;; (CONDUTTORE "tipo" "materiale" sezione "codice" ((x y z) ...))
-(defun lps:conduttore (r / tipo cod pts chiave lay ent l prec)
+(defun lps:conduttore (r / tipo cod pts chiave lay ent l prec rr)
   (setq tipo (nth 1 r) cod (nth 4 r) pts (nth 5 r))
   (setq chiave (cond ((= tipo "calata") "CALATA")
                      ((member tipo '("terra" "anello" "dispersore" "uscita")) "TERRA")
@@ -387,6 +477,14 @@
   (foreach p pts
     (if prec (setq l (+ l (lps:dist3 prec p))))
     (setq prec p))
+  ;; conduttore reale a tubo (diametro dalla sezione, tondo Ø 8 se manca)
+  (if *LPS-3D-REALE*
+    (progn
+      (setq rr (if (and (numberp (nth 3 r)) (> (nth 3 r) 0)) (/ (sqrt (/ (nth 3 r) pi)) 1000.0) 0.004) prec nil)
+      (foreach p pts
+        (if prec (lps:tubo (lps:p (car prec) (cadr prec) (caddr prec)) (lps:p (car p) (cadr p) (caddr p)) (* rr *LPS-F*) lay nil))
+        (setq prec p))
+      (setq prec nil)))
   ;; l'uscita dal terreno e' un'asta: si conta a pezzi
   (if (= tipo "uscita")
     (lps:xdata ent cod tipo 1.0 "pz")
@@ -396,6 +494,7 @@
 ;; (SUPPORTO "tipo" x y z rot "codice") e (MORSETTO ...)
 (defun lps:componente (r chiave)
   (lps:inserisci (nth 6 r) (nth 1 r) (lps:p (nth 2 r) (nth 3 r) (nth 4 r)) (lps:num (nth 5 r)) (lps:layer chiave))
+  (if *LPS-3D-REALE* (lps:corpo-componente (nth 1 r) chiave (lps:p (nth 2 r) (nth 3 r) (nth 4 r)) (lps:num (nth 5 r)) (lps:layer chiave)))
   (setq *LPS-CONTA-COMP* (1+ *LPS-CONTA-COMP*)))
 
 ;; (PICCHETTO "id" x y zTesta lunghezza diametro "codice")
@@ -407,7 +506,7 @@
     (progn
       (setvar "CLAYER" lay)
       (setq ent (lps:comando (list "_.CYLINDER" (lps:p x y (- zt l)) (* (/ d 2.0) *LPS-F*) (* l *LPS-F*)))))
-    (setq ent (lps:linea (lps:p x y zt) (lps:p x y (- zt l)) lay)))
+    (setq ent (if *LPS-3D-REALE* (lps:cil (lps:p x y (- zt l)) (/ d 2.0) l lay) (lps:linea (lps:p x y zt) (lps:p x y (- zt l)) lay))))
   ;; picchetto componibile: numero di elementi da *LPS-ELEMENTO-PICCHETTO* m
   (lps:xdata ent cod "picchetto" (float (fix (+ 0.999 (/ l *LPS-ELEMENTO-PICCHETTO*)))) "pz")
   (lps:simbolo-2d cod "picchetto" (lps:p x y zt) (lps:layer "DISPERSORI"))
@@ -575,7 +674,7 @@
       (setq *LPS-F* (lps:fattore)
             *LPS-SOLIDI* (lps:solidi-p)
             *LPS-MANCANTI* nil *LPS-VOCI* nil *LPS-PART* nil *LPS-EST* nil *LPS-PROGETTO* nil
-            *LPS-CONTA-CORPI* 0 *LPS-CONTA-ASTE* 0 *LPS-CONTA-COND* 0 *LPS-CONTA-COMP* 0)
+            *LPS-CONTA-CORPI* 0 *LPS-CONTA-ASTE* 0 *LPS-CONTA-COND* 0 *LPS-CONTA-COMP* 0 *LPS-CONTA-TRI* 0)
       (if auto
         (setq orig (assoc 'ORIGINE dati)
               *LPS-ORIGINE* (if orig
@@ -591,6 +690,7 @@
         (setq tipo (car r))
         (cond
           ((eq tipo 'CORPO) (lps:corpo r))
+          ((eq tipo 'TRIANGOLI) (lps:triangoli r))
           ((eq tipo 'ASTA) (lps:asta r))
           ((eq tipo 'CONDUTTORE) (lps:conduttore r))
           ((eq tipo 'SUPPORTO) (lps:componente r "SUPPORTI"))
@@ -605,7 +705,7 @@
           ((eq tipo 'CALATA_NUM) (lps:calata-num r)))
         (setq n (1+ n)))
       (lps:legenda)
-      (lps:msg (strcat "Disegnati: " (itoa *LPS-CONTA-CORPI*) " corpi, "
+      (lps:msg (strcat "Disegnati: " (itoa *LPS-CONTA-CORPI*) " corpi" (if (> *LPS-CONTA-TRI* 0) " (edificio reale da IFC/3D)" "") ", "
                        (itoa *LPS-CONTA-ASTE*) " aste, " (itoa *LPS-CONTA-COND*) " conduttori, "
                        (itoa *LPS-CONTA-COMP*) " componenti."))
       (if *LPS-MANCANTI*

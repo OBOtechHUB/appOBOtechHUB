@@ -7,7 +7,8 @@
  *
  *   (LPSDATI 1)
  *   (PROGETTO "codice" "nome" "comune" "LPL" raggio "rev" "data" "committente" "progettista" "indirizzo" "file")
- *   (CORPO "id" "nome" quotaBase altezzaGronda "piano|falde|altro" colmo|nil ((x y) ...))
+ *   (CORPO "id" "nome" quotaBase altezzaGronda "piano|falde|altro" colmo|nil ((x y) ...) [MESH])
+ *   (TRIANGOLI "id" quotaBase x1 y1 z1 x2 y2 z2 x3 y3 z3 ...)   geometria reale (IFC/3D importato), 40 triangoli per riga
  *   (ASTA "id" x y zBase altezza diametro "codice" "origine")
  *   (CONDUTTORE "captazione|calata|terra|anello" "materiale" sezione "codice" ((x y z) ...))
  *   (SUPPORTO "tipo" x y z rotazioneGradi "codice")
@@ -21,6 +22,7 @@
  *   (PARETE "LPL" x y nx ny zDa zA larghezza)    ; faccia di parete esposta
  */
 
+import { massimo, minimo } from "../../lib/estremi";
 import type { Corpo, Punto3, RisultatoSfera } from "../captazione/sferaRotolante";
 import type { RisultatoCombinato } from "../captazione/verificaMaglia";
 import { ordinaCalate, scegliRichiami } from "./tavolaDXF";
@@ -32,7 +34,7 @@ export interface PicchettoCAD { id?: string | undefined; x: number; y: number; z
 
 export interface ProgettoCAD {
   progetto: { codice?: string; nome?: string; comune?: string; lpl?: string; raggio?: number; rev?: string; data?: string; committente?: string; progettista?: string; indirizzo?: string; file?: string };
-  edificio: { corpi: Corpo[] };
+  edificio: { corpi: (Corpo & { mesh?: { posizioni: ArrayLike<number>; indici?: ArrayLike<number> | undefined } | undefined })[] };
   aste?: AstaCAD[] | undefined;
   conduttori?: ConduttoreCAD[] | undefined;
   supporti?: ComponenteCAD[] | undefined;
@@ -57,6 +59,30 @@ export function testoLisp(v: unknown): string {
     .replace(/[\r\n\t]+/g, " ")
     .replace(/[^\x20-\x7e]/g, "?");
   return `"${s}"`;
+}
+
+/** massimo di triangoli reali per corpo nel .lpsdati (i più grandi: pareti e coperture) */
+export const MAX_TRIANGOLI_CAD = 20000;
+const N3 = (v: number) => numeroLisp(v, 3);
+/** righe TRIANGOLI di un corpo con geometria reale (40 triangoli per riga, così il LISP legge righe corte) */
+export function righeTriangoli(id: string, quotaBase: number, posizioni: ArrayLike<number>, indici?: ArrayLike<number> | null): string[] {
+  const v = (i: number): [number, number, number] => [posizioni[i * 3] ?? 0, posizioni[i * 3 + 1] ?? 0, posizioni[i * 3 + 2] ?? 0];
+  const n = indici ? Math.floor(indici.length / 3) : Math.floor(posizioni.length / 9);
+  const tri: { a: number; t: [number, number, number][] }[] = [];
+  for (let k = 0; k < n; k++) {
+    const t = indici ? [v(indici[k * 3]!), v(indici[k * 3 + 1]!), v(indici[k * 3 + 2]!)] : [v(k * 3), v(k * 3 + 1), v(k * 3 + 2)];
+    const [p, q, w] = t as [[number, number, number], [number, number, number], [number, number, number]];
+    const ux = q[0] - p[0], uy = q[1] - p[1], uz = q[2] - p[2], vx = w[0] - p[0], vy = w[1] - p[1], vz = w[2] - p[2];
+    const a = Math.hypot(uy * vz - uz * vy, uz * vx - ux * vz, ux * vy - uy * vx);
+    if (a > 1e-8) tri.push({ a, t });
+  }
+  const scelti = tri.length > MAX_TRIANGOLI_CAD ? [...tri].sort((x, y) => y.a - x.a).slice(0, MAX_TRIANGOLI_CAD) : tri;
+  const out: string[] = [];
+  for (let i = 0; i < scelti.length; i += 40) {
+    const parte = scelti.slice(i, i + 40).flatMap((x) => x.t.flatMap((p) => [N3(p[0]), N3(p[1]), N3(p[2])]));
+    out.push(`(TRIANGOLI ${testoLisp(id)} ${numeroLisp(quotaBase)} ${parte.join(" ")})`);
+  }
+  return out;
 }
 
 /** Numero LISP: punto decimale, 4 decimali, mai notazione esponenziale. */
@@ -89,7 +115,10 @@ export function generaFileCAD(pr: ProgettoCAD, esposte: ZoneEsposte[] = []): str
   for (const u of pr.particolari?.usati ?? []) r.push(`(PARTICOLARE ${testoLisp(`P${String((pr.particolari?.usati ?? []).indexOf(u) + 1).padStart(2, "0")}`)} ${testoLisp(u.nome)} ${u.punti})`);
   pr.edificio.corpi.forEach((c, k) => {
     const colmo = c.tipoTetto === "falde" && c.altezzaColmo != null ? numeroLisp(c.altezzaColmo) : "nil";
-    r.push(`(CORPO ${testoLisp(c.id || `C${k + 1}`)} ${testoLisp(c.nome || c.id || `Corpo ${k + 1}`)} ${numeroLisp(c.quotaBase ?? 0)} ${numeroLisp(c.altezzaGronda)} ${testoLisp(c.tipoTetto || "piano")} ${colmo} (${c.impronta.map(P2).join(" ")}))`);
+    const id = c.id || `C${k + 1}`, mesh = c.mesh && c.mesh.posizioni.length >= 9;
+    r.push(`(CORPO ${testoLisp(id)} ${testoLisp(c.nome || c.id || `Corpo ${k + 1}`)} ${numeroLisp(c.quotaBase ?? 0)} ${numeroLisp(c.altezzaGronda)} ${testoLisp(c.tipoTetto || "piano")} ${colmo} (${c.impronta.map(P2).join(" ")})${mesh ? " MESH" : ""})`);
+    // edificio reale (IFC o modello 3D importato): triangoli in 3DFACE, senza la scatola estrusa
+    if (mesh) for (const riga of righeTriangoli(id, c.quotaBase ?? 0, c.mesh!.posizioni, c.mesh!.indici)) r.push(riga);
   });
   (pr.aste ?? []).forEach((a, k) => {
     r.push(`(ASTA ${testoLisp(a.id || `A${k + 1}`)} ${numeroLisp(a.x)} ${numeroLisp(a.y)} ${numeroLisp(a.z ?? null)} ${numeroLisp(a.altezza)} ${numeroLisp(a.diametro ?? 0.016)} ${testoLisp(a.codiceOBO)} ${testoLisp(a.origine || "progetto")})`);
@@ -114,7 +143,7 @@ export function generaFileCAD(pr: ProgettoCAD, esposte: ZoneEsposte[] = []): str
   const calate = (pr.conduttori ?? []).filter((c) => c.tipo === "calata" && c.punti.length >= 2).map((c) => c.punti.reduce((a, b) => (b[2] > a[2] ? b : a), c.punti[0] as Punto3));
   if (calate.length) {
     const xs = pr.edificio.corpi.flatMap((c) => c.impronta.map((p) => p[0])), ys = pr.edificio.corpi.flatMap((c) => c.impronta.map((p) => p[1]));
-    const centro: [number, number] = xs.length ? [(Math.min(...xs) + Math.max(...xs)) / 2, (Math.min(...ys) + Math.max(...ys)) / 2] : [0, 0];
+    const centro: [number, number] = xs.length ? [(minimo(xs) + massimo(xs)) / 2, (minimo(ys) + massimo(ys)) / 2] : [0, 0];
     ordinaCalate(calate.map((p) => [p[0], p[1]] as [number, number]), centro).forEach((i, n) => { const p = calate[i] as Punto3; r.push(`(CALATA_NUM ${testoLisp(`C${n + 1}`)} ${numeroLisp(p[0])} ${numeroLisp(p[1])} ${numeroLisp(p[2])})`); });
   }
   // zone esposte: righe di celle consecutive unite in un unico tratto
