@@ -7,7 +7,7 @@ export const db = () => supabase as unknown as SupabaseClient;
 import { BASE } from "@/lib/base";
 import { soloNome } from "./nomi";
 
-export type Sezione = "assistente" | "progetti" | "edificio" | "rischio" | "captazione" | "calate" | "terra" | "spd" | "computo" | "particolari" | "verifiche" | "prodotti" | "modelli3d" | "cad" | "app_mappa" | "app_prodotti";
+export type Sezione = "assistente" | "progetti" | "edificio" | "rischio" | "captazione" | "calate" | "terra" | "spd" | "computo" | "particolari" | "verifiche" | "prodotti" | "modelli3d" | "cad" | "app_mappa" | "app_prodotti" | "app_zavorra";
 export const SEZIONI: { id: Sezione; nome: string }[] = [
   { id: "assistente", nome: "Assistente di progetto" },
   { id: "progetti", nome: "Progetti salvati" },
@@ -25,6 +25,7 @@ export const SEZIONI: { id: Sezione; nome: string }[] = [
   { id: "cad", nome: "Download CAD" },
   { id: "app_mappa", nome: "OBO Hub · Mappa carichi ufficio tecnico" },
   { id: "app_prodotti", nome: "OBO Hub · Prodotti OBO" },
+  { id: "app_zavorra", nome: "OBO Hub · Zavorra telai inverter WRR" },
 ];
 
 /** Indirizzo di OBO Hub (schermata iniziale con tutte le app), sullo stesso sito GitHub Pages. */

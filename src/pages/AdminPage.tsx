@@ -39,6 +39,7 @@ function AppUtente({ ruolo, sezioni }: { ruolo: string; sezioni: string[] }) {
   if (mieLps.length) app.push({ nome: "Progettazione LPS", nota: mieLps.length === lps.length ? "tutte le sezioni" : mieLps.map((s) => s.nome).join(", ") });
   if (tutte || sezioni.includes("app_mappa")) app.push({ nome: "Mappa carichi" });
   if (tutte || sezioni.includes("app_prodotti")) app.push({ nome: "Prodotti OBO" });
+  if (tutte || sezioni.includes("app_zavorra")) app.push({ nome: "Zavorra telai WRR" });
   if (!app.length) return <p className="text-muted-foreground">Nessuna app</p>;
   if (ruolo === "admin") app.push({ nome: "Configuratore torrette" }, { nome: "Manutenzione app" }, { nome: "Amministrazione" });
   return <div>
@@ -60,6 +61,7 @@ function SceltaSezioni({ valore, onChange }: { valore: string[]; onChange: (v: s
       <div><p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">App di OBO Hub</p>
         <label className="mt-1 flex items-center gap-2 text-sm"><input type="checkbox" checked={valore.includes("app_mappa")} onChange={(e) => cambia("app_mappa", e.target.checked)} />Mappa carichi ufficio tecnico</label>
         <label className="mt-1 flex items-center gap-2 text-sm"><input type="checkbox" checked={valore.includes("app_prodotti")} onChange={(e) => cambia("app_prodotti", e.target.checked)} />Prodotti OBO <span className="text-xs text-muted-foreground">(catalogo di obo.it e novità)</span></label>
+        <label className="mt-1 flex items-center gap-2 text-sm"><input type="checkbox" checked={valore.includes("app_zavorra")} onChange={(e) => cambia("app_zavorra", e.target.checked)} />Zavorra telai inverter WRR <span className="text-xs text-muted-foreground">(Magic PV Mount)</span></label>
         <label className="mt-1 flex items-center gap-2 text-sm"><input type="checkbox" checked={tutteLps} onChange={(e) => onChange(e.target.checked ? [...new Set([...valore, ...lps.map((x) => x.id)])] : valore.filter((x) => x.startsWith("app_")))} />Progettazione LPS (tutte le sezioni)</label>
       </div>
       <div><p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Progettazione LPS · singole sezioni</p>
