@@ -73,7 +73,8 @@ export function contorniDaTratti(tratti: PoliCad[]): { chiusi: PoliCad[]; appros
   const tol = Math.max(lato * 2e-4, 1e-6);
   const gia = tratti.filter((t) => t.chiusa || (t.punti.length > 3 && Math.abs(t.punti[0]![0] - t.punti.at(-1)![0]) <= tol && Math.abs(t.punti[0]![1] - t.punti.at(-1)![1]) <= tol));
   const uniti = unisciTratti(tratti.filter((t) => !gia.includes(t)), tol);
-  const chiusi = [...gia.map((t) => ({ ...t, chiusa: true })), ...uniti];
+  const pulisci = (p: P2[]) => { let q = p.filter((v, i) => i === 0 || Math.abs(v[0] - p[i - 1]![0]) > tol || Math.abs(v[1] - p[i - 1]![1]) > tol); if (q.length > 3 && Math.abs(q[0]![0] - q.at(-1)![0]) <= tol && Math.abs(q[0]![1] - q.at(-1)![1]) <= tol) q = q.slice(0, -1); return q; };
+  const chiusi = [...gia.map((t) => ({ ...t, punti: pulisci(t.punti), chiusa: true })).filter((t) => t.punti.length >= 3), ...uniti];
   const conChiusi = new Set(chiusi.map((c) => c.layer));
   const approssimati: PoliCad[] = [];
   const perLayer = new Map<string, P2[]>();
