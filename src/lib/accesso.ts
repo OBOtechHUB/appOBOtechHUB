@@ -45,7 +45,7 @@ export const PUBBLICHE = ["/", "/auth", "/reset-password", "/richiesta-accesso",
 /** Sezione richiesta da ogni pagina; le pagine non elencate sono libere per gli utenti abilitati. */
 export const SEZIONE_PAGINA: Record<string, Sezione | "admin"> = {
   "/assistente": "assistente", "/progetti": "progetti", "/dati-edificio": "edificio", "/dati-normativi": "edificio",
-  "/rischio": "rischio", "/edificio-3d": "captazione", "/calate": "calate", "/resistenza-terra": "terra", "/spd": "spd",
+  "/rischio": "rischio", "/edificio-3d": "captazione", "/vento": "captazione", "/calate": "calate", "/resistenza-terra": "terra", "/spd": "spd",
   "/computo-materiali": "computo", "/particolari": "particolari", "/verifiche": "verifiche", "/prodotti": "prodotti",
   "/modelli-3d": "modelli3d", "/download-cad": "cad", "/admin": "admin",
 };

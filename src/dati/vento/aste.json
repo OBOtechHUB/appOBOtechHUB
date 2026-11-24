@@ -1,0 +1,42 @@
+{
+  "fonte": "Istruzioni di montaggio OBO irod tele-air-termination rod system (2016), tabelle 1–8 e 9; catalogo OBO aste di captazione Ø 16 mm. I diametri segnati con stima non sono nelle istruzioni.",
+  "blocco": { "codice": "5403227", "tipo": "F-FIX-S16", "massa": 16, "diametro": 365, "accessori": [{ "codice": "5403238", "tipo": "F-FIX-B16 3B", "descrizione": "Protezione per blocco 16 kg" }, { "codice": "5408905", "tipo": "isFang 3B-G4", "descrizione": "Barra filettata M16 L 500 mm, V2A" }] },
+  "sostegni": [
+    { "id": "irod-10", "nome": "irod 10 m", "codice": "5400810", "altezza": 10, "massa": 65, "gambe": 6, "ingombro": [2.1, 1.8], "posa": "Tetto e terreno", "basi": [6], "bloccoMaxPerBase": 5,
+      "tronchi": [
+        { "nome": "Punta", "d": 20, "l": 2.5, "stima": true },
+        { "nome": "Segmento 3", "d": 35, "l": 3.0 },
+        { "nome": "Segmento 2", "d": 40, "l": 3.0 },
+        { "nome": "Segmento 1", "d": 48.3, "l": 2.5 }
+      ] },
+    { "id": "irod-12", "nome": "irod 12 m", "codice": "5400812", "altezza": 12, "massa": 109, "gambe": 6, "ingombro": [2.935, 2.635], "posa": "Tetto e terreno", "basi": [6], "bloccoMaxPerBase": 5,
+      "tronchi": [
+        { "nome": "Punta", "d": 20, "l": 2.5, "stima": true },
+        { "nome": "Segmento 4", "d": 65, "l": 3.0 },
+        { "nome": "Segmento 3", "d": 75, "l": 3.0 },
+        { "nome": "Segmento 2", "d": 80, "l": 4.5 },
+        { "nome": "Segmento 1", "d": 85, "l": 4.5 }
+      ] },
+    { "id": "irod-14", "nome": "irod 14 m", "codice": "5400814", "altezza": 14, "massa": 134, "gambe": 8, "ingombro": [2.935, 2.635], "posa": "Terreno", "basi": [8], "bloccoMaxPerBase": 5,
+      "tronchi": [
+        { "nome": "Punta", "d": 20, "l": 2.5, "stima": true },
+        { "nome": "Segmento 4", "d": 65, "l": 3.0 },
+        { "nome": "Segmento 3", "d": 75, "l": 4.5 },
+        { "nome": "Segmento 2", "d": 80, "l": 5.0 },
+        { "nome": "Segmento 1", "d": 85, "l": 5.0 }
+      ] },
+    { "id": "irod-19", "nome": "irod 19 m", "codice": "5400817", "altezza": 19, "massa": 415, "gambe": 12, "ingombro": [2.935, 2.935], "posa": "Terreno", "basi": [12, 24, 36], "bloccoMaxPerBase": 5, "leveBasi": [1, 0.8, 0.67],
+      "tronchi": [
+        { "nome": "Punta", "d": 40, "l": 3.3, "stima": true },
+        { "nome": "Segmento 2", "d": 114.3, "l": 7.6, "stima": true },
+        { "nome": "Segmento 1", "d": 168.3, "l": 7.3, "stima": true }
+      ] }
+  ],
+  "parete": [
+    { "id": "p-16-1000", "nome": "Asta Ø 16 mm L 1,0 m", "d": 16, "l": 1.0 },
+    { "id": "p-16-1500", "nome": "Asta Ø 16 mm L 1,5 m", "codice": "5401801", "d": 16, "l": 1.5 },
+    { "id": "p-16-2000", "nome": "Asta Ø 16 mm L 2,0 m", "d": 16, "l": 2.0 },
+    { "id": "p-16-2500", "nome": "Asta Ø 16 mm L 2,5 m", "d": 16, "l": 2.5 },
+    { "id": "p-16-3000", "nome": "Asta Ø 16 mm L 3,0 m", "codice": "5401879", "d": 16, "l": 3.0 }
+  ]
+}

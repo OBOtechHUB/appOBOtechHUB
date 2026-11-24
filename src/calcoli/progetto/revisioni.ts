@@ -19,7 +19,7 @@ export function revSuccessiva(ultima: string | null | undefined): string {
 
 /** Impronta (FNV-1a a 64 bit, esadecimale) del contenuto del progetto, escluse revisioni ed emissione. */
 export function impronta(contenuto: unknown): string {
-  const testo = JSON.stringify(contenuto, (k, v) => (k === "revisioni" || k === "emissione" || k === "relazione" || k === "offerta" || k === "sopralluogo" ? undefined : v));
+  const testo = JSON.stringify(contenuto, (k, v) => (k === "revisioni" || k === "emissione" || k === "relazione" || k === "offerta" || k === "sopralluogo" || k === "vento" ? undefined : v));
   let h1 = 0x811c9dc5, h2 = 0x01000193;
   for (let i = 0; i < testo.length; i++) {
     const c = testo.charCodeAt(i);

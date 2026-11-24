@@ -23,6 +23,7 @@ import { Route as ProdottiRouteImport } from './routes/prodotti'
 import { Route as Modelli3dRouteImport } from './routes/modelli-3d'
 import { Route as AssistenteRouteImport } from './routes/assistente'
 import { Route as VerificheRouteImport } from './routes/verifiche'
+import { Route as VentoRouteImport } from './routes/vento'
 import { Route as ResistenzaTerraRouteImport } from './routes/resistenza-terra'
 import { Route as ContattiRouteImport } from './routes/contatti'
 import { Route as DatiEdificioRouteImport } from './routes/dati-edificio'
@@ -109,6 +110,11 @@ const AssistenteRoute = AssistenteRouteImport.update({
 const VerificheRoute = VerificheRouteImport.update({
   id: '/verifiche',
   path: '/verifiche',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const VentoRoute = VentoRouteImport.update({
+  id: '/vento',
+  path: '/vento',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ResistenzaTerraRoute = ResistenzaTerraRouteImport.update({
@@ -216,6 +222,7 @@ export interface FileRoutesByFullPath {
   '/modelli-3d': typeof Modelli3dRoute
   '/assistente': typeof AssistenteRoute
   '/verifiche': typeof VerificheRoute
+  '/vento': typeof VentoRoute
   '/resistenza-terra': typeof ResistenzaTerraRoute
   '/contatti': typeof ContattiRoute
   '/dati-edificio': typeof DatiEdificioRoute
@@ -249,6 +256,7 @@ export interface FileRoutesByTo {
   '/modelli-3d': typeof Modelli3dRoute
   '/assistente': typeof AssistenteRoute
   '/verifiche': typeof VerificheRoute
+  '/vento': typeof VentoRoute
   '/resistenza-terra': typeof ResistenzaTerraRoute
   '/contatti': typeof ContattiRoute
   '/dati-edificio': typeof DatiEdificioRoute
@@ -284,6 +292,7 @@ export interface FileRoutesById {
   '/modelli-3d': typeof Modelli3dRoute
   '/assistente': typeof AssistenteRoute
   '/verifiche': typeof VerificheRoute
+  '/vento': typeof VentoRoute
   '/resistenza-terra': typeof ResistenzaTerraRoute
   '/contatti': typeof ContattiRoute
   '/dati-edificio': typeof DatiEdificioRoute
@@ -319,6 +328,7 @@ export interface FileRouteTypes {
     | '/modelli-3d'
     | '/assistente'
     | '/verifiche'
+    | '/vento'
     | '/resistenza-terra'
     | '/contatti'
     | '/dati-edificio'
@@ -352,6 +362,7 @@ export interface FileRouteTypes {
     | '/modelli-3d'
     | '/assistente'
     | '/verifiche'
+    | '/vento'
     | '/resistenza-terra'
     | '/contatti'
     | '/dati-edificio'
@@ -386,6 +397,7 @@ export interface FileRouteTypes {
     | '/modelli-3d'
     | '/assistente'
     | '/verifiche'
+    | '/vento'
     | '/resistenza-terra'
     | '/contatti'
     | '/dati-edificio'
@@ -421,6 +433,7 @@ export interface RootRouteChildren {
   Modelli3dRoute: typeof Modelli3dRoute
   AssistenteRoute: typeof AssistenteRoute
   VerificheRoute: typeof VerificheRoute
+  VentoRoute: typeof VentoRoute
   ResistenzaTerraRoute: typeof ResistenzaTerraRoute
   ContattiRoute: typeof ContattiRoute
   DatiEdificioRoute: typeof DatiEdificioRoute
@@ -537,6 +550,13 @@ declare module '@tanstack/react-router' {
       path: '/verifiche'
       fullPath: '/verifiche'
       preLoaderRoute: typeof VerificheRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/vento': {
+      id: '/vento'
+      path: '/vento'
+      fullPath: '/vento'
+      preLoaderRoute: typeof VentoRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/resistenza-terra': {
@@ -696,6 +716,7 @@ const rootRouteChildren: RootRouteChildren = {
   Modelli3dRoute: Modelli3dRoute,
   AssistenteRoute: AssistenteRoute,
   VerificheRoute: VerificheRoute,
+  VentoRoute: VentoRoute,
   ResistenzaTerraRoute: ResistenzaTerraRoute,
   ContattiRoute: ContattiRoute,
   DatiEdificioRoute: DatiEdificioRoute,

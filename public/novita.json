@@ -2,6 +2,27 @@
   "nota": "Registro degli aggiornamenti di Progettazione LPS. Una voce per aggiornamento, la più recente per prima (app: lps). Viene mostrato nella barra \"Aggiorna app\", nel riquadro Novità e nella pagina Novità di OBO Hub.",
   "aggiornamenti": [
     {
+      "id": "2026-11-24-lps-30",
+      "data": "2026-11-24",
+      "app": "lps",
+      "titolo": "Vento e zavorre delle aste",
+      "voci": [
+        "Nuova pagina Strumenti → Vento e zavorre delle aste: dalla località del progetto calcola zona di vento NTC 2018 e altitudine, poi la pressione del vento (EN 1991-1-4)",
+        "Per le aste irod 10, 12, 14 e 19 m sul sostegno a gambe indica quanti blocchi FangFix da 16 kg servono per base e in totale, con la verifica a ribaltamento e scorrimento",
+        "Per tutte le aste isFang su treppiede indica i blocchi dalle tabelle del catalogo OBO in base alla raffica in sommità",
+        "Per le aste a parete con due supporti calcola le forze sui supporti e la tensione nell'asta",
+        "Excel scaricabile e pulsante per portare la velocità del vento nei Dati della relazione"
+      ],
+      "titolo_en": "Wind and ballast for air-termination rods",
+      "voci_en": [
+        "New page Tools → Wind and ballast: from the project location it finds the NTC 2018 wind zone and altitude and the wind pressure (EN 1991-1-4)",
+        "For irod 10, 12, 14 and 19 m rods on legged stands it shows how many 16 kg FangFix blocks are needed per base and in total, with overturning and sliding checks",
+        "For all isFang rods on tripods it shows the blocks from the OBO catalogue tables based on the gust at the top",
+        "For wall-mounted rods with two holders it calculates holder forces and rod stress",
+        "Excel download and a button to take the wind speed into the report data"
+      ]
+    },
+    {
       "id": "2026-11-23-lps-29",
       "data": "2026-11-23",
       "app": "lps",
