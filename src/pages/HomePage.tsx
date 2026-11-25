@@ -9,6 +9,7 @@ import { avanzamento } from "@/calcoli/materiali/avanzamento";
 import { useAuth } from "@/lib/auth";
 import { aggiornaEsteso, useEsteso } from "@/lib/statoProgetto";
 import { RadioTower } from "lucide-react";
+import { IstruzioniDownload } from "@/components/IstruzioniDownload";
 
 export function HomePage() {
   const {user}=useAuth();
@@ -37,6 +38,7 @@ export function HomePage() {
       </div>
     </section>
     <main className="mx-auto max-w-5xl px-4 py-6">
+      {user && <div className="mb-8"><IstruzioniDownload compatto /></div>}
       <section aria-labelledby="h-tipologia" className="mb-8">
         <h2 id="h-tipologia" className="text-[1.35rem] font-medium">Che cosa progetti?</h2>
         <div className="mt-3 grid gap-3 sm:grid-cols-2">

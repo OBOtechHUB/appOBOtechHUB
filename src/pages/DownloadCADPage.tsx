@@ -1,9 +1,7 @@
-import { useEffect, useState } from "react";
 import { risorsa } from "@/lib/base";
-import { Button } from "@/components/ui/button";
-import { AlertTriangle, Download, FileText, Package } from "lucide-react";
-import { FILE_ISTRUZIONI, ISTRUZIONI, LSP_VERSIONE } from "@/calcoli/cad/versioni";
-import { aggiornamentoDisponibile, creaPacchettoIstruzioni, segnaScaricato, versioneScaricata } from "@/lib/istruzioni";
+import { FileText } from "lucide-react";
+import { IstruzioniDownload } from "@/components/IstruzioniDownload";
+import { FILE_ISTRUZIONI, ISTRUZIONI } from "@/calcoli/cad/versioni";
 
 const automatico = [
   "In Edificio 3D premi «Pacchetto AutoCAD / ZWCAD (.zip)» e estrai tutta la cartella dallo ZIP.",
@@ -25,41 +23,15 @@ const istruzioni = [
 ];
 
 export function DownloadCADPage() {
-  const [busy, setBusy] = useState(""), [msg, setMsg] = useState(""), [scaricata, setScaricata] = useState<string | null>(null), [nuova, setNuova] = useState(false);
-  useEffect(() => { setScaricata(versioneScaricata()); setNuova(aggiornamentoDisponibile()); }, []);
-  async function pacchetto() {
-    setMsg("");
-    try {
-      const b = await creaPacchettoIstruzioni((n, t) => setBusy(`Preparo il pacchetto: file ${n + 1} di ${t}…`));
-      const a = document.createElement("a"); a.href = URL.createObjectURL(b); a.download = `Istruzioni_Progettazione_LPS_${LSP_VERSIONE}_Rev${ISTRUZIONI.revisione}.zip`; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 4000);
-      segnaScaricato(); setScaricata(versioneScaricata()); setNuova(false);
-      setMsg("Pacchetto scaricato: estrailo e sostituisci il vecchio LPS.lsp con quello nuovo (anche nel Gruppo di avvio di APPLOAD).");
-    } catch (e) { setMsg(e instanceof Error ? e.message : "Pacchetto non creato: riprova."); } finally { setBusy(""); }
-  }
   const documenti = FILE_ISTRUZIONI.filter((f) => f.titolo);
 
   return (
     <main className="mx-auto max-w-5xl px-4 py-8">
       <h1 className="font-display text-2xl font-bold">Istruzioni e download</h1>
-      <div role="alert" className={`mt-4 flex gap-3 rounded-lg border-2 p-4 ${nuova ? "border-[#c0392b] bg-[#fdecea] text-[#7a1f16]" : "border-[#f39b00] bg-[#fff6e5] text-[#5c3b00]"} dark:bg-transparent dark:text-inherit`}>
-        <AlertTriangle className="mt-0.5 size-6 shrink-0" aria-hidden />
-        <div className="text-sm">
-          <p className="font-semibold">{nuova ? "È uscita una nuova versione: scaricala e sostituisci quella vecchia." : "Ricordati di usare sempre l'ultima versione."}</p>
-          <p className="mt-1">Ultima versione: <b>LPS.lsp {LSP_VERSIONE}</b> · Istruzioni <b>Rev. {ISTRUZIONI.revisione}</b> del {ISTRUZIONI.data}.
-            {scaricata ? <> Su questo dispositivo hai scaricato la versione <b>{scaricata.replace("-", " · Rev. ")}</b>.</> : " Su questo dispositivo non l'hai ancora scaricata."}</p>
-          <p className="mt-1">In AutoCAD o ZWCAD il comando <b>LPS-VERSIONE</b> mostra la versione caricata. Da LPS.lsp 3.6 il controllo è automatico: aprendo un progetto scaricato dall'app, se il programma è vecchio compare un avviso.</p>
-        </div>
-      </div>
-
+      <div className="mt-4"><IstruzioniDownload /></div>
       <section className="mt-5 rounded-lg border border-primary p-4" aria-labelledby="h-pacchetto">
         <h2 id="h-pacchetto" className="font-display text-lg font-semibold">Pacchetto completo sempre aggiornato</h2>
-        <p className="mt-1 text-sm text-muted-foreground">Un unico ZIP con le istruzioni d'uso e le istruzioni per AutoCAD e ZWCAD (PDF e Word), LPS.lsp e un progetto di prova. Si crea al momento dai file più recenti: estrailo e sostituisci i file vecchi.</p>
-        <div className="mt-3 flex flex-wrap gap-2">
-          <Button onClick={() => void pacchetto()} disabled={!!busy}><Package />Scarica il pacchetto completo (.zip)</Button>
-          <Button variant="outline" asChild><a href={risorsa("cad/LPS.lsp")} download="LPS.lsp" onClick={() => { segnaScaricato(); setScaricata(versioneScaricata()); setNuova(false); }}><Download />Solo LPS.lsp {LSP_VERSIONE}</a></Button>
-        </div>
-        {busy && <p role="status" className="mt-2 text-sm">{busy}</p>}
-        {msg && <p role="status" className="mt-2 border-l-4 border-primary pl-3 text-sm">{msg}</p>}
+        <p className="mt-1 text-sm text-muted-foreground">Il pulsante «Pacchetto completo» qui sopra scarica un unico ZIP con le istruzioni d'uso e le istruzioni per AutoCAD e ZWCAD (PDF e Word), LPS.lsp e un progetto di prova. Si crea al momento dai file più recenti: estrailo e sostituisci i file vecchi.</p>
         <ul className="mt-3 grid gap-2 sm:grid-cols-2">{documenti.map((f) => <li key={f.file}>
           <a className="flex items-center gap-2 rounded-md border px-3 py-2 text-sm hover:bg-secondary" href={risorsa(f.file)} download><FileText className="size-4 text-primary" aria-hidden />{f.titolo}<span className="ml-auto text-xs text-muted-foreground">Rev. {ISTRUZIONI.revisione}</span></a></li>)}</ul>
       </section>
