@@ -120,3 +120,79 @@ function semplifica(p: P2[], tol: number): P2[] {
   dp(0, far); dp(far, p.length);
   return [...keep].sort((a, b) => a - b).map((i) => p[i]!);
 }
+
+/** Anelli (contorni chiusi) di una maschera di celle, in coordinate di cella (angoli). */
+function anelli(dentro: (i: number, j: number) => boolean, i0: number, j0: number, i1: number, j1: number): P2[][] {
+  const succ = new Map<number, number[]>(), K = (i: number, j: number) => j * 100000 + i, add = (a: number, b: number) => { const l = succ.get(a); if (l) l.push(b); else succ.set(a, [b]); };
+  for (let j = j0; j <= j1; j++) for (let i = i0; i <= i1; i++) {
+    if (!dentro(i, j)) continue;
+    if (!dentro(i, j - 1)) add(K(i, j), K(i + 1, j));
+    if (!dentro(i + 1, j)) add(K(i + 1, j), K(i + 1, j + 1));
+    if (!dentro(i, j + 1)) add(K(i + 1, j + 1), K(i, j + 1));
+    if (!dentro(i - 1, j)) add(K(i, j + 1), K(i, j));
+  }
+  const out: P2[][] = [];
+  while (succ.size) {
+    const inizio = succ.keys().next().value as number; const anello: number[] = [inizio]; let cur = inizio;
+    for (let guard = 0; guard < 4e6; guard++) { const l = succ.get(cur); if (!l || !l.length) break; const nxt = l.pop()!; if (!l.length) succ.delete(cur); if (nxt === inizio) break; anello.push(nxt); cur = nxt; }
+    out.push(anello.map((k) => [k % 100000, Math.floor(k / 100000)] as P2));
+  }
+  return out;
+}
+const areaFirmata = (p: P2[]) => p.reduce((t, a, k) => { const b = p[(k + 1) % p.length]!; return t + a[0] * b[1] - b[0] * a[1]; }, 0) / 2;
+
+/** Unisce i buchi al contorno esterno con un taglio sottile, così il poligono resta uno solo e non copre i cortili. */
+function conBuchi(esterno: P2[], buchi: P2[][]): P2[] {
+  let p = esterno;
+  for (const h of buchi.sort((a, b) => Math.abs(areaFirmata(b)) - Math.abs(areaFirmata(a)))) {
+    let bi = 0, bj = 0, d = Infinity;
+    for (let i = 0; i < p.length; i++) for (let j = 0; j < h.length; j++) { const e = Math.hypot(p[i]![0] - h[j]![0], p[i]![1] - h[j]![1]); if (e < d) { d = e; bi = i; bj = j; } }
+    p = [...p.slice(0, bi + 1), ...h.slice(bj), ...h.slice(0, bj + 1), ...p.slice(bi)];
+  }
+  return p;
+}
+
+export interface CoperturaPiana { impronta: P2[]; quota: number; area: number }
+/**
+ * Coperture di un modello 3D (edifici complessi da IFC): la superficie superiore divisa in zone alla stessa quota
+ * (bande di `banda` m), ognuna con il suo contorno (cortili esclusi). Servono alla proposta automatica di captazione
+ * (maglia, aste, calate), che lavora su corpi con impronta e altezza.
+ */
+export function coperturePiane(tri: ArrayLike<number>, opz: { cella?: number; banda?: number; areaMin?: number; quotaMin?: number } = {}): CoperturaPiana[] {
+  const { x0, y0, x1, y1 } = limiti(tri), cella = opz.cella ?? Math.max(0.5, Math.sqrt(((x1 - x0) * (y1 - y0)) / 60000)), banda = opz.banda ?? 0.5, areaMin = opz.areaMin ?? 8, quotaMin = opz.quotaMin ?? 0.3;
+  const g = creaGriglia(tri, ((x1 - x0) * (y1 - y0)) / (cella * cella)); if (!g) return [];
+  const { nx, ny } = g, N = nx * ny, b = new Int32Array(N).fill(-1);
+  for (let k = 0; k < N; k++) { const z = g.zmax[k]!; if (z > quotaMin) b[k] = Math.round(z / banda); }
+  // due passate di filtro (valore più frequente tra le 3×3) per togliere i disturbi di pilastri, camini, giunti
+  for (let giro = 0; giro < 2; giro++) {
+    const c = b.slice();
+    for (let j = 1; j < ny - 1; j++) for (let i = 1; i < nx - 1; i++) {
+      const m = new Map<number, number>(); for (let dj = -1; dj <= 1; dj++) for (let di = -1; di <= 1; di++) { const v = b[(j + dj) * nx + i + di]!; m.set(v, (m.get(v) ?? 0) + 1); }
+      let bv = b[j * nx + i]!, bn = 0; for (const [v, n] of m) if (n > bn) { bn = n; bv = v; } if (bn >= 5 && (bv >= 0 || b[j * nx + i]! >= 0)) c[j * nx + i] = bv;
+    }
+    b.set(c);
+  }
+  const comp = new Int32Array(N).fill(-1), out: CoperturaPiana[] = [];
+  let id = 0;
+  for (let s = 0; s < N; s++) {
+    if (b[s]! < 0 || comp[s]! >= 0) continue;
+    const v = b[s]!, coda = [s], celle: number[] = []; comp[s] = id; let zsum = 0, zn = 0;
+    while (coda.length) { const k = coda.pop()!; celle.push(k); if (Number.isFinite(g.zmax[k]!) && Math.round(g.zmax[k]! / banda) === v) { zsum += g.zmax[k]!; zn++; } const i = k % nx, j = (k - i) / nx;
+      for (const [di, dj] of [[1, 0], [-1, 0], [0, 1], [0, -1]] as const) { const ii = i + di, jj = j + dj; if (ii < 0 || jj < 0 || ii >= nx || jj >= ny) continue; const q = jj * nx + ii; if (comp[q]! < 0 && b[q] === v) { comp[q] = id; coda.push(q); } } }
+    const area = celle.length * g.c * g.c;
+    if (area >= areaMin) {
+      let i0 = nx, j0 = ny, i1 = 0, j1 = 0; for (const k of celle) { const i = k % nx, j = (k - i) / nx; if (i < i0) i0 = i; if (i > i1) i1 = i; if (j < j0) j0 = j; if (j > j1) j1 = j; }
+      const mio = id, dentro = (i: number, j: number) => i >= 0 && j >= 0 && i < nx && j < ny && comp[j * nx + i] === mio;
+      const loop = anelli(dentro, i0 - 1, j0 - 1, i1 + 1, j1 + 1);
+      if (loop.length) {
+        const ord = loop.sort((a, c) => Math.abs(areaFirmata(c)) - Math.abs(areaFirmata(a)));
+        const est = ord[0]!, segno = Math.sign(areaFirmata(est)), buchi = ord.slice(1).filter((h) => Math.sign(areaFirmata(h)) !== segno && Math.abs(areaFirmata(h)) * g.c * g.c >= areaMin);
+        const poly = conBuchi(est, buchi).map(([a, c]) => [g.x0 + a * g.c, g.y0 + c * g.c] as P2);
+        const imp = semplifica(poly, Math.max(0.6, g.c * 1.2));
+        if (imp.length >= 3) out.push({ impronta: imp, quota: Math.round((zn ? zsum / zn : v * banda) * 100) / 100, area });
+      }
+    }
+    id++;
+  }
+  return out.sort((a, c) => c.area - a.area);
+}

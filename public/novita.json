@@ -2,6 +2,17 @@
   "nota": "Registro degli aggiornamenti di Progettazione LPS. Una voce per aggiornamento, la più recente per prima (app: lps). Viene mostrato nella barra \"Aggiorna app\", nel riquadro Novità e nella pagina Novità di OBO Hub. Le novità solo grafiche (animazioni, sigle, aspetto) non si mostrano: restano conservate in 'grafica_non_mostrata'.",
   "aggiornamenti": [
     {
+      "id": "2026-11-25-lps-60",
+      "data": "2026-11-25",
+      "app": "lps",
+      "titolo": "Proposta automatica anche per i modelli IFC di edifici complessi",
+      "voci": [
+        "«Proponi captazione automatica» funziona anche con i modelli 3D importati: l'app riconosce le coperture piane alle diverse quote (cortili esclusi) e propone il tondo in maglia con le aste solo dove servono, così le parti rosse vengono coperte",
+        "Le calate sono proposte solo lungo il contorno reale dell'edificio, con la testa alla quota della copertura vicina",
+        "Per un tetto piano usa la proposta automatica (tondo + aste); «Suggerisci aste» resta per le soluzioni con sole aste"
+      ]
+    },
+    {
       "id": "2026-11-25-lps-59",
       "data": "2026-11-25",
       "app": "lps",

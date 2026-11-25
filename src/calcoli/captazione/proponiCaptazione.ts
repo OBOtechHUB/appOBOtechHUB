@@ -190,6 +190,8 @@ export interface ParametriProposta {
   parete?: string | undefined;              // calate: chiave di SUPPORTI_CALATA (default "muratura")
   /** libreria dei particolari attiva: i codici di conduttori, supporti, connettori e accessori vengono da qui */
   particolari?: readonly ParticolareLib[] | undefined;
+  /** contorno reale dell'edificio (modelli 3D con più coperture): le calate vanno solo lungo questo perimetro */
+  perimetroCalate?: Punto2[] | undefined;
 }
 
 export interface PropostaCaptazione {
@@ -322,6 +324,33 @@ function proponiCalate(corpi: Corpo[], dMax: number): { punto: Punto2; zTesta: n
   return out;
 }
 
+/** Calate lungo il contorno reale dell'edificio, a distanza ≤ dMax, con la testa alla quota della copertura più alta lì vicino. */
+function calateSuPerimetro(corpi: Corpo[], per: Punto2[], dMax: number): { punto: Punto2; zTesta: number }[] {
+  const out: { punto: Punto2; zTesta: number }[] = [];
+  const cx = per.reduce((t, p) => t + p[0], 0) / per.length, cy = per.reduce((t, p) => t + p[1], 0) / per.length;
+  const quota = (p: Punto2) => {
+    let z = -Infinity;
+    for (const d of [0.8, 2, 4]) { const L = Math.hypot(cx - p[0], cy - p[1]) || 1, q: Punto2 = [p[0] + ((cx - p[0]) / L) * d, p[1] + ((cy - p[1]) / L) * d];
+      for (const c of corpi) if (puntoInPoligono(q[0], q[1], c.impronta)) z = Math.max(z, (c.quotaBase ?? 0) + c.altezzaGronda);
+      if (z > -Infinity) return z; }
+    return Math.max(...corpi.map((c) => (c.quotaBase ?? 0) + c.altezzaGronda));
+  };
+  const lunghezze = per.map((a, i) => { const b = per[(i + 1) % per.length]!; return Math.hypot(b[0] - a[0], b[1] - a[1]); });
+  const tot = lunghezze.reduce((t, l) => t + l, 0), m = Math.max(2, Math.ceil(tot / dMax - 1e-9)), passo = tot / m;
+  // spigoli principali (cambio di direzione > 30°) sempre con una calata, poi intermedie
+  for (let i = 0; i < per.length; i++) {
+    const a = per[(i + per.length - 1) % per.length]!, v = per[i]!, b = per[(i + 1) % per.length]!;
+    const u1 = Math.atan2(v[1] - a[1], v[0] - a[0]), u2 = Math.atan2(b[1] - v[1], b[0] - v[0]); let da = Math.abs(u2 - u1); if (da > Math.PI) da = 2 * Math.PI - da;
+    if (da > Math.PI / 6 && !out.some((q) => Math.hypot(q.punto[0] - v[0], q.punto[1] - v[1]) < dMax / 2)) out.push({ punto: [v[0], v[1]], zTesta: quota(v) });
+  }
+  for (let k = 0; k < m; k++) {
+    let s2 = k * passo, i = 0; while (i < per.length - 1 && s2 > lunghezze[i]!) { s2 -= lunghezze[i]!; i++; }
+    const a = per[i]!, b = per[(i + 1) % per.length]!, t = lunghezze[i]! ? s2 / lunghezze[i]! : 0, p: Punto2 = [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t];
+    if (!out.some((q) => Math.hypot(q.punto[0] - p[0], q.punto[1] - p[1]) < dMax * 0.6)) out.push({ punto: p, zTesta: quota(p) });
+  }
+  return out;
+}
+
 /* ------------------------------------------------------------------ */
 /* Componenti: morsetti agli incroci, supporti lungo i conduttori       */
 /* ------------------------------------------------------------------ */
@@ -415,7 +444,7 @@ export function proponiCaptazione(corpi: Corpo[], par: ParametriProposta): Propo
   }
 
   // 3. calate
-  const calate = proponiCalate(corpi, par.distanzaCalate);
+  const calate = par.perimetroCalate && par.perimetroCalate.length >= 3 ? calateSuPerimetro(corpi, par.perimetroCalate, par.distanzaCalate) : proponiCalate(corpi, par.distanzaCalate);
   for (const c of calate) {
     conduttori.push({
       tipo: "calata", materiale: cat.conduttore.materiale, sezione: cat.conduttore.diametroMm,

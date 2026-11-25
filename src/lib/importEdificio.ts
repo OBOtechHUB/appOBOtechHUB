@@ -1,7 +1,7 @@
 import { massimo, minimo } from "@/lib/estremi";
 import { risorsa } from "@/lib/base";
 import { corpoSchema,modelloSchema,type Corpo,type ModelloEdificio } from "@/calcoli/edificio/tipi";
-import { improntaDaTriangoli, prioritaTriangoli } from "@/lib/superficieEsterna";
+import { coperturePiane, improntaDaTriangoli, prioritaTriangoli } from "@/lib/superficieEsterna";
 import {locale} from "@/calcoli/edificio/geometria";
 import {unitaDaInsunits,type Unita} from "@/calcoli/importazione/scala";
 import {letturaDaPolilinee,type LetturaCad} from "@/lib/letturaCad";
@@ -163,3 +163,13 @@ export function semplificaTriangoli(tri0:number[],max=MAX_TRIANGOLI):number[]{
   return out;
 }
 
+
+/**
+ * Corpi con impronta e altezza ricavati da un modello 3D importato (IFC di edifici complessi): una copertura piana per
+ * ogni zona della superficie superiore alla stessa quota (cortili esclusi). Servono alla proposta automatica di
+ * captazione (tondo in maglia, aste dove servono, calate), che lavora su corpi e non su mesh.
+ */
+export function corpiDaMesh(c: Corpo): Corpo[] {
+  if (!c.mesh) return [];
+  return coperturePiane(c.mesh.posizioni).map((p, i) => corpoSchema.parse({ id: `${c.id}-cop${i + 1}`, nome: `${c.nome} · copertura ${i + 1} (${p.quota.toFixed(1)} m)`, impronta: p.impronta, quotaBase: c.quotaBase, altezzaGronda: p.quota, altezzaColmo: p.quota, tipoTetto: "piano" }));
+}
