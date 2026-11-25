@@ -4,13 +4,13 @@ import { eIfcLps, leggiIfcLps, type ModelloIfcLps } from "@/calcoli/cad/ifc";
 import { aggiornaEsteso, leggiEsteso } from "@/lib/statoProgetto";
 import { Button } from "@/components/ui/button";
 import { Campo, inputCls } from "@/components/Campo";
-import type { Corpo, ModelloEdificio } from "@/calcoli/edificio/tipi";
+import type { ModelloEdificio } from "@/calcoli/edificio/tipi";
 import { corpoSchema } from "@/calcoli/edificio/tipi";
 import {
   SCALE_COMUNI, UNITA, descriviDimensioni, differenzaRelativa, distanza2, fattoreDaMisura, metriPerPuntoPdf, metriUnita, nomeUnita,
   plausibile, proponiUnita, scalaComuneVicina, type PropostaUnita, type Unita,
 } from "@/calcoli/importazione/scala";
-import { ESTENSIONI_3D, dimensioniCorpo, leggiDXF, leggiMesh, scalaCorpo, unitaDichiarata3D, verticaleZProposto } from "@/lib/importEdificio";
+import { ESTENSIONI_3D, applicaQuota0, dimensioniCorpo, leggiDXF, leggiMesh, quota0Proposta, scalaCorpo, unitaDichiarata3D, verticaleZProposto, type Corpo3D } from "@/lib/importEdificio";
 import { leggiImmagine, leggiPdf, type PianoImportato } from "@/lib/leggiPdf";
 import { leggiDWG } from "@/lib/leggiDwg";
 import type { LetturaCad } from "@/lib/letturaCad";
@@ -36,7 +36,9 @@ export function ImportaFile({ onImporta, paginaIntera = false, daAprire }: { onI
   // CAD e 3D
   const [dxf, setDxf] = useState<LetturaDxf | null>(null), [layersSel, setLayersSel] = useState<string[]>([]), [altezzaDxf, setAltezzaDxf] = useState("");
   const [scelte, setScelte] = useState<Record<number, { ruolo?: Ruolo; altezza?: string }>>({}), [hImpianti, setHImpianti] = useState("1,5"), [hLucernari, setHLucernari] = useState("0,6");
-  const [corpo1, setCorpo1] = useState<Corpo | null>(null), [verticaleZ, setVerticaleZ] = useState(false);
+  const [corpo1, setCorpo1] = useState<Corpo3D | null>(null), [verticaleZ, setVerticaleZ] = useState(false);
+  // quota 0 del modello 3D (piano di campagna): "auto" = proposta (piano terra dell'IFC), "min" = punto più basso, "man" = valore a mano, "l<i>" = piano i
+  const [quotaSel, setQuotaSel] = useState("auto"), [quotaMan, setQuotaMan] = useState("");
   const [unita, setUnita] = useState<Unita | "misura">("m");
   const [asse, setAsse] = useState<0 | 1 | 2>(0), [reale, setReale] = useState("");
   // PDF e immagini
@@ -47,7 +49,7 @@ export function ImportaFile({ onImporta, paginaIntera = false, daAprire }: { onI
   const svgRef = useRef<SVGSVGElement | null>(null);
 
   function azzera() {
-    setLps(null); setTipo(null); setFiles([]); setErrore(""); setDxf(null); setLayersSel([]); setScelte({}); setCorpo1(null); setPiano(null); setRapporto(null);
+    setLps(null); setTipo(null); setFiles([]); setErrore(""); setDxf(null); setLayersSel([]); setScelte({}); setCorpo1(null); setPiano(null); setRapporto(null); setQuotaSel("auto"); setQuotaMan("");
     setCal([]); setCalReale(""); setPoli([]); setAltezza(""); setReale(""); setUnita("m"); setModo("calibra"); setZoom(1);
   }
   async function esegui(f: () => Promise<void>) {
@@ -88,11 +90,14 @@ export function ImportaFile({ onImporta, paginaIntera = false, daAprire }: { onI
   useEffect(() => { if (daAprire?.length) void scegli(daAprire); }, [daAprire]); // eslint-disable-line react-hooks/exhaustive-deps
   const main = files[0];
 
+  // ---------- quota 0 del modello 3D (valore dal punto più basso, nell'unità del file)
+  const quota0 = !corpo1 ? 0 : quotaSel === "min" ? 0 : quotaSel === "man" ? Math.max(0, (num(quotaMan) || 0) + quota0Proposta(corpo1)) : quotaSel.startsWith("l") ? Math.max(0, corpo1.livelli?.[Number(quotaSel.slice(1))]?.z ?? 0) : quota0Proposta(corpo1);
+  const corpoQ = useMemo(() => (corpo1 ? applicaQuota0(corpo1, quota0) : null), [corpo1, quota0]);
   // ---------- scala di DXF e 3D
   const dimensioniGrezze = useMemo<number[]>(() => {
     if (tipo === "dxf" && dxf) { const sel = dxf.poligoni.filter((p) => layersSel.includes(p.layer)); const xs = sel.flatMap((p) => p.punti.map((q) => q[0])), ys = sel.flatMap((p) => p.punti.map((q) => q[1])); return xs.length ? [massimo(xs) - minimo(xs), massimo(ys) - minimo(ys)] : dxf.ingombro(); }
-    return tipo === "3d" && corpo1 ? dimensioniCorpo(corpo1) : [];
-  }, [tipo, dxf, layersSel, corpo1]);
+    return tipo === "3d" && corpoQ ? dimensioniCorpo(corpoQ) : [];
+  }, [tipo, dxf, layersSel, corpoQ]);
   const dichiarata: Unita | null = tipo === "dxf" ? dxf?.unita ?? null : tipo === "3d" && main ? unitaDichiarata3D(main.name) : null;
   const proposta: PropostaUnita | null = dimensioniGrezze.length ? proponiUnita(dimensioniGrezze, dichiarata) : null;
   const fattoreMisura = fattoreDaMisura(dimensioniGrezze[asse] ?? 0, num(reale));
@@ -118,8 +123,8 @@ export function ImportaFile({ onImporta, paginaIntera = false, daAprire }: { onI
       if (!corpi.length) { setErrore("Nei layer scelti non ci sono polilinee chiuse da importare."); return; }
       const parti = ([["corpo", "corpo", "corpi"], ["impianto", "impianto sul tetto", "impianti sul tetto"], ["lucernario", "lucernario", "lucernari"]] as const).map(([r, uno, piu]) => [contaRuolo(r), uno, piu] as const).filter(([n]) => n > 0).map(([n, uno, piu]) => `${n} ${n === 1 ? uno : piu}`);
       onImporta({ corpi }); setFatto(`Importati ${parti.join(", ")} dai layer ${layersSel.join(", ")}${senzaAltezza && !(h > 0) ? `: l'altezza di ${senzaAltezza === 1 ? "un corpo" : `${senzaAltezza} corpi`} si imposta in Edificio 3D` : ". Le altezze si possono correggere in Edificio 3D"}.`); setAltezzaDxf(""); azzera();
-    } else if (tipo === "3d" && corpo1) {
-      onImporta({ corpi: [scalaCorpo(corpo1, fattore)] }); setFatto(`Modello importato: ${descriviDimensioni(dimFinali)}.`); azzera();
+    } else if (tipo === "3d" && corpoQ) {
+      onImporta({ corpi: [scalaCorpo(corpoQ, fattore)] }); setFatto(`Modello importato: ${descriviDimensioni(dimFinali)}.`); azzera();
     }
   }
 
@@ -223,6 +228,22 @@ export function ImportaFile({ onImporta, paginaIntera = false, daAprire }: { onI
               <Button size="sm" variant={verticaleZ ? "outline" : "default"} disabled={busy} onClick={() => void cambiaAsse(false)}>Y (OBJ, glTF, IFC)</Button>
               <Button size="sm" variant={verticaleZ ? "default" : "outline"} disabled={busy} onClick={() => void cambiaAsse(true)}>Z (STEP, IGES, STL)</Button>
               <span className="text-xs text-muted-foreground">Se l'edificio risulta "sdraiato" (altezza più grande della pianta), prova l'altro asse.</span>
+            </div>
+          )}
+          {tipo === "3d" && corpo1 && (
+            <div className="mt-3 rounded-md border p-3 text-sm">
+              <p className="font-medium">Quota 0 (piano di campagna)</p>
+              <p className="text-xs text-muted-foreground">Le altezze si misurano da qui; fondazioni, pali e interrati sotto la quota 0 vengono tolti.{corpo1.livelli?.length ? " Proposto il piano dell'IFC con quota di progetto più vicina a 0." : ""}</p>
+              <div className="mt-2 grid gap-2 sm:grid-cols-2">
+                <select aria-label="Quota 0" className={inputCls} value={quotaSel} onChange={(e) => setQuotaSel(e.target.value)}>
+                  <option value="auto">{corpo1.livelli?.length ? "Piano terra proposto" : "Punto più basso del modello"}</option>
+                  {corpo1.livelli?.length ? <option value="min">Punto più basso del modello (fondazioni comprese)</option> : null}
+                  {(corpo1.livelli ?? []).map((l, i) => <option key={i} value={`l${i}`}>{l.nome}{Number.isFinite(l.quota) ? ` · quota ${fmt(l.quota)}` : ""} · {fmt(l.z)} sopra il punto più basso</option>)}
+                  <option value="man">Spostamento a mano rispetto alla proposta</option>
+                </select>
+                {quotaSel === "man" && <input aria-label="Spostamento della quota 0" className={inputCls} inputMode="decimal" placeholder="es. -0,5 o 1,2 (unità del file)" value={quotaMan} onChange={(e) => setQuotaMan(e.target.value)} />}
+              </div>
+              <p className="mt-2">Quota 0 a {fmt(quota0)} dal punto più basso: altezza dell'edificio {fmt(corpoQ?.altezzaGronda ?? 0)} (unità del file){corpo1.altezzaGronda !== corpoQ?.altezzaGronda ? `, prima ${fmt(corpo1.altezzaGronda)}` : ""}.</p>
             </div>
           )}
           <fieldset className="mt-3">

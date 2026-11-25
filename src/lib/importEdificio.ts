@@ -23,7 +23,13 @@ export async function leggiKML(file:File):Promise<ModelloEdificio>{const xml=new
   if(!corpi.length)throw new Error("Nessun poligono nel KML.");return modelloSchema.parse({corpi,origineGeo:origine});
 }
 export async function leggiCADJSON(file:File){const data=JSON.parse(await file.text());return modelloSchema.parse(data.edificio??data);}
-export async function leggiMesh(files:File[],scala:number,verticaleZ=false):Promise<Corpo>{
+/** Piano di un IFC (IfcBuildingStorey): z nel sistema del modello letto (stessa unità e stessa origine dei vertici, prima di togliere il punto più basso). */
+export interface Livello3D { nome: string; z: number; quota: number }
+/** Corpo letto da un modello 3D con le informazioni per scegliere la quota 0: piani IFC e quota del punto più basso. */
+export type Corpo3D = Corpo & { livelli?: Livello3D[]; zMinimo?: number };
+const FATTORE_PREFISSO: Record<string, number> = { MILLI: 1e-3, CENTI: 1e-2, DECI: 1e-1, KILO: 1e3 };
+export async function leggiMesh(files:File[],scala:number,verticaleZ=false):Promise<Corpo3D>{
+  let livelli: Livello3D[] = [];
   if(typeof window==="undefined")throw new Error("Importazione 3D disponibile solo nel browser.");
   const THREE=await import("three");const main=files.find((f)=>ESTENSIONI_3D.test(f.name));if(!main)throw new Error("Seleziona OBJ, STL, PLY, GLB, GLTF, IFC, STEP o IGES.");if(main.size>50000000)throw new Error("Modello oltre 50 MB.");
   let object:InstanceType<typeof THREE.Object3D>|undefined;
@@ -40,7 +46,18 @@ export async function leggiMesh(files:File[],scala:number,verticaleZ=false):Prom
     try {object=(await new GLTFLoader(manager).parseAsync(await main.arrayBuffer(),"")).scene;}finally{urls.forEach((u)=>URL.revokeObjectURL(u));}
   }else{
     const {IfcAPI}=await import("web-ifc");const api=new IfcAPI();await api.Init(()=>new URL(risorsa("wasm/web-ifc.wasm"),window.location.origin).href,true);const id=api.OpenModel(new Uint8Array(await main.arrayBuffer()),{COORDINATE_TO_ORIGIN:true});
-    object=new THREE.Group();api.StreamAllMeshes(id,(flat)=>{for(let i=0;i<flat.geometries.size();i++){const placed=flat.geometries.get(i);const geom=api.GetGeometry(id,placed.geometryExpressID);const vertices=api.GetVertexArray(geom.GetVertexData(),geom.GetVertexDataSize());const indices=api.GetIndexArray(geom.GetIndexData(),geom.GetIndexDataSize());const positions=[];for(let j=0;j<vertices.length;j+=6)positions.push(vertices[j]??0,vertices[j+1]??0,vertices[j+2]??0);const geometry=new THREE.BufferGeometry();geometry.setAttribute("position",new THREE.Float32BufferAttribute(positions,3));geometry.setIndex([...indices]);const mesh=new THREE.Mesh(geometry);mesh.applyMatrix4(new THREE.Matrix4().fromArray(placed.flatTransformation));object?.add(mesh);geom.delete();}});api.CloseModel(id);
+    object=new THREE.Group();api.StreamAllMeshes(id,(flat)=>{for(let i=0;i<flat.geometries.size();i++){const placed=flat.geometries.get(i);const geom=api.GetGeometry(id,placed.geometryExpressID);const vertices=api.GetVertexArray(geom.GetVertexData(),geom.GetVertexDataSize());const indices=api.GetIndexArray(geom.GetIndexData(),geom.GetIndexDataSize());const positions=[];for(let j=0;j<vertices.length;j+=6)positions.push(vertices[j]??0,vertices[j+1]??0,vertices[j+2]??0);const geometry=new THREE.BufferGeometry();geometry.setAttribute("position",new THREE.Float32BufferAttribute(positions,3));geometry.setIndex([...indices]);const mesh=new THREE.Mesh(geometry);mesh.applyMatrix4(new THREE.Matrix4().fromArray(placed.flatTransformation));object?.add(mesh);geom.delete();}});
+    // piani dell'IFC: quota assoluta dalla catena dei posizionamenti, nell'unità di lunghezza del file, portata nel sistema di web-ifc (metri, origine spostata)
+    try {
+      let f=1;const unita=api.GetLineIDsWithType(id,448429030);for(let k=0;k<unita.size();k++){const u=api.GetLine(id,unita.get(k));if(u?.UnitType?.value==="LENGTHUNIT")f=FATTORE_PREFISSO[String(u.Prefix?.value??"")]??1;}
+      const coord=api.GetCoordinationMatrix(id);const dy=coord[13]??0;
+      type Pl={RelativePlacement?:{Location?:{Coordinates?:{value:number}[]}};PlacementRelTo?:Pl};
+      const zCatena=(pl:Pl|undefined)=>{let z=0,n=0;while(pl&&n++<30){z+=pl.RelativePlacement?.Location?.Coordinates?.[2]?.value??0;pl=pl.PlacementRelTo;}return z;};
+      const piani=api.GetLineIDsWithType(id,3124254112);
+      for(let k=0;k<piani.size();k++){const l=api.GetLine(id,piani.get(k),true);const z=(zCatena(l?.ObjectPlacement)*f+dy)*scala;if(Number.isFinite(z))livelli.push({nome:String(l?.Name?.value??l?.LongName?.value??`Piano ${k+1}`),z,quota:Number(l?.Elevation?.value??NaN)*f*scala});}
+      livelli.sort((a,b)=>a.z-b.z);
+    } catch { livelli=[]; }
+    api.CloseModel(id);
   }
   if(!object)throw new Error("Geometria non disponibile.");object.updateMatrixWorld(true);
   // tutti i triangoli in coordinate del mondo (Z in alto)
@@ -52,7 +69,32 @@ export async function leggiMesh(files:File[],scala:number,verticaleZ=false):Prom
   const xs=new Array<number>(nV),ys=new Array<number>(nV);
   for(let k=0;k<nV;k++){const x=tri[3*k]!,y=tri[3*k+1]!,z=tri[3*k+2]!;xs[k]=x;ys[k]=y;if(x<minX)minX=x;if(x>maxX)maxX=x;if(y<minY)minY=y;if(y>maxY)maxY=y;if(z<minZ)minZ=z;if(z>maxZ)maxZ=z;}
   const positions=semplificaTriangoli(tri,MAX_TRIANGOLI);for(let i=2;i<positions.length;i+=3)positions[i]=(positions[i]??0)-minZ;
-  const hull=involucro(xs,ys);return corpoSchema.parse({id:crypto.randomUUID(),nome:main.name,impronta:hull.length>=3?hull:[[minX,minY],[maxX,minY],[maxX,maxY],[minX,maxY]],quotaBase:0,altezzaGronda:maxZ-minZ,altezzaColmo:maxZ-minZ,tipoTetto:"altro",mesh:{posizioni:positions}});
+  const hull=involucro(xs,ys);const corpo:Corpo3D=corpoSchema.parse({id:crypto.randomUUID(),nome:main.name,impronta:hull.length>=3?hull:[[minX,minY],[maxX,minY],[maxX,maxY],[minX,maxY]],quotaBase:0,altezzaGronda:maxZ-minZ,altezzaColmo:maxZ-minZ,tipoTetto:"altro",mesh:{posizioni:positions}});
+  corpo.zMinimo=minZ;if(livelli.length)corpo.livelli=livelli.map((l)=>({...l,z:l.z-minZ}));
+  return corpo;
+}
+
+/** Quota 0 proposta per un IFC: il piano con quota di progetto più vicina a 0 (piano terra), altrimenti il punto più basso. */
+export function quota0Proposta(c:Corpo3D):number{
+  const l=c.livelli??[];if(!l.length)return 0;
+  const conQuota=l.filter((x)=>Number.isFinite(x.quota));
+  const terra=(conQuota.length?conQuota:l).reduce((a,b)=>(Math.abs(Number.isFinite(b.quota)?b.quota:b.z)<Math.abs(Number.isFinite(a.quota)?a.quota:a.z)?b:a));
+  return Math.max(0,terra.z);
+}
+
+/**
+ * Sposta la quota 0 del corpo letto da un modello 3D a q (stessa unità della mesh, misurata dal punto più basso):
+ * toglie le parti tutte sotto la quota 0 (fondazioni, pali, interrati), porta a 0 quelle che la attraversano e
+ * ricalcola impronta e altezza con quello che resta sopra.
+ */
+export function applicaQuota0<C extends Corpo>(c:C,q:number):C{
+  if(!c.mesh||!(q>0))return c;
+  const p=c.mesh.posizioni,out:number[]=[],xs:number[]=[],ys:number[]=[];let maxZ=0;
+  for(let i=0;i+8<p.length;i+=9){const z1=p[i+2]!-q,z2=p[i+5]!-q,z3=p[i+8]!-q;if(z1<=1e-6&&z2<=1e-6&&z3<=1e-6)continue;
+    for(let k=0;k<3;k++){const x=p[i+3*k]!,y=p[i+3*k+1]!,z=Math.max(0,p[i+3*k+2]!-q);out.push(x,y,z);xs.push(x);ys.push(y);if(z>maxZ)maxZ=z;}}
+  if(out.length<9)return c;
+  const hull=involucro(xs,ys);
+  return corpoSchema.parse({...c,impronta:hull.length>=3?hull:c.impronta,altezzaGronda:maxZ,altezzaColmo:maxZ,mesh:{...c.mesh,posizioni:out}}) as C;
 }
 /** Formati 3D che si possono importare come corpo dell'edificio. */
 export const ESTENSIONI_3D=/\.(obj|stl|ply|glb|gltf|ifc|step|stp|iges|igs)$/i;

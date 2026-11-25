@@ -2,6 +2,17 @@
   "nota": "Registro degli aggiornamenti di Progettazione LPS. Una voce per aggiornamento, la più recente per prima (app: lps). Viene mostrato nella barra \"Aggiorna app\", nel riquadro Novità e nella pagina Novità di OBO Hub. Le novità solo grafiche (animazioni, sigle, aspetto) non si mostrano: restano conservate in 'grafica_non_mostrata'.",
   "aggiornamenti": [
     {
+      "id": "2026-11-25-lps-58",
+      "data": "2026-11-25",
+      "app": "lps",
+      "titolo": "Modelli IFC e 3D: scelta della quota 0",
+      "voci": [
+        "Importando un IFC o un modello 3D scegli la quota 0 (piano di campagna): proposto il piano dell'IFC con quota di progetto più vicina a 0, oppure un altro piano dell'elenco, il punto più basso o uno spostamento a mano",
+        "Fondazioni, pali e interrati sotto la quota 0 vengono tolti: altezze e impronta corrispondono all'edificio fuori terra",
+        "Letti correttamente anche gli IFC in centimetri o millimetri"
+      ]
+    },
+    {
       "id": "2026-11-25-lps-57",
       "data": "2026-11-25",
       "app": "lps",
