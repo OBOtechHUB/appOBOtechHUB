@@ -19,6 +19,7 @@ const PAGINE: { titolo: string; to: string; parole: string }[] = [
   { titolo: "Verifiche e dossier", to: "/verifiche", parole: "ispezione manutenzione checklist" },
   { titolo: "Prodotti OBO", to: "/prodotti", parole: "catalogo articoli novità" },
   { titolo: "Modelli 3D prodotti", to: "/modelli-3d", parole: "stp step dxf dwg" },
+  { titolo: "Antenne radiomobili (5G)", to: "/antenne", parole: "antenne 5g 4g stazione radio base srb telefonia traliccio palo isfang iscon" },
   { titolo: "Istruzioni e download", to: "/download-cad", parole: "zwcad autocad lsp istruzioni manuale guida pdf word versione aggiornamento download cad" },
   { titolo: "I miei progetti", to: "/progetti", parole: "salvati apri" },
 ];

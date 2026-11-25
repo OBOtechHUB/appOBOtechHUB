@@ -10,6 +10,7 @@ import {
   KI, KM, NOMI_MATERIALE, distanzaSeparazione, kcDettagliato, kcDettagliatoNelCampo, kcSemplificato, numeroCalate, passoCalate, perimetro, verificaPunti,
   type Livello, type Materiale,
 } from "@/calcoli/calate/separazione";
+import { ISCON, ORDINE_ISCON, lunghezzaMassima, verificaIscon, versioneMinima, type VersioneIscon } from "@/calcoli/calate/iscon";
 
 const f = (v: number, c = 2) => (Number.isFinite(v) ? v.toLocaleString("it-IT", { minimumFractionDigits: c, maximumFractionDigits: c }) : "—");
 const lunghezza = (p: [number, number, number][]) => p.slice(1).reduce((t, q, i) => { const a = p[i]!; return t + Math.hypot(q[0] - a[0], q[1] - a[1], q[2] - a[2]); }, 0);
@@ -108,6 +109,28 @@ export function CalatePage() {
           </tr>)}</tbody>
         </table></div>}
         {esiti.some((e) => !e.conforme) && <p className="mt-3 text-sm">Dove d &lt; s: allontanare l'impianto, collegarlo all'LPS con un collegamento equipotenziale diretto, oppure usare un sistema isolato (es. conduttore isCon, aste isolate).</p>}
+      </section>
+
+      <section className="mt-10" aria-label="Conduttori isolati isCon">
+        <div className="flex flex-wrap items-end justify-between gap-3"><h2 className="text-[1.7rem] font-medium">4 · Calate isolate con conduttore isCon</h2>
+          <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={!!sep.iscon} onChange={(e) => aggiorna({ iscon: e.target.checked ? { versione: "proplus", materiale: "aria", l: null } : null })} />Uso conduttori isolati isCon</label></div>
+        <p className="mt-1 text-sm text-muted-foreground">Il conduttore isolato sostituisce la distanza di separazione: la verifica è s richiesta (ki · kc / km · l) ≤ s equivalente del conduttore. l = lunghezza dal punto più alto della calata isolata al collegamento equipotenziale (zona di potenziale).</p>
+        {sep.iscon && (() => { const ic = sep.iscon; const l = ic.l ?? altezza; const kmU = ic.materiale === "solido" ? km.solido : 1; const sRic = l > 0 ? distanzaSeparazione(ki, kc, kmU, l) : 0; const min = versioneMinima(sRic, ic.materiale); const scelta = verificaIscon(ic.versione, sRic, ic.materiale);
+          const setIc = (p: Partial<typeof ic>) => aggiorna({ iscon: { ...ic, ...p } });
+          return <>
+            <div className="mt-4 grid gap-4 sm:grid-cols-3">
+              <Campo etichetta="Versione isCon"><select className={inputCls} value={ic.versione} onChange={(e) => setIc({ versione: e.target.value as VersioneIscon })}>{ORDINE_ISCON.map((v) => <option key={v} value={v}>{ISCON[v].nome} ({ISCON[v].sigla})</option>)}</select></Campo>
+              <Campo etichetta="Posa del conduttore"><select className={inputCls} value={ic.materiale} onChange={(e) => setIc({ materiale: e.target.value as "aria" | "solido" })}><option value="aria">In aria</option><option value="solido">Su / in materiale solido</option></select></Campo>
+              <Campo etichetta={`l fino al collegamento equipotenziale (m, vuoto = h ${f(altezza, 1)})`}><input className={inputCls} type="number" min={0} step={0.5} value={ic.l ?? ""} placeholder={f(altezza, 1)} onChange={(e) => setIc({ l: e.target.value === "" ? null : Number(e.target.value) })} /></Campo>
+            </div>
+            <div className={`mt-4 rounded-lg border-l-4 p-4 ${scelta.conforme ? "border-[#1d7a45] bg-[#e3f4ea] text-[#14532d]" : "border-[#b3261e] bg-[#fdecea] text-[#7a1f16]"}`} role="status">
+              <p className="text-lg">s richiesta = {f(ki, 2)} · {f(kc, 3)} / {f(kmU, 2)} · {f(l, 1)} = <strong>{f(sRic, 3)} m</strong> · {ISCON[ic.versione].nome}: s equivalente <strong>{f(scelta.sEq, 2)} m</strong> → {scelta.conforme ? "verificato" : "NON sufficiente"}</p>
+              <p className="mt-1 text-sm">{min ? `Versione minima che basta: ${ISCON[min].nome}.` : "Nessuna versione basta: riduci l (collegamento equipotenziale più in alto) o aumenta le calate."} Con {ISCON[ic.versione].nome} la lunghezza massima è {f(lunghezzaMassima(ic.versione, ki, kc, kmU), 1)} m.</p>
+            </div>
+            <div className="mt-3 overflow-x-auto"><table className="w-full min-w-[520px] text-sm"><thead><tr className="border-b text-left"><th className="p-2">Versione</th><th className="p-2">Codici</th><th className="p-2 text-right">s equivalente ({ic.materiale === "aria" ? "aria" : "solido"})</th><th className="p-2">Esito</th></tr></thead>
+              <tbody>{ORDINE_ISCON.map((v) => { const e = verificaIscon(v, sRic, ic.materiale); return <tr key={v} className="border-b"><td className="p-2">{ISCON[v].nome} ({ISCON[v].sigla})</td><td className="p-2 font-mono text-xs">{ISCON[v].codici.map((c) => c.codice).join(", ")}</td><td className="p-2 text-right font-mono">{f(e.sEq, 2)} m</td><td className="p-2"><span className={`rounded-full px-3 py-0.5 text-xs font-semibold ${e.conforme ? "bg-[#e3f4ea] text-[#1d7a45]" : "bg-[#fdecea] text-[#b3261e]"}`}>{e.conforme ? "sufficiente" : "non sufficiente"}</span></td></tr>; })}</tbody></table></div>
+            <p className="mt-2 text-xs text-muted-foreground">Distanze equivalenti da confermare con le schede tecniche OBO isCon e la norma di prodotto: verranno aggiornate con i documenti in arrivo.</p>
+          </>; })()}
       </section>
 
       <div className="mt-8 flex flex-wrap items-center gap-3"><Button size="lg" onClick={salva}><Save strokeWidth={1.5} />Salva nel progetto</Button>{msg && <span role="status" className="text-sm">{msg}</span>}</div>

@@ -7,7 +7,8 @@ import { useComputo, useDatiEdificio } from "@/lib/progettoStore";
 import { applicaModifiche, generaComputo } from "@/calcoli/materiali/computo";
 import { avanzamento } from "@/calcoli/materiali/avanzamento";
 import { useAuth } from "@/lib/auth";
-import { useEsteso } from "@/lib/statoProgetto";
+import { aggiornaEsteso, useEsteso } from "@/lib/statoProgetto";
+import { RadioTower } from "lucide-react";
 
 export function HomePage() {
   const {user}=useAuth();
@@ -36,6 +37,19 @@ export function HomePage() {
       </div>
     </section>
     <main className="mx-auto max-w-5xl px-4 py-6">
+      <section aria-labelledby="h-tipologia" className="mb-8">
+        <h2 id="h-tipologia" className="text-[1.35rem] font-medium">Che cosa progetti?</h2>
+        <div className="mt-3 grid gap-3 sm:grid-cols-2">
+          {([
+            { id: "edificio", titolo: "Edificio", testo: "Protezione dell'edificio: rischio, captazione, calate, terra, SPD, computo, relazione e CAD.", to: "/assistente", icona: Building2 },
+            { id: "antenne", titolo: "Antenne radiomobili", testo: "Antenne 5G e stazioni radio base: asta sopra le antenne, calata isolata isCon, schermi dei cavi, SPD e terra.", to: "/antenne", icona: RadioTower },
+          ] as const).map((t) => { const scelta = (s.tipologia ?? "edificio") === t.id; return (
+            <Link key={t.id} to={t.to} onClick={() => aggiornaEsteso({ tipologia: t.id })} className={`flex gap-3 rounded-lg border-2 bg-card p-4 transition-colors hover:border-primary ${scelta ? "border-primary" : "border-bordo-scheda"}`}>
+              <t.icona className="size-8 shrink-0 text-primary" strokeWidth={1.25} />
+              <div><h3 className="text-[1.1rem] font-semibold">{t.titolo}{scelta && <span className="ml-2 rounded-full bg-primary px-2 py-0.5 align-middle text-[11px] font-semibold text-white">progetto attuale</span>}</h3><p className="mt-1 text-sm text-muted-foreground">{t.testo}</p></div>
+            </Link>); })}
+        </div>
+      </section>
       <h2 className="text-[1.35rem] font-medium">Panoramica degli strumenti</h2>
       <div className="mt-4 grid gap-3 sm:grid-cols-3">{[{titolo:"Valutare il rischio",to:"/dati-edificio",icona:ShieldAlert},{titolo:"Progettare l’LPS",to:"/strumenti",icona:Radio},{titolo:"Disegnare in CAD",to:"/edificio-3d",icona:Building2}].map((p)=><Link key={p.titolo} to={p.to as "/dati-edificio"|"/strumenti"|"/edificio-3d"} className="rounded-lg border-[0.8px] border-bordo-scheda bg-card p-4 transition-colors hover:border-primary"><p.icona className="size-6 text-primary" strokeWidth={1.25}/><h3 className="mt-2 text-[1.1rem] font-medium">{p.titolo}</h3></Link>)}</div>
       <section className="mt-6 border-y py-5" aria-label="Avanzamento progetto">

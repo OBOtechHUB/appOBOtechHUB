@@ -4,7 +4,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import {
   ArrowDownToLine, ShieldCheck, Box, Boxes, Cpu, ShieldAlert, Building2, Package, ClipboardCheck, Compass, Gauge, ChevronLeft, ClipboardList, Download, FileText, FolderOpen, Info, LogIn, LogOut,
   Languages, LayoutGrid, Sparkles, ZoomIn, ZoomOut, Mail, Moon, Sun, SunMoon, Menu, Ruler, Search, Shield, SlidersHorizontal, User, UserPlus, Wrench, X,
-  BookOpen, Inbox, BarChart3, Camera, Wind } from "lucide-react";
+  BookOpen, Inbox, BarChart3, Camera, Wind, RadioTower } from "lucide-react";
 import { useAuth } from "@/lib/auth";
 import { NOMI_TEMA, cambiaZoom, impostaTema, useTema, useZoom, type Tema } from "@/lib/tema";
 import { impostaLingua, useLingua } from "@/lib/lingua";
@@ -102,6 +102,7 @@ export function AppHeader() {
         { etichetta: "Analisi del rischio", to: "/rischio", icona: ShieldAlert },
         { etichetta: "Norma 62305: calcoli e tabelle", to: "/norma", icona: BookOpen },
         { etichetta: "Edificio 3D", to: "/edificio-3d", icona: Box },
+        { etichetta: "Antenne radiomobili (5G)", to: "/antenne", icona: RadioTower },
         { etichetta: "Vento e zavorre delle aste", to: "/vento", icona: Wind },
         { etichetta: "Calate e distanza di separazione", to: "/calate", icona: ArrowDownToLine },
         { etichetta: "Scelta SPD", to: "/spd", icona: Cpu },

@@ -1,5 +1,5 @@
 {
-  "nota": "Registro degli aggiornamenti di Progettazione LPS. Una voce per aggiornamento, la più recente per prima (app: lps). Viene mostrato nella barra \"Aggiorna app\", nel riquadro Novità e nella pagina Novità di OBO Hub.",
+  "nota": "Registro degli aggiornamenti di Progettazione LPS. Una voce per aggiornamento, la più recente per prima (app: lps). Viene mostrato nella barra \"Aggiorna app\", nel riquadro Novità e nella pagina Novità di OBO Hub. Le novità solo grafiche (animazioni, sigle, aspetto) non si mostrano: restano conservate in 'grafica_non_mostrata'.",
   "aggiornamenti": [
     {
       "id": "2026-11-25-lps-54",
@@ -10,41 +10,6 @@
         "Nuova pagina «Istruzioni e download», prima voce del menu Strumenti: istruzioni d'uso e istruzioni AutoCAD/ZWCAD in PDF e Word (Rev. D), LPS.lsp e un progetto di prova, anche in un unico ZIP creato al momento dai file più recenti",
         "In alto c'è sempre l'avviso con l'ultima versione e quella che hai scaricato; quando esce una versione nuova compare una barra in tutta l'app",
         "LPS.lsp 3.6: nuovo comando LPS-VERSIONE; aprendo un progetto scaricato dall'app, se il programma caricato in AutoCAD o ZWCAD è più vecchio compare una finestra che dice di aggiornarlo e dove scaricarlo"
-      ]
-    },
-    {
-      "id": "2026-11-24-lps-53",
-      "data": "2026-11-24",
-      "app": "lps",
-      "titolo": "Sigla d'apertura al posto dell'introduzione lunga",
-      "voci": [
-        "All'apertura dell'app una sigla di 2-3 secondi a tutto schermo: tempesta, il fulmine colpisce l'asta, la corrente va a terra, compare «Progettazione LPS», poi sparisce",
-        "Una volta per sessione; un tocco o un tasto la chiudono subito",
-        "Tolta l'introduzione lunga da scorrere nella pagina iniziale"
-      ]
-    },
-    {
-      "id": "2026-11-24-lps-52",
-      "data": "2026-11-24",
-      "app": "lps",
-      "titolo": "Introduzione cinematografica: la tempesta",
-      "voci": [
-        "Nella pagina iniziale, scorrendo, si attraversa una tempesta: la telecamera scende dalle nuvole all'edificio, la sfera rotolante scorre sul tetto, il fulmine colpisce l'asta, la corrente scende dalle calate al dispersore e poi si entra dalla finestra nel salotto protetto dagli SPD",
-        "Cinque capitoli con titoli grandi, lampi, pioggia e onde nel terreno, tutto disegnato dall'app (nessuna foto)",
-        "«Salta l'introduzione» porta subito agli strumenti; «Inizia il progetto» apre l'assistente; con «riduci movimento» resta un'immagine ferma"
-      ]
-    },
-    {
-      "id": "2026-11-24-lps-51",
-      "data": "2026-11-24",
-      "app": "lps",
-      "titolo": "Grafica futuristica",
-      "voci": [
-        "Fasce in cima alle pagine con aurora arancio in movimento e griglia tecnica",
-        "Schede con luce che segue il puntatore e bordo arancio che si accende",
-        "Contenuti che compaiono allo scorrimento e barra di avanzamento della pagina in alto",
-        "Agenti del progetto automatico che entrano in sequenza",
-        "Tutto si spegne da solo con «riduci movimento» del sistema e in stampa"
       ]
     },
     {
@@ -232,15 +197,6 @@
       ]
     },
     {
-      "id": "2026-11-24-lps-34",
-      "data": "2026-11-24",
-      "app": "lps",
-      "titolo": "OBO Hub sempre in evidenza",
-      "voci": [
-        "Nella barra in alto c'è sempre il pulsante arancione «OBO Hub» per tornare alla pagina iniziale di OBO Hub, come in tutte le altre app"
-      ]
-    },
-    {
       "id": "2026-11-24-lps-33",
       "data": "2026-11-24",
       "app": "lps",
@@ -315,19 +271,6 @@
       ]
     },
     {
-      "id": "2026-11-22-lps-28",
-      "data": "2026-11-22",
-      "app": "lps",
-      "titolo": "Pagine più fluide",
-      "voci": [
-        "Passando da una pagina all'altra il contenuto compare con una dissolvenza morbida (spenta se nel sistema è attivo \"riduci movimento\")."
-      ],
-      "titolo_en": "Smoother pages",
-      "voci_en": [
-        "Moving between pages, the content now fades in smoothly (off when \"reduce motion\" is enabled in the system)."
-      ]
-    },
-    {
       "id": "2026-11-21-lps-27",
       "data": "2026-11-21",
       "app": "lps",
@@ -351,17 +294,6 @@
         "Calate: interasse misurato lungo il perimetro e confrontato con la distanza tipica (Tab. 5, tolleranza 25 %)",
         "LPS.lsp 3.1: nuovi comandi LPS-SEPARAZIONE, LPS-PENETRAZIONE, LPS-NUMERA e LPS-TABELLA",
         "Importazione DXF/DWG: più layer insieme, anteprima, riconoscimento di corpi, impianti sul tetto e lucernari, altezze lette dai testi del disegno"
-      ]
-    },
-    {
-      "id": "2026-11-20-lps-25",
-      "data": "2026-11-20",
-      "app": "lps",
-      "titolo": "Barra in alto più pulita e menu a tendina",
-      "voci": [
-        "In alto restano solo Assistente, Progetti, Sopralluogo e Menu",
-        "Il Menu si apre a tendina con effetto sfumato: in cima Cerca, OBO Hub, lingua, tema e dimensione del testo; sotto le pagine divise per sezione",
-        "Da telefono il menu occupa tutta la larghezza, con pulsanti grandi"
       ]
     },
     {
@@ -1019,6 +951,76 @@
       "voci_en": [
         "Every choice has an explanation and the reference to the clause of the standard",
         "Inspections: visual every year, complete every 3 years, every year for critical systems"
+      ]
+    }
+  ],
+  "grafica_non_mostrata": [
+    {
+      "id": "2026-11-24-lps-53",
+      "data": "2026-11-24",
+      "app": "lps",
+      "titolo": "Sigla d'apertura al posto dell'introduzione lunga",
+      "voci": [
+        "All'apertura dell'app una sigla di 2-3 secondi a tutto schermo: tempesta, il fulmine colpisce l'asta, la corrente va a terra, compare «Progettazione LPS», poi sparisce",
+        "Una volta per sessione; un tocco o un tasto la chiudono subito",
+        "Tolta l'introduzione lunga da scorrere nella pagina iniziale"
+      ]
+    },
+    {
+      "id": "2026-11-24-lps-52",
+      "data": "2026-11-24",
+      "app": "lps",
+      "titolo": "Introduzione cinematografica: la tempesta",
+      "voci": [
+        "Nella pagina iniziale, scorrendo, si attraversa una tempesta: la telecamera scende dalle nuvole all'edificio, la sfera rotolante scorre sul tetto, il fulmine colpisce l'asta, la corrente scende dalle calate al dispersore e poi si entra dalla finestra nel salotto protetto dagli SPD",
+        "Cinque capitoli con titoli grandi, lampi, pioggia e onde nel terreno, tutto disegnato dall'app (nessuna foto)",
+        "«Salta l'introduzione» porta subito agli strumenti; «Inizia il progetto» apre l'assistente; con «riduci movimento» resta un'immagine ferma"
+      ]
+    },
+    {
+      "id": "2026-11-24-lps-51",
+      "data": "2026-11-24",
+      "app": "lps",
+      "titolo": "Grafica futuristica",
+      "voci": [
+        "Fasce in cima alle pagine con aurora arancio in movimento e griglia tecnica",
+        "Schede con luce che segue il puntatore e bordo arancio che si accende",
+        "Contenuti che compaiono allo scorrimento e barra di avanzamento della pagina in alto",
+        "Agenti del progetto automatico che entrano in sequenza",
+        "Tutto si spegne da solo con «riduci movimento» del sistema e in stampa"
+      ]
+    },
+    {
+      "id": "2026-11-24-lps-34",
+      "data": "2026-11-24",
+      "app": "lps",
+      "titolo": "OBO Hub sempre in evidenza",
+      "voci": [
+        "Nella barra in alto c'è sempre il pulsante arancione «OBO Hub» per tornare alla pagina iniziale di OBO Hub, come in tutte le altre app"
+      ]
+    },
+    {
+      "id": "2026-11-22-lps-28",
+      "data": "2026-11-22",
+      "app": "lps",
+      "titolo": "Pagine più fluide",
+      "voci": [
+        "Passando da una pagina all'altra il contenuto compare con una dissolvenza morbida (spenta se nel sistema è attivo \"riduci movimento\")."
+      ],
+      "titolo_en": "Smoother pages",
+      "voci_en": [
+        "Moving between pages, the content now fades in smoothly (off when \"reduce motion\" is enabled in the system)."
+      ]
+    },
+    {
+      "id": "2026-11-20-lps-25",
+      "data": "2026-11-20",
+      "app": "lps",
+      "titolo": "Barra in alto più pulita e menu a tendina",
+      "voci": [
+        "In alto restano solo Assistente, Progetti, Sopralluogo e Menu",
+        "Il Menu si apre a tendina con effetto sfumato: in cima Cerca, OBO Hub, lingua, tema e dimensione del testo; sotto le pagine divise per sezione",
+        "Da telefono il menu occupa tutta la larghezza, con pulsanti grandi"
       ]
     }
   ]
