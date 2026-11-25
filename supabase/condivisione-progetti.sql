@@ -29,13 +29,18 @@ language sql stable security definer set search_path = public as $$
 $$;
 grant execute on function public.puo_lavorare(uuid) to authenticated;
 
+-- controllo dalla funzione sicura: la tabella delle condivisioni non è leggibile dagli utenti (vedi anche il 20)
+create or replace function public.condiviso_con_me(p uuid) returns boolean
+language sql stable security definer set search_path = public as $$
+  select exists (select 1 from public.progetti_condivisioni c where c.progetto = p and c.utente = auth.uid() and c.attiva);
+$$;
+revoke all on function public.condiviso_con_me(uuid) from public, anon;
+grant execute on function public.condiviso_con_me(uuid) to authenticated;
 drop policy if exists "progetti_condivisi_lettura" on public.progetti;
-create policy "progetti_condivisi_lettura" on public.progetti for select to authenticated
-  using (exists (select 1 from public.progetti_condivisioni c where c.progetto = progetti.id and c.utente = (select auth.uid()) and c.attiva));
+create policy "progetti_condivisi_lettura" on public.progetti for select to authenticated using (public.condiviso_con_me(id));
 drop policy if exists "progetti_condivisi_modifica" on public.progetti;
 create policy "progetti_condivisi_modifica" on public.progetti for update to authenticated
-  using (exists (select 1 from public.progetti_condivisioni c where c.progetto = progetti.id and c.utente = (select auth.uid()) and c.attiva))
-  with check (exists (select 1 from public.progetti_condivisioni c where c.progetto = progetti.id and c.utente = (select auth.uid()) and c.attiva));
+  using (public.condiviso_con_me(id)) with check (public.condiviso_con_me(id));
 
 -- il proprietario non cambia con un salvataggio; solo con trasferisci_progetto (impostazione di sessione)
 create or replace function public.modifica_progetto_lps() returns trigger language plpgsql set search_path = public as $$
