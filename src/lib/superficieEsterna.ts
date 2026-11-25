@@ -79,6 +79,7 @@ export function prioritaTriangoli(tri: ArrayLike<number>, tolleranza = 0.3): Uin
 /** Impronta reale (contorno esterno, buchi riempiti, semplificato) dai triangoli in pianta. */
 export function improntaDaTriangoli(tri: ArrayLike<number>): P2[] {
   const g = creaGriglia(tri, 90000); if (!g) return [];
+  const lim = limiti(tri); // il contorno non esce dall'ingombro reale (le celle del bordo sono più larghe del modello)
   const { nx, ny } = g, occ = new Uint8Array(nx * ny);
   for (let k = 0; k < occ.length; k++) occ[k] = g.zmax[k]! > -Infinity ? 1 : 0;
   // chiude piccoli varchi (giunti, pilastri isolati) con una dilatazione seguita da erosione di una cella
@@ -101,7 +102,7 @@ export function improntaDaTriangoli(tri: ArrayLike<number>): P2[] {
   while (succ.size) {
     const inizio = succ.keys().next().value as string; const anello: string[] = [inizio]; let cur = inizio;
     for (let guard = 0; guard < 4 * W * H; guard++) { const l = succ.get(cur); if (!l || !l.length) break; const nxt = l.pop()!; if (!l.length) succ.delete(cur); if (nxt === inizio) break; anello.push(nxt); cur = nxt; }
-    if (anello.length > migliore.length) migliore = anello.map((s) => { const [a, b] = s.split(",").map(Number); return [g.x0 + (a! - 1) * g.c, g.y0 + (b! - 1) * g.c] as P2; });
+    if (anello.length > migliore.length) migliore = anello.map((s) => { const [a, b] = s.split(",").map(Number); return [Math.min(lim.x1, Math.max(lim.x0, g.x0 + (a! - 1) * g.c)), Math.min(lim.y1, Math.max(lim.y0, g.y0 + (b! - 1) * g.c))] as P2; });
   }
   return semplifica(migliore, Math.max(0.4, g.c * 1.5));
 }
