@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+import type { AstaCatalogo } from "@/calcoli/captazione/asteCatalogo";
 import type { InputSfera, RisultatoSfera, RiepilogoLivello, Asta, Corpo } from "@/calcoli/captazione/sferaRotolante";
 import type { RichiestaSfera } from "@/calcoli/captazione/sferaRotolante.worker";
 import type { ParametriMaglia, RisultatoMaglia, RisultatoCombinato } from "@/calcoli/captazione/verificaMaglia";
@@ -49,8 +50,9 @@ export function useSferaRotolante() {
       ),
     confronta: (base: Omit<InputSfera, "raggio">, raggi: Record<string, number | null>) =>
       invia<{ riepilogo: RiepilogoLivello[]; risultati: Record<string, RisultatoSfera> }>({ tipo: "confronta", base, raggi }),
-    suggerisci: (input: InputSfera, altezzaAsta: number, asteMax?: number) =>
-      invia<{ asteAggiunte: Asta[]; risultato: RisultatoSfera; avvisi: string[] }>({ tipo: "suggerisci", input, altezzaAsta, asteMax }),
+    /** aste proposte: con il catalogo, aste reali senza limite di numero (altezze e diametri a catalogo) */
+    suggerisci: (input: InputSfera, altezzaAsta: number, asteMax?: number, catalogo?: AstaCatalogo[]) =>
+      invia<{ asteAggiunte: Asta[]; risultato: RisultatoSfera; avvisi: string[] }>({ tipo: "suggerisci", input, altezzaAsta, asteMax, catalogo }),
     /** proposta automatica di captazione (maglia, calate, aste, supporti, connettori) */
     proponi: (corpi: Corpo[], parametri: ParametriProposta) =>
       invia<PropostaCaptazione>({ tipo: "proponi", corpi, parametri }),

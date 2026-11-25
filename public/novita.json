@@ -2,6 +2,17 @@
   "nota": "Registro degli aggiornamenti di Progettazione LPS. Una voce per aggiornamento, la più recente per prima (app: lps). Viene mostrato nella barra \"Aggiorna app\", nel riquadro Novità e nella pagina Novità di OBO Hub. Le novità solo grafiche (animazioni, sigle, aspetto) non si mostrano: restano conservate in 'grafica_non_mostrata'.",
   "aggiornamenti": [
     {
+      "id": "2026-11-25-lps-59",
+      "data": "2026-11-25",
+      "app": "lps",
+      "titolo": "Aste proposte a catalogo, senza limite di numero",
+      "voci": [
+        "«Suggerisci aste» non ha più il numero massimo: propone il minimo di aste necessario, prima sugli spigoli delle coperture, poi dove resta esposto, e toglie quelle superflue",
+        "Ogni asta ha un'altezza di catalogo scelta da sola: set con base 1,5 · 2 · 3 · 4 m, aste Ø 16 mm a parete 1–3 m vicino al bordo, irod 10 e 12 m se le ammetti; ogni asta scende all'altezza più bassa con cui la copertura resta protetta",
+        "Diametro e codice OBO presi dal catalogo; anche l'asta posizionata a mano si sceglie dall'elenco dei prodotti"
+      ]
+    },
+    {
       "id": "2026-11-25-lps-58",
       "data": "2026-11-25",
       "app": "lps",

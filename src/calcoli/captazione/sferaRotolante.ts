@@ -52,6 +52,8 @@ export interface Asta {
   y: number;
   altezza: number;             // altezza dell'asta sopra l'appoggio
   zBase?: number | undefined;              // quota dell'appoggio; se assente = copertura in (x, y)
+  /** asta a catalogo scelta dalla proposta (codice, diametro, posa) */
+  codiceOBO?: string | undefined; diametro?: number | undefined; posa?: string | undefined; descrizione?: string | undefined;
 }
 
 export interface Conduttore {
@@ -874,6 +876,122 @@ export function confrontaLivelli(
  * Le pareti esposte (edifici più alti di r) non si risolvono con aste in copertura:
  * vengono segnalate negli avvisi.
  */
+/**
+ * Proposta di aste a catalogo senza limite di numero: ogni asta ha l'altezza di un prodotto reale (set su treppiede
+ * 1,5–4 m, aste a parete vicino al bordo, irod se ammesse). Si cercano poche aste: a ogni passo si sceglie la coppia
+ * posizione/altezza che protegge più copertura esposta; alla fine ogni asta viene abbassata all'altezza a catalogo
+ * più bassa che non lascia scoperte zone protette solo da lei. Poi si verifica con la sfera e si ripete se serve.
+ */
+export function suggerisciAsteCatalogo(
+  inp: InputSfera,
+  catalogo: { posa: string; altezza: number; diametro: number; codice: string; descrizione: string }[],
+  opzioni: { iterazioniMax?: number | undefined; limiteSicurezza?: number | undefined } = {},
+): { asteAggiunte: Asta[]; risultato: RisultatoSfera; avvisi: string[] } {
+  const r = inp.raggio, iterMax = opzioni.iterazioniMax ?? 12, LIM = opzioni.limiteSicurezza ?? 400;
+  const avvisi: string[] = [];
+  const aggiunte: (Asta & { cat: typeof catalogo[number] })[] = [];
+  const treppiedi = catalogo.filter((c) => c.posa !== "parete").sort((a, b) => a.altezza - b.altezza);
+  const pareti = catalogo.filter((c) => c.posa === "parete").sort((a, b) => a.altezza - b.altezza);
+  // distanza dal bordo della copertura più vicina (corpi con impronta): vicino al bordo l'asta si fissa a parete
+  const bordo = (x: number, y: number) => {
+    let d = Infinity;
+    for (const c of inp.corpi) { const p = c.impronta; for (let k = 0; k < p.length; k++) { const [ax, ay] = p[k]!, [bx, by] = p[(k + 1) % p.length]!; const vx = bx - ax, vy = by - ay, L2 = vx * vx + vy * vy || 1e-9; const t = Math.max(0, Math.min(1, ((x - ax) * vx + (y - ay) * vy) / L2)); d = Math.min(d, Math.hypot(x - ax - t * vx, y - ay - t * vy)); } }
+    return d;
+  };
+  const raggioProt = (h: number, dz: number, fattore: number) => { if (dz >= h) return 0; const hr = Math.min(h - dz, r); return Math.sqrt(hr * (2 * r - hr)) * fattore; };
+  let ris = calcolaSferaRotolante(inp);
+  const seme = (x: number, y: number, z: number) => {
+    const cat = (bordo(x, y) < 1 && pareti.length ? pareti : treppiedi).slice(-1)[0]!; if (!cat) return;
+    if ([...(inp.aste ?? []), ...aggiunte].some((a) => Math.hypot(a.x - x, a.y - y) < 5)) return;
+    aggiunte.push({ id: `S${aggiunte.length + 1}`, x, y, zBase: z, altezza: cat.altezza, codiceOBO: cat.codice, diametro: cat.diametro, posa: cat.posa, descrizione: cat.descrizione, cat });
+  };
+  // 1) aste sugli spigoli convessi delle coperture esposte (rientrate di 1 m): è lì che la sfera tocca per prima
+  if (ris.areaCoperturaEsposta > 0) {
+    const g = ris.griglia;
+    for (const c of inp.corpi) {
+      const p = c.impronta, n = p.length; const area = p.reduce((t, q, k) => t + q[0] * p[(k + 1) % n]![1] - p[(k + 1) % n]![0] * q[1], 0);
+      for (let k = 0; k < n; k++) {
+        const a = p[(k + n - 1) % n]!, v = p[k]!, b = p[(k + 1) % n]!;
+        const ux = v[0] - a[0], uy = v[1] - a[1], wx = b[0] - v[0], wy = b[1] - v[1], cross = ux * wy - uy * wx;
+        const lu = Math.hypot(ux, uy) || 1, lw = Math.hypot(wx, wy) || 1, ang = Math.acos(Math.max(-1, Math.min(1, (ux * wx + uy * wy) / (lu * lw))));
+        if (cross * area <= 0 || ang < 0.35) continue; // spigolo rientrante o quasi piatto
+        // bisettrice verso l'interno
+        let bx = -ux / lu + wx / lw, by = -uy / lu + wy / lw; const lb = Math.hypot(bx, by) || 1; bx /= lb; by /= lb;
+        const x = v[0] + bx * 1.2, y = v[1] + by * 1.2;
+        const i = Math.round((x - g.x0) / g.passo), j = Math.round((y - g.y0) / g.passo); if (i < 0 || j < 0 || i >= g.nx || j >= g.ny) continue;
+        if (ris.esposta[j * g.nx + i]! === 0) continue;
+        seme(x, y, quotaAppoggio(inp.corpi, x, y));
+      }
+    }
+    if (aggiunte.length) ris = calcolaSferaRotolante({ ...inp, aste: [...(inp.aste ?? []), ...aggiunte] });
+  }
+  for (let it = 0; it < iterMax && ris.areaCoperturaEsposta > 0 && aggiunte.length < LIM; it++) {
+    const fattore = 0.9 * Math.pow(0.8, it);
+    const g = ris.griglia, esposte: Punto3[] = [], candidati: Punto3[] = [];
+    const salto = Math.max(1, Math.round(1.5 / g.passo));
+    for (let j = 0; j < g.ny; j++) for (let i = 0; i < g.nx; i++) {
+      const idx = j * g.nx + i; if (ris.esposta[idx]! === 0) continue;
+      const p: Punto3 = [g.x0 + i * g.passo, g.y0 + j * g.passo, ris.altezze[idx]!];
+      if (ris.esposta[idx]! === 1) esposte.push(p);
+      if (i % salto === 0 && j % salto === 0) candidati.push(p);
+    }
+    // prima si cerca il numero minimo di aste con l'altezza massima ammessa; l'abbassamento viene dopo
+    const opz = candidati.map((c) => (bordo(c[0], c[1]) < 1 && pareti.length ? pareti.slice(-1) : treppiedi.slice(-1)));
+    const coperta = new Uint8Array(esposte.length);
+    const esistenti: Asta[] = [...(inp.aste ?? []), ...aggiunte];
+    let nuove = 0;
+    while (aggiunte.length < LIM) {
+      let best = -1, bestH = 0, bestN = 0;
+      for (let k = 0; k < candidati.length; k++) {
+        const c = candidati[k]!; if (esistenti.some((a) => Math.hypot(a.x - c[0], a.y - c[1]) < 1)) continue;
+        const conte = opz[k]!.map((h) => { let n = 0; for (let e = 0; e < esposte.length; e++) { if (coperta[e]) continue; const q = esposte[e]!; if (Math.hypot(q[0] - c[0], q[1] - c[1]) <= raggioProt(h.altezza, q[2] - c[2], fattore)) n++; } return n; });
+        const max = Math.max(0, ...conte); if (!max) continue;
+        // per questa posizione: l'asta più bassa che protegge quasi quanto la più alta (entro il 3 %)
+        const iH = conte.findIndex((n) => n >= 0.97 * max);
+        if (conte[iH]! > bestN) { bestN = conte[iH]!; best = k; bestH = opz[k]![iH]!.altezza; }
+      }
+      if (best < 0 || bestN === 0) break;
+      const c = candidati[best]!, cat = opz[best]!.find((h) => h.altezza === bestH)!;
+      const nuova = { id: `S${aggiunte.length + 1}`, x: c[0], y: c[1], zBase: c[2], altezza: cat.altezza, codiceOBO: cat.codice, diametro: cat.diametro, posa: cat.posa, descrizione: cat.descrizione, cat };
+      aggiunte.push(nuova); esistenti.push(nuova); nuove++;
+      for (let e = 0; e < esposte.length; e++) { const q = esposte[e]!; if (Math.hypot(q[0] - c[0], q[1] - c[1]) <= raggioProt(cat.altezza, q[2] - c[2], fattore)) coperta[e] = 1; }
+      if (coperta.every((v) => v === 1)) break;
+    }
+    if (!nuove) break;
+    ris = calcolaSferaRotolante({ ...inp, aste: [...(inp.aste ?? []), ...aggiunte] });
+  }
+  // 2) aste superflue: si prova a togliere ognuna (dalle meno utili) e si tiene la rimozione se la copertura resta protetta
+  if (aggiunte.length > 1 && ris.areaCoperturaEsposta === 0) {
+    const ordine = [...aggiunte].sort((a, b) => a.altezza - b.altezza);
+    let prove = 0;
+    for (const a of ordine) {
+      if (prove++ > 80) break;
+      const resto = aggiunte.filter((b) => b !== a);
+      const r2 = calcolaSferaRotolante({ ...inp, aste: [...(inp.aste ?? []), ...resto] });
+      if (r2.areaCoperturaEsposta === 0) { aggiunte.splice(aggiunte.indexOf(a), 1); ris = r2; }
+    }
+  }
+  // 3) altezze: ogni asta scende all'altezza a catalogo più bassa con cui la copertura resta protetta (verifica con la sfera)
+  if (aggiunte.length && ris.areaCoperturaEsposta === 0) {
+    let prove = 0;
+    for (const a of [...aggiunte].sort((x, y) => y.altezza - x.altezza)) {
+      const scelte = (a.posa === "parete" ? pareti : treppiedi).filter((h) => h.altezza < a.altezza);
+      for (const h of scelte) { // dalla più bassa: la prima che va bene è la scelta
+        if (prove++ > 70) break;
+        const prima = { ...a }; Object.assign(a, { altezza: h.altezza, codiceOBO: h.codice, diametro: h.diametro, descrizione: h.descrizione, cat: h });
+        const r2 = calcolaSferaRotolante({ ...inp, aste: [...(inp.aste ?? []), ...aggiunte] });
+        if (r2.areaCoperturaEsposta === 0) { ris = r2; break; }
+        Object.assign(a, prima);
+      }
+    }
+  }
+  if (ris.areaCoperturaEsposta > 0) avvisi.push(`Restano ${ris.areaCoperturaEsposta.toFixed(1)} m² di copertura esposta: ammetti aste più alte (es. irod) oppure completa con conduttori di captazione`);
+  if (ris.facceEsposte.length) avvisi.push(`Pareti esposte per ${ris.areaPareteEsposta.toFixed(1)} m² (fulminazione laterale): prevedere captatori in facciata o anelli`);
+  const conta = new Map<string, number>(); for (const a of aggiunte) conta.set(a.descrizione ?? `${a.altezza} m`, (conta.get(a.descrizione ?? `${a.altezza} m`) ?? 0) + 1);
+  if (aggiunte.length) avvisi.unshift(`${aggiunte.length} aste a catalogo: ${[...conta].map(([d, n]) => `${n} × ${d}`).join(", ")}`);
+  return { asteAggiunte: aggiunte.map(({ cat: _c, ...a }) => { void _c; return a; }), risultato: ris, avvisi };
+}
+
 export function suggerisciAste(
   inp: InputSfera,
   altezzaAsta: number,
