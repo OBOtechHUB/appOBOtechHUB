@@ -2,6 +2,18 @@
   "nota": "Registro degli aggiornamenti di Progettazione LPS. Una voce per aggiornamento, la più recente per prima (app: lps). Viene mostrato nella barra \"Aggiorna app\", nel riquadro Novità e nella pagina Novità di OBO Hub. Le novità solo grafiche (animazioni, sigle, aspetto) non si mostrano: restano conservate in 'grafica_non_mostrata'.",
   "aggiornamenti": [
     {
+      "id": "2026-11-25-lps-55",
+      "data": "2026-11-25",
+      "app": "lps",
+      "titolo": "Antenne radiomobili (5G) e calate isolate isCon",
+      "voci": [
+        "Nella pagina iniziale scegli che cosa progetti: Edificio oppure Antenne radiomobili",
+        "Nuova sezione Antenne radiomobili (prima versione): altezza dell'asta sopra le antenne con la sfera rotolante, distanza di separazione, calata isolata isCon consigliata, misure per cavi coassiali, fibra, alimentazione, SPD e terra con i riferimenti alla CEI EN IEC 62305-3 e 62305-4",
+        "Calate e distanza di separazione: nuova parte «Calate isolate con conduttore isCon» (Basic, Professional, Professional plus, Premium) con la verifica s richiesta ≤ s equivalente, la versione minima e la lunghezza massima",
+        "Distanze equivalenti isCon e misure per le antenne da completare con le schede tecniche e i documenti in arrivo"
+      ]
+    },
+    {
       "id": "2026-11-25-lps-54",
       "data": "2026-11-25",
       "app": "lps",
