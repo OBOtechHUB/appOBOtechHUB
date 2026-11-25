@@ -792,6 +792,26 @@ export function percorsoSfera(ris: RisultatoSfera, da: Punto2, a: Punto2, passo 
 }
 
 /**
+ * Percorso della sfera su tutto l'edificio: passate parallele al lato lungo (a serpentina) che coprono l'area
+ * da `da` ad `a`, con distanza tra le passate proporzionata all'edificio (almeno 8 passate, non più di r/2).
+ */
+export function percorsoSferaCompleto(ris: RisultatoSfera, da: Punto2, a: Punto2, passo = 0.75): Punto3[] {
+  const w = Math.abs(a[0] - da[0]), h = Math.abs(a[1] - da[1]);
+  const lungoX = w >= h, corto = lungoX ? h : w;
+  const passate = Math.max(2, Math.ceil(corto / Math.min(ris.raggio / 2, Math.max(corto / 8, 1))) + 1);
+  const out: Punto3[] = [];
+  for (let k = 0; k < passate; k++) {
+    const t = passate === 1 ? 0.5 : k / (passate - 1), avanti = k % 2 === 0;
+    const p1: Punto2 = lungoX ? [avanti ? da[0] : a[0], da[1] + (a[1] - da[1]) * t] : [da[0] + (a[0] - da[0]) * t, avanti ? da[1] : a[1]];
+    const p2: Punto2 = lungoX ? [avanti ? a[0] : da[0], p1[1]] : [p1[0], avanti ? a[1] : da[1]];
+    const tratto = percorsoSfera(ris, p1, p2, passo);
+    if (out.length) { const ult = out[out.length - 1]!; out.push(...percorsoSfera(ris, [ult[0], ult[1]], p1, passo).slice(1, -1)); }
+    out.push(...tratto);
+  }
+  return out;
+}
+
+/**
  * Inviluppo su una griglia regolare (per il disegno 3D e l'export DXF come mesh di 3DFACE).
  * Restituisce le quote per righe: z[j][i], con x = x0 + i·passo, y = y0 + j·passo.
  */

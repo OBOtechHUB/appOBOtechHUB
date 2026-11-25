@@ -74,8 +74,8 @@ function Inviluppo({inv,c}:{inv:InviluppoGriglia;c:ReturnType<typeof colors>}){
 function Sfera({r,anima,centri,posizione,color}:{r:RisultatoSfera;anima:boolean;centri:Punto3[];posizione:number;color:string}){
   const ref=useRef<THREE.Mesh>(null);const tempo=useRef(0);
   useFrame((_,delta)=>{if(!ref.current||!centri.length)return;if(anima)tempo.current+=delta;
-    // percorso completo in circa 4 s qualunque sia la lunghezza, con movimento continuo tra un punto e l'altro
-    const DURATA=4;const n=centri.length-1;
+    // percorso completo da 4 s (un lato) fino a 45 s (tutto l'edificio), con movimento continuo tra un punto e l'altro
+    const DURATA=Math.max(4,Math.min(45,centri.length*.03));const n=centri.length-1; // percorso su tutto l'edificio: più lungo, la sfera va a velocità leggibile
     const f=anima?((tempo.current%DURATA)/DURATA)*n:Math.min(n,posizione*n);
     const i=Math.min(n,Math.floor(f)),t=f-i,p=centri[i],q=centri[Math.min(n,i+1)];
     if(p&&q)ref.current.position.set(p[0]+(q[0]-p[0])*t,p[2]+(q[2]-p[2])*t,-(p[1]+(q[1]-p[1])*t));
