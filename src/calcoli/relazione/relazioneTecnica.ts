@@ -326,6 +326,9 @@ export function relazioneTecnica(x: IngressoRelazione): Documento {
     [[{ t: "FT" }], [{ t: "0,1 anni" }, { t: "-1", sup: true }], "Frequenza del danno con impianti interni critici"],
     [[{ t: "FT" }], [{ t: "1 anni" }, { t: "-1", sup: true }], "Frequenza del danno con impianti interni non critici"],
   ], [2, 3, 6]);
+  if (x.rischio?.struttura.metodo === "italia") B.push(
+    p([{ t: "Adattamenti nazionali (Guida CEI 81-29:2026, in vigore dal 1° novembre 2026). ", b: true }, { t: "In applicazione della deroga nazionale i rischi RL1 e RL2 sono valutati separatamente e confrontati con i rispettivi valori tollerabili: " }, { t: "RT1 = 10" }, { t: "-5", sup: true }, { t: " anni" }, { t: "-1", sup: true }, { t: " per RL1 (perdita di vite umane) e " }, { t: "RT2 = 10" }, { t: "-3", sup: true }, { t: " anni" }, { t: "-1", sup: true }, { t: " per RL2 (perdita di beni e servizi). La protezione non è necessaria se RL1 ≤ RT1 e RL2 ≤ RT2. I valori di perdita sono i valori minimi degli intervalli della norma (LT = LD = 10" }, { t: "-2", sup: true }, { t: ") e il coefficiente rp tiene conto degli impianti di spegnimento automatico e della compartimentazione antincendio." }], { allinea: "giustificato" }),
+  );
   B.push(
     h2("6.6 Componenti di rischio per sorgente, causa e tipo di perdita"),
     p("Per ogni tipo di perdita (e per la frequenza del danno), nella tabella seguente sono riportate le componenti che vi contribuiscono:"),
@@ -607,7 +610,7 @@ export function relazioneTecnica(x: IngressoRelazione): Documento {
     tabN("Probabilità PLPS, PEB e PSPD in funzione della classe di LPS e del livello degli SPD (Tab. B.3, B.13, B.7 e B.8)", ["Classe / livello", ...CL.map((c) => (c === "nessuno" ? "Nessuno" : c))], [
       ["PLPS (struttura protetta da LPS)", ...CL.map((c) => it(PLPS[c], 3))], ["PEB (SPD per il collegamento equipotenziale)", ...CL.map((c) => it(PEB[c], 3))], ["PSPD (sistema coordinato di SPD)", ...CL.map((c) => it(PSPD[c], 3))],
     ], [5, 1.4, 1.2, 1.2, 1.2, 1.2], CL.indexOf(lpl) + 1);
-    const righeEsito = (es: EsitoStruttura): Testo[][] => es.zone.map((z) => [z.zona.nome, sci(z.RL1), sci(z.RL2), [...sci(z.R), { t: z.conforme ? "  ≤ RT" : "  > RT", b: true }], sci(z.F), [...sci(z.FT), { t: z.frequenzaConforme ? "  F ≤ FT" : "  F > FT", b: true }]]);
+    const righeEsito = (es: EsitoStruttura): Testo[][] => es.zone.map((z) => [z.zona.nome, sci(z.RL1), sci(z.RL2), [...sci(z.R), { t: x.rischio?.struttura.metodo === "italia" ? (z.conforme ? "  RL1 ≤ RT1, RL2 ≤ RT2" : "  oltre RT1/RT2") : z.conforme ? "  ≤ RT" : "  > RT", b: true }], sci(z.F), [...sci(z.FT), { t: z.frequenzaConforme ? "  F ≤ FT" : "  F > FT", b: true }]]);
     const comp = (es: EsitoStruttura) => tab(["Zona", "RAT", "RAD", "RB", "RC", "RM", "RU", "RV", "RW", "RZ"], es.zone.map((z) => [z.zona.nome, sci(z.componenti.RA), sci(z.componenti.RAD), sci(z.componenti.RB), sci(z.componenti.RC), sci(z.componenti.RM), sci(z.componenti.RU), sci(z.componenti.RV), sci(z.componenti.RW), sci(z.componenti.RZ)]), [1.6, 1, 1, 1, 1, 1, 1, 1, 1, 1]);
     B.push(h2("12.2 Rischio della struttura senza misure di protezione"), tab(["Zona", "RL1", "RL2", "R", "F", "FT"], righeEsito(esitoSenza), [2.4, 1.6, 1.6, 2.2, 1.6, 2.2]), h3("Componenti di rischio"), comp(esitoSenza),
       h2(`12.3 Rischio della struttura con le misure di progetto (LPS e SPD di livello ${lpl})`), tab(["Zona", "RL1", "RL2", "R", "F", "FT"], righeEsito(esitoCon), [2.4, 1.6, 1.6, 2.2, 1.6, 2.2]), h3("Componenti di rischio"), comp(esitoCon));

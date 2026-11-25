@@ -2,6 +2,17 @@
   "nota": "Registro degli aggiornamenti di Progettazione LPS. Una voce per aggiornamento, la più recente per prima (app: lps). Viene mostrato nella barra \"Aggiorna app\", nel riquadro Novità e nella pagina Novità di OBO Hub. Le novità solo grafiche (animazioni, sigle, aspetto) non si mostrano: restano conservate in 'grafica_non_mostrata'.",
   "aggiornamenti": [
     {
+      "id": "2026-11-25-lps-57",
+      "data": "2026-11-25",
+      "app": "lps",
+      "titolo": "Rischio con la Guida CEI 81-29:2026 e verifica CEI 64-8 per gli SPD",
+      "voci": [
+        "Analisi del rischio: nuovo «Metodo di valutazione». Predefinito: CEI EN IEC 62305-2 con le indicazioni nazionali della Guida CEI 81-29:2026 (dal 1/11/2026): RL1 ≤ 10⁻⁵ e RL2 ≤ 10⁻³ valutati separatamente, perdite pari ai valori minimi della norma, rp secondo spegnimento automatico e compartimentazione; resta selezionabile la norma senza adattamenti",
+        "La relazione tecnica riporta gli adattamenti nazionali quando sono usati",
+        "Scelta SPD: nuova parte «Serve la protezione dalle sovratensioni?» secondo la CEI 64-8/4 sezione 443 (protezione obbligatoria per vita umana, servizi pubblici, attività, molte persone; altrimenti CRL = fenv/(LP·Ng), serve se < 1000)"
+      ]
+    },
+    {
       "id": "2026-11-25-lps-56",
       "data": "2026-11-25",
       "app": "lps",

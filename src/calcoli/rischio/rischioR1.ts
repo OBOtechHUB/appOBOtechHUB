@@ -71,6 +71,24 @@ export const CATEGORIE: Categoria[] = [
   { id: "normale", nome: "Perdita normale (aperte al pubblico: scuole, uffici, alberghi, supermercati)", LF: 5e-2, LO: 5e-4 },
   { id: "bassa", nome: "Perdita bassa (proprietà privata: condomini, fattorie)", LF: 2e-2, LO: 1e-4 },
 ];
+/**
+ * Metodo di valutazione. "norma": CEI EN IEC 62305-2 così com'è (R = RL1 + RL2 ≤ 10⁻⁵, perdite tipiche della Tab. C.2).
+ * "italia": norma con le indicazioni della Guida CEI 81-29:2026 necessarie per l'Italia (in vigore dal 1/11/2026):
+ * deroga nazionale con RL1 ≤ 10⁻⁵ e RL2 ≤ 10⁻³ valutati separatamente, perdite pari ai valori minimi degli intervalli
+ * della norma (LT = LD = 10⁻²), rp secondo spegnimento automatico e compartimentazione.
+ */
+export type Metodo = "norma" | "italia";
+export const RT_ITALIA = { L1: 1e-5, L2: 1e-3 } as const;
+/** Perdite secondo la Guida CEI 81-29:2026 (valori minimi della norma) per le stesse categorie. */
+export const CATEGORIE_ITALIA: Categoria[] = [
+  { id: "molto-elevata", nome: "Perdita molto elevata (esplosione, sale operatorie, terapia intensiva, ambiente, edifici vincolati D.Lgs. 42/04)", LF: 1e-2, LO: 1e-3 },
+  { id: "elevata", nome: "Perdita elevata (ospedali, carceri, sale controllo, musei, servizi di rete)", LF: 1e-2, LO: 1e-4 },
+  { id: "normale", nome: "Perdita normale (hotel, chiese, scuole, uffici, edifici pubblici, supermercati, edifici industriali)", LF: 5e-3, LO: 1e-5 },
+  { id: "bassa", nome: "Perdita bassa (condomini, case coloniche, laboratori artigianali)", LF: 2e-3, LO: 1e-5 },
+];
+/** rp secondo la Guida CEI 81-29:2026 (struttura conforme alle norme antincendio). */
+export const PROTEZIONE_INCENDIO_ITALIA: Opzione[] = [o("unico", "Nessuno spegnimento automatico, unico compartimento", 1), o("compartimenti", "Nessuno spegnimento automatico, più compartimenti", 0.5), o("spegnimento", "Impianto di spegnimento automatico (protetto dalle sovratensioni, squadre entro 10 min)", 0.2)];
+export const categorieDi = (m?: Metodo | null): Categoria[] => (m === "italia" ? CATEGORIE_ITALIA : CATEGORIE);
 /** Mantenuto per i progetti salvati con l'edizione precedente: destinazione → LF. */
 export const DESTINAZIONE: Opzione[] = CATEGORIE.map((c) => o(c.id, c.nome, c.LF));
 export const LT = 1e-2;
@@ -194,6 +212,8 @@ export interface Struttura {
   PTWS?: number;
   danniMateriali?: boolean;
   linee: Linea[];
+  /** metodo di valutazione; assente = norma */
+  metodo?: Metodo | null;
 }
 
 
@@ -310,16 +330,17 @@ export function calcolaZone(st: Struttura, zone: Zona[], p: Protezione): EsitoSt
   const NL = linee.reduce((a, l) => a + l.NL, 0), NI = linee.reduce((a, l) => a + l.NI, 0), NDJ = linee.reduce((a, l) => a + l.NDJ, 0);
 
   const esiti = zone.map((z): EsitoZona => {
-    const cat = CATEGORIE.find((c) => c.id === z.categoria) ?? CATEGORIE[2]!;
+    const italia = st.metodo === "italia", CAT = categorieDi(st.metodo);
+    const cat = CAT.find((c) => c.id === z.categoria) ?? CAT[2]!;
     const rf = RISCHIO_INCENDIO.find((x) => x.id === z.rfId)?.valore ?? 1e-2;
     const esplosione = z.rfId.startsWith("esplosione");
     const PP = Math.min(1, Math.max(0, z.oreAnno / 8760));
     const Pe = Math.min(1, Math.max(0, (z.oreApparecchi ?? 8760) / 8760));
     // L2 (struttura e contenuto) può avere una categoria diversa da L1 (persone): Tab. C.2, Nota 2 (es. museo, ospedale)
-    const cat2 = (z.categoriaL2 && CATEGORIE.find((c) => c.id === z.categoriaL2)) || cat;
+    const cat2 = (z.categoriaL2 && CAT.find((c) => c.id === z.categoriaL2)) || cat;
     const LF1 = cat.LF, LF2 = conL2 ? cat2.LF : 0;
     const LO1 = z.impiantiCritici || esplosione ? cat.LO : 0, LO2 = conL2 && esplosione ? cat2.LO : 0;
-    const LD = z.LD ?? 1e-1;
+    const LD = italia ? 1e-2 : z.LD ?? 1e-1; // Guida CEI 81-29:2026: LT = LD = 10⁻²
     const servite = linee.filter((_, i) => z.linee == null || z.linee.includes(i));
     const spd: ClasseLps = z.spd ?? p.spd;
     // PEB: SPD del collegamento equipotenziale all'ingresso delle linee, uno per la struttura (con l'LPS almeno del suo livello);
@@ -381,7 +402,7 @@ export function calcolaZone(st: Struttura, zone: Zona[], p: Protezione): EsitoSt
     const FT = z.FT != null && z.FT > 0 ? z.FT : z.serviziCritici ? FT_CRITICI : FT_NON_CRITICI;
     return {
       zona: z, componenti: { RA, RAD, RB: RB1 + RB2, RC: RC1 + RC2, RM: RM1 + RM2, RU, RV: RV1 + RV2, RW: RW1 + RW2, RZ: RZ1 + RZ2, RE: RE1 + RE2 },
-      RE1, RE2, spd, RL1, RL2, R, conforme: R <= RT, frequenze, F, FT, frequenzaConforme: F <= FT,
+      RE1, RE2, spd, RL1, RL2, R, conforme: italia ? RL1 <= RT_ITALIA.L1 && RL2 <= RT_ITALIA.L2 : R <= RT, frequenze, F, FT, frequenzaConforme: F <= FT,
     };
   });
   return {

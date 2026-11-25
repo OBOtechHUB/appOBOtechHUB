@@ -7,9 +7,9 @@ import { SchemaAreeRaccolta, SchemaZone } from "@/components/schemi/SchemiRischi
 import { aggiornaEsteso, useEsteso } from "@/lib/statoProgetto";
 import { aggiornaComputo, aggiornaDati, useComputo, useDatiEdificio } from "@/lib/progettoStore";
 import fattori from "@/dati/rischio/fattorePosizione.json";
-import { leggiStato, lineaNuova, zonaNuova, type StatoRischio } from "@/lib/statoRischio";
+import { leggiStato, lineaNuova, metodoDi, zonaNuova, type StatoRischio } from "@/lib/statoRischio";
 import {
-  AMBIENTE_LINEA, AMBIENTI_CIRCOSTANTI, CABLAGGIO, SCENARI_AMBIENTE, CATEGORIE, CONNESSIONI, MISURE_CONTATTO, PAVIMENTO, POSA_LINEA, PROTEZIONE_INCENDIO, RISCHIO_INCENDIO, RT_R1, SCHERMATURE, TIPO_LINEA, TIPO_STRUTTURA,
+  AMBIENTE_LINEA, AMBIENTI_CIRCOSTANTI, CABLAGGIO, SCENARI_AMBIENTE, CONNESSIONI, MISURE_CONTATTO, PAVIMENTO, POSA_LINEA, PROTEZIONE_INCENDIO, PROTEZIONE_INCENDIO_ITALIA, RISCHIO_INCENDIO, RT_ITALIA, categorieDi, RT_R1, SCHERMATURE, TIPO_LINEA, TIPO_STRUTTURA,
   calcolaZone, protezioneMinimaZone, protezionePerZona, spdMinimoZona, spdMinimoZone,
   type ClasseLps, type Linea, type SezioneLinea, type Opzione, type Schermatura, type Struttura, type Zona,
 } from "@/calcoli/rischio/rischioR1";
@@ -37,7 +37,8 @@ export function RischioPage() {
   const CD = fattori.find((f) => f.id === d.posizioneId)?.valore ?? 1;
   const stato = leggiStato(s.datiRischio);
   const salva = (p: Partial<StatoRischio>) => aggiornaEsteso({ datiRischio: { ...stato, ...p } as unknown as Record<string, unknown> });
-  const st: Struttura = { L: d.L || 20, W: d.W || 10, H: d.H || 8, NG: d.densita || 2, CD, k: stato.k, Uw: stato.Uw, PS: stato.PS, PTWS: stato.PTWS, danniMateriali: stato.danniMateriali, linee: stato.linee };
+  const st: Struttura = { L: d.L || 20, W: d.W || 10, H: d.H || 8, NG: d.densita || 2, CD, k: stato.k, Uw: stato.Uw, PS: stato.PS, PTWS: stato.PTWS, danniMateriali: stato.danniMateriali, linee: stato.linee, metodo: metodoDi(stato) };
+  const italia = metodoDi(stato) === "italia", CAT = categorieDi(metodoDi(stato)), RPI = italia ? PROTEZIONE_INCENDIO_ITALIA : PROTEZIONE_INCENDIO;
   const [prot, setProt] = useState<{ lps: ClasseLps; spd: ClasseLps }>({ lps: "nessuno", spd: "nessuno" });
   const [aperta, setAperta] = useState(stato.zone[0]?.id ?? "");
   const [msg, setMsg] = useState("");
@@ -73,6 +74,12 @@ export function RischioPage() {
       <p className="mt-2 max-w-3xl text-white/90">Rischio R (vite umane L1 + danni materiali L2) e frequenza del danno agli impianti interni F, per una o più zone della struttura, con il livello di protezione minimo (CEI EN IEC 62305-2:2026-10).</p>
     </div></section>
     <main className="mx-auto max-w-5xl px-4 py-8">
+      <div className="mb-4 rounded-lg border-2 border-primary p-3 text-sm">
+        <Campo etichetta="Metodo di valutazione"><select className={inputCls} value={metodoDi(stato)} onChange={(e) => salva({ metodo: e.target.value as "italia" | "norma" })}>
+          <option value="italia">CEI EN IEC 62305-2 con le indicazioni nazionali della Guida CEI 81-29:2026 (Italia, dal 1/11/2026)</option>
+          <option value="norma">CEI EN IEC 62305-2 senza adattamenti nazionali</option></select></Campo>
+        <p className="mt-2">{italia ? <>Rischi valutati separatamente: <b>RL1 ≤ 10⁻⁵</b> (vite umane) e <b>RL2 ≤ 10⁻³</b> (beni e servizi); perdite pari ai valori minimi della norma (LT = LD = 10⁻²); rp secondo spegnimento automatico e compartimentazione. Lunghezze tipiche delle linee quando il nodo non è noto: energia BT urbana 100 m interrata, suburbana 300 m interrata, rurale 1000 m aerea; segnale 1000 m.</> : <>Rischio complessivo <b>R = RL1 + RL2 ≤ 10⁻⁵</b> con le perdite tipiche della Tab. C.2.</>}</p>
+      </div>
       <p className="rounded-lg border-l-4 border-primary bg-muted p-3 text-sm">Metodo dell'edizione 2026-10 con i valori tipici degli Allegati A, B, C ed E. Il numero di eventi è comune a tutta la struttura; probabilità, perdite e SPD si scelgono per ogni zona e ogni zona va confrontata da sola con RT e FT. Se il danno può coinvolgere l'ambiente circostante, la zona aggiunge le perdite esterne LE.</p>
       <p className="mt-2 text-xs text-muted-foreground">Condizioni della norma applicate dal calcolo: senza LPS gli SPD non riducono il rischio per fulmine sulla struttura (RC) e le misure contro contatto e passo non contano; nelle zone con rischio di esplosione la protezione antincendio non riduce il rischio (rp = 1) e i guasti degli impianti contano sempre per le vite umane.</p>
 
@@ -146,11 +153,11 @@ export function RischioPage() {
           <div className="grid gap-4 sm:grid-cols-3">
             <Campo etichetta="Nome della zona"><input className={inputCls} value={za.nome} maxLength={60} onChange={(e) => zona(za.id, { nome: e.target.value })} /></Campo>
             <Campo etichetta="Presenza di persone (ore/anno, PP = ore/8760)"><input className={inputCls} type="number" min={0} max={8760} step={10} value={za.oreAnno} onChange={(e) => zona(za.id, { oreAnno: Math.min(8760, Math.max(0, Number(e.target.value))) })} /></Campo>
-            <SceltaId etichetta="Categoria di perdita per le persone (LF1, LO1)" opzioni={CATEGORIE.map((x) => ({ id: x.id, nome: x.nome, extra: `LF ${x.LF}` }))} id={za.categoria} onChange={(id) => zona(za.id, { categoria: id })} />
-            <Campo etichetta="Categoria per la struttura e il contenuto (LF2, LO2)"><select className={inputCls} value={za.categoriaL2 ?? ""} onChange={(e) => zona(za.id, { categoriaL2: e.target.value || null })}><option value="">Come per le persone</option>{CATEGORIE.map((x) => <option key={x.id} value={x.id}>{x.nome} · LF {x.LF}</option>)}</select></Campo>
+            <SceltaId etichetta="Categoria di perdita per le persone (LF1, LO1)" opzioni={CAT.map((x) => ({ id: x.id, nome: x.nome, extra: `LF ${x.LF}` }))} id={za.categoria} onChange={(id) => zona(za.id, { categoria: id })} />
+            <Campo etichetta="Categoria per la struttura e il contenuto (LF2, LO2)"><select className={inputCls} value={za.categoriaL2 ?? ""} onChange={(e) => zona(za.id, { categoriaL2: e.target.value || null })}><option value="">Come per le persone</option>{CAT.map((x) => <option key={x.id} value={x.id}>{x.nome} · LF {x.LF}</option>)}</select></Campo>
             <Scelta etichetta="Pavimento esterno/interno (rt)" opzioni={PAVIMENTO} valore={za.rt} onChange={(v) => zona(za.id, { rt: v })} />
             <SceltaId etichetta="Rischio d'incendio o di esplosione (rf)" opzioni={RISCHIO_INCENDIO} id={za.rfId} onChange={(id) => zona(za.id, { rfId: id })} />
-            <Scelta etichetta="Protezione antincendio (rp)" opzioni={PROTEZIONE_INCENDIO} valore={za.rp} onChange={(v) => zona(za.id, { rp: v })} />
+            <Scelta etichetta={italia ? "Protezione antincendio (rp, Guida CEI 81-29)" : "Protezione antincendio (rp)"} opzioni={RPI} valore={za.rp} onChange={(v) => zona(za.id, { rp: v })} />
             <Scelta etichetta="Misure contro tensioni di contatto e passo (PAM)" opzioni={MISURE_CONTATTO} valore={za.misureContatto} onChange={(v) => zona(za.id, { misureContatto: v })} />
             <Scelta etichetta="Cablaggio interno (KS3)" opzioni={CABLAGGIO} valore={za.ks3 ?? 1} onChange={(v) => zona(za.id, { ks3: v })} />
             <Campo etichetta="Lato maglia schermo esterno wm1 (m, KS1)"><input className={inputCls} type="number" min={0} step={0.5} placeholder="nessuno" value={za.wm1 ?? ""} onChange={(e) => zona(za.id, { wm1: e.target.value === "" ? null : Math.max(0, Number(e.target.value)) })} /></Campo>
@@ -159,7 +166,7 @@ export function RischioPage() {
             <Campo etichetta="SPD coordinati della zona (PSPD)"><select className={inputCls} value={za.spd ?? ""} onChange={(e) => zona(za.id, { spd: e.target.value === "" ? null : e.target.value as ClasseLps })}><option value="">Come la protezione scelta nei risultati</option>{CLASSI.map((x) => <option key={x} value={x}>{x === "nessuno" ? "Nessun SPD" : `SPD di livello ${x}`}</option>)}</select></Campo>
             <Campo etichetta="PSPD indicato (es. migliore di LPL I)"><input className={inputCls} type="number" min={0} max={1} step={0.001} placeholder="dalle Tab. B.7/B.8" value={za.pspd ?? ""} onChange={(e) => zona(za.id, { pspd: e.target.value === "" ? null : Math.min(1, Math.max(0, Number(e.target.value))) })} /></Campo>
             <Campo etichetta="Frequenza tollerabile FT indicata dal proprietario (1/anno)"><input className={inputCls} type="number" min={0} step={0.01} placeholder={za.serviziCritici ? "0,1 (critici)" : "1 (non critici)"} value={za.FT ?? ""} onChange={(e) => zona(za.id, { FT: e.target.value === "" || !(Number(e.target.value) > 0) ? null : Number(e.target.value) })} /></Campo>
-            {za.esposti && <Campo etichetta="Perdita per fulmine diretto su persone esposte (LD)"><select className={inputCls} value={za.LD ?? 0.1} onChange={(e) => zona(za.id, { LD: Number(e.target.value) })}>{[0.1, 0.05, 0.01].map((v) => <option key={v} value={v}>{v}</option>)}</select></Campo>}
+            {za.esposti && !italia && <Campo etichetta="Perdita per fulmine diretto su persone esposte (LD)"><select className={inputCls} value={za.LD ?? 0.1} onChange={(e) => zona(za.id, { LD: Number(e.target.value) })}>{[0.1, 0.05, 0.01].map((v) => <option key={v} value={v}>{v}</option>)}</select></Campo>}
           </div>
           <div className="mt-3 grid gap-2 text-sm sm:grid-cols-2">
             <label className="flex items-center gap-2"><input type="checkbox" checked={za.esterna} onChange={(e) => zona(za.id, { esterna: e.target.checked })} />Persone fino a 3 m dalle calate (tensioni di contatto e passo, RAT)</label>
@@ -194,7 +201,7 @@ export function RischioPage() {
             <tbody>{con.zone.map((z, i) => { const s0 = senza.zone[i]!; return <tr key={z.zona.id} className="border-b">
               <td className="p-2 font-medium">{z.zona.nome}</td>
               <td className={`p-2 font-mono ${s0.conforme ? "text-[#1d7a45]" : "text-[#b3261e]"}`}>{sci(s0.R)}</td>
-              <td className={`p-2 font-mono ${z.conforme ? "text-[#1d7a45]" : "text-[#b3261e]"}`}>{sci(z.R)} {z.conforme ? "≤" : ">"} RT</td>
+              <td className={`p-2 font-mono ${z.conforme ? "text-[#1d7a45]" : "text-[#b3261e]"}`}>{sci(z.R)} {italia ? (z.conforme ? "· RL1 e RL2 entro i limiti" : `· ${z.RL1 > RT_ITALIA.L1 ? "RL1 > 10⁻⁵" : ""}${z.RL1 > RT_ITALIA.L1 && z.RL2 > RT_ITALIA.L2 ? ", " : ""}${z.RL2 > RT_ITALIA.L2 ? "RL2 > 10⁻³" : ""}`) : <>{z.conforme ? "≤" : ">"} RT</>}</td>
               <td className={`p-2 font-mono ${z.frequenzaConforme ? "text-[#1d7a45]" : "text-[#b3261e]"}`}>{sci(z.F)} {z.frequenzaConforme ? "≤" : ">"} {z.FT.toLocaleString("it-IT")}</td>
               <td className="p-2">{(() => { const m = spdZona[z.zona.id]; return m === null || m === undefined ? <span className="text-[#b3261e]">non basta il livello I</span> : <>{m === "nessuno" ? "nessuno" : `livello ${m}`}{z.zona.spd ? <span className="text-muted-foreground"> · scelti {z.spd === "nessuno" ? "nessuno" : z.spd}</span> : null}</>; })()}</td>
             </tr>; })}</tbody>
