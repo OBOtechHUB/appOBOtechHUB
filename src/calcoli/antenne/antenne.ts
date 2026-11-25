@@ -16,7 +16,7 @@ export const NOMI_SITO: Record<TipoSito, string> = {
   traliccio: "Traliccio in acciaio a terra",
 };
 
-export function raggioSfera(lpl: Livello): number { return (parametri as Record<string, { raggio: number }>)[lpl]!.raggio; }
+export function raggioSfera(lpl: Livello): number { return parametri[lpl].raggio; }
 
 /**
  * Punto protetto da un'asta verticale con la punta ad altezza H sopra il piano di riferimento (tetto o terreno):
