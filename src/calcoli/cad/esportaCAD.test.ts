@@ -20,6 +20,7 @@ describe("esportazione verso il CAD", () => {
     const t = generaFileCAD({ progetto: { codice: "X" }, edificio: { corpi } }, [{ lpl: "II", risultato: ris }]);
     const righe = t.trim().split("\r\n");
     expect(righe[1]!).toBe("(LPSDATI 1)");
+    expect(righe[2]!).toMatch(/^\(LSP "\d+\.\d+"\)$/);
     expect(righe.filter((r) => r.startsWith("(CORPO")).length).toBe(1);
     // 11×11 celle tutte esposte → 11 tratti, uno per riga di celle
     expect(righe.filter((r) => r.startsWith("(ESPOSTA")).length).toBe(11);

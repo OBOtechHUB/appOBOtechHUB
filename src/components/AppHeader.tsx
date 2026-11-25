@@ -92,6 +92,7 @@ export function AppHeader() {
     {
       titolo: "Strumenti",
       voci: [
+        { etichetta: "Istruzioni e download", to: "/download-cad", icona: Download },
         { etichetta: "Assistente di progetto", to: "/assistente", icona: Compass },
         { etichetta: "Panoramica strumenti", to: "/strumenti", icona: Wrench },
         { etichetta: "Richieste all'ufficio tecnico", to: "/richieste", icona: Inbox },
@@ -110,7 +111,6 @@ export function AppHeader() {
         { etichetta: "Verifiche e dossier", to: "/verifiche", icona: ClipboardCheck },
         { etichetta: "Prodotti OBO", to: "/prodotti", icona: Package },
         { etichetta: "Modelli 3D prodotti", to: "/modelli-3d", icona: Boxes },
-        { etichetta: "Download CAD", to: "/download-cad", icona: Download },
       ],
     },
     {

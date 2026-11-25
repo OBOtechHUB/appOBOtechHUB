@@ -19,7 +19,7 @@ const PAGINE: { titolo: string; to: string; parole: string }[] = [
   { titolo: "Verifiche e dossier", to: "/verifiche", parole: "ispezione manutenzione checklist" },
   { titolo: "Prodotti OBO", to: "/prodotti", parole: "catalogo articoli novità" },
   { titolo: "Modelli 3D prodotti", to: "/modelli-3d", parole: "stp step dxf dwg" },
-  { titolo: "Download CAD", to: "/download-cad", parole: "zwcad autocad lsp" },
+  { titolo: "Istruzioni e download", to: "/download-cad", parole: "zwcad autocad lsp istruzioni manuale guida pdf word versione aggiornamento download cad" },
   { titolo: "I miei progetti", to: "/progetti", parole: "salvati apri" },
 ];
 const particolari = base as unknown as { id: string; nome: string; componenti: { codiceOBO: string | null }[] }[];

@@ -28,7 +28,44 @@
 ;;; il comando converte nelle unita' del disegno (INSUNITS).
 ;;; ==========================================================================
 
-(setq *LPS-VERSIONE* "3.5")
+(setq *LPS-VERSIONE* "3.6")
+;; pagina dell'app con l'ultima versione di LPS.lsp, le istruzioni e il pacchetto da scaricare
+(setq *LPS-SITO* "https://obotechhub.github.io/appOBOtechHUB/download-cad")
+
+;; confronta due versioni "3.6" / "3.10": -1 se a < b, 0 se uguali, 1 se a > b
+(defun lps:confronta-versioni (a b / pa pb x y r)
+  (setq pa (lps:parti-versione a) pb (lps:parti-versione b) r 0)
+  (while (and (= r 0) (or pa pb))
+    (setq x (if pa (car pa) 0) y (if pb (car pb) 0) pa (cdr pa) pb (cdr pb))
+    (cond ((< x y) (setq r -1)) ((> x y) (setq r 1))))
+  r)
+(defun lps:parti-versione (v / i c n l)
+  (setq i 1 n "" l nil)
+  (while (<= i (strlen v))
+    (setq c (substr v i 1))
+    (if (= c ".") (setq l (cons (atoi n) l) n "") (setq n (strcat n c)))
+    (setq i (1+ i)))
+  (reverse (cons (atoi n) l)))
+;; avviso a finestra se il file dell'app chiede una versione piu' recente di quella caricata
+(defun lps:controlla-versione (dati / r atteso testo)
+  (setq r (assoc 'LSP dati) atteso (if r (nth 1 r)))
+  (if (and atteso (= (type atteso) 'STR) (< (lps:confronta-versioni *LPS-VERSIONE* atteso) 0))
+    (progn
+      (setq testo (strcat "LPS.lsp caricato: versione " *LPS-VERSIONE* "\nUltima versione: " atteso
+                          "\n\nAggiorna LPS.lsp: scarica il pacchetto dalla pagina \"Istruzioni e download\" dell'app\n"
+                          *LPS-SITO* "\ne sostituisci il vecchio file (anche nel Gruppo di avvio di APPLOAD)."
+                          "\n\nIntanto il disegno viene costruito con la versione caricata."))
+      (lps:msg (strcat "ATTENZIONE: LPS.lsp " *LPS-VERSIONE* " non aggiornato, ultima versione " atteso ". Scaricala da " *LPS-SITO*))
+      (vl-catch-all-apply 'alert (list testo))
+      nil)
+    T))
+
+;; comando LPS-VERSIONE: versione caricata e dove trovare l'ultima
+(defun c:LPS-VERSIONE ()
+  (lps:msg (strcat "Progettazione LPS: LPS.lsp versione " *LPS-VERSIONE* " caricata."))
+  (lps:msg (strcat "Ultima versione, istruzioni e pacchetto: " *LPS-SITO*))
+  (lps:msg "Il controllo e' automatico: aprendo un .lpsdati scaricato dall'app, se serve una versione piu' recente compare un avviso.")
+  (princ))
 (if vl-load-com (vl-load-com))
 
 ;;; --------------------------------------------------------------------------
@@ -640,6 +677,7 @@
   (lps:msg "  LPS-TESTALINO disegna il testalino OBO sul layer LPS-CART")
   (lps:msg "  LPS-SQUADRA   squadratura A3...A0 con testalino intorno al disegno (formato e scala a scelta)")
   (lps:msg "  LPS-LEGENDA   disegna la legenda dei layer predefiniti sul layer LPS-LEGE")
+  (lps:msg "  LPS-VERSIONE  versione caricata e dove scaricare l'ultima (istruzioni e pacchetto)")
   (lps:msg "  Standard OBO: layer LPS-*, blocchi OBO_<codice> con attributi CODICE/DESCRIZIONE/TIPO.")
   (lps:msg "  Simboli per tavole 1:200: (setq *LPS-SCALA-SIMBOLI* 2.0) prima di LPS-IMPORTA.")
   (princ))
@@ -669,6 +707,7 @@
   (if (not (assoc 'LPSDATI dati))
     (progn (lps:msg "Il file non e' un file .lpsdati valido.") nil)
     (progn
+      (lps:controlla-versione dati)
       ;; il DXF del pacchetto e' in metri: se il disegno non dichiara l'unita' non si chiede nulla
       (if (and auto (= (getvar "INSUNITS") 0)) (setvar "INSUNITS" 6))
       (setq *LPS-F* (lps:fattore)

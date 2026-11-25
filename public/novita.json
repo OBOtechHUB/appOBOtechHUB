@@ -2,6 +2,17 @@
   "nota": "Registro degli aggiornamenti di Progettazione LPS. Una voce per aggiornamento, la più recente per prima (app: lps). Viene mostrato nella barra \"Aggiorna app\", nel riquadro Novità e nella pagina Novità di OBO Hub.",
   "aggiornamenti": [
     {
+      "id": "2026-11-25-lps-54",
+      "data": "2026-11-25",
+      "app": "lps",
+      "titolo": "Istruzioni e download sempre aggiornati, con controllo della versione di LPS.lsp",
+      "voci": [
+        "Nuova pagina «Istruzioni e download», prima voce del menu Strumenti: istruzioni d'uso e istruzioni AutoCAD/ZWCAD in PDF e Word (Rev. D), LPS.lsp e un progetto di prova, anche in un unico ZIP creato al momento dai file più recenti",
+        "In alto c'è sempre l'avviso con l'ultima versione e quella che hai scaricato; quando esce una versione nuova compare una barra in tutta l'app",
+        "LPS.lsp 3.6: nuovo comando LPS-VERSIONE; aprendo un progetto scaricato dall'app, se il programma caricato in AutoCAD o ZWCAD è più vecchio compare una finestra che dice di aggiornarlo e dove scaricarlo"
+      ]
+    },
+    {
       "id": "2026-11-24-lps-53",
       "data": "2026-11-24",
       "app": "lps",

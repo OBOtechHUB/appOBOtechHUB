@@ -27,6 +27,7 @@ import {particolareSchema} from "@/calcoli/particolari/selezione";
 import {impostaVerificati} from "@/lib/verificaParticolari";
 import {sostituisciParametriCaptazione} from "@/lib/parametri";
 import { AvvisoEmissione } from "@/components/progetto/RevisioniProgetto";
+import { AvvisoVersioneCAD } from "@/components/AvvisoVersioneCAD";
 
 function NotFoundComponent() {
   return (
@@ -133,5 +134,5 @@ function PortalShell(){
     });return()=>data.subscription.unsubscribe();
   },[router,queryClient,setUser,setPronto]);
   useEffect(()=>avviaEffetti(),[]);
-  return <><AggiornaApp/><AppHeader/><AvvisoEmissione/><ProjectSync/><ControlloAccesso/><AppFooter/></>;
+  return <><AggiornaApp/><AppHeader/><AvvisoVersioneCAD/><AvvisoEmissione/><ProjectSync/><ControlloAccesso/><AppFooter/></>;
 }

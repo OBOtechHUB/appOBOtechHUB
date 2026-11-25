@@ -22,7 +22,7 @@ export const SEZIONI: { id: Sezione; nome: string }[] = [
   { id: "verifiche", nome: "Verifiche e dossier" },
   { id: "prodotti", nome: "Prodotti OBO" },
   { id: "modelli3d", nome: "Modelli 3D prodotti" },
-  { id: "cad", nome: "Download CAD" },
+  { id: "cad", nome: "Istruzioni e download (CAD)" },
   { id: "app_mappa", nome: "OBO Hub · Mappa carichi ufficio tecnico" },
   { id: "app_prodotti", nome: "OBO Hub · Prodotti OBO" },
   { id: "app_zavorra", nome: "OBO Hub · Zavorra telai inverter WRR" },

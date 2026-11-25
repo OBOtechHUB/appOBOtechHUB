@@ -6,6 +6,7 @@
  * (accenti tolti), così ZWCAD e AutoCAD li leggono uguali qualunque sia la codifica.
  *
  *   (LPSDATI 1)
+ *   (LSP "3.6")   versione di LPS.lsp con cui è stato scritto il file: LPS.lsp 3.6+ avvisa se quella caricata è più vecchia
  *   (PROGETTO "codice" "nome" "comune" "LPL" raggio "rev" "data" "committente" "progettista" "indirizzo" "file")
  *   (CORPO "id" "nome" quotaBase altezzaGronda "piano|falde|altro" colmo|nil ((x y) ...) [MESH])
  *   (TRIANGOLI "id" quotaBase x1 y1 z1 x2 y2 z2 x3 y3 z3 ...)   geometria reale (IFC/3D importato), 40 triangoli per riga
@@ -22,6 +23,7 @@
  *   (PARETE "LPL" x y nx ny zDa zA larghezza)    ; faccia di parete esposta
  */
 
+import { LSP_VERSIONE } from "./versioni";
 import { massimo, minimo } from "../../lib/estremi";
 import type { Corpo, Punto3, RisultatoSfera } from "../captazione/sferaRotolante";
 import type { RisultatoCombinato } from "../captazione/verificaMaglia";
@@ -106,6 +108,7 @@ export function generaFileCAD(pr: ProgettoCAD, esposte: ZoneEsposte[] = []): str
   const p = pr.progetto;
   r.push(";; Progettazione LPS - dati per LPS.lsp (ZWCAD / AutoCAD) - coordinate in metri");
   r.push("(LPSDATI 1)");
+  r.push(`(LSP ${testoLisp(LSP_VERSIONE)})`);
   r.push(`(PROGETTO ${testoLisp(p.codice)} ${testoLisp(p.nome)} ${testoLisp(p.comune)} ${testoLisp(p.lpl)} ${numeroLisp(p.raggio ?? null)} ${testoLisp(p.rev)} ${testoLisp(p.data)} ${testoLisp(p.committente)} ${testoLisp(p.progettista)} ${testoLisp(p.indirizzo)} ${testoLisp(p.file)})`);
   if (pr.origine) r.push(`(ORIGINE ${numeroLisp(pr.origine[0])} ${numeroLisp(pr.origine[1])} ${numeroLisp(pr.origine[2])})`);
   // distinta raggruppata per codice (serve prima dei componenti: il LISP la usa per le descrizioni dei blocchi)
