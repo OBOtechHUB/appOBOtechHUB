@@ -1,6 +1,7 @@
 import { massimo, minimo } from "@/lib/estremi";
 import { risorsa } from "@/lib/base";
 import { corpoSchema,modelloSchema,type Corpo,type ModelloEdificio } from "@/calcoli/edificio/tipi";
+import { improntaDaTriangoli, prioritaTriangoli } from "@/lib/superficieEsterna";
 import {locale} from "@/calcoli/edificio/geometria";
 import {unitaDaInsunits,type Unita} from "@/calcoli/importazione/scala";
 import {letturaDaPolilinee,type LetturaCad} from "@/lib/letturaCad";
@@ -69,7 +70,7 @@ export async function leggiMesh(files:File[],scala:number,verticaleZ=false):Prom
   const xs=new Array<number>(nV),ys=new Array<number>(nV);
   for(let k=0;k<nV;k++){const x=tri[3*k]!,y=tri[3*k+1]!,z=tri[3*k+2]!;xs[k]=x;ys[k]=y;if(x<minX)minX=x;if(x>maxX)maxX=x;if(y<minY)minY=y;if(y>maxY)maxY=y;if(z<minZ)minZ=z;if(z>maxZ)maxZ=z;}
   const positions=semplificaTriangoli(tri,MAX_TRIANGOLI);for(let i=2;i<positions.length;i+=3)positions[i]=(positions[i]??0)-minZ;
-  const hull=involucro(xs,ys);const corpo:Corpo3D=corpoSchema.parse({id:crypto.randomUUID(),nome:main.name,impronta:hull.length>=3?hull:[[minX,minY],[maxX,minY],[maxX,maxY],[minX,maxY]],quotaBase:0,altezzaGronda:maxZ-minZ,altezzaColmo:maxZ-minZ,tipoTetto:"altro",mesh:{posizioni:positions}});
+  const reale=improntaDaTriangoli(positions);const hull=reale.length>=3?reale:involucro(xs,ys);const corpo:Corpo3D=corpoSchema.parse({id:crypto.randomUUID(),nome:main.name,impronta:hull.length>=3?hull:[[minX,minY],[maxX,minY],[maxX,maxY],[minX,maxY]],quotaBase:0,altezzaGronda:maxZ-minZ,altezzaColmo:maxZ-minZ,tipoTetto:"altro",mesh:{posizioni:positions}});
   corpo.zMinimo=minZ;if(livelli.length)corpo.livelli=livelli.map((l)=>({...l,z:l.z-minZ}));
   return corpo;
 }
@@ -93,7 +94,7 @@ export function applicaQuota0<C extends Corpo>(c:C,q:number):C{
   for(let i=0;i+8<p.length;i+=9){const z1=p[i+2]!-q,z2=p[i+5]!-q,z3=p[i+8]!-q;if(z1<=1e-6&&z2<=1e-6&&z3<=1e-6)continue;
     for(let k=0;k<3;k++){const x=p[i+3*k]!,y=p[i+3*k+1]!,z=Math.max(0,p[i+3*k+2]!-q);out.push(x,y,z);xs.push(x);ys.push(y);if(z>maxZ)maxZ=z;}}
   if(out.length<9)return c;
-  const hull=involucro(xs,ys);
+  const reale=improntaDaTriangoli(out);const hull=reale.length>=3?reale:involucro(xs,ys);
   return corpoSchema.parse({...c,impronta:hull.length>=3?hull:c.impronta,altezzaGronda:maxZ,altezzaColmo:maxZ,mesh:{...c.mesh,posizioni:out}}) as C;
 }
 /** Formati 3D che si possono importare come corpo dell'edificio. */
@@ -137,8 +138,13 @@ export const MAX_TRIANGOLI=60000;
 /**
  * Semplifica una lista di triangoli (x,y,z ×3 per triangolo): unisce i vertici vicini su una griglia proporzionata
  * al modello, toglie i triangoli degeneri e doppi e, se sono ancora troppi, tiene i più grandi (tetti e pareti).
+ * Prima di tutto tiene solo la superficie esterna (coperture e facciate): vedi superficieEsterna.ts.
  */
-export function semplificaTriangoli(tri:number[],max=MAX_TRIANGOLI):number[]{
+export function semplificaTriangoli(tri0:number[],max=MAX_TRIANGOLI):number[]{
+  let tri=tri0;const n0=Math.floor(tri0.length/9);if(n0<=max)return tri0.slice(0,n0*9);
+  // edifici complessi: prima si tolgono le parti interne (solai, pilastri, impianti nascosti), si tiene la superficie esterna
+  const pr=prioritaTriangoli(tri0);const est:number[]=[];for(let t=0;t<n0;t++)if(pr[t]!<3)for(let j=0;j<9;j++)est.push(tri0[t*9+j]!);
+  if(est.length>=9)tri=est;
   const n=Math.floor(tri.length/9);if(n<=max)return tri.slice(0,n*9);
   let mn=[Infinity,Infinity,Infinity],mx=[-Infinity,-Infinity,-Infinity];
   for(let i=0;i<tri.length;i+=3)for(let a=0;a<3;a++){const q=tri[i+a]!;if(q<mn[a]!)mn[a]=q;if(q>mx[a]!)mx[a]=q;}

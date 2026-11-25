@@ -9,7 +9,8 @@
       "voci": [
         "Importando un IFC o un modello 3D scegli la quota 0 (piano di campagna): proposto il piano dell'IFC con quota di progetto più vicina a 0, oppure un altro piano dell'elenco, il punto più basso o uno spostamento a mano",
         "Fondazioni, pali e interrati sotto la quota 0 vengono tolti: altezze e impronta corrispondono all'edificio fuori terra",
-        "Letti correttamente anche gli IFC in centimetri o millimetri"
+        "Letti correttamente anche gli IFC in centimetri o millimetri",
+        "Edifici complessi (IFC con migliaia di elementi): si tiene la superficie esterna (coperture, parapetti, volumi tecnici, facciate) e si tolgono solai, pilastri e impianti interni; l'impronta segue il contorno reale dell'edificio, non più un poligono convesso"
       ]
     },
     {
