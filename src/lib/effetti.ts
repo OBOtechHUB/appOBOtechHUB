@@ -22,11 +22,10 @@ export function avviaEffetti(): () => void {
   };
   const barra = document.createElement("div"); barra.id = "fx-progresso"; barra.setAttribute("aria-hidden", "true"); document.body.appendChild(barra);
   const avanzamento = () => { const h = document.documentElement.scrollHeight - window.innerHeight; barra.style.setProperty("--fx-p", h > 40 ? String(Math.min(1, window.scrollY / h)) : "0"); };
-  const luce = (e: PointerEvent) => { const el = (e.target as Element | null)?.closest?.(".fx-scheda") as HTMLElement | null; if (!el) return; const r = el.getBoundingClientRect(); el.style.setProperty("--fx-x", `${e.clientX - r.left}px`); el.style.setProperty("--fx-y", `${e.clientY - r.top}px`); };
   let attesa: ReturnType<typeof setTimeout> | undefined;
   const mo = new MutationObserver(() => { clearTimeout(attesa); attesa = setTimeout(() => { prepara(); avanzamento(); }, 150); });
   mo.observe(document.body, { childList: true, subtree: true });
-  window.addEventListener("scroll", avanzamento, { passive: true }); window.addEventListener("resize", avanzamento); document.addEventListener("pointermove", luce, { passive: true });
+  window.addEventListener("scroll", avanzamento, { passive: true }); window.addEventListener("resize", avanzamento);
   prepara(); avanzamento();
-  return () => { mo.disconnect(); osserva.disconnect(); barra.remove(); window.removeEventListener("scroll", avanzamento); window.removeEventListener("resize", avanzamento); document.removeEventListener("pointermove", luce); };
+  return () => { mo.disconnect(); osserva.disconnect(); barra.remove(); window.removeEventListener("scroll", avanzamento); window.removeEventListener("resize", avanzamento); };
 }
