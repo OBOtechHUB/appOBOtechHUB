@@ -82,6 +82,8 @@ export function leggiEsteso() { return esteso; }
 export function aggiornaEsteso(p: Partial<StatoEsteso>) { esteso=estesoSchema.parse({...esteso,...p}); try {if(!attivo)localStorage.setItem("lps-stato-esteso",JSON.stringify(esteso));}catch{} listeners.forEach((f)=>f()); }
 export function useEsteso() { return useSyncExternalStore((f)=>{listeners.add(f); if(!caricato&&typeof window!=="undefined"){caricato=true;try{const raw=localStorage.getItem("lps-stato-esteso");if(raw){const parsed=estesoSchema.safeParse(JSON.parse(raw));if(parsed.success)esteso=parsed.data;}}catch{}f();}return()=>listeners.delete(f);},()=>esteso,()=>estesoIniziale); }
 export const snapshotSchema=z.object({versione:z.literal(1), edificio:edificioSchema,computo:computoSchema,esteso:estesoSchema});
+/** Avvisa a ogni modifica dello stato esteso (per annulla / ripeti). */
+export function ascoltaEsteso(f:()=>void){listeners.add(f);return()=>{listeners.delete(f);};}
 export function snapshot(){return {versione:1 as const,...leggiStatoBase(),esteso};}
 export function snapshotVuoto(){return {versione:1 as const,edificio:datiIniziali,computo:computoIniziale,esteso:estesoIniziale};}
 /** progetto creato dalla pagina Progetti di OBO Hub (dati vuoti): si parte da un progetto nuovo */

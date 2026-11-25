@@ -1,5 +1,6 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { avviaEffetti } from "@/lib/effetti";
+import { avviaAnnulla } from "@/lib/annulla";
 import { segnalaErrore } from "@/lib/registro";
 import {
   Outlet,
@@ -134,5 +135,6 @@ function PortalShell(){
     });return()=>data.subscription.unsubscribe();
   },[router,queryClient,setUser,setPronto]);
   useEffect(()=>avviaEffetti(),[]);
+  useEffect(()=>avviaAnnulla(),[]);
   return <><AggiornaApp/><AppHeader/><AvvisoVersioneCAD/><AvvisoEmissione/><ProjectSync/><ControlloAccesso/><AppFooter/></>;
 }

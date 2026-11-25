@@ -2,6 +2,17 @@
   "nota": "Registro degli aggiornamenti di Progettazione LPS. Una voce per aggiornamento, la più recente per prima (app: lps). Viene mostrato nella barra \"Aggiorna app\", nel riquadro Novità e nella pagina Novità di OBO Hub. Le novità solo grafiche (animazioni, sigle, aspetto) non si mostrano: restano conservate in 'grafica_non_mostrata'.",
   "aggiornamenti": [
     {
+      "id": "2026-11-25-lps-56",
+      "data": "2026-11-25",
+      "app": "lps",
+      "titolo": "Annulla e ripeti in tutto il progetto",
+      "voci": [
+        "Ctrl+Z (Cmd+Z su Mac) annulla l'ultima modifica del progetto, Ctrl+Y o Ctrl+Maiusc+Z la ripete; nei campi di testo resta l'annulla normale",
+        "Il tasto laterale «indietro» del mouse torna alla pagina precedente anche sopra il modello 3D e le aree interattive",
+        "Corretto il blocco della pagina Progetti (apertura, eliminazione, lettura dei documenti): serve l'SQL 20"
+      ]
+    },
+    {
       "id": "2026-11-25-lps-55",
       "data": "2026-11-25",
       "app": "lps",

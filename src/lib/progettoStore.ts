@@ -110,6 +110,8 @@ export function useComputo() {
 }
 
 export const edificioSchema = z.object({ nomeProgetto: z.string().max(200), comune: z.string().max(200), indirizzo: z.string().max(400).optional(), lat: z.number().finite().min(-90).max(90).nullable().optional(), lon: z.number().finite().min(-180).max(180).nullable().optional(), L: numero, W: numero, H: numero, copertura: z.string(), materiale: z.string(), impiantiTetto: z.boolean(), posizioneId: z.string(), densita: numero, lplProgetto: z.enum(["I", "II", "III", "IV"]).nullable().default(null) });
+/** Avvisa a ogni modifica di dati edificio o computo (per annulla / ripeti). */
+export function ascoltaBase(f: () => void) { ascoltatori.add(f); ascoltatoriComputo.add(f); return () => { ascoltatori.delete(f); ascoltatoriComputo.delete(f); }; }
 export function leggiStatoBase() { return { edificio: stato, computo }; }
 export function sostituisciStatoBase(d: DatiEdificio, c: DatiComputo) {
   stato = edificioSchema.parse(d); computo = computoSchema.parse(c) as DatiComputo;
