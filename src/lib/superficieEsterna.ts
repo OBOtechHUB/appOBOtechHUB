@@ -28,7 +28,7 @@ function perCella(g: Griglia, tri: ArrayLike<number>, b: number, f: (cella: numb
   if (verticale) {
     // parete: si segue in pianta il suo lato più lungo, cella per cella (non il rettangolo d'ingombro, sbagliato per le pareti oblique)
     const zt = Math.max(az, bz, cz), P = [[ax, ay], [bx, by], [cx, cy]] as const;
-    let a = 0, b = 1, dmax = -1; for (const [u, v] of [[0, 1], [1, 2], [2, 0]] as const) { const d = Math.hypot(P[v][0] - P[u][0], P[v][1] - P[u][1]); if (d > dmax) { dmax = d; a = u; b = v; } }
+    let a: 0 | 1 | 2 = 0, b: 0 | 1 | 2 = 1, dmax = -1; for (const [u, v] of [[0, 1], [1, 2], [2, 0]] as const) { const d = Math.hypot(P[v][0] - P[u][0], P[v][1] - P[u][1]); if (d > dmax) { dmax = d; a = u; b = v; } }
     const passi = Math.max(1, Math.ceil(dmax / (g.c * 0.5))), visti = new Set<number>();
     for (let s2 = 0; s2 <= passi; s2++) { const tt = s2 / passi, x = P[a][0] + (P[b][0] - P[a][0]) * tt, y = P[a][1] + (P[b][1] - P[a][1]) * tt;
       const i = Math.min(g.nx - 1, Math.max(0, Math.floor((x - g.x0) / g.c))), j = Math.min(g.ny - 1, Math.max(0, Math.floor((y - g.y0) / g.c))), k = j * g.nx + i;
