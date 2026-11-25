@@ -7,6 +7,7 @@ import { useEsteso } from "@/lib/statoProgetto";
 import { aggiornaComputo, useComputo, useDatiEdificio } from "@/lib/progettoStore";
 import { useCatalogoObo } from "@/lib/catalogoObo";
 import { CORRENTE_LPL, UW_CATEGORIA, candidati, requisitiIngresso, type Candidato, type Fasi, type Livello, type Livello2, type Sistema } from "@/calcoli/spd/sceltaSpd";
+import { valutaCrl, type Ambiente, type Tratti } from "@/calcoli/spd/crl";
 
 const f = (v: number, c = 1) => v.toLocaleString("it-IT", { maximumFractionDigits: c });
 const TITOLI: Record<Livello2, { titolo: string; descrizione: string }> = {
@@ -28,6 +29,9 @@ export function SpdPage() {
   const [app, setApp] = useState(0);
   const [scelti, setScelti] = useState<Partial<Record<Livello2, string>>>({});
   const [msg, setMsg] = useState("");
+  const [gravi, setGravi] = useState(false), [ambiente, setAmbiente] = useState<Ambiente>("rurale"), [ignoti, setIgnoti] = useState(true);
+  const [tratti, setTratti] = useState<Tratti>({ aereaBt: 0, cavoBt: 0.3, aereaAt: 0, cavoAt: 0 });
+  const crl = valutaCrl({ conseguenzeGravi: gravi, ambiente, ng: d.densita, tratti, ignoti });
 
   const req = requisitiIngresso(lpl, servizi, sistema, fasi, UW_CATEGORIA[categoria]);
   const prodotti = useMemo(() => (catalogo?.catalogo ?? []).filter((p) => p.categorie[0] === "surge-protection" && p.categorie[1] === "ac-power-supplies" && p.codice).map((p) => ({ codice: p.codice!, nome: p.nome, datiTecnici: p.datiTecnici })), [catalogo]);
@@ -54,6 +58,22 @@ export function SpdPage() {
     </div></section>
     <main className="mx-auto max-w-5xl px-4 py-8">
       <p className="rounded-lg border-l-4 border-primary bg-muted p-3 text-sm">Regola n. 1 della CEI EN IEC 62305-4:2026-10 (Allegato C): 50 % della corrente di fulmine dell'LPL nell'impianto di terra, divisa tra i servizi entranti e i conduttori della linea (CEI EN IEC 62305-1:2026-10, E.2). Con una linea e 4 conduttori si ottengono 12,5 / 18,75 / 25 kA (10/350) per LPL III-IV / II / I, come in Tab. B.7 della 62305-2. Da confrontare con lo schema reale dell'impianto.</p>
+
+      <section className="mt-8" aria-label="Serve la protezione">
+        <h2 className="text-[1.7rem] font-medium">0 · Serve la protezione dalle sovratensioni? <span className="text-base text-muted-foreground">CEI 64-8/4, Sezione 443</span></h2>
+        <label className="mt-3 flex items-start gap-2 text-sm"><input type="checkbox" className="mt-1" checked={gravi} onChange={(e) => setGravi(e.target.checked)} />Le sovratensioni avrebbero conseguenze su vita umana (servizi di sicurezza, apparecchi medicali), servizi pubblici o patrimonio culturale, attività commerciali o industriali, molte persone (scuole, uffici, grandi edifici)</label>
+        {!gravi && <div className="mt-3 grid gap-4 sm:grid-cols-3">
+          <Campo etichetta="Ambiente"><select className={inputCls} value={ambiente} onChange={(e) => setAmbiente(e.target.value as Ambiente)}><option value="rurale">Rurale o suburbano (fenv 85)</option><option value="urbano">Urbano (fenv 850)</option></select></Campo>
+          {([["aereaBt", "Linea aerea BT (km)"], ["cavoBt", "Cavo interrato BT (km)"], ["aereaAt", "Linea aerea AT (km)"], ["cavoAt", "Cavo interrato AT (km)"]] as [keyof Tratti, string][]).map(([k, t]) =>
+            <Campo key={k} etichetta={t}><input className={inputCls} type="number" min={0} max={1} step={0.05} value={tratti[k]} onChange={(e) => setTratti({ ...tratti, [k]: Math.max(0, Number(e.target.value)) })} /></Campo>)}
+          <label className="flex items-center gap-2 self-end pb-2 text-sm"><input type="checkbox" checked={ignoti} onChange={(e) => setIgnoti(e.target.checked)} />Tratti non noti fino a 1 km (si considera linea aerea BT)</label>
+        </div>}
+        <div className={`mt-3 rounded-lg border-l-4 p-3 text-sm ${crl.serve ? "border-[#b3261e] bg-[#fdecea] text-[#7a1f16]" : "border-[#1d7a45] bg-[#e3f4ea] text-[#14532d]"}`} role="status">
+          {!gravi && crl.crl !== null && Number.isFinite(crl.crl) && <p className="text-base">CRL = fenv / (LP · Ng) = {f(crl.fenv, 0)} / ({f(crl.lp, 2)} · {f(d.densita, 2)}) = <strong>{f(crl.crl, 0)}</strong></p>}
+          <p>{crl.motivo}</p>
+          {!gravi && <p className="mt-1 text-xs opacity-80">LP = 2·LPAL + LPCL + 0,4·LPAH + 0,2·LPCH sui primi 1 km di linea (o fino al primo SPD della rete). Ng dai Dati edificio ({f(d.densita, 2)} fulmini/km² anno). Con un LPS esterno gli SPD tipo 1 servono comunque (CEI EN IEC 62305-4).</p>}
+        </div>
+      </section>
 
       <section className="mt-8" aria-label="Dati della rete">
         <h2 className="text-[1.7rem] font-medium">1 · Rete e apparecchi</h2>

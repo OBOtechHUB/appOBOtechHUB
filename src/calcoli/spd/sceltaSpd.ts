@@ -14,7 +14,7 @@ export type Fasi = "monofase" | "trifase";
 
 /** Corrente di picco del primo colpo positivo per LPL (kA). */
 export const CORRENTE_LPL: Record<Livello, number> = { I: 200, II: 150, III: 100, IV: 100 };
-/** Tensione di tenuta a impulso Uw per categoria di sovratensione, rete 230/400 V (kV). */
+/** Tensione di tenuta a impulso Uw per categoria di sovratensione, rete 230/400 V (kV): CEI 64-8/4:2024-07, Tab. 443.2. */
 export const UW_CATEGORIA: Record<"I" | "II" | "III" | "IV", number> = { I: 1.5, II: 2.5, III: 4, IV: 6 };
 
 /** Conduttori attivi della linea di alimentazione che portano corrente di fulmine. */
