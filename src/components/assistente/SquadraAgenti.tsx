@@ -29,14 +29,15 @@ const AGENTI: Agente[] = [
 
 export function SquadraAgenti({ passi }: { passi: Passo[] }) {
   const attivo = useAttivo(), s = useEsteso(), d = useDatiEdificio();
-  const [lettura, setLettura] = useState<{ dati: DatoTrovato[]; scelti: Set<number> } | null>(null), [busy, setBusy] = useState(""), [msg, setMsg] = useState("");
+  const [lettura, setLettura] = useState<{ dati: DatoTrovato[]; scelti: Set<number> } | null>(null), [busy, setBusy] = useState(""), [msg, setMsg] = useState(""), [azioneMsg, setAzioneMsg] = useState<"progetto" | "documenti" | null>(null);
   const statoDi = (a: Agente) => { const p = passi.filter((x) => a.passi.includes(x.id)); return p.length && p.every((x) => x.stato === "completo") ? "fatto" : p.some((x) => x.stato === "completo" || x.stato === "in corso") ? "in corso" : "da fare"; };
   const docs = (s.documentazione ?? []).filter((x) => !x.nascosto);
 
   async function leggi() {
-    if (!attivo) { setMsg("Apri o crea prima un progetto."); return; }
+    setAzioneMsg(null);
+    if (!attivo) { setMsg("Per leggere i documenti serve un progetto aperto: aprilo o creane uno nuovo, poi carica i PDF e i Word in Dati edificio → Documentazione del progetto."); setAzioneMsg("progetto"); return; }
     const leggibili = docs.filter((x) => /\.(pdf|docx|txt)$/i.test(x.nome));
-    if (!leggibili.length) { setMsg("Nessun PDF o Word nella documentazione: trascinali in Dati edificio → Documentazione del progetto, poi torna qui."); return; }
+    if (!leggibili.length) { setMsg("Nessun PDF o Word nella documentazione del progetto: trascinali in Dati edificio → Documentazione del progetto, poi torna qui e premi di nuovo «Leggi i documenti»."); setAzioneMsg("documenti"); return; }
     const { testoDocumento } = await import("@/lib/testoDocumenti");
     const tutti: DatoTrovato[] = []; let letti = 0;
     for (const [i, doc] of leggibili.entries()) {
@@ -82,6 +83,20 @@ export function SquadraAgenti({ passi }: { passi: Passo[] }) {
         <p className="mt-1 max-w-2xl text-sm text-muted-foreground">Una squadra di sette agenti: ognuno fa una cosa sola e passa il lavoro al successivo. Tu approvi o correggi ogni passo.</p></div>
       {prossimo && <Button onClick={() => azione(prossimo)} disabled={!!busy}><Play />Avvia: {prossimo.nome.toLowerCase()}</Button>}
     </div>
+    {busy && <p role="status" className="mt-3 text-sm">{busy}</p>}
+    {msg && <div role="status" className="mt-3 rounded-md border-l-4 border-primary bg-primary/10 p-3 text-sm">
+      <p>{msg}</p>
+      {azioneMsg === "progetto" && <div className="mt-2 flex flex-wrap gap-2"><Button size="sm" asChild><Link to="/progetti">Apri o crea un progetto</Link></Button></div>}
+      {azioneMsg === "documenti" && <div className="mt-2 flex flex-wrap gap-2"><Button size="sm" onClick={() => { location.href = risorsa("dati-edificio#documentazione"); }}>Carica i documenti</Button></div>}
+    </div>}
+    {lettura && lettura.dati.length > 0 && <div className="mt-4 rounded-md border p-3">
+      <h3 className="font-semibold">Dati trovati nei documenti</h3>
+      <ul className="mt-2 divide-y text-sm">{lettura.dati.map((x, i) => <li key={i} className="flex gap-3 py-2">
+        <input type="checkbox" className="mt-1" aria-label={`Applica ${nomeCampo(x.campo)}`} checked={lettura.scelti.has(i)} onChange={(e) => { const sc = new Set(lettura.scelti); if (e.target.checked) sc.add(i); else sc.delete(i); setLettura({ ...lettura, scelti: sc }); }} />
+        <div className="min-w-0"><b>{nomeCampo(x.campo)}:</b> {x.valore}<p className="text-xs text-muted-foreground">«…{x.frase}…» — {x.documento}</p></div></li>)}</ul>
+      <div className="mt-2 flex gap-2"><Button size="sm" onClick={applica} disabled={!lettura.scelti.size}>Applica i dati scelti</Button><Button size="sm" variant="outline" onClick={() => setLettura(null)}>Chiudi</Button></div>
+      <p className="mt-2 text-xs text-muted-foreground">Comune, indirizzo, dimensioni e copertura vanno in Dati edificio; committente, provincia e destinazione d'uso in Dati della relazione. ATEX, struttura, piani e fotovoltaico sono segnalati per controllo.</p>
+    </div>}
     <ol className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
       {AGENTI.map((a, i) => { const st = statoDi(a), I = a.icona, corrente = a === prossimo;
         return <li key={a.id} className={`agente relative flex flex-col gap-2 rounded-lg border p-3 ${corrente ? "border-primary ring-1 ring-primary" : ""}`} style={{ animationDelay: `${i * 70}ms` }}>
@@ -97,15 +112,5 @@ export function SquadraAgenti({ passi }: { passi: Passo[] }) {
           </div>
         </li>; })}
     </ol>
-    {busy && <p role="status" className="mt-3 text-sm">{busy}</p>}
-    {msg && <p role="status" className="mt-3 border-l-4 border-primary pl-3 text-sm">{msg}</p>}
-    {lettura && lettura.dati.length > 0 && <div className="mt-4 rounded-md border p-3">
-      <h3 className="font-semibold">Dati trovati nei documenti</h3>
-      <ul className="mt-2 divide-y text-sm">{lettura.dati.map((x, i) => <li key={i} className="flex gap-3 py-2">
-        <input type="checkbox" className="mt-1" aria-label={`Applica ${nomeCampo(x.campo)}`} checked={lettura.scelti.has(i)} onChange={(e) => { const sc = new Set(lettura.scelti); if (e.target.checked) sc.add(i); else sc.delete(i); setLettura({ ...lettura, scelti: sc }); }} />
-        <div className="min-w-0"><b>{nomeCampo(x.campo)}:</b> {x.valore}<p className="text-xs text-muted-foreground">«…{x.frase}…» — {x.documento}</p></div></li>)}</ul>
-      <div className="mt-2 flex gap-2"><Button size="sm" onClick={applica} disabled={!lettura.scelti.size}>Applica i dati scelti</Button><Button size="sm" variant="outline" onClick={() => setLettura(null)}>Chiudi</Button></div>
-      <p className="mt-2 text-xs text-muted-foreground">Comune, indirizzo, dimensioni e copertura vanno in Dati edificio; committente, provincia e destinazione d'uso in Dati della relazione. ATEX, struttura, piani e fotovoltaico sono segnalati per controllo.</p>
-    </div>}
   </section>;
 }
