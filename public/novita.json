@@ -2,6 +2,22 @@
   "nota": "Registro degli aggiornamenti di Progettazione LPS. Una voce per aggiornamento, la più recente per prima (app: lps). Viene mostrato nella barra \"Aggiorna app\", nel riquadro Novità e nella pagina Novità di OBO Hub. Le novità solo grafiche (animazioni, sigle, aspetto) non si mostrano: restano conservate in 'grafica_non_mostrata'.",
   "aggiornamenti": [
     {
+      "id": "2026-11-26-lps-64",
+      "data": "2026-11-26",
+      "app": "lps",
+      "titolo": "Edificio 3D: vista più chiara e nuovi strumenti",
+      "voci": [
+        "Pulsanti delle viste sopra il 3D: assonometria, pianta, prospetti nord/sud/est/ovest, «inquadra tutto» e «inquadra la selezione»; il doppio clic centra la vista sul punto",
+        "Cubo di orientamento con i punti cardinali (clic su una faccia per girare la vista) e scala grafica in metri",
+        "Ombre del sole, da sud-ovest o all'ora del giorno scelta (con la posizione del progetto)",
+        "Terreno con griglia metrica o foto satellitare sotto l'edificio (per gli edifici importati dalla mappa)",
+        "Aste con base in calcestruzzo o treppiede, conduttori del diametro reale, supporti e morsetti nel 3D; «Impianto in arancio» si può togliere per vedere i colori dei materiali",
+        "Sezione regolabile (taglio orizzontale o verticale), edificio trasparente per vedere calate e dispersori, nomi e altezze dei corpi",
+        "Misura con distanza, distanza orizzontale e dislivello",
+        "«Salva immagine (PNG)» e «Usa nella relazione»: la vista 3D entra come figura nella relazione tecnica Word"
+      ]
+    },
+    {
       "id": "2026-11-26-lps-63",
       "data": "2026-11-26",
       "app": "lps",
