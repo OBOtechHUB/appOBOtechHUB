@@ -183,7 +183,7 @@ export function AntennePage() {
             </div>; })}</div>
           <p className="mt-2 text-xs text-muted-foreground">La barra è la parte del palo isolata dalla punta ({f(r.asta, 1)} m) verso terra. Sotto la fine del cavo il palo porta la corrente di fulmine.</p>
         </section>
-        <div className="mt-4 grid gap-4 md:grid-cols-[280px_1fr]">
+        <div className="mt-4 grid gap-4 md:grid-cols-[340px_1fr]">
           <SchemaCalateAltezza punta={r.asta} sommita={P.sommita} apparatoBasso={apparatoBasso} r={ca} piano={d.tipo === "tetto" ? "tetto" : "terreno"} finoATerra={false} apparecchi={P.apparecchi} />
           <div>
             <div className={`rounded-lg border-l-4 p-4 ${ok(ca.fattibile)}`} role="status">

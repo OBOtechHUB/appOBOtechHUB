@@ -8,15 +8,15 @@ import type { StatoApparecchio } from "@/calcoli/antenne/progettoAntenne";
 const f = (v: number) => v.toLocaleString("it-IT", { maximumFractionDigits: 1 });
 
 export function SchemaCalateAltezza({ punta, sommita, apparatoBasso, r, piano, finoATerra = false, apparecchi = [] }: { punta: number; sommita: number; apparatoBasso: number; r: RisultatoCalateAltezza; piano: "tetto" | "terreno"; finoATerra?: boolean; apparecchi?: StatoApparecchio[] }) {
-  const W = 280, H = 360, top = 18, bot = 326, zMax = Math.max(punta, sommita, 1);
+  const W = 340, H = 360, top = 18, bot = 326, zMax = Math.max(punta, sommita, 1);
   const y = (z: number) => bot - (Math.max(0, z) / zMax) * (bot - top);
   const xPalo = 150, xIscon = 132, xAnt = 172;
   const pae = r.quotaPAE;
   const inter = r.livelli.filter((l) => l.tipo === "intermedio");
-  return <svg viewBox={`0 0 ${W} ${H}`} className="w-full max-w-[280px] rounded-md border bg-card" role="img" aria-label="Schema delle calate isCon e dei collegamenti equipotenziali">
+  return <svg viewBox={`0 0 ${W} ${H}`} className="w-full max-w-[340px] rounded-md border bg-card" role="img" aria-label="Schema delle calate isCon e dei collegamenti equipotenziali">
     {/* piano di riferimento */}
     <line x1={20} x2={W - 20} y1={bot} y2={bot} stroke="currentColor" strokeWidth={2} />
-    {Array.from({ length: 12 }, (_, i) => <line key={i} x1={24 + i * 20} x2={14 + i * 20} y1={bot} y2={bot + 10} stroke="currentColor" strokeWidth={1} opacity={0.5} />)}
+    {Array.from({ length: 15 }, (_, i) => <line key={i} x1={24 + i * 20} x2={14 + i * 20} y1={bot} y2={bot + 10} stroke="currentColor" strokeWidth={1} opacity={0.5} />)}
     <text x={22} y={bot + 24} fontSize={11} fill="currentColor">{piano === "tetto" ? "piano del tetto" : "terreno"} · 0 m</text>
     {/* palo o struttura */}
     <line x1={xPalo} x2={xPalo} y1={y(Math.min(punta, sommita + 0.5))} y2={bot} stroke="#7694a4" strokeWidth={6} strokeLinecap="round" />
