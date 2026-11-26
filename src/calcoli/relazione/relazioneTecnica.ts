@@ -17,7 +17,8 @@ import { categorie } from "@/calcoli/materiali/tipi";
 import type { Asta, Conduttore, ModelloEdificio } from "@/calcoli/edificio/tipi";
 import type { ParticolareLib } from "@/calcoli/particolari/allinea";
 import { CATEGORIE, CONNESSIONI, MISURE_CONTATTO, RISCHIO_INCENDIO, PROTEZIONE_INCENDIO, PAVIMENTO, RT, calcolaZone, protezioneMinimaZone, type ClasseLps, type EsitoStruttura, type Struttura, type Zona, type Linea } from "@/calcoli/rischio/rischioR1";
-import { KI, KM, NOMI_MATERIALE, kcSemplificato, perimetro, verificaPunti, type PuntoCritico } from "@/calcoli/calate/separazione";
+import { KI, KM, NOMI_MATERIALE, distanzaSeparazione, kcSemplificato, perimetro, verificaPunti, type PuntoCritico } from "@/calcoli/calate/separazione";
+import { ISCON, ISCON_COMUNE, ISCON_GR_CONTATTO, ammessaPerCorrente, lunghezzaMassima, verificaIscon, type VersioneIscon } from "@/calcoli/calate/iscon";
 import parametriLPL from "@/dati/captazione/parametriLPL.json";
 import distanzaCalate from "@/dati/calate/distanzaCalate.json";
 import fattori from "@/dati/rischio/fattorePosizione.json";
@@ -93,7 +94,7 @@ export interface IngressoRelazione {
   modello: ModelloEdificio; aste: Asta[]; conduttori: Conduttore[];
   picchetti: { lunghezza: number }[];
   terra: { tipo: "A" | "B" | "fondazione"; distanzaAnello: number; profondita: number; lunghezzaPicchetto: number; l1: number | null } | null;
-  separazione: { ki: number | null; kmSolido: number | null; punti: PuntoCritico[] };
+  separazione: { ki: number | null; kmSolido: number | null; punti: PuntoCritico[]; kcUno?: boolean | undefined; iscon?: { versione: VersioneIscon; materiale: "aria" | "solido"; l: number | null; esigenze?: { verniciabile?: boolean | undefined; atex?: boolean | undefined; protezioneMeccanica?: boolean | undefined; tensioniContatto?: boolean | undefined } | undefined } | null | undefined };
   /** dati del rischio già letti (statoRischio.leggiStato + strutturaRischio); null = valutazione non compilata */
   rischio: { struttura: Struttura; zone: Zona[] } | null;
   risultati: RisultatiModuli; righe: RigaComputo[]; mancanti: string[];
@@ -781,6 +782,24 @@ export function relazioneTecnica(x: IngressoRelazione): Documento {
   if (esiti.length || nCalate) fig(graficoSeparazione(ki, kc, km.solido, esiti.map((e) => ({ l: e.l, d: e.d, conforme: e.conforme, nome: e.descrizione || e.id }))), "Distanza di separazione richiesta in funzione di l e distanze effettive dei punti verificati");
   if (esiti.length) B.push(tab(["Punto", "Materiale", "l (m)", "s richiesta (m)", "d effettiva (m)", "Esito"], esiti.map((e) => [e.descrizione || e.id, NOMI_MATERIALE[e.materiale].replace(/ \(.*\)$/, ""), it(e.l, 2), it(e.s, 3), it(e.d, 3), e.conforme ? "Conforme" : [{ t: "Non conforme: collegare o isolare", b: true }]]), [3, 2.5, 1, 1.5, 1.5, 1.8]));
   else B.push(p([dc("punti critici (impianti in copertura, parti metalliche) con la distanza effettiva")]));
+  // calate isolate isCon (dati dei certificati OBO, IEC TS 62561-8)
+  const ic = x.separazione.iscon;
+  if (ic) {
+    const D = ISCON[ic.versione], l = ic.l ?? (d.H || 0), kmU = ic.materiale === "solido" ? km.solido : 1, nIso = x.separazione.kcUno ? 1 : Math.max(1, nCalate || 1);
+    const kcI = x.separazione.kcUno ? 1 : kc, sRic = l > 0 ? distanzaSeparazione(ki, kcI, kmU, l) : 0, v = verificaIscon(ic.versione, sRic, ic.materiale), corr = ammessaPerCorrente(ic.versione, lpl, nIso);
+    const gr = !!ic.esigenze?.tensioniContatto && ic.versione === "proplus";
+    B.push(h2("13.3.1 Calate isolate con conduttore OBO isCon"),
+      p(`Dove la distanza di separazione non si può rispettare in aria si impiega il conduttore isolato ad alta tensione ${D.nome}${gr ? " GR (grigio chiaro)" : ""}, provato secondo ${ISCON_COMUNE.norma}: classe di corrente ${D.classe} (${D.iimp} kA, 10/350 µs), distanza di separazione equivalente ${it(D.sAria, 2)} m in aria e ${it(D.sSolido, 2)} m in materiale solido.`),
+      tab(["Grandezza", "Valore"], [
+        ["Lunghezza l fino al collegamento equipotenziale", `${it(l, 2)} m`],
+        ["s richiesta = ki × kc / km × l", `${it(ki, 3)} × ${it(kcI, 3)} / ${it(kmU, 2)} × ${it(l, 2)} = ${it(sRic, 3)} m`],
+        [`s equivalente ${D.nome} (${ic.materiale === "aria" ? "aria" : "solido"})`, `${it(v.sEq, 2)} m`],
+        ["Lunghezza massima con questa versione", `${it(lunghezzaMassima(ic.versione, ki, kcI, kmU), 2)} m`],
+        ["Esito", v.conforme && corr ? "Conforme" : [{ t: corr ? "Non conforme: s richiesta maggiore della distanza equivalente" : "Non conforme: con LPL I e una calata serve la classe H2 (Premium 90)", b: true }]],
+      ], [7, 5]),
+      p(`Posa: ${D.equipotenziale.nota} Diametro esterno ${gr ? D.diametro.grigio ?? D.diametro.nero : D.diametro.nero} mm, raggio minimo di curvatura ${gr ? D.raggioCurvatura.grigio ?? D.raggioCurvatura.nero : D.raggioCurvatura.nero} mm; fissaggio al palo di captazione con supporti ogni 1 m al massimo (isCon HM SET); solo componenti OBO provati con il conduttore.`));
+    if (gr) B.push(p(`Protezione dalle tensioni di contatto: il conduttore Pro+ 75 GR resiste a 100 kV (1,2/50 µs) sotto pioggia; tratto protetto al massimo ${ISCON_GR_CONTATTO.lunghezzaMax} m, guaina collegata al supporto metallico isCon H VA dopo ${it(ISCON_GR_CONTATTO.collegamentoGuaina, 1)} m dal collegamento superiore.`));
+  }
   // terra
   B.push(h2("13.4 Impianto di terra"));
   const pic = x.picchetti, t = x.terra;

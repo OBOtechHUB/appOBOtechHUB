@@ -2,6 +2,19 @@
   "nota": "Registro degli aggiornamenti di Progettazione LPS. Una voce per aggiornamento, la più recente per prima (app: lps). Viene mostrato nella barra \"Aggiorna app\", nel riquadro Novità e nella pagina Novità di OBO Hub. Le novità solo grafiche (animazioni, sigle, aspetto) non si mostrano: restano conservate in 'grafica_non_mostrata'.",
   "aggiornamenti": [
     {
+      "id": "2026-11-26-lps-61",
+      "data": "2026-11-26",
+      "app": "lps",
+      "titolo": "Calate isolate isCon con i dati dei certificati OBO",
+      "voci": [
+        "Distanze equivalenti, classe di corrente (H1 150 kA, Premium 90 H2 200 kA), diametri e raggi di curvatura presi dai certificati OBO isCon (IEC TS 62561-8)",
+        "Guida alla scelta OBO in Calate: verniciabile, zona ATEX, protezione meccanica, tensioni di contatto → versione e colore consigliati (Basic 45, Pro 75, Pro+ 75 SW/GR, Premium 90)",
+        "Con LPL I e una sola calata isolata l'app chiede la classe H2 (Premium 90); lunghezze massime come la tabella OBO",
+        "Indicazioni di posa: collegamenti equipotenziali, zona di controllo del potenziale, set di supporti isCon HM SET ed estensione per pali oltre 6 m",
+        "Nuovo capitolo della relazione tecnica «Calate isolate con conduttore OBO isCon» con verifica ed esito"
+      ]
+    },
+    {
       "id": "2026-11-25-lps-60",
       "data": "2026-11-25",
       "app": "lps",

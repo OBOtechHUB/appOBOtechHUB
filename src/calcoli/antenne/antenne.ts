@@ -7,7 +7,7 @@
  */
 import parametri from "@/dati/captazione/parametriLPL.json";
 import { KI, distanzaSeparazione, type Livello } from "@/calcoli/calate/separazione";
-import { versioneMinima, type VersioneIscon } from "@/calcoli/calate/iscon";
+import { ISCON, versioneMinima, type VersioneIscon } from "@/calcoli/calate/iscon";
 
 export type TipoSito = "tetto" | "palo" | "traliccio";
 export const NOMI_SITO: Record<TipoSito, string> = {
@@ -83,8 +83,8 @@ export function calcolaAntenne(d: DatiAntenne): RisultatoAntenne {
   const add = (testo: string, rif: string, obbligatoria = true) => misure.push({ testo, rif, obbligatoria });
   add(protette ? `Asta di captazione con la punta a ${fm(asta)} m sul piano: le antenne restano dentro il volume protetto (sfera r = ${r} m).` : `Asta troppo bassa: servono almeno ${fm(astaMinima)} m sul piano perché le antenne non siano colpite.`, "62305-3, sfera rotolante; 62305-4, B.11.2");
   add(s <= d.distanzaReale ? `Asta isolata dalle antenne: distanza reale ${fm(d.distanzaReale)} m ≥ s = ${fm(s, 3)} m.` : `Distanza reale ${fm(d.distanzaReale)} m minore di s = ${fm(s, 3)} m: allontana l'asta (supporti isolati più lunghi) oppure collega il palo delle antenne all'LPS.`, "62305-3, distanza di separazione s = ki · kc / km · l");
-  const ver = versioneMinima(s);
-  add(ver ? `Calata isolata: con un conduttore isCon la s richiesta (${fm(s, 3)} m in aria) è coperta dalla versione ${ver === "basic" ? "Basic" : ver === "proplus" ? "Professional plus" : "Premium"} o superiore.` : `s = ${fm(s, 3)} m supera la distanza equivalente di ogni conduttore isCon: accorcia il percorso fino al collegamento equipotenziale o aumenta le calate.`, "62305-3, 6.3; dati del conduttore OBO isCon", false);
+  const ver = versioneMinima(s, "aria", d.lpl, d.numeroCalate);
+  add(ver ? `Calata isolata: con un conduttore isCon la s richiesta (${fm(s, 3)} m in aria) è coperta dalla versione ${ISCON[ver].nome} o superiore${d.lpl === "I" && d.numeroCalate <= 1 ? " (LPL I con una calata: classe H2, 200 kA)" : ""}.` : `s = ${fm(s, 3)} m supera la distanza equivalente di ogni conduttore isCon: accorcia il percorso fino al collegamento equipotenziale o aumenta le calate.`, "62305-3, 6.3; certificati OBO isCon (IEC TS 62561-8)", false);
   if (d.tipo === "tetto") add(d.lpsEdificio ? "I supporti delle antenne vanno collegati all'LPS dell'edificio se non si rispetta la distanza di separazione." : "Edificio senza LPS: valuta il rischio dell'edificio con le antenne installate (altezza e linee nuove aumentano le fulminazioni).", "62305-4, B.11.2; 62305-2");
   if (d.cavi.coassiali) add("Schermo dei cavi coassiali collegato al palo in alto e all'ingresso nel locale apparati; SPD per antenne nel punto d'ingresso.", "62305-4, B.11 (Fig. B.5)");
   if (d.cavi.fibraMetallica) add("Fibra con parti metalliche (armatura, barriera, tirante): collega le parti metalliche alla barra equipotenziale all'ingresso.", "62305-4, B.12.3");

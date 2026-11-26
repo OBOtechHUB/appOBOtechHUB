@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { lunghezzaMassima, verificaIscon, versioneMinima } from "./iscon";
+import { ammessaPerCorrente, lunghezzaMassima, scegliIscon, verificaIscon, versioneMinima } from "./iscon";
 
 describe("conduttore isolato isCon", () => {
   it("verifica s richiesta contro s equivalente", () => {
@@ -15,5 +15,26 @@ describe("conduttore isolato isCon", () => {
   });
   it("lunghezza massima: LPL III, una calata (kc = 1), Pro+ in aria", () => {
     expect(lunghezzaMassima("proplus", 0.04, 1)).toBeCloseTo(18.75);
+  });
+  it("lunghezze massime come la tabella OBO (km = 1)", () => {
+    expect(lunghezzaMassima("basic", 0.06, 1)).toBeCloseTo(7.5, 2);
+    expect(lunghezzaMassima("pro", 0.06, 0.66)).toBeCloseTo(18.94, 2);
+    expect(lunghezzaMassima("premium", 0.06, 0.44)).toBeCloseTo(34.09, 2);
+    expect(lunghezzaMassima("premium", 0.08, 1)).toBeCloseTo(11.25, 2);
+    expect(lunghezzaMassima("pro", 0.04, 0.44)).toBeCloseTo(42.61, 2);
+  });
+  it("LPL I con una sola calata: solo Premium 90 (H2, 200 kA)", () => {
+    expect(ammessaPerCorrente("proplus", "I", 1)).toBe(false);
+    expect(ammessaPerCorrente("premium", "I", 1)).toBe(true);
+    expect(ammessaPerCorrente("basic", "I", 2)).toBe(true);
+    expect(versioneMinima(0.3, "aria", "I", 1)).toBe("premium");
+  });
+  it("guida alla scelta OBO", () => {
+    expect(scegliIscon({ sAria: 0.8 })?.versione).toBe("premium");
+    expect(scegliIscon({ sAria: 0.4 })?.versione).toBe("basic");
+    expect(scegliIscon({ sAria: 0.6 })?.versione).toBe("pro");
+    expect(scegliIscon({ sAria: 0.4, atex: true })?.codice).toBe("5408002");
+    expect(scegliIscon({ sAria: 0.4, tensioniContatto: true })?.colore).toBe("grigio chiaro");
+    expect(scegliIscon({ sAria: 1 })).toBeNull();
   });
 });
