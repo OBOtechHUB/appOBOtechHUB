@@ -23,3 +23,10 @@ describe("progetto e relazione antenne", () => {
     expect(doc.blocchi.some((b) => b.tipo === "immagine")).toBe(true);
   });
 });
+describe("schema SVG", () => {
+  it("attributi non ripetuti (SVG valido per il browser)", () => {
+    const P = calcolaProgettoAntenne({ ...palo80, struttura: "isolante" });
+    const svg = svgSchemaCalate(P.r.asta, 80, 77, P.ca, true, "terreno");
+    for (const tag of svg.match(/<[a-z]+ [^>]*>/g) ?? []) { const nomi = [...tag.matchAll(/ ([a-z-]+)="/g)].map((m) => m[1]); expect(new Set(nomi).size).toBe(nomi.length); }
+  });
+});

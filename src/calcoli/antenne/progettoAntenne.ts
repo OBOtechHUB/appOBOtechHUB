@@ -39,7 +39,7 @@ export function svgSchemaCalate(punta: number, sommita: number, apparatoBasso: n
   const W = 420, H = 520, top = 30, bot = 470, zMax = Math.max(punta, sommita, 1);
   const y = (z: number) => bot - (Math.max(0, z) / zMax) * (bot - top);
   const xP = 220, xI = 196, xA = 246, f = (v: number) => v.toLocaleString("it-IT", { maximumFractionDigits: 1 });
-  const t = (x: number, yy: number, s: string, extra = "") => `<text x="${x}" y="${yy}" font-family="Arial" font-size="13" fill="#282a31" ${extra}>${s}</text>`;
+  const t = (x: number, yy: number, s: string, colore = "#282a31", grassetto = false) => `<text x="${x}" y="${yy}" font-family="Arial" font-size="13" fill="${colore}"${grassetto ? ' font-weight="bold"' : ""}>${s.replace(/&/g, "&amp;").replace(/</g, "&lt;")}</text>`;
   const pae = ca.quotaPAE;
   const parti = [
     `<rect width="${W}" height="${H}" fill="#ffffff"/>`,
@@ -56,11 +56,11 @@ export function svgSchemaCalate(punta: number, sommita: number, apparatoBasso: n
     `<rect x="${xI - 18}" y="${y(pae + ca.zonaX)}" width="36" height="${Math.max(3, y(pae) - y(pae + ca.zonaX))}" fill="#f39b00" fill-opacity="0.2"/>`,
     `<line x1="40" x2="${W - 40}" y1="${y(pae)}" y2="${y(pae)}" stroke="#f39b00" stroke-width="2.5"/>`,
     `<rect x="${xI - 7}" y="${y(pae) - 7}" width="14" height="14" fill="#f39b00"/>`,
-    t(34, y(pae) - 8, `PAE ${f(pae)} m`, 'font-weight="bold" fill="#c47a00"'),
+    t(34, y(pae) - 8, `PAE ${f(pae)} m`, "#c47a00", true),
     t(34, (y(punta) + y(pae)) / 2 + 4, `l = ${f(ca.l)} m`),
     t(34, bot - 14, `isCon ${finoATerra ? "continuo fino a terra" : "fino al PAE"} · ${ca.n} ${ca.n === 1 ? "calata" : "calate"}`),
   );
-  for (const l of ca.livelli.filter((x) => x.tipo === "intermedio")) parti.push(`<line x1="50" x2="${W - 50}" y1="${y(l.quota)}" y2="${y(l.quota)}" stroke="#2b7de9" stroke-width="1.5" stroke-dasharray="6 5"/>`, t(34, y(l.quota) - 5, `${f(l.quota)} m`, 'fill="#2b7de9"'));
+  for (const l of ca.livelli.filter((x) => x.tipo === "intermedio")) parti.push(`<line x1="50" x2="${W - 50}" y1="${y(l.quota)}" y2="${y(l.quota)}" stroke="#2b7de9" stroke-width="1.5" stroke-dasharray="6 5"/>`, t(34, y(l.quota) - 5, `${f(l.quota)} m`, "#2b7de9"));
   return `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}">${parti.join("")}</svg>`;
 }
 export { ISCON };
