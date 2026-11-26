@@ -122,6 +122,15 @@
   --viewer-exposed: #dc4545;
   --viewer-protected: #28a861;
   --viewer-maglia: #2b7de9;
+  --viewer-parete: #e9edf0;
+  --viewer-tetto: #b5c2ca;
+  --viewer-falde: #b3654a;
+  --viewer-impianto: #6d7f8c;
+  --viewer-spigolo: #3c4a54;
+  --viewer-terreno: #d3dbd3;
+  --viewer-cielo-alto: #cfe3f1;
+  --viewer-cielo-basso: #f4f7f9;
+  --viewer-cemento: #a7abae;
   --google-background: #ffffff;
   --google-border: #747775;
   --google-foreground: #1f1f1f;
@@ -195,6 +204,15 @@
   /* tema scuro OBO Hub: ardesia + arancio (uguale in OBO Hub, Mappa carichi e Progettazione LPS) */
   color-scheme: dark;
   --viewer-terra: #bd8d59;
+  --viewer-parete: #c9d1d7;
+  --viewer-tetto: #8ea2ae;
+  --viewer-falde: #9c5a43;
+  --viewer-impianto: #5d6f7b;
+  --viewer-spigolo: #1b2227;
+  --viewer-terreno: #2c3530;
+  --viewer-cielo-alto: #0f1a24;
+  --viewer-cielo-basso: #27323b;
+  --viewer-cemento: #7d8285;
   --exposed: oklch(0.65 0.21 25);
   --protected: oklch(0.70 0.17 150);
   --background: #1b1f23;

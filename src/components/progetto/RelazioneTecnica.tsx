@@ -11,6 +11,7 @@ import { DESTINAZIONI } from "@/calcoli/relazione/destinazioni";
 import { IPE } from "@/calcoli/relazione/putrelle";
 import { useComputo, useDatiEdificio } from "@/lib/progettoStore";
 import { aggiornaEsteso, leggiAttivo, useEsteso } from "@/lib/statoProgetto";
+import { visteRelazione } from "@/lib/viste3d";
 import { leggiStato, strutturaRischio } from "@/lib/statoRischio";
 import { relazioneTecnica, datiRelazioneVuoti, type DatiRelazione } from "@/calcoli/relazione/relazioneTecnica";
 import { creaDocx, rasterizza, type Documento, type ImmaginePdf, type Testo } from "@/lib/docx";
@@ -170,6 +171,8 @@ export function RelazioneTecnica({ righe, mancanti, particolari }: { righe: Riga
           logoCommittente: logoComm ? await preparaImmagine(logoComm, false, 800) : undefined,
           foto: [
             ...(await Promise.all(foto.map(async (f) => ({ img: await preparaImmagine(f.file, true), didascalia: f.didascalia })))),
+            // viste 3D salvate in Edificio 3D con «Usa nella relazione»
+            ...(await Promise.all((await visteRelazione(leggiAttivo()?.id ?? "locale")).map(async (v) => ({ img: await preparaImmagine(v.immagine, true, 2000), didascalia: v.didascalia })))),
             // foto del sopralluogo da tablet (pagina Sopralluogo), quelle segnate "in relazione"
             ...(await Promise.all((s.sopralluogo?.foto ?? []).filter((f) => f.inRelazione).map(async (f) => { const b = await scaricaFoto(f.percorso); return b ? { img: await preparaImmagine(b, true), didascalia: f.didascalia } : null; }))).filter((x): x is { img: ImmagineIn; didascalia: string } => !!x),
           ],
