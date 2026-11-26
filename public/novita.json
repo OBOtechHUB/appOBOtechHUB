@@ -2,6 +2,17 @@
   "nota": "Registro degli aggiornamenti di Progettazione LPS. Una voce per aggiornamento, la più recente per prima (app: lps). Viene mostrato nella barra \"Aggiorna app\", nel riquadro Novità e nella pagina Novità di OBO Hub. Le novità solo grafiche (animazioni, sigle, aspetto) non si mostrano: restano conservate in 'grafica_non_mostrata'.",
   "aggiornamenti": [
     {
+      "id": "2026-11-26-lps-70",
+      "data": "2026-11-26",
+      "app": "lps",
+      "titolo": "Antenne: isolare il più in basso possibile e come migliora con più cavi",
+      "voci": [
+        "Scelta «Fin dove isolare»: sotto l'antenna più bassa oppure il più in basso possibile, per tenere fuori dalla corrente di fulmine anche gli apparecchi a bordo del palo",
+        "Nuovo riquadro «Come migliora con più cavi»: spiegazione e barre con fin dove arriva la fine del cavo con 1, 2, 3, 4 cavi, metri isolati, kc, corrente per cavo e metri di cavo",
+        "Le stesse informazioni anche nella relazione tecnica"
+      ]
+    },
+    {
       "id": "2026-11-26-lps-69",
       "data": "2026-11-26",
       "app": "lps",
