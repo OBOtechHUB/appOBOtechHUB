@@ -2,6 +2,19 @@
   "nota": "Registro degli aggiornamenti di Progettazione LPS. Una voce per aggiornamento, la più recente per prima (app: lps). Viene mostrato nella barra \"Aggiorna app\", nel riquadro Novità e nella pagina Novità di OBO Hub. Le novità solo grafiche (animazioni, sigle, aspetto) non si mostrano: restano conservate in 'grafica_non_mostrata'.",
   "aggiornamenti": [
     {
+      "id": "2026-11-26-lps-68",
+      "data": "2026-11-26",
+      "app": "lps",
+      "titolo": "Antenne: scegli calate e versione isCon con il confronto",
+      "voci": [
+        "Pulsanti per scegliere le calate in parallelo (automatico, 1, 2, 3, 4) e la versione isCon (Basic 45, Pro+ 75, Premium 90 o la più semplice)",
+        "Tabella con tutte le combinazioni: se basta, quota del PAE, l e l massima, s, metri di isCon, collegamenti e corrente per calata; tocca una casella per sceglierla",
+        "«Cosa cambia»: cosa migliora aggiungendo una calata e cosa costa in più",
+        "Numero dei collegamenti equipotenziali (PAE) da fare, anche nella relazione, con la spiegazione di quando basta un solo livello di PAE",
+        "La isCon Pro 75 normale non è più proposta (Antenne, Impianti su palo, Calate); i progetti che la usano restano come sono"
+      ]
+    },
+    {
       "id": "2026-11-26-lps-67",
       "data": "2026-11-26",
       "app": "lps",
