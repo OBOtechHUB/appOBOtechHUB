@@ -126,7 +126,7 @@ export function calateIsconAltezza(d: DatiCalateAltezza): RisultatoCalateAltezza
   const conPAE = s >= 0.2;
   const livelli: LivelloEquipotenziale[] = [];
   livelli.push({ quota: top, tipo: "principale", titolo: "Collegamento superiore all'asta", cosa: [
-    "Elemento di collegamento isCon sull'asta (connect 5408022, con 2 5408021 o con PRE 5408023 secondo la versione; ASE 23 5408080 se si vuole la prova di isolamento, con Pro+ e Premium); sull'asta la piastra AP1-16 VA o AP2-16 VA.",
+    "Elemento di collegamento isCon sull'asta (connect 5408022, con 2 5408021 o con PRE 5408023 secondo la versione; ASE 23 5408080 se si vuole la prova di isolamento, con Pro+ e Premium); sull'asta la piastra AP1-16 VA o AP2-16 VA, oppure la piastra di contatto del set isCon HM (5408090) sull'asta di captazione.",
     `Tratto di 1,5 m sotto il collegamento (asta centrale in vetroresina isFang) senza parti conduttrici entro s = ${f(s, 3)} m; poi il potenziale della guaina si collega con l'elemento interno dell'asta o con la molletta 927 2 6-K.`,
     `Antenne e parti metalliche ad almeno s = ${f(s, 3)} m dalle parti nude (punta, asta, collegamento superiore).`,
   ] });

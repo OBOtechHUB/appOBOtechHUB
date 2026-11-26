@@ -22,6 +22,7 @@ import { ACCESSORI_ISCON, ISCON, VERSIONI_PROPOSTE, verificaIscon, versioniScelt
 import type { Livello } from "@/calcoli/calate/separazione";
 import { NOMI_STRUTTURA, confrontoCalate, cosaMigliora, scendiConPiuCavi, type StrutturaSostegno } from "@/calcoli/calate/isconAltezza";
 import { SchemaCalateAltezza } from "@/components/antenne/SchemaCalateAltezza";
+import { svgParticolareAsta } from "@/calcoli/antenne/astaIscon";
 
 const f = (v: number, c = 2) => (Number.isFinite(v) ? v.toLocaleString("it-IT", { minimumFractionDigits: c, maximumFractionDigits: c }) : "—");
 
@@ -180,10 +181,21 @@ export function AntennePage() {
               <p className="font-semibold"><span className="mr-2 rounded-full bg-primary px-2 py-0.5 text-xs text-primary-foreground">{f(l.quota, 2)} m</span>{l.titolo}</p>
               <ul className="mt-1 list-disc space-y-0.5 pl-5">{l.cosa.map((c, k) => <li key={k}>{c}</li>)}</ul>
             </li>)}</ol>}
-            {ca.materiali.length > 0 && <div className="mt-4 overflow-x-auto"><table className="w-full min-w-[420px] text-sm"><thead><tr className="border-b text-left"><th className="p-2">Codice</th><th className="p-2">Materiale</th><th className="p-2 text-right">Quantità</th></tr></thead>
-              <tbody>{ca.materiali.map((m, i) => <tr key={i} className="border-b"><td className="p-2 font-mono text-xs">{m.codice || "—"}</td><td className="p-2">{m.descrizione}</td><td className="p-2 text-right font-mono">{m.quantita} {m.unita}</td></tr>)}</tbody></table></div>}
+            {P.materiali.length > 0 && <div className="mt-4 overflow-x-auto"><table className="w-full min-w-[420px] text-sm"><thead><tr className="border-b text-left"><th className="p-2">Codice</th><th className="p-2">Materiale</th><th className="p-2 text-right">Quantità</th></tr></thead>
+              <tbody>{P.materiali.map((m, i) => <tr key={i} className="border-b"><td className="p-2 font-mono text-xs">{m.codice || "—"}</td><td className="p-2">{m.descrizione}</td><td className="p-2 text-right font-mono">{m.quantita} {m.unita}</td></tr>)}</tbody></table></div>}
           </div>
         </div>
+        {P.asta && <section className="mt-4 rounded-lg border bg-card p-3" aria-label="Particolare dell'asta">
+          <h3 className="font-semibold">Particolare dell'asta: calate isCon fissate con il set isCon HM</h3>
+          <div className="mt-2 grid gap-4 md:grid-cols-[minmax(0,340px)_1fr]">
+            <img src={`data:image/svg+xml;charset=utf-8,${encodeURIComponent(svgParticolareAsta(P.asta))}`} alt="Particolare dell'asta con piastra di contatto, supporti, fascetta e fascetta di terra" className="w-full max-w-[340px] rounded-md border bg-white" />
+            <div className="text-sm">
+              {P.asta.setApplicabile && <p className="font-semibold">Asta da {P.asta.lunghezza} m · set HM SET 5408090{P.asta.estensioni ? " + estensione HM ERW 5408094" : ""} · {P.asta.supporti} supporti · {P.asta.fascetteTerra} {P.asta.fascetteTerra === 1 ? "fascetta" : "fascette"} di terra 927 2 6-K</p>}
+              <ul className="mt-1 list-disc space-y-1 pl-5">{P.asta.note.map((n, i) => <li key={i}>{n}</li>)}</ul>
+              <p className="mt-2 text-xs text-muted-foreground">Dalle istruzioni di montaggio OBO del set isCon HM SET (5408090) e del set di estensione HM ERW (5408094). I materiali sono già nella tabella sopra e nel computo.</p>
+            </div>
+          </div>
+        </section>}
       </section>
 
       <section className="mt-10" aria-label="Linee e terra">

@@ -7,6 +7,7 @@ import { calcolaAntenne, type DatiAntenne, type RisultatoAntenne } from "./anten
 import { calateIsconAltezza, type DatiCalateAltezza, type RisultatoCalateAltezza } from "@/calcoli/calate/isconAltezza";
 import { CORRENTE_LPL } from "./palo";
 import { ISCON } from "@/calcoli/calate/iscon";
+import { particolareAsta, type ParticolareAsta } from "./astaIscon";
 
 export interface RigaMateriale { codice: string; descrizione: string; quantita: number; unita: "m" | "pz"; categoria: "calate" | "morsetti" | "supporti" | "accessori" | "captazione" }
 export interface ProgettoAntenne {
@@ -14,6 +15,8 @@ export interface ProgettoAntenne {
   /** corrente di fulmine per conduttore (kA) con la soluzione scelta */
   correntePerConduttore: number | null;
   materiali: RigaMateriale[];
+  /** particolare dell'asta con il set di supporti isCon HM */
+  asta: ParticolareAsta | null;
 }
 
 export function calcolaProgettoAntenne(d: DatiAntenne): ProgettoAntenne {
@@ -28,9 +31,13 @@ export function calcolaProgettoAntenne(d: DatiAntenne): ProgettoAntenne {
   const r = lAuto ? calcolaAntenne({ ...d, lunghezzaCalata: lUsata }) : r0;
   const correntePerConduttore = ca.fattibile ? CORRENTE_LPL[d.lpl] * (ca.n <= 1 ? 1 : ca.n === 2 ? 0.66 : 0.44) : null;
   const cat = (codice: string, descr: string): RigaMateriale["categoria"] => (codice === "5408058" ? "accessori" : /piastra|collegamento/i.test(descr) ? "morsetti" : /supporti/i.test(descr) ? "supporti" : "calate");
-  const materiali: RigaMateriale[] = ca.materiali.map((m) => ({ codice: m.codice, descrizione: m.descrizione, quantita: m.quantita, unita: m.unita === "m" ? "m" : "pz", categoria: cat(m.codice, m.descrizione) }));
+  const asta = ca.fattibile && r.protette ? particolareAsta(r.asta, d.sommita, ca.n) : null;
+  // con il set HM la piastra di contatto è compresa: niente piastre AP1/AP2 a parte
+  const conSet = asta?.setApplicabile === true;
+  const materiali: RigaMateriale[] = ca.materiali.filter((m) => !(conSet && /^54080(26|28)$/.test(m.codice))).map((m) => ({ codice: m.codice, descrizione: m.descrizione, quantita: m.quantita, unita: m.unita === "m" ? "m" : "pz", categoria: cat(m.codice, m.descrizione) }));
+  if (asta) materiali.push(...asta.materiali.map((m): RigaMateriale => ({ ...m, categoria: /fascetta di terra/i.test(m.descrizione) ? "morsetti" : /guaina/i.test(m.descrizione) ? "accessori" : "supporti" })));
   if (r.protette) materiali.unshift({ codice: "", descrizione: `Asta di captazione con la punta a ${r.asta.toLocaleString("it-IT", { maximumFractionDigits: 2 })} m (${(r.asta - d.sommita).toLocaleString("it-IT", { maximumFractionDigits: 2 })} m sopra le antenne), supporto isolato sul palo`, quantita: 1, unita: "pz", categoria: "captazione" });
-  return { r, ca, datiCalate, apparatoBasso, lAuto, lUsata, correntePerConduttore, materiali };
+  return { r, ca, datiCalate, apparatoBasso, lAuto, lUsata, correntePerConduttore, materiali, asta };
 }
 
 /** Schema verticale delle calate in SVG (colori fissi, per la relazione Word). */

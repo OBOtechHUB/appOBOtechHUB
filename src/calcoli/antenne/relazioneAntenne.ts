@@ -12,6 +12,7 @@ import { NOMI_STRUTTURA, scendiConPiuCavi } from "@/calcoli/calate/isconAltezza"
 import { NOMI_SITO, type DatiAntenne } from "./antenne";
 import { CORRENTE_LPL } from "./palo";
 import { calcolaProgettoAntenne, svgSchemaCalate } from "./progettoAntenne";
+import { svgParticolareAsta } from "./astaIscon";
 
 export interface IngressoRelazioneAntenne {
   dati: DatiAntenne;
@@ -85,6 +86,10 @@ export function relazioneAntenne(x: IngressoRelazioneAntenne): Documento {
       { tipo: "immagine", svg: svgSchemaCalate(r.asta, d.sommita, P.apparatoBasso, ca, continuo, piano), larghezza: 9, altezza: 11.1, allinea: "centro" },
       p("Figura – Schema verticale (non in scala orizzontale): asta, antenne, cavo isCon fino al collegamento sul palo, tratto x del terminale PAE, livelli equipotenziali e base.", { allinea: "centro", dimensione: 9 }),
     );
+    if (P.asta) B.push(h2("Particolare dell'asta: fissaggio delle calate isCon"),
+      { tipo: "immagine", svg: svgParticolareAsta(P.asta), larghezza: 10, altezza: 10.8, allinea: "centro" },
+      p("Figura – Particolare dell'asta di captazione: piastra di contatto, supporti delle calate, fascetta MBS 100 A2 e fascetta di terra alla muffa di collegamento (set isCon HM).", { allinea: "centro", dimensione: 9 }),
+      el(...P.asta.note));
     for (const l of ca.livelli) B.push(h2(`${l.titolo} – quota ${it(l.quota, 2)} m`), el(...l.cosa));
     if (ca.avvisi.length) B.push(h2("Note di posa e sul tratto sotto il collegamento"), el(...ca.avvisi));
   } else {
