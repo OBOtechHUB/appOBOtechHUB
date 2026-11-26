@@ -27,4 +27,10 @@ describe("calate isCon da grande altezza", () => {
     expect(r.lMassimaPossibile).toBeCloseTo(0.9 / (0.04 * 0.44), 3);
     expect(r.quotaPAEMinima).toBeCloseTo(87.4 - 0.9 / (0.04 * 0.44), 3);
   });
+  it("isCon continuo fino a terra su palo metallico: niente tagli, materiali per tutta l'altezza", () => {
+    const r = calateIsconAltezza({ ...base, isconFinoATerra: true });
+    expect(r.fattibile).toBe(true);
+    expect(r.materiali[0]!.quantita).toBe(Math.ceil(87.4 + 1));
+    expect(r.avvisi.some((a) => /non si taglia/.test(a))).toBe(true);
+  });
 });

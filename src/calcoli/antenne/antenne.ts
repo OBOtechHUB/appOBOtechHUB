@@ -62,6 +62,8 @@ export interface DatiAntenne {
   struttura?: "metallica" | "armata" | "isolante" | undefined;
   distanzaImpianti?: number | undefined;
   isconFinoATerra?: boolean | undefined;
+  /** l della verifica presa dal calcolo delle calate da grande altezza (true o assente) */
+  lAuto?: boolean | undefined;
   ki: number | null;
   /** linee che arrivano agli apparati */
   cavi: { coassiali: boolean; fibraMetallica: boolean; fibraDielettrica: boolean; alimentazione: boolean };

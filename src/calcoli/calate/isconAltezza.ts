@@ -39,7 +39,7 @@ export interface DatiCalateAltezza {
   materiale: "aria" | "solido";
   /** con struttura non conduttiva: distanza disponibile tra calate nude e impianti interni o cavi (m) */
   distanzaImpianti: number;
-  /** con struttura non conduttiva: isCon fino a terra invece di calate nude sotto il PAE */
+  /** isCon continuo dalla punta fino a terra (il cavo non si taglia al PAE): con struttura non conduttiva sostituisce le calate nude */
   isconFinoATerra: boolean;
 }
 
@@ -111,6 +111,9 @@ export function calateIsconAltezza(d: DatiCalateAltezza): RisultatoCalateAltezza
         "Schermi dei cavi e parti metalliche della stessa quota collegati allo stesso anello.",
         `Tra due livelli al massimo ${f(passo, 1)} m (s = ${f((ki * kc * h) / km, 3)} m ≤ ${d.isconFinoATerra ? `${f(D.sAria * (km < 1 ? 2 : 1))} m dell'isCon` : `${f(d.distanzaImpianti)} m disponibili`}).`,
       ] });
+    } else if (d.isconFinoATerra) {
+      avvisi.push(`Il cavo isCon non si taglia: prosegue intero dalla punta fino al dispersore (${f(top - base, 1)} m), fissato ${d.struttura === "metallica" ? "al palo o traliccio" : "alla struttura"}. Al PAE il conduttore interno si collega ${d.struttura === "metallica" ? "al palo" : "ai ferri"}: da lì in giù cavo e struttura portano insieme la corrente, quindi non servono altri collegamenti intermedi né altre verifiche della distanza.`);
+      avvisi.push(`La verifica vale solo per i ${f(l, 1)} m sopra il PAE: senza il collegamento al PAE il tratto isolato sarebbe lungo ${f(top - base, 1)} m e nessun isCon basterebbe (s = ${f((ki * kc * (top - base)) / km, 2)} m).`);
     } else {
       avvisi.push(d.struttura === "metallica"
         ? "Sotto il PAE la corrente scende nel palo o traliccio (calata naturale): continuità dei giunti e collegamento a terra alla base, senza altri collegamenti intermedi."
@@ -124,9 +127,9 @@ export function calateIsconAltezza(d: DatiCalateAltezza): RisultatoCalateAltezza
   if (v === "proplus") avvisi.push("Con Pro+ 75 GR (grigio) la protezione dalle tensioni di contatto vale al massimo per 5 m, con la guaina collegata dopo 0,5 m dal collegamento superiore.");
   if (d.lpl === "I" && n === 1) avvisi.push("LPL I con una sola calata isolata: serve la classe H2 (200 kA), cioè Premium 90.");
   if (!verificaIscon(v, s, d.materiale).conforme) avvisi.push("Controllo: s supera la distanza equivalente dell'isCon.");
-  const metriIsconPerCalata = l + (d.struttura === "isolante" && d.isconFinoATerra ? sotto : 0) + 1;
+  const metriIsconPerCalata = l + (d.isconFinoATerra ? sotto : 0) + 1;
   const materiali: RisultatoCalateAltezza["materiali"] = [
-    { codice: D.codici[0]!.codice, descrizione: `${D.nome} – ${n} ${n === 1 ? "calata" : "calate"} (l ${f(l, 1)} m${d.struttura === "isolante" && d.isconFinoATerra ? ` + ${f(sotto, 1)} m fino a terra` : ""} + 1 m di riserva per calata)`, quantita: Math.ceil(metriIsconPerCalata * n), unita: "m" },
+    { codice: D.codici[0]!.codice, descrizione: `${D.nome} – ${n} ${n === 1 ? "calata" : "calate"} (l ${f(l, 1)} m${d.isconFinoATerra ? ` + ${f(sotto, 1)} m fino a terra, senza tagli` : ""} + 1 m di riserva per calata)`, quantita: Math.ceil(metriIsconPerCalata * n), unita: "m" },
     n >= 2 ? { codice: "5408028", descrizione: "Piastra di collegamento per due conduttori isCon (al PAE)", quantita: Math.ceil(n / 2) * (1 + livelli.filter((x) => x.tipo === "intermedio").length * (d.isconFinoATerra ? 1 : 0)), unita: "pz" }
       : { codice: "5408026", descrizione: "Piastra di collegamento per un conduttore isCon (al PAE)", quantita: 1 + livelli.filter((x) => x.tipo === "intermedio").length * (d.isconFinoATerra ? 1 : 0), unita: "pz" },
     { codice: "", descrizione: "Supporti per isCon lungo il percorso, al massimo ogni 1 m", quantita: Math.ceil(metriIsconPerCalata) * n, unita: "pz" },
