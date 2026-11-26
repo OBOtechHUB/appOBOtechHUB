@@ -249,7 +249,7 @@ function bbox(poli: Punto2[]) {
 type Ruolo = "piano" | "falda" | "colmo";
 interface Linea { punti: Punto3[]; ruolo: Ruolo }
 
-function magliaTettoPiano(c: Corpo, lato: number, dz: number): Punto3[][] {
+export function magliaTettoPiano(c: Corpo, lato: number, dz: number): Punto3[][] {
   const z = (c.quotaBase ?? 0) + c.altezzaGronda + dz;
   const out: Punto3[][] = [];
   // perimetro chiuso
@@ -269,7 +269,7 @@ function magliaTettoPiano(c: Corpo, lato: number, dz: number): Punto3[][] {
   return out;
 }
 
-function captazioneFalde(c: Corpo, lato: number, dz: number): Punto3[][] {
+export function captazioneFalde(c: Corpo, lato: number, dz: number): Punto3[][] {
   const base = c.quotaBase ?? 0;
   const g = base + c.altezzaGronda + dz;
   const k = base + (c.altezzaColmo ?? c.altezzaGronda) + dz;
@@ -298,7 +298,7 @@ function captazioneFalde(c: Corpo, lato: number, dz: number): Punto3[][] {
 }
 
 /** Calate: spigoli + intermedie, distanza ≤ dMax lungo il perimetro, esclusi i lati in comune. */
-function proponiCalate(corpi: Corpo[], dMax: number): { punto: Punto2; zTesta: number }[] {
+export function proponiCalate(corpi: Corpo[], dMax: number): { punto: Punto2; zTesta: number }[] {
   const out: { punto: Punto2; zTesta: number }[] = [];
   const presente = (p: Punto2) => out.some((q) => Math.hypot(q.punto[0] - p[0], q.punto[1] - p[1]) < 0.5);
   corpi.forEach((c, ci) => {
