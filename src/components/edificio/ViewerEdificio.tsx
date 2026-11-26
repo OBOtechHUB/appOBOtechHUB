@@ -13,13 +13,14 @@ import {MarcatoriParticolari} from "@/components/particolari/MarcatoriParticolar
 import type {AstaCAD,ComponenteCAD,ConduttoreCAD,PicchettoCAD} from "@/calcoli/cad/esportaCAD";
 import {coloreMateriale,corpiInCopertura,etichettaCorpo,giornoDellAnno,posizioneSole,vistaCamera,type Limiti3D,type VistaPredefinita} from "@/calcoli/edificio/vista3d";
 import {Asta3D,Componenti3D,ConduttoriTubi,ControlloCamera,CorpoMesh,Fotografo,Luci,Picchetto3D,ScalaGrafica,Terreno,type Componente3D,type RichiestaCamera,type StileScena} from "./Scena3D";
+import {agganciaSpostamento} from "@/calcoli/captazione/modificaManuale";
 import {salvaVista3D,togliDallaRelazione,visteRelazione,type Vista3D} from "@/lib/viste3d";
 export type InviluppoGriglia={x0:number;y0:number;passo:number;nx:number;ny:number;z:number[][]};
 export type PropostaViewer={conduttori:ConduttoreCAD[];aste:AstaCAD[];supporti:ComponenteCAD[];morsetti:ComponenteCAD[];compensatori?:ComponenteCAD[]};
-export type SelezioneViewer={tipo:"asta"|"conduttore"|"picchetto";id:string}|null;
+export type SelezioneViewer={tipo:"asta"|"conduttore"|"picchetto"|"corpo";id:string}|null;
 export type TrattoColorato={a:Punto3;b:Punto3;colore:string};
 export type EtichettaViewer={p:Punto3;testo:string;colore:string};
-type Props={selezione?:SelezioneViewer;onSeleziona?:(s:SelezioneViewer)=>void;onTrascina?:(id:string,p:Punto3)=>void;spostabile?:boolean;trattiColorati?:TrattoColorato[];etichette?:EtichettaViewer[];particolari?:MarcatoreParticolare[];onParticolare?:(id:string)=>void;picchetti?:PicchettoCAD[];propostaTerra?:PropostaTerra|null;modello:ModelloEdificio;aste:Asta[];conduttori:Conduttore[];alto:boolean;misura:boolean;onPunto:(p:Punto3)=>void;risultato?:RisultatoSfera|undefined;combinata?:RisultatoCombinato|undefined;maglia?:RisultatoMaglia|null|undefined;mostraMaglie?:boolean;magliaEvidenziata?:number|null;inviluppo?:InviluppoGriglia|undefined;mostraInviluppo:boolean;anima:boolean;centriSfera:Punto3[];posizioneSfera:number;suggerite:Asta[];proposta?:PropostaViewer|null|undefined;
+type Props={onSpostaCorpo?:(id:string,dx:number,dy:number)=>void;selezione?:SelezioneViewer;onSeleziona?:(s:SelezioneViewer)=>void;onTrascina?:(id:string,p:Punto3)=>void;spostabile?:boolean;trattiColorati?:TrattoColorato[];etichette?:EtichettaViewer[];particolari?:MarcatoreParticolare[];onParticolare?:(id:string)=>void;picchetti?:PicchettoCAD[];propostaTerra?:PropostaTerra|null;modello:ModelloEdificio;aste:Asta[];conduttori:Conduttore[];alto:boolean;misura:boolean;onPunto:(p:Punto3)=>void;risultato?:RisultatoSfera|undefined;combinata?:RisultatoCombinato|undefined;maglia?:RisultatoMaglia|null|undefined;mostraMaglie?:boolean;magliaEvidenziata?:number|null;inviluppo?:InviluppoGriglia|undefined;mostraInviluppo:boolean;anima:boolean;centriSfera:Punto3[];posizioneSfera:number;suggerite:Asta[];proposta?:PropostaViewer|null|undefined;
   /** supporti e morsetti del progetto, disegnati a grandezza reale */
   supporti?:Componente3D[]|undefined;morsetti?:Componente3D[]|undefined;
   /** vista ridotta (confronto dei livelli): niente ombre, comandi e cubo */
@@ -111,7 +112,7 @@ const CHIAVE_PREF="lps-vista3d";
 function leggiPref():PrefVista{try{const v=JSON.parse(localStorage.getItem(CHIAVE_PREF)??"null") as Partial<PrefVista>|null;return {...PREF,...(v??{})};}catch{return PREF;}}
 const btn="inline-flex h-8 min-w-8 items-center justify-center gap-1 rounded-md border bg-background/90 px-2 text-xs font-semibold shadow-sm hover:bg-accent hover:text-accent-foreground";
 export default function ViewerEdificio(props:Props){
-  const [c,setC]=useState<ReturnType<typeof colors>|null>(null);const [trascina,setTrascina]=useState<string|null>(null);const [punti,setPunti]=useState<Punto3[]>([]);const [ready,setReady]=useState(false);
+  const [c,setC]=useState<ReturnType<typeof colors>|null>(null);const [trascina,setTrascina]=useState<string|null>(null);const [punti,setPunti]=useState<Punto3[]>([]);const [ready,setReady]=useState(false);const [deltaCorpo,setDeltaCorpo]=useState<{id:string;d:[number,number]}|null>(null);const presa=useRef<{id:string;piano:THREE.Plane;p0:THREE.Vector3}|null>(null);
   const [pref,setPrefStato]=useState<PrefVista>(PREF);const [richiesta,setRichiesta]=useState<RichiestaCamera|null>(null);const [stato,setStato]=useState("");const [viste,setViste]=useState<(Vista3D&{url:string})[]>([]);const [didascalia,setDidascalia]=useState("Vista 3D dell'edificio con l'impianto di protezione contro i fulmini");
   const barra=useRef<HTMLDivElement|null>(null),testoScala=useRef<HTMLSpanElement|null>(null),scatta=useRef<((tipo:"image/png"|"image/jpeg")=>Promise<Blob|null>)|null>(null),nRich=useRef(0),camRef=useRef<THREE.Camera|null>(null),targetRef=useRef<THREE.Vector3|null>(null);
   const semplice=!!props.semplice;
@@ -132,16 +133,20 @@ export default function ViewerEdificio(props:Props){
   const caricaViste=useCallback(async()=>{if(!props.chiaveViste)return;const l=await visteRelazione(props.chiaveViste);setViste((prima)=>{prima.forEach((v)=>URL.revokeObjectURL(v.url));return l.map((v)=>({...v,url:URL.createObjectURL(v.immagine)}));});},[props.chiaveViste]);
   useEffect(()=>{if(!semplice)void caricaViste();},[caricaViste,semplice]);
   if(!c)return <div className="viewer-canvas bg-secondary"/>;
-  function sposta(e:ThreeEvent<PointerEvent>){if(!trascina||!props.onTrascina)return;e.stopPropagation();props.onTrascina(trascina,[e.point.x,-e.point.z,e.point.y]);}
-  const fine=()=>{if(trascina)setTrascina(null);};
+  function sposta(e:ThreeEvent<PointerEvent>){const pr=presa.current;if(pr){e.stopPropagation();const v=new THREE.Vector3();if(!e.ray.intersectPlane(pr.piano,v))return;const k=props.modello.corpi.find((x)=>x.id===pr.id);if(!k)return;setDeltaCorpo({id:pr.id,d:agganciaSpostamento(k,props.modello.corpi,v.x-pr.p0.x,-(v.z-pr.p0.z))});return;}
+    if(!trascina||!props.onTrascina)return;e.stopPropagation();props.onTrascina(trascina,[e.point.x,-e.point.z,e.point.y]);}
+  const fine=()=>{if(trascina)setTrascina(null);const pr=presa.current;if(pr){presa.current=null;const d=deltaCorpo?.id===pr.id?deltaCorpo.d:null;setDeltaCorpo(null);if(d&&(d[0]||d[1]))props.onSpostaCorpo?.(pr.id,d[0],d[1]);}};
+  const clicCorpo=(id:string)=>(e:ThreeEvent<MouseEvent>)=>{if(props.spostabile&&props.onSeleziona){e.stopPropagation();props.onSeleziona({tipo:"corpo",id});return;}click(e);};
+  const presaCorpo=(id:string)=>(e:ThreeEvent<PointerEvent>)=>{if(!props.spostabile||!props.onSpostaCorpo||!selez("corpo",id))return;e.stopPropagation();presa.current={id,piano:new THREE.Plane(new THREE.Vector3(0,1,0),-e.point.y),p0:e.point.clone()};setDeltaCorpo({id,d:[0,0]});};
   const sel=(tipo:"asta"|"conduttore"|"picchetto",id:string)=>(e:ThreeEvent<MouseEvent>)=>{if(!props.onSeleziona)return;e.stopPropagation();props.onSeleziona({tipo,id});};
   const selez=(tipo:string,id:string)=>props.selezione?.tipo===tipo&&props.selezione.id===id;
   function click(e:ThreeEvent<MouseEvent>){e.stopPropagation();const p:Punto3=[e.point.x,-e.point.z,e.point.y];props.onPunto(p);if(props.misura)setPunti((prev)=>prev.length===1?[...prev,p]:[p]);}
   /** doppio clic: centra la vista sul punto, con la stessa distanza */
   function doppio(e:ThreeEvent<MouseEvent>){e.stopPropagation();const cam=camRef.current,t=targetRef.current;if(!cam||!t)return;const off=cam.position.clone().sub(t);setRichiesta({n:++nRich.current,posizione:[e.point.x+off.x,e.point.y+off.y,e.point.z+off.z],obiettivo:[e.point.x,e.point.y,e.point.z]});}
-  function inquadraSelezione(){const s=props.selezione;if(!s){setStato("Seleziona prima un'asta, un conduttore o un dispersore con «Seleziona e sposta».");return;}let p:THREE.Vector3|null=null;
+  function inquadraSelezione(){const s=props.selezione;if(!s){setStato("Seleziona prima un blocco, un'asta, un conduttore o un dispersore con «Seleziona e sposta».");return;}let p:THREE.Vector3|null=null;
     if(s.tipo==="asta"){const a=props.aste.find((x)=>x.id===s.id);if(a)p=new THREE.Vector3(a.x,a.z+a.altezza/2,-a.y);}
     else if(s.tipo==="conduttore"){const k=props.conduttori.find((x)=>x.id===s.id);const q=k?.punti[Math.floor((k.punti.length-1)/2)];if(q)p=new THREE.Vector3(q[0],q[2],-q[1]);}
+    else if(s.tipo==="corpo"){const k=props.modello.corpi.find((x)=>x.id===s.id);if(k){const e=etichettaCorpo(k);p=new THREE.Vector3(e.p[0],e.p[2]/2,-e.p[1]);}}
     else{const k=(props.picchetti??[]).find((x)=>x.id===s.id);if(k)p=new THREE.Vector3(k.x,k.z??0,-k.y);}
     const cam=camRef.current,t=targetRef.current;if(!p||!cam||!t)return;const dir=cam.position.clone().sub(t).normalize().multiplyScalar(9);setRichiesta({n:++nRich.current,posizione:[p.x+dir.x,p.y+dir.y,p.z+dir.z],obiettivo:[p.x,p.y,p.z]});}
   async function salvaPng(){const bl=await scatta.current?.("image/png");if(!bl)return;const u=URL.createObjectURL(bl),a=document.createElement("a");a.href=u;a.download=`vista-3d-${new Date().toISOString().slice(0,16).replace(/[:T]/g,"-")}.png`;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),2000);}
@@ -155,13 +160,13 @@ export default function ViewerEdificio(props:Props){
     <Canvas shadows={!semplice} dpr={[1,2]} gl={{antialias:true,alpha:true}} onPointerUp={fine} onPointerLeave={fine} onPointerMissed={()=>{fine();}} frameloop={props.anima?"always":"demand"} camera={{position:[40,35,40],near:.1,far:20000,fov:50}} onCreated={(st)=>{st.gl.localClippingEnabled=true;st.gl.toneMapping=THREE.ACESFilmicToneMapping;camRef.current=st.camera;setReady(true);}}>
       <fog attach="fog" args={[c.cieloBasso,fogNear,fogNear*5]}/>
       <Luci b={b} sole={sole} ombre={ombre} c={c}/>
-      <OrbitControls makeDefault enabled={!trascina} enableDamping={false} ref={(o)=>{targetRef.current=o?o.target:null;}}/>
+      <OrbitControls makeDefault enabled={!trascina&&!deltaCorpo} enableDamping={false} ref={(o)=>{targetRef.current=o?o.target:null;}}/>
       <ControlloCamera richiesta={richiesta}/>
       {!semplice&&<ScalaGrafica barra={barra} testo={testoScala}/>}
       {!semplice&&<Fotografo scatta={scatta} c={c}/>}
       <Terreno b={b} modo={semplice?"griglia":pref.terreno==="satellite"&&!origine?"griglia":pref.terreno} c={c} s={stile} origine={origine} onStato={onStato} onClick={click} onMove={sposta} onDoppio={doppio}/>
       <Bvh firstHitOnly>
-      {props.modello.corpi.map((body)=><CorpoMesh key={body.id} corpo={body} impianto={impianti.has(body.id)} c={c} s={stile} onClick={click} onMove={sposta} onDoppio={doppio}/>)}
+      {props.modello.corpi.map((body)=>{const off=deltaCorpo?.id===body.id?deltaCorpo.d:null;return <group key={body.id} position={off?[off[0],0,-off[1]]:[0,0,0]}><CorpoMesh corpo={body} impianto={impianti.has(body.id)} c={c} s={stile} selezionato={selez("corpo",body.id)} onClick={clicCorpo(body.id)} onMove={sposta} onDoppio={doppio} onGiu={presaCorpo(body.id)}/></group>;})}
       </Bvh>
       {props.aste.map((x)=><Line key={`l-${x.id}`} points={[[x.x,x.z,-x.y],[x.x,x.z+x.altezza,-x.y]]} color={selez("asta",x.id)?c.accent:pref.evidenzia||semplice?c.metal:"#aeb5bb"} lineWidth={selez("asta",x.id)?5:3}/>)}
       {props.aste.map((x)=>{const on=selez("asta",x.id);return <Asta3D key={x.id} a={x} on={on} evidenzia={pref.evidenzia} c={c} ombra={ombre} onClick={sel("asta",x.id)} onPointerDown={(e)=>{if(on&&props.spostabile&&props.onTrascina){e.stopPropagation();setTrascina(x.id);}}}/>;})}
@@ -190,6 +195,7 @@ export default function ViewerEdificio(props:Props){
         <button type="button" className={btn} title="Inquadra tutto" aria-label="Inquadra tutto" onClick={()=>vai("assonometria")}><Maximize className="h-4 w-4"/></button>
         <button type="button" className={btn} title="Inquadra la selezione" aria-label="Inquadra la selezione" onClick={inquadraSelezione}><Crosshair className="h-4 w-4"/></button>
       </div>
+      {deltaCorpo&&<div className="pointer-events-auto rounded-md border bg-background/95 px-2 py-1 font-mono text-xs shadow-sm">Sposto il blocco: Δx {deltaCorpo.d[0].toFixed(2)} m · Δy {deltaCorpo.d[1].toFixed(2)} m</div>}
       {misura&&<div className="pointer-events-auto rounded-md border bg-background/95 px-2 py-1 font-mono text-xs shadow-sm">{misura.d.toFixed(2)} m · orizz. {misura.o.toFixed(2)} m · Δh {misura.h>=0?"+":""}{misura.h.toFixed(2)} m</div>}
     </div>}
     {!semplice&&<div className="pointer-events-none absolute bottom-2 left-2 flex flex-col items-start gap-0.5 rounded bg-background/80 px-2 py-1 text-[11px] font-semibold shadow-sm"><span ref={testoScala}>–</span><div ref={barra} className="h-1.5 border-x-2 border-b-2 border-foreground" style={{width:60}}/></div>}

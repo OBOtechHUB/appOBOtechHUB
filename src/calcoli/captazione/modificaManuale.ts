@@ -131,3 +131,70 @@ export function dispersoreInPunto(p: Punto3, conduttori: Conduttore[]): Aggiunte
 
 /** Copia di un'asta spostata di `dx` m in pianta. */
 export function copiaAsta(a: Asta, dx = 1): Asta { return { ...a, id: uid(), x: a.x + dx, origine: "manuale" }; }
+
+// ---------- spostamento dei blocchi (corpi) ----------
+interface PuntoZ { x: number; y: number; z: number }
+export interface StatoSpostamento<S extends PuntoZ, P extends PuntoZ> { corpi: Corpo[]; aste: Asta[]; conduttori: Conduttore[]; supporti: S[]; morsetti: S[]; compensatori: S[]; picchetti: P[] }
+
+function vicinoAlContorno(poli: Punto2[], x: number, y: number, tol: number): boolean {
+  const q = puntoPiuVicinoContorno(poli, [x, y]);
+  return Math.hypot(q[0] - x, q[1] - y) <= tol;
+}
+const sulCorpo = (c: Corpo, x: number, y: number, tol = 0.05) => puntoInPoligono(x, y, c.impronta) || vicinoAlContorno(c.impronta, x, y, tol);
+
+/** Limiti in pianta di un corpo. */
+function rettangolo(c: Corpo) { const xs = c.impronta.map((p) => p[0]), ys = c.impronta.map((p) => p[1]); return { minX: Math.min(...xs), maxX: Math.max(...xs), minY: Math.min(...ys), maxY: Math.max(...ys) }; }
+
+/**
+ * Aggancio durante il trascinamento: arrotonda a `passo` m e, se un lato del blocco arriva entro `tol` m dal lato
+ * di un altro blocco (o dal suo prolungamento), lo allinea esattamente.
+ */
+export function agganciaSpostamento(c: Corpo, altri: Corpo[], dx: number, dy: number, passo = 0.1, tol = 0.4): [number, number] {
+  let ax = Math.round(dx / passo) * passo, ay = Math.round(dy / passo) * passo;
+  const r = rettangolo(c);
+  let bx = tol, by = tol;
+  for (const o of altri) {
+    if (o.id === c.id) continue;
+    const s = rettangolo(o);
+    for (const mio of [r.minX + dx, r.maxX + dx]) for (const suo of [s.minX, s.maxX]) { const d = suo - mio; if (Math.abs(d) < bx) { bx = Math.abs(d); ax = dx + d; } }
+    for (const mio of [r.minY + dy, r.maxY + dy]) for (const suo of [s.minY, s.maxY]) { const d = suo - mio; if (Math.abs(d) < by) { by = Math.abs(d); ay = dy + d; } }
+  }
+  const mm = (v: number) => Math.round(v * 1000) / 1000 + 0;
+  return [mm(ax), mm(ay)];
+}
+
+/**
+ * Sposta un blocco di (dx, dy) m in pianta. Con `conImpianto` sposta anche quello che gli sta sopra o lungo le pareti:
+ * aste e componenti sulla copertura, conduttori con tutti i punti sul blocco (captazione e calate), picchetti al piede
+ * delle calate spostate. I conduttori di terra e quello che sta su altri blocchi restano dove sono.
+ */
+export function spostaCorpo<S extends PuntoZ, P extends PuntoZ>(st: StatoSpostamento<S, P>, id: string, dx: number, dy: number, conImpianto = true): StatoSpostamento<S, P> {
+  const c = st.corpi.find((k) => k.id === id);
+  if (!c || (!dx && !dy)) return st;
+  const zTetto = (c.quotaBase ?? 0) + c.altezzaGronda;
+  const corpo: Corpo = {
+    ...c, impronta: c.impronta.map((p) => [p[0] + dx, p[1] + dy] as Punto2),
+    ...(c.mesh ? { mesh: { ...c.mesh, posizioni: c.mesh.posizioni.map((v, i) => (i % 3 === 0 ? v + dx : i % 3 === 1 ? v + dy : v)) } } : {}),
+  };
+  const corpi = st.corpi.map((k) => (k.id === id ? corpo : k));
+  if (!conImpianto) return { ...st, corpi };
+  const sopra = (p: PuntoZ) => p.z >= zTetto - 0.5 && sulCorpo(c, p.x, p.y);
+  const muovi = <T extends PuntoZ>(p: T): T => (sopra(p) ? { ...p, x: p.x + dx, y: p.y + dy } : p);
+  const piediSpostati: Punto2[] = [], lineeSpostate: Punto3[][] = [];
+  const conduttori = st.conduttori.map((k) => {
+    if (k.tipo === "terra" || !k.punti.every((q) => q[2] >= -0.01 && sulCorpo(c, q[0], q[1], 0.1))) return k;
+    if (!k.punti.some((q) => q[2] >= zTetto - 0.5)) return k;
+    if (k.tipo === "calata") { const piede = k.punti.reduce((m, q) => (q[2] < m[2] ? q : m), k.punti[0]!); piediSpostati.push([piede[0], piede[1]]); }
+    lineeSpostate.push(k.punti);
+    return { ...k, punti: k.punti.map((q) => [q[0] + dx, q[1] + dy, q[2]] as Punto3) };
+  });
+  const suConduttore = (p: PuntoZ) => lineeSpostate.some((l) => puntoPiuVicinoLinea(l, [p.x, p.y, p.z]).d <= 0.15);
+  const calataSpostata = (p: PuntoZ) => p.z <= 0.6 && piediSpostati.some((q) => Math.hypot(q[0] - p.x, q[1] - p.y) <= 0.3);
+  const muoviPiede = <T extends PuntoZ>(p: T): T => (calataSpostata(p) || (!sopra(p) && suConduttore(p)) ? { ...p, x: p.x + dx, y: p.y + dy } : muovi(p));
+  return {
+    corpi, conduttori,
+    aste: st.aste.map((a) => muovi(a)),
+    supporti: st.supporti.map((p) => muoviPiede(p)), morsetti: st.morsetti.map((p) => muoviPiede(p)), compensatori: st.compensatori.map((p) => muovi(p)),
+    picchetti: st.picchetti.map((p) => (calataSpostata({ ...p, z: Math.min(p.z, 0) }) ? { ...p, x: p.x + dx, y: p.y + dy } : p)),
+  };
+}

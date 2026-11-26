@@ -31,7 +31,7 @@ type Clic = (e: ThreeEvent<MouseEvent>) => void;
 type Moto = (e: ThreeEvent<PointerEvent>) => void;
 
 /** Un corpo: pareti, copertura piana o a falde (con i timpani), impianti in copertura in un colore a parte, spigoli scuri. */
-export function CorpoMesh({ corpo, impianto, c, s, onClick, onMove, onDoppio }: { corpo: Corpo; impianto: boolean; c: ColoriScena; s: StileScena; onClick: Clic; onMove?: Moto | undefined; onDoppio?: Clic | undefined }) {
+export function CorpoMesh({ corpo, impianto, c, s, onClick, onMove, onDoppio, onGiu, selezionato = false }: { corpo: Corpo; impianto: boolean; c: ColoriScena; s: StileScena; onClick: Clic; onMove?: Moto | undefined; onDoppio?: Clic | undefined; onGiu?: Moto | undefined; selezionato?: boolean }) {
   const top = (corpo.quotaBase ?? 0) + corpo.altezzaGronda;
   const geometry = useMemo(() => {
     if (corpo.mesh) {
@@ -76,19 +76,19 @@ export function CorpoMesh({ corpo, impianto, c, s, onClick, onMove, onDoppio }: 
     return {
       tetto: materiale(tetto, s), parete: materiale(parete, s),
       mesh: materiale("#ffffff", s, { vertexColors: true }), falde: materiale(c.falde, s, { roughness: 0.75 }),
-      spigolo: new THREE.LineBasicMaterial({ color: c.spigolo, clippingPlanes: s.clip, transparent: true, opacity: s.raggiX ? 0.55 : 0.85 }),
+      spigolo: new THREE.LineBasicMaterial({ color: selezionato ? c.accent : c.spigolo, clippingPlanes: s.clip, transparent: true, opacity: s.raggiX ? 0.55 : 0.85 }),
     };
-  }, [c, s, impianto, top, corpo.tipoTetto]);
+  }, [c, s, impianto, top, corpo.tipoTetto, selezionato]);
   useEffect(() => () => { Object.values(mats).forEach((m) => m.dispose()); }, [mats]);
   const spigoli = useMemo(() => {
-    if (!s.spigoli || conta(geometry) > MAX_TRIANGOLI_SPIGOLI) return null;
+    if ((!s.spigoli && !selezionato) || conta(geometry) > MAX_TRIANGOLI_SPIGOLI) return null;
     const out = [new THREE.EdgesGeometry(geometry, 25)];
     if (roof) out.push(new THREE.EdgesGeometry(roof.gF, 15), new THREE.EdgesGeometry(roof.gT, 15));
     return out;
-  }, [geometry, roof, s.spigoli]);
+  }, [geometry, roof, s.spigoli, selezionato]);
   useEffect(() => () => spigoli?.forEach((g) => g.dispose()), [spigoli]);
   const ombra = s.ombre && !s.raggiX;
-  const ev = { onClick, ...(onMove ? { onPointerMove: onMove } : {}), ...(onDoppio ? { onDoubleClick: onDoppio } : {}) };
+  const ev = { onClick, ...(onMove ? { onPointerMove: onMove } : {}), ...(onDoppio ? { onDoubleClick: onDoppio } : {}), ...(onGiu ? { onPointerDown: onGiu } : {}) };
   return <group>
     <mesh geometry={geometry} material={corpo.mesh ? mats.mesh : [mats.tetto, mats.parete]} castShadow={ombra} receiveShadow={ombra} {...ev} />
     {roof && <><mesh geometry={roof.gF} material={mats.falde} castShadow={ombra} receiveShadow={ombra} {...ev} /><mesh geometry={roof.gT} material={mats.parete} castShadow={ombra} receiveShadow={ombra} {...ev} /></>}

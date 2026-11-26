@@ -14,16 +14,43 @@ import { coloreS, separazioneNodi, type RisultatoSeparazioneNodi } from "@/calco
 import { KI, KM, distanzaSeparazione, kcSemplificato, type Livello } from "@/calcoli/calate/separazione";
 import type { EtichettaViewer, SelezioneViewer, TrattoColorato } from "@/components/edificio/ViewerEdificio";
 
+/** Spostamento preciso di un blocco: di quanti metri in X (est) e Y (nord), con frecce da 0,5 m. */
+function SpostaBlocco({ onSposta }: { onSposta: (dx: number, dy: number) => void }) {
+  const [dx, setDx] = useState(0), [dy, setDy] = useState(0), passo = 0.5;
+  return <div className="mt-3 flex flex-wrap items-end gap-3">
+    <Campo etichetta="Sposta in X (m, + verso est)"><input className={inputCls} type="number" step={0.1} value={dx} onChange={(e) => setDx(Number(e.target.value) || 0)} /></Campo>
+    <Campo etichetta="Sposta in Y (m, + verso nord)"><input className={inputCls} type="number" step={0.1} value={dy} onChange={(e) => setDy(Number(e.target.value) || 0)} /></Campo>
+    <Button disabled={!dx && !dy} onClick={() => { onSposta(dx, dy); setDx(0); setDy(0); }}>Sposta</Button>
+    <div className="flex gap-1" role="group" aria-label="Sposta di 0,5 m">
+      <Button size="sm" variant="outline" aria-label="Ovest 0,5 m" title="0,5 m verso ovest" onClick={() => onSposta(-passo, 0)}>←</Button>
+      <Button size="sm" variant="outline" aria-label="Nord 0,5 m" title="0,5 m verso nord" onClick={() => onSposta(0, passo)}>↑</Button>
+      <Button size="sm" variant="outline" aria-label="Sud 0,5 m" title="0,5 m verso sud" onClick={() => onSposta(0, -passo)}>↓</Button>
+      <Button size="sm" variant="outline" aria-label="Est 0,5 m" title="0,5 m verso est" onClick={() => onSposta(passo, 0)}>→</Button>
+    </div>
+  </div>;
+}
+
 const f = (v: number, c = 2) => (Number.isFinite(v) ? v.toLocaleString("it-IT", { minimumFractionDigits: c, maximumFractionDigits: c }) : "—");
 const lung = (p: Punto3[]) => p.slice(1).reduce((t, q, i) => t + Math.hypot(q[0] - p[i]![0], q[1] - p[i]![1], q[2] - p[i]![2]), 0);
 export interface PicchettoMin { id: string; x: number; y: number; z: number; lunghezza: number; codiceOBO: string }
 
-export function PannelloSelezione({ selezione, aste, conduttori, picchetti, corpi, cat, parete, onAste, onConduttori, onPicchetti, onAggiungi, onChiudi }: {
+export function PannelloSelezione({ conImpianto = true, onConImpianto, onSpostaCorpo, selezione, aste, conduttori, picchetti, corpi, cat, parete, onAste, onConduttori, onPicchetti, onAggiungi, onChiudi }: {
+  conImpianto?: boolean; onConImpianto?: (v: boolean) => void; onSpostaCorpo?: (id: string, dx: number, dy: number) => void;
   selezione: SelezioneViewer; aste: Asta[]; conduttori: Conduttore[]; picchetti: PicchettoMin[]; corpi: Corpo[]; cat: CatalogoCaptazione; parete: string;
   onAste: (a: Asta[]) => void; onConduttori: (c: Conduttore[]) => void; onPicchetti: (p: PicchettoMin[]) => void; onAggiungi: (a: Aggiunte, msg: string) => void; onChiudi: () => void;
 }) {
   if (!selezione) return null;
   const testata = (t: string) => <div className="flex items-center justify-between"><h3 className="font-semibold">{t}</h3><Button size="icon" variant="ghost" aria-label="Chiudi" onClick={onChiudi}><X /></Button></div>;
+  if (selezione.tipo === "corpo") {
+    const k = corpi.find((x) => x.id === selezione.id); if (!k) return null;
+    const top = (k.quotaBase ?? 0) + Math.max(k.altezzaGronda, k.tipoTetto === "falde" ? k.altezzaColmo : 0);
+    return <section className="mt-3 rounded-lg border border-primary/50 bg-card p-4" aria-label="Blocco selezionato">
+      {testata(`Blocco selezionato · ${k.nome || "Corpo"} · H ${f(top, 2)} m`)}
+      <p className="text-xs text-muted-foreground">Trascina il blocco nel 3D per spostarlo: si aggancia ogni 10 cm e ai lati degli altri blocchi. Oppure scrivi di quanto spostarlo. Altezze e quote si cambiano in «Pianta 2D, altezze e blocchi sul tetto».</p>
+      <label className="mt-2 flex items-center gap-2 text-sm"><input type="checkbox" checked={conImpianto} onChange={(e) => onConImpianto?.(e.target.checked)} />Sposta anche aste, conduttori, supporti e dispersori che stanno sul blocco</label>
+      {onSpostaCorpo && <SpostaBlocco onSposta={(dx, dy) => onSpostaCorpo(k.id, dx, dy)} />}
+    </section>;
+  }
   if (selezione.tipo === "asta") {
     const a = aste.find((x) => x.id === selezione.id); if (!a) return null;
     const set = (p: Partial<Asta>) => onAste(aste.map((x) => (x.id === a.id ? { ...x, ...p } : x)));
