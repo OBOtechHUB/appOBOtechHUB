@@ -8,6 +8,7 @@
       "titolo": "Edificio 3D: blocchi spostabili a mano",
       "voci": [
         "Con «Seleziona e sposta» si clicca un blocco (corpo dell'edificio) e lo si trascina nel 3D: si aggancia ogni 10 cm e ai lati degli altri blocchi",
+        "Basta premere sul blocco (o sull'asta) e trascinare: non serve più selezionarlo prima; la vista non ruota mentre trascini",
         "Pannello del blocco: spostamento preciso in X (est) e Y (nord) o con le frecce da 0,5 m",
         "Con la spunta (di default) si spostano anche i blocchi appoggiati sulla copertura, le aste, i conduttori di captazione e le calate, i supporti e i dispersori al piede delle calate; i conduttori di terra restano dove sono",
         "Ctrl+Z annulla lo spostamento"
