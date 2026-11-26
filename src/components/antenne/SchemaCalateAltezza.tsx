@@ -27,7 +27,7 @@ export function SchemaCalateAltezza({ punta, sommita, apparatoBasso, r, piano, f
     <rect x={xAnt} y={y(sommita)} width={14} height={Math.max(4, y(apparatoBasso) - y(sommita))} rx={2} fill="#41525d" opacity={0.85} />
     <text x={xAnt + 18} y={y(apparatoBasso) + 4} fontSize={10} fill="currentColor">antenne da {f(apparatoBasso)} m</text>
     {/* isCon dalla punta al PAE (o fino a terra) */}
-    {pae != null && <line x1={xIscon} x2={xIscon} y1={y(punta - 0.3)} y2={y(finoATerra ? 0 : pae)} stroke="#222" strokeWidth={4} />}
+    {pae != null && <line x1={xIscon} x2={xIscon} y1={y(punta - 0.3)} y2={y(finoATerra ? 0 : pae)} stroke="currentColor" strokeWidth={4} opacity={0.85} />}
     {pae != null && <>
       <line x1={30} x2={W - 30} y1={y(pae)} y2={y(pae)} stroke="#f39b00" strokeWidth={2} />
       <rect x={xIscon - 5} y={y(pae) - 5} width={10} height={10} fill="#f39b00" />
