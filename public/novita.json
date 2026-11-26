@@ -2,6 +2,20 @@
   "nota": "Registro degli aggiornamenti di Progettazione LPS. Una voce per aggiornamento, la più recente per prima (app: lps). Viene mostrato nella barra \"Aggiorna app\", nel riquadro Novità e nella pagina Novità di OBO Hub. Le novità solo grafiche (animazioni, sigle, aspetto) non si mostrano: restano conservate in 'grafica_non_mostrata'.",
   "aggiornamenti": [
     {
+      "id": "2026-11-26-lps-63",
+      "data": "2026-11-26",
+      "app": "lps",
+      "titolo": "Edificio 3D: modifiche a mano e distanza di separazione ai nodi",
+      "voci": [
+        "«Seleziona e sposta»: clic su un'asta, un conduttore o un dispersore per selezionarlo; le aste si trascinano nel 3D",
+        "Pannello dell'asta: altezza dal catalogo, posizione X/Y e quota, Copia, Elimina, «Calata da qui» (calata fino a terra con supporti, connettore e dispersore) e «Collega alla captazione»",
+        "«Maglia su copertura»: clic su una copertura per metterci la maglia, con le sue calate se scelto",
+        "«Dispersore»: clic a terra per mettere un picchetto collegato al piede della calata più vicina",
+        "Volume protetto mostrato e aggiornato dopo ogni modifica, con le zone ancora esposte segnalate nel 3D (⚠ esposta … m²)",
+        "Distanza di separazione calcolata ai nodi della rete reale (la corrente si divide tra i conduttori): colori nel 3D, valori ai nodi, elenco delle violazioni (anche impianti in copertura) e pulsante «Collega le aste alla captazione»"
+      ]
+    },
+    {
       "id": "2026-11-26-lps-62",
       "data": "2026-11-26",
       "app": "lps",
