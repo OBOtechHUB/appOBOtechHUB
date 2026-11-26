@@ -8,6 +8,8 @@
       "titolo": "Antenne: calate isCon da grande altezza e collegamenti equipotenziali",
       "voci": [
         "Nuova sezione «Calate isCon da grande altezza»: l'app mette il collegamento equipotenziale principale (PAE) subito sotto l'antenna più bassa e controlla che la lunghezza stia nella l massima della versione isCon",
+        "L'isCon resta continuo dalla punta fino a terra, senza tagli (impostazione predefinita): al PAE si collega il conduttore interno alla struttura e il cavo prosegue fino al dispersore; materiali per tutta l'altezza",
+        "La verifica della sezione 2 usa da sola la lunghezza dalla punta al PAE calcolata (si può ancora scrivere a mano)",
         "Per ogni quota (PAE, livelli intermedi, base) dice cosa collegare: conduttore interno, guaina, zona x libera, supporti delle antenne, schermi dei cavi, SPD",
         "Con palo o traliccio metallico o calcestruzzo armato la corrente scende nella struttura; con struttura non conduttiva calcola i livelli equipotenziali intermedi (dalla distanza disponibile, o con isCon fino a terra)",
         "Schema verticale, materiali (isCon, piastre, supporti, cartello) e pulsante per usare la lunghezza trovata nella verifica"
