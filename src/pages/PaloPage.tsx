@@ -7,6 +7,7 @@ import { useState } from "react";
 import { FileText, Plus, RadioTower, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Campo, inputCls } from "@/components/Campo";
+import { CampoNumero } from "@/components/CampoNumero";
 import { aggiornaEsteso, useEsteso } from "@/lib/statoProgetto";
 import { useDatiEdificio } from "@/lib/progettoStore";
 import { calcolaPalo, DATI_PALO, kcConduttori, type ApparatoPalo, type DatiPalo } from "@/calcoli/antenne/palo";
@@ -27,8 +28,8 @@ export function PaloPage() {
   const d: DatiPalo = { ...DATI_PALO, lpl: ((de.lplProgetto ?? s.lpl) as Livello) || "IV", ...(s.palo ?? {}) };
   const set = (p: Partial<DatiPalo>) => aggiornaEsteso({ palo: { ...d, ...p } });
   const r = calcolaPalo(d);
-  const num = (k: "quotaPunta" | "quotaCollegamento" | "mastoIsolato", etichetta: string, step = 0.1) =>
-    <Campo etichetta={etichetta}><input className={inputCls} type="number" min={0} step={step} value={d[k]} onChange={(e) => set({ [k]: Number(e.target.value) })} /></Campo>;
+  const num = (k: "quotaPunta" | "quotaCollegamento" | "mastoIsolato", etichetta: string, _passo = 0.1) =>
+    <Campo etichetta={etichetta}><CampoNumero className={inputCls} min={0} valore={d[k]} onValore={(v) => { if (v != null) set({ [k]: v }); }} /></Campo>;
   const app = (id: string, p: Partial<ApparatoPalo>) => set({ apparati: d.apparati.map((a) => (a.id === id ? { ...a, ...p } : a)) });
   const sc = r.scelta, D = sc?.versione ? ISCON[sc.versione] : null;
   const [msgRel, setMsgRel] = useState("");
@@ -60,7 +61,7 @@ export function PaloPage() {
           <Campo etichetta="Posa dei conduttori"><select className={inputCls} value={d.materiale} onChange={(e) => set({ materiale: e.target.value as "aria" | "solido" })}><option value="aria">In aria (lungo il palo)</option><option value="solido">Su / in materiale solido</option></select></Campo>
           <Campo etichetta="Numero di conduttori"><select className={inputCls} value={d.conduttori ?? ""} onChange={(e) => set({ conduttori: e.target.value ? Number(e.target.value) : null })}><option value="">Il minimo che basta</option>{[1, 2, 3, 4].map((n) => <option key={n} value={n}>{n}</option>)}</select></Campo>
           <Campo etichetta="Versione isCon"><select className={inputCls} value={d.versione ?? ""} onChange={(e) => set({ versione: (e.target.value || null) as DatiPalo["versione"] })}><option value="">La più semplice che basta</option>{(["basic", "pro", "proplus", "premium"] as const).map((v) => <option key={v} value={v}>{ISCON[v].nome}</option>)}</select></Campo>
-          <Campo etichetta={`ki (LPL ${d.lpl})`}><input className={inputCls} type="number" min={0.01} max={1} step={0.01} value={r.ki} onChange={(e) => set({ ki: Number(e.target.value) || null })} /></Campo>
+          <Campo etichetta={`ki (LPL ${d.lpl})`}><CampoNumero className={inputCls} max={1} valore={d.ki} placeholder={r.ki.toLocaleString("it-IT")} onValore={(v) => set({ ki: v && v > 0 ? v : null })} /></Campo>
         </div>
         <p className="mt-2 text-sm text-muted-foreground">l = punta − collegamento = <strong>{f(r.l, 2)} m</strong>. Sotto il collegamento la corrente scende lungo il palo metallico collegato a terra (o lungo una calata). Di solito il collegamento si mette sotto l'apparato più basso.</p>
         <fieldset className="mt-4 rounded-lg border p-3"><legend className="px-1 text-sm font-semibold">Esigenze di posa (guida alla scelta OBO)</legend>
@@ -93,9 +94,9 @@ export function PaloPage() {
           <thead><tr className="border-b text-left"><th className="p-2">Apparato</th><th className="p-2">Sommità (m)</th><th className="p-2">Sporgenza (m)</th><th className="p-2">Distanza reale (m)</th><th className="p-2 text-right">s</th><th className="p-2">Sfera</th><th className="p-2">Separazione</th><th className="p-2" /></tr></thead>
           <tbody>{r.apparati.map((a) => <tr key={a.id} className="border-b">
             <td className="p-2"><input aria-label="Nome" className={`${inputCls} py-1.5`} value={a.nome} maxLength={120} onChange={(e) => app(a.id, { nome: e.target.value })} /></td>
-            <td className="p-2"><input aria-label="Quota" className={`${inputCls} w-24 py-1.5`} type="number" min={0} step={0.1} value={a.quota} onChange={(e) => app(a.id, { quota: Number(e.target.value) })} /></td>
-            <td className="p-2"><input aria-label="Sporgenza" className={`${inputCls} w-24 py-1.5`} type="number" min={0} step={0.05} value={a.sbraccio} onChange={(e) => app(a.id, { sbraccio: Number(e.target.value) })} /></td>
-            <td className="p-2"><input aria-label="Distanza" className={`${inputCls} w-24 py-1.5`} type="number" min={0} step={0.05} value={a.distanza} onChange={(e) => app(a.id, { distanza: Number(e.target.value) })} /></td>
+            <td className="p-2"><CampoNumero aria-label="Quota" className={`${inputCls} w-24 py-1.5`} min={0} valore={a.quota} onValore={(v) => { if (v != null) app(a.id, { quota: v }); }} /></td>
+            <td className="p-2"><CampoNumero aria-label="Sporgenza" className={`${inputCls} w-24 py-1.5`} min={0} valore={a.sbraccio} onValore={(v) => { if (v != null) app(a.id, { sbraccio: v }); }} /></td>
+            <td className="p-2"><CampoNumero aria-label="Distanza" className={`${inputCls} w-24 py-1.5`} min={0} valore={a.distanza} onValore={(v) => { if (v != null) app(a.id, { distanza: v }); }} /></td>
             <td className="p-2 text-right font-mono">{f(a.sNuda, 3)} m</td>
             <td className="p-2">{pill(a.protetto, "protetto", "esposto")}</td>
             <td className="p-2">{pill(a.distanzaOk, "d ≥ s", "d < s")}</td>

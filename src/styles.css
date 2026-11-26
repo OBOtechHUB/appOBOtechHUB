@@ -283,6 +283,9 @@
 .dark .text-\[\#b3261e\] { color: #ff8a80; }
 .dark .text-\[\#1d7a45\] { color: #6fd39a; }
 .dark .text-\[\#9a6200\] { color: #ffc266; }
+.dark .text-\[\#7a1f16\], .dark .text-\[\#5c1410\] { color: #ffb4ab; }
+.dark .text-\[\#14532d\] { color: #8fe0b0; }
+.dark .text-\[\#5c3b00\], .dark .text-\[\#5a3800\] { color: #ffd18a; }
 
 .google-auth { background: var(--google-background); color: var(--google-foreground); border-color: var(--google-border); }
 .viewer-canvas { min-height: 480px; height: 62vh; max-height: 800px; }

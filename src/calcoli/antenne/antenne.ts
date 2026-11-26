@@ -7,7 +7,7 @@
  */
 import parametri from "@/dati/captazione/parametriLPL.json";
 import { KI, distanzaSeparazione, type Livello } from "@/calcoli/calate/separazione";
-import { ISCON, versioneMinima, type VersioneIscon } from "@/calcoli/calate/iscon";
+import { ISCON, ORDINE_ISCON, ammessaPerCorrente, lunghezzaMassima, verificaIscon, type VersioneIscon } from "@/calcoli/calate/iscon";
 
 export type TipoSito = "tetto" | "palo" | "traliccio";
 export const NOMI_SITO: Record<TipoSito, string> = {
@@ -53,6 +53,10 @@ export interface DatiAntenne {
   /** lunghezza del conduttore di calata dalla punta al collegamento equipotenziale (m) */
   lunghezzaCalata: number;
   numeroCalate: number;
+  /** true (o assente) = l'app sceglie il numero di calate da 1 a 4 */
+  calateAuto?: boolean | undefined;
+  /** versione isCon scelta dal progettista (null o assente = la più semplice che basta) */
+  versione?: VersioneIscon | null | undefined;
   ki: number | null;
   /** linee che arrivano agli apparati */
   cavi: { coassiali: boolean; fibraMetallica: boolean; fibraDielettrica: boolean; alimentazione: boolean };
@@ -65,10 +69,35 @@ export const DATI_INIZIALI: DatiAntenne = {
   cavi: { coassiali: false, fibraMetallica: false, fibraDielettrica: true, alimentazione: true }, lpsEdificio: false,
 };
 
+export const kcCalate = (n: number) => (n <= 1 ? 1 : n === 2 ? 0.66 : 0.44);
+export interface OpzioneCalate { n: number; kc: number; s: number; versione: VersioneIscon | null; lMax: number | null }
+export interface SoluzioneIscon { opzioni: OpzioneCalate[]; scelta: OpzioneCalate | null; lMassima: number; versioneLMassima: VersioneIscon; quotaCollegamentoMinima: number | null }
+/**
+ * Soluzione con calate isolate isCon (da 1 a 4): per ogni numero di calate la s richiesta (s = ki · kc · l) e la versione
+ * più semplice che basta (se ≥ s e corrente ammessa: LPL I con una calata solo Premium). Se il numero di calate è
+ * fisso si usa quello, altrimenti il minimo che basta. Se nessuna combinazione basta, la l massima possibile
+ * (4 calate, la versione con se più alta) e la quota minima del collegamento equipotenziale per stare sotto quella l.
+ */
+export function soluzioneIscon(ki: number, l: number, lpl: Livello, nFisso: number | null, versione: VersioneIscon | null, quotaPunta: number): SoluzioneIscon {
+  const opzioni: OpzioneCalate[] = [1, 2, 3, 4].map((n) => {
+    const kc = kcCalate(n), s = ki * kc * Math.max(0, l);
+    const ok = (v: VersioneIscon) => verificaIscon(v, s).conforme && ammessaPerCorrente(v, lpl, n);
+    const v = versione ? (ok(versione) ? versione : null) : (["basic", "proplus", "premium"] as VersioneIscon[]).find(ok) ?? null;
+    return { n, kc, s, versione: v, lMax: v ? lunghezzaMassima(v, ki, kc) : null };
+  });
+  const scelta = nFisso ? opzioni.find((o) => o.n === Math.min(4, Math.max(1, nFisso))) ?? null : opzioni.find((o) => o.versione) ?? null;
+  const vMax: VersioneIscon = versione ?? "premium";
+  const lMassima = lunghezzaMassima(vMax, ki, kcCalate(nFisso ? Math.min(4, nFisso) : 4));
+  const quotaCollegamentoMinima = Number.isFinite(quotaPunta) && l > lMassima ? Math.max(0, quotaPunta - lMassima) : null;
+  return { opzioni, scelta, lMassima, versioneLMassima: vMax, quotaCollegamentoMinima };
+}
+void ORDINE_ISCON;
+
 export interface RisultatoAntenne {
   r: number; astaMinima: number; asta: number; protette: boolean; sopraAntenne: number;
   ki: number; kc: number; s: number; separazioneOk: boolean;
   isconConsigliato: VersioneIscon | null;
+  soluzione: SoluzioneIscon; nCalate: number;
   misure: { testo: string; rif: string; obbligatoria: boolean }[];
 }
 
@@ -76,15 +105,22 @@ export function calcolaAntenne(d: DatiAntenne): RisultatoAntenne {
   const r = raggioSfera(d.lpl), astaMinima = altezzaAstaMinima(d.sbraccio, d.sommita, r);
   const asta = d.astaPunta ?? Math.ceil(astaMinima * 10) / 10;
   const protette = puntoProtetto(asta, d.sbraccio, d.sommita, r);
-  const ki = d.ki ?? KI[d.lpl], kc = d.numeroCalate <= 1 ? 1 : d.numeroCalate === 2 ? 0.66 : 0.44;
+  const ki = d.ki ?? KI[d.lpl];
+  const auto = d.calateAuto !== false;
+  const soluzione = soluzioneIscon(ki, d.lunghezzaCalata, d.lpl, auto ? null : d.numeroCalate, d.versione ?? null, d.quotaPiano + asta);
+  // numero di calate usato: quello della soluzione (automatico) oppure quello scelto; senza soluzione 4 (il caso migliore)
+  const nCalate = auto ? soluzione.scelta?.n ?? 4 : Math.min(50, Math.max(1, d.numeroCalate));
+  const kc = kcCalate(nCalate);
   // separazione tra l'asta isolata e le antenne: la lunghezza è quella dal punto vicino alle antenne al collegamento equipotenziale
   const s = distanzaSeparazione(ki, kc, 1, Math.max(0, d.lunghezzaCalata));
   const misure: RisultatoAntenne["misure"] = [];
   const add = (testo: string, rif: string, obbligatoria = true) => misure.push({ testo, rif, obbligatoria });
+  const sol = soluzione.scelta;
+  if (sol?.versione) add(`Soluzione: ${sol.n} ${sol.n === 1 ? "calata isolata" : "calate isolate"} ${ISCON[sol.versione].nome} (s richiesta ${fm(sol.s, 3)} m in aria ≤ ${fm(ISCON[sol.versione].sAria)} m; l massima ${fm(sol.lMax ?? NaN, 1)} m con l = ${fm(d.lunghezzaCalata, 1)} m).`, "62305-3, 6.3; dati OBO isCon");
+  else add(`Con l = ${fm(d.lunghezzaCalata, 1)} m nessun isCon basta${auto ? " neanche con 4 calate" : ` con ${nCalate} calate`}: la l massima è ${fm(soluzione.lMassima, 1)} m (${ISCON[soluzione.versioneLMassima].nome}${auto ? ", 4 calate" : ""}). Porta il collegamento equipotenziale più in alto${soluzione.quotaCollegamentoMinima != null ? `, almeno a ${fm(soluzione.quotaCollegamentoMinima, 1)} m da ${d.tipo === "tetto" ? "tetto" : "terra"}` : ""} (sul palo metallico collegato a terra, sotto l'antenna più bassa), così l si accorcia.`, "62305-3, 6.3; dati OBO isCon");
   add(protette ? `Asta di captazione con la punta a ${fm(asta)} m sul piano: le antenne restano dentro il volume protetto (sfera r = ${r} m).` : `Asta troppo bassa: servono almeno ${fm(astaMinima)} m sul piano perché le antenne non siano colpite.`, "62305-3, sfera rotolante; 62305-4, B.11.2");
   add(s <= d.distanzaReale ? `Asta isolata dalle antenne: distanza reale ${fm(d.distanzaReale)} m ≥ s = ${fm(s, 3)} m.` : `Distanza reale ${fm(d.distanzaReale)} m minore di s = ${fm(s, 3)} m: allontana l'asta (supporti isolati più lunghi) oppure collega il palo delle antenne all'LPS.`, "62305-3, distanza di separazione s = ki · kc / km · l");
-  const ver = versioneMinima(s, "aria", d.lpl, d.numeroCalate);
-  add(ver ? `Calata isolata: con un conduttore isCon la s richiesta (${fm(s, 3)} m in aria) è coperta dalla versione ${ISCON[ver].nome} o superiore${d.lpl === "I" && d.numeroCalate <= 1 ? " (LPL I con una calata: classe H2, 200 kA)" : ""}.` : `s = ${fm(s, 3)} m supera la distanza equivalente di ogni conduttore isCon: accorcia il percorso fino al collegamento equipotenziale o aumenta le calate.`, "62305-3, 6.3; certificati OBO isCon (IEC TS 62561-8)", false);
+  const ver = soluzione.scelta?.versione ?? null;
   if (d.tipo === "tetto") add(d.lpsEdificio ? "I supporti delle antenne vanno collegati all'LPS dell'edificio se non si rispetta la distanza di separazione." : "Edificio senza LPS: valuta il rischio dell'edificio con le antenne installate (altezza e linee nuove aumentano le fulminazioni).", "62305-4, B.11.2; 62305-2");
   if (d.cavi.coassiali) add("Schermo dei cavi coassiali collegato al palo in alto e all'ingresso nel locale apparati; SPD per antenne nel punto d'ingresso.", "62305-4, B.11 (Fig. B.5)");
   if (d.cavi.fibraMetallica) add("Fibra con parti metalliche (armatura, barriera, tirante): collega le parti metalliche alla barra equipotenziale all'ingresso.", "62305-4, B.12.3");
@@ -93,7 +129,7 @@ export function calcolaAntenne(d: DatiAntenne): RisultatoAntenne {
   if (d.tipo === "traliccio") add("Cavi lungo il traliccio negli spigoli interni dei montanti a L o in passerelle collegate, uscita da un solo punto.", "62305-4, B.11.4 (Fig. B.8)");
   if (d.tipo !== "tetto") add("Un solo impianto di terra integrato per palo/traliccio, locale apparati e recinzione, con anello e collegamenti tra le strutture.", "62305-4, 5.2; 62305-3");
   add("Cavi fuori dal palo in canali o tubi metallici collegati a entrambe le estremità per ridurre le tensioni indotte.", "62305-4, B.11.4", false);
-  return { r, astaMinima, asta, protette, sopraAntenne: asta - d.sommita, ki, kc, s, separazioneOk: s <= d.distanzaReale, isconConsigliato: ver, misure };
+  return { r, astaMinima, asta, protette, sopraAntenne: asta - d.sommita, ki, kc, s, separazioneOk: s <= d.distanzaReale, isconConsigliato: ver, soluzione, nCalate, misure };
 }
 
 const fm = (v: number, c = 2) => Number.isFinite(v) ? v.toLocaleString("it-IT", { maximumFractionDigits: c }) : "—";

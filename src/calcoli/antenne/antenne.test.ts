@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { altezzaAstaMinima, calcolaAntenne, DATI_INIZIALI, puntoProtetto } from "./antenne";
+import { altezzaAstaMinima, calcolaAntenne, DATI_INIZIALI, puntoProtetto, soluzioneIscon } from "./antenne";
 
 describe("antenne radiomobili", () => {
   it("asta bassa sul tetto: piano + punta (H ≤ r)", () => {
@@ -23,5 +23,18 @@ describe("antenne radiomobili", () => {
     expect(r.s).toBeCloseTo(0.04 * 1 * 12);
     expect(r.misure.some((m) => /coassiali/.test(m.testo))).toBe(true);
     expect(r.isconConsigliato).toBe("proplus");
+  });
+  it("palo di 80 m: soluzione con al massimo 4 calate isCon", () => {
+    const a = soluzioneIscon(0.04, 40, "III", null, null, 87.4);
+    expect(a.scelta?.n).toBe(3); expect(a.scelta?.versione).toBe("proplus");
+    const b = soluzioneIscon(0.04, 60, "III", null, null, 87.4);
+    expect(b.scelta).toBeNull();
+    expect(b.lMassima).toBeCloseTo(0.9 / (0.04 * 0.44), 3);
+    expect(b.quotaCollegamentoMinima).toBeCloseTo(87.4 - 0.9 / (0.04 * 0.44), 3);
+    const r = calcolaAntenne({ ...DATI_INIZIALI, tipo: "palo", sommita: 80, lunghezzaCalata: 60 });
+    expect(r.nCalate).toBe(4);
+    expect(r.misure[0]!.testo).toMatch(/nessun isCon basta neanche con 4 calate/);
+    const c = soluzioneIscon(0.1, 5, "I", 1, null, 20);
+    expect(c.scelta?.versione).toBe("premium"); // LPL I con una calata: solo Premium
   });
 });
