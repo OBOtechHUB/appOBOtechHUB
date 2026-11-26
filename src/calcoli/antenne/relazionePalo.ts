@@ -54,8 +54,8 @@ export function relazionePalo(x: IngressoRelazionePalo): Documento {
     p(`Un conduttore isolato è adeguato quando s ≤ se, distanza di separazione equivalente dichiarata e certificata dal costruttore (CEI EN IEC 62305-3, 6.3; prova secondo ${ISCON_COMUNE.norma}). Equivalentemente la lunghezza isolata non deve superare l max = se × km / (ki × kc). Ogni conduttore deve inoltre portare la propria quota della corrente di fulmine, I = I(LPL) × kc (CEI EN IEC 62305-1, Allegato D), entro la sua classe: H1 = 150 kA, H2 = 200 kA (10/350 µs).`, { allinea: "giustificato" }),
     tab(["Versione OBO isCon", "se in aria", "se nel solido", "Classe", "Ø esterno"], (["basic", "pro", "proplus", "premium"] as const).map((v) => [ISCON[v].nome, `${it(ISCON[v].sAria, 2)} m`, `${it(ISCON[v].sSolido, 2)} m`, `${ISCON[v].classe} (${ISCON[v].iimp} kA)`, `${ISCON[v].diametro.nero} mm${ISCON[v].diametro.grigio ? ` / GR ${ISCON[v].diametro.grigio} mm` : ""}`]), [4, 2, 2, 2.2, 2.3]),
     h1("4. Tenuta dell'isolamento e numero di conduttori in parallelo"),
-    tab(["Conduttori in parallelo", "kc", "s richiesta (m)", "Corrente per conduttore", "Versione isCon sufficiente", "l max (m)"],
-      r.opzioni.map((o) => [String(o.n), it(o.kc, 2), it(o.s, 3), `${it(o.correntePerConduttore, 0)} kA`, o.versione ? ISCON[o.versione].nome : "nessuna", o.lMax ? it(o.lMax, 2) : "—"]),
+    tab(["Conduttori in parallelo", "kc", "s richiesta (m)", "Corrente per conduttore", d.versione ? `${ISCON[d.versione].nome}` : "Versione isCon sufficiente", "l max (m)"],
+      r.opzioni.map((o) => [String(o.n), it(o.kc, 2), it(o.s, 3), `${it(o.correntePerConduttore, 0)} kA`, o.versione ? (d.versione ? "sufficiente" : ISCON[o.versione].nome) : (d.versione ? "non sufficiente" : "nessuna"), o.lMax ? it(o.lMax, 2) : "—"]),
       [2.2, 1.3, 2, 2.3, 3, 1.6], { ...(sc ? { evidenziaRighe: [sc.n - 1] } : {}) }),
   ];
   if (sc && D) {
@@ -63,7 +63,7 @@ export function relazionePalo(x: IngressoRelazionePalo): Documento {
     B.push(
       p([{ t: "Verifica della tenuta dell'isolamento: ", b: true }, { t: `s = ${it(r.ki, 2)} × ${it(sc.kc, 2)} / ${it(r.km, 0)} × ${it(r.l, 2)} = ${it(sc.s, 3)} m ≤ se = ${it(se, 2)} m (${nomeCavo}, ${d.materiale === "aria" ? "in aria" : "nel solido"}) → ` }, { t: v.conforme ? "VERIFICATA" : "NON VERIFICATA", b: true }, { t: `, margine ${it(v.margine, 3)} m.` }]),
       p([{ t: "Verifica della corrente: ", b: true }, { t: `${it(CORRENTE_LPL[d.lpl], 0)} kA × ${it(sc.kc, 2)} = ${it(sc.correntePerConduttore, 0)} kA per conduttore ≤ ${D.iimp} kA (classe ${D.classe}) → ` }, { t: sc.correntePerConduttore <= D.iimp ? "VERIFICATA" : "NON VERIFICATA", b: true }, { t: "." }]),
-      p([{ t: "Esito: ", b: true }, { t: `servono ${sc.n} conduttor${sc.n === 1 ? "e" : "i"} ${nomeCavo} in parallelo${d.conduttori ? " (numero scelto dal progettista)" : " (numero minimo che soddisfa le verifiche)"}, ciascuno lungo ${it(r.l, 2)} m dalla punta al collegamento equipotenziale.` }]),
+      p([{ t: "Esito: ", b: true }, { t: `servono ${sc.n} conduttor${sc.n === 1 ? "e" : "i"} ${nomeCavo} in parallelo${d.conduttori ? " (numero scelto dal progettista)" : " (numero minimo che soddisfa le verifiche)"}${d.versione ? ", versione scelta dal progettista" : ""}, ciascuno lungo ${it(r.l, 2)} m dalla punta al collegamento equipotenziale.` }]),
     );
     const motivi = [d.esigenze.verniciabile && "verniciabile", d.esigenze.atex && "posa in zona ATEX", d.esigenze.protezioneMeccanica && "protezione meccanica della guaina", d.esigenze.tensioniContatto && "protezione dalle tensioni di contatto"].filter(Boolean) as string[];
     if (motivi.length) B.push(p(`Scelta della versione secondo la guida OBO per le esigenze di posa indicate: ${motivi.join(", ")}.`));

@@ -59,6 +59,7 @@ export function PaloPage() {
           {num("mastoIsolato", "Lunghezza del palo isolato isFang (m)", 1)}
           <Campo etichetta="Posa dei conduttori"><select className={inputCls} value={d.materiale} onChange={(e) => set({ materiale: e.target.value as "aria" | "solido" })}><option value="aria">In aria (lungo il palo)</option><option value="solido">Su / in materiale solido</option></select></Campo>
           <Campo etichetta="Numero di conduttori"><select className={inputCls} value={d.conduttori ?? ""} onChange={(e) => set({ conduttori: e.target.value ? Number(e.target.value) : null })}><option value="">Il minimo che basta</option>{[1, 2, 3, 4].map((n) => <option key={n} value={n}>{n}</option>)}</select></Campo>
+          <Campo etichetta="Versione isCon"><select className={inputCls} value={d.versione ?? ""} onChange={(e) => set({ versione: (e.target.value || null) as DatiPalo["versione"] })}><option value="">La più semplice che basta</option>{(["basic", "pro", "proplus", "premium"] as const).map((v) => <option key={v} value={v}>{ISCON[v].nome}</option>)}</select></Campo>
           <Campo etichetta={`ki (LPL ${d.lpl})`}><input className={inputCls} type="number" min={0.01} max={1} step={0.01} value={r.ki} onChange={(e) => set({ ki: Number(e.target.value) || null })} /></Campo>
         </div>
         <p className="mt-2 text-sm text-muted-foreground">l = punta − collegamento = <strong>{f(r.l, 2)} m</strong>. Sotto il collegamento la corrente scende lungo il palo metallico collegato a terra (o lungo una calata). Di solito il collegamento si mette sotto l'apparato più basso.</p>
@@ -76,7 +77,7 @@ export function PaloPage() {
           </> : <p className="text-lg">Con {sc?.n ?? 4} conduttor{(sc?.n ?? 4) === 1 ? "e" : "i"} nessun isCon basta: s = {f(sc?.s ?? NaN, 3)} m.</p>}
         </div>
         <div className="mt-3 overflow-x-auto"><table className="w-full min-w-[620px] text-sm">
-          <thead><tr className="border-b text-left"><th className="p-2">Conduttori</th><th className="p-2 text-right">kc</th><th className="p-2 text-right">s richiesta</th><th className="p-2 text-right">Corrente per conduttore</th><th className="p-2">Versione che basta</th><th className="p-2 text-right">l max</th></tr></thead>
+          <thead><tr className="border-b text-left"><th className="p-2">Conduttori</th><th className="p-2 text-right">kc</th><th className="p-2 text-right">s richiesta</th><th className="p-2 text-right">Corrente per conduttore</th><th className="p-2">{d.versione ? `${ISCON[d.versione].nome}` : "Versione che basta"}</th><th className="p-2 text-right">l max</th></tr></thead>
           <tbody>{r.opzioni.map((o) => <tr key={o.n} className={`border-b ${sc?.n === o.n ? "bg-primary/10 font-semibold" : ""}`}>
             <td className="p-2">{o.n}</td><td className="p-2 text-right font-mono">{f(kcConduttori(o.n), 2)}</td><td className="p-2 text-right font-mono">{f(o.s, 3)} m</td><td className="p-2 text-right font-mono">{f(o.correntePerConduttore, 0)} kA</td>
             <td className="p-2">{o.versione ? ISCON[o.versione].nome : pill(false, "", "nessuna")}</td><td className="p-2 text-right font-mono">{o.lMax ? `${f(o.lMax, 2)} m` : "—"}</td></tr>)}</tbody>

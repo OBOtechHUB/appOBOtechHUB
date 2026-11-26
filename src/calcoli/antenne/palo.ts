@@ -29,6 +29,8 @@ export interface DatiPalo {
   esigenze: Omit<EsigenzeIscon, "sAria">;
   /** numero di conduttori deciso dall'utente (null = il minimo che basta) */
   conduttori: number | null;
+  /** versione isCon scelta dall'utente (null = la più semplice che basta) */
+  versione?: VersioneIscon | null | undefined;
   ki: number | null;
 }
 
@@ -56,6 +58,7 @@ export interface RisultatoPalo {
 
 /** Versione per n conduttori: la più semplice che basta per s e corrente e che rispetta le esigenze di posa. */
 function versionePer(n: number, s: number, d: DatiPalo): VersioneIscon | null {
+  if (d.versione) return verificaIscon(d.versione, s, d.materiale).conforme && ammessaPerCorrente(d.versione, d.lpl, n) ? d.versione : null;
   const sAria = d.materiale === "solido" ? s / 2 : s;
   const g = scegliIscon({ sAria, ...d.esigenze });
   const ordine: VersioneIscon[] = g ? [g.versione, ...(["basic", "pro", "proplus", "premium"] as VersioneIscon[]).filter((v) => v !== g.versione)] : ["premium"];
@@ -84,7 +87,8 @@ export function calcolaPalo(d: DatiPalo): RisultatoPalo {
   if (!(l > 0)) avvisi.push("Il collegamento equipotenziale deve stare sotto la punta dell'asta.");
   const sopra = d.apparati.filter((a) => a.quota < d.quotaCollegamento);
   if (sopra.length) avvisi.push(`${sopra.map((a) => a.nome).join(", ")}: sotto il collegamento equipotenziale; di solito il collegamento si mette sotto l'apparato più basso, così tutti gli apparati restano lungo il tratto isolato.`);
-  if (scelta && !scelta.versione) avvisi.push(`Con ${scelta.n} conduttor${scelta.n === 1 ? "e" : "i"} nessun isCon basta: aumenta i conduttori o alza il collegamento equipotenziale.`);
+  if (scelta && !scelta.versione) avvisi.push(d.versione ? `Con ${scelta.n} conduttor${scelta.n === 1 ? "e" : "i"} ${ISCON[d.versione].nome} non basta: aumenta i conduttori, scegli una versione con distanza equivalente maggiore o alza il collegamento equipotenziale.` : `Con ${scelta.n} conduttor${scelta.n === 1 ? "e" : "i"} nessun isCon basta: aumenta i conduttori o alza il collegamento equipotenziale.`);
+  if (d.versione && (d.versione === "basic" || d.versione === "pro") && (d.esigenze.verniciabile || d.esigenze.atex || d.esigenze.protezioneMeccanica || d.esigenze.tensioniContatto)) avvisi.push(`Le esigenze di posa indicate (verniciabile, ATEX, protezione meccanica o tensioni di contatto) richiedono isCon Pro+ 75 secondo la guida OBO.`);
   if (!opzioni.some((o) => o.versione)) avvisi.push("Nessuna combinazione fino a 4 conduttori basta: alza il collegamento equipotenziale (l più corta) o valuta un livello diverso.");
   if (apparati.some((a) => !a.protetto)) avvisi.push("Alcuni apparati non sono protetti dalla sfera rotolante: alza la punta dell'asta o avvicinala.");
   if (d.esigenze.tensioniContatto && scelta?.versione === "proplus" && l > 5) avvisi.push("Protezione dalle tensioni di contatto con Pro+ 75 GR: al massimo 5 m di tratto.");

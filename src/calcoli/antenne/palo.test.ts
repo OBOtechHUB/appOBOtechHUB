@@ -24,6 +24,14 @@ describe("impianti su palo con calate isolate isCon", () => {
     const r = calcolaPalo({ ...DATI_PALO, esigenze: { atex: true } });
     expect(r.scelta?.versione).toBe("proplus");
   });
+  it("versione scelta dall'utente: Pro+ o Premium", () => {
+    expect(calcolaPalo({ ...DATI_PALO, versione: "proplus" }).scelta?.versione).toBe("proplus");
+    const r = calcolaPalo({ ...DATI_PALO, versione: "premium" });
+    expect(r.scelta?.versione).toBe("premium");
+    expect(r.materiali.some((m) => m.codice === "5408018")).toBe(true);
+    const lungo = calcolaPalo({ ...DATI_PALO, lpl: "II", quotaPunta: 40, quotaCollegamento: 20, versione: "proplus" });
+    expect(lungo.scelta?.n).toBe(3); // 0,06 × 0,44 × 20 = 0,53 ≤ 0,75
+  });
   it("palo isolato oltre 6 m: estensione dei supporti", () => {
     const r = calcolaPalo({ ...DATI_PALO, mastoIsolato: 8 });
     expect(r.materiali.some((m) => m.codice === "5408094")).toBe(true);
