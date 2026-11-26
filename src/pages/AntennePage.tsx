@@ -13,6 +13,8 @@ import { useDatiEdificio } from "@/lib/progettoStore";
 import { calcolaAntenne, DATI_INIZIALI, NOMI_SITO, type DatiAntenne, type TipoSito } from "@/calcoli/antenne/antenne";
 import { ACCESSORI_ISCON, ISCON, ORDINE_ISCON, verificaIscon, type VersioneIscon } from "@/calcoli/calate/iscon";
 import type { Livello } from "@/calcoli/calate/separazione";
+import { calateIsconAltezza, NOMI_STRUTTURA, type StrutturaSostegno } from "@/calcoli/calate/isconAltezza";
+import { SchemaCalateAltezza } from "@/components/antenne/SchemaCalateAltezza";
 
 const f = (v: number, c = 2) => (Number.isFinite(v) ? v.toLocaleString("it-IT", { minimumFractionDigits: c, maximumFractionDigits: c }) : "—");
 
@@ -25,6 +27,8 @@ export function AntennePage() {
   const num = (k: keyof DatiAntenne, etichetta: string, min = 0) =>
     <Campo etichetta={etichetta}><CampoNumero className={inputCls} valore={d[k] as number} min={min} onValore={(v) => { if (v != null) set({ [k]: v } as Partial<DatiAntenne>); }} /></Campo>;
   const auto = d.calateAuto !== false, sol = r.soluzione.scelta;
+  const apparatoBasso = d.quotaApparatoBasso ?? Math.max(0, d.sommita - 3);
+  const ca = calateIsconAltezza({ lpl: d.lpl, ki: d.ki, quotaPunta: r.asta, quotaBase: 0, quotaApparatoBasso: apparatoBasso, struttura: d.struttura ?? "metallica", nCalate: auto ? null : Math.min(4, d.numeroCalate), versione: d.versione ?? null, materiale: "aria", distanzaImpianti: d.distanzaImpianti ?? 0.5, isconFinoATerra: !!d.isconFinoATerra });
   const ok = (b: boolean) => (b ? "border-[#1d7a45] bg-[#e3f4ea] text-[#14532d] dark:bg-[#15291d] dark:text-[#a7e3bd]" : "border-[#b3261e] bg-[#fdecea] text-[#7a1f16] dark:bg-[#3a1715] dark:text-[#f5b4ad]");
 
   return <>
@@ -91,8 +95,40 @@ export function AntennePage() {
         <p className="mt-2 text-xs text-muted-foreground">Distanze equivalenti dai dati OBO isCon; con LPL I e una sola calata serve Premium (classe H2). Accessori: {ACCESSORI_ISCON.map((a) => `${a.descrizione} (${a.codice})`).join(" · ")}.</p>
       </section>
 
+      <section className="mt-10" aria-label="Calate da grande altezza">
+        <h2 className="text-[1.7rem] font-medium">3 · Calate isCon da grande altezza e collegamenti equipotenziali</h2>
+        <p className="mt-2 text-sm text-muted-foreground">L'isCon garantisce la distanza di separazione solo dalla punta al primo collegamento equipotenziale (PAE). Qui l'app mette il PAE subito sotto l'antenna più bassa, controlla che la lunghezza stia dentro la l massima della versione e dice cosa collegare a ogni quota fino a terra. Quote dal {d.tipo === "tetto" ? "piano del tetto" : "terreno"}.</p>
+        <div className="mt-4 grid gap-4 sm:grid-cols-4">
+          <Campo etichetta={`Antenna più bassa da isolare (m; vuoto = ${f(Math.max(0, d.sommita - 3), 1)})`}><CampoNumero className={inputCls} valore={d.quotaApparatoBasso ?? null} placeholder={f(Math.max(0, d.sommita - 3), 1)} onValore={(v) => set({ quotaApparatoBasso: v })} /></Campo>
+          <Campo etichetta="Struttura di sostegno"><select className={inputCls} value={d.struttura ?? "metallica"} onChange={(e) => set({ struttura: e.target.value as StrutturaSostegno })}>{(Object.keys(NOMI_STRUTTURA) as StrutturaSostegno[]).map((k) => <option key={k} value={k}>{NOMI_STRUTTURA[k]}</option>)}</select></Campo>
+          {(d.struttura ?? "metallica") === "isolante" && <>
+            <Campo etichetta="Distanza disponibile calate–cavi/impianti (m)"><CampoNumero className={inputCls} valore={d.distanzaImpianti ?? 0.5} onValore={(v) => { if (v != null && v > 0) set({ distanzaImpianti: v }); }} /></Campo>
+            <label className="flex items-center gap-2 self-end pb-2 text-sm"><input type="checkbox" checked={!!d.isconFinoATerra} onChange={(e) => set({ isconFinoATerra: e.target.checked })} />isCon fino a terra</label>
+          </>}
+        </div>
+        <div className="mt-4 grid gap-4 md:grid-cols-[280px_1fr]">
+          <SchemaCalateAltezza punta={r.asta} sommita={d.sommita} apparatoBasso={apparatoBasso} r={ca} piano={d.tipo === "tetto" ? "tetto" : "terreno"} finoATerra={(d.struttura ?? "metallica") === "isolante" && !!d.isconFinoATerra} />
+          <div>
+            <div className={`rounded-lg border-l-4 p-4 ${ok(ca.fattibile)}`} role="status">
+              {ca.fattibile && ca.versione && ca.quotaPAE != null ? <>
+                <p className="text-lg font-semibold">{ca.n} {ca.n === 1 ? "calata isolata" : "calate isolate"} {ISCON[ca.versione].nome} dalla punta ({f(r.asta, 1)} m) al PAE a {f(ca.quotaPAE, 2)} m</p>
+                <p className="mt-1 text-sm">l = {f(ca.l, 2)} m ≤ l massima {f(ca.lMax, 1)} m · s = {f(ca.ki, 2)} · {f(ca.kc, 2)} · {f(ca.l, 1)} = <strong>{f(ca.s, 3)} m</strong> ≤ {f(ISCON[ca.versione].sAria)} m · zona x {f(ca.zonaX)} m{ca.passoIntermedi ? ` · livelli intermedi ogni ${f(ca.passoIntermedi, 1)} m al massimo` : ""}</p>
+                {Math.abs(ca.l - d.lunghezzaCalata) > 0.05 && <Button size="sm" variant="outline" className="mt-2" onClick={() => set({ lunghezzaCalata: Math.round(ca.l * 100) / 100 })}>Usa l = {f(ca.l, 2)} m nella verifica della sezione 2</Button>}
+              </> : <p className="text-lg font-semibold">Non si può isolare tutto con l'isCon</p>}
+              {ca.avvisi.map((a, i) => <p key={i} className="mt-1 text-sm">{a}</p>)}
+            </div>
+            {ca.livelli.length > 0 && <ol className="mt-4 space-y-2">{ca.livelli.map((l, i) => <li key={i} className="rounded-md border p-3 text-sm">
+              <p className="font-semibold"><span className="mr-2 rounded-full bg-primary px-2 py-0.5 text-xs text-primary-foreground">{f(l.quota, 2)} m</span>{l.titolo}</p>
+              <ul className="mt-1 list-disc space-y-0.5 pl-5">{l.cosa.map((c, k) => <li key={k}>{c}</li>)}</ul>
+            </li>)}</ol>}
+            {ca.materiali.length > 0 && <div className="mt-4 overflow-x-auto"><table className="w-full min-w-[420px] text-sm"><thead><tr className="border-b text-left"><th className="p-2">Codice</th><th className="p-2">Materiale</th><th className="p-2 text-right">Quantità</th></tr></thead>
+              <tbody>{ca.materiali.map((m, i) => <tr key={i} className="border-b"><td className="p-2 font-mono text-xs">{m.codice || "—"}</td><td className="p-2">{m.descrizione}</td><td className="p-2 text-right font-mono">{m.quantita} {m.unita}</td></tr>)}</tbody></table></div>}
+          </div>
+        </div>
+      </section>
+
       <section className="mt-10" aria-label="Linee e terra">
-        <h2 className="text-[1.7rem] font-medium">3 · Cavi, SPD e terra</h2>
+        <h2 className="text-[1.7rem] font-medium">4 · Cavi, SPD e terra</h2>
         <div className="mt-3 flex flex-wrap gap-4 text-sm">
           {([["coassiali", "Cavi coassiali verso le antenne"], ["fibraDielettrica", "Fibra ottica dielettrica"], ["fibraMetallica", "Fibra con parti metalliche"], ["alimentazione", "Linea di alimentazione degli apparati"]] as const).map(([k, t]) =>
             <label key={k} className="flex items-center gap-2"><input type="checkbox" checked={d.cavi[k]} onChange={(e) => set({ cavi: { ...d.cavi, [k]: e.target.checked } })} />{t}</label>)}

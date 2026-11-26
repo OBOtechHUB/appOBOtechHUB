@@ -57,6 +57,11 @@ export interface DatiAntenne {
   calateAuto?: boolean | undefined;
   /** versione isCon scelta dal progettista (null o assente = la più semplice che basta) */
   versione?: VersioneIscon | null | undefined;
+  /** calate da grande altezza: quota dell'antenna più bassa (null = sommità − 3 m), struttura di sostegno, distanza disponibile, isCon fino a terra */
+  quotaApparatoBasso?: number | null | undefined;
+  struttura?: "metallica" | "armata" | "isolante" | undefined;
+  distanzaImpianti?: number | undefined;
+  isconFinoATerra?: boolean | undefined;
   ki: number | null;
   /** linee che arrivano agli apparati */
   cavi: { coassiali: boolean; fibraMetallica: boolean; fibraDielettrica: boolean; alimentazione: boolean };
