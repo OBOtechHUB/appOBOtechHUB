@@ -12,7 +12,9 @@
         "La verifica della sezione 2 usa da sola la lunghezza dalla punta al PAE calcolata (si può ancora scrivere a mano)",
         "Per ogni quota (PAE, livelli intermedi, base) dice cosa collegare: conduttore interno, guaina, zona x libera, supporti delle antenne, schermi dei cavi, SPD",
         "Con palo o traliccio metallico o calcestruzzo armato la corrente scende nella struttura; con struttura non conduttiva calcola i livelli equipotenziali intermedi (dalla distanza disponibile, o con isCon fino a terra)",
-        "Schema verticale, materiali (isCon, piastre, supporti, cartello) e pulsante per usare la lunghezza trovata nella verifica"
+        "Schema verticale, materiali (isCon, piastre, supporti, cartello) e pulsante per usare la lunghezza trovata nella verifica",
+        "«Relazione tecnica (Word)» nella pagina Antenne: sito, captazione, distanza di separazione, calate in parallelo e versione isCon, collegamento al palo e collegamenti equipotenziali quota per quota con lo schema, cavi, SPD e terra, posa e materiali",
+        "I materiali delle antenne (asta, isCon per tutta l'altezza secondo il numero di calate, collegamento al palo, piastre, supporti, cartello) entrano da soli nel Computo materiali"
       ]
     },
     {
