@@ -64,6 +64,8 @@ export interface DatiAntenne {
   isconFinoATerra?: boolean | undefined;
   /** calate distanziate almeno 20 cm su lati opposti del palo (kc ridotto); false = affiancate */
   calateDistanziate?: boolean | undefined;
+  /** "antenne" = fine del cavo sotto l'antenna più bassa; "basso" = il più in basso possibile (apparecchi a bordo) */
+  obiettivo?: "antenne" | "basso" | undefined;
   /** l della verifica presa dal calcolo delle calate da grande altezza (true o assente) */
   lAuto?: boolean | undefined;
   ki: number | null;

@@ -43,6 +43,8 @@ export interface DatiCalateAltezza {
   isconFinoATerra: boolean;
   /** calate distanziate almeno 20 cm e su lati opposti (kc ridotto); false = affiancate (kc 1 per la distanza) */
   calateDistanziate?: boolean | undefined;
+  /** "antenne" (o assente) = fine del cavo subito sotto l'antenna più bassa; "basso" = fine del cavo il più in basso possibile, per isolare anche gli apparecchi a bordo */
+  obiettivo?: "antenne" | "basso" | undefined;
 }
 
 export interface LivelloEquipotenziale { quota: number; tipo: "principale" | "intermedio" | "base"; titolo: string; cosa: string[] }
@@ -76,9 +78,10 @@ export function calateIsconAltezza(d: DatiCalateAltezza): RisultatoCalateAltezza
   type Cand = { n: number; v: VersioneIscon; lMax: number; x: number; pae: number };
   // quota della fine del cavo: subito sotto l'antenna più bassa lasciando il tratto x = 2·s (terminale PAE della guaina);
   // x dipende da s, che dipende dalla lunghezza: pae = A − 2·s(pae) → pae = (A − c·top) / (1 − c) con c = 2·ki·kc/km
+  const basso = d.obiettivo === "basso";
   const posizione = (n: number, lMax: number): { pae: number; x: number } => {
     const minimo = Math.max(base, top - (lMax - MARGINE));
-    if (d.quotaApparatoBasso == null) { const sx = (ki * kcS(n) * (top - minimo)) / km; return { pae: minimo, x: sx < 0.2 ? 0 : 2 * sx }; }
+    if (d.quotaApparatoBasso == null || basso) { const sx = (ki * kcS(n) * (top - minimo)) / km; return { pae: minimo, x: sx < 0.2 ? 0 : 2 * sx }; }
     const c = (2 * ki * kcS(n)) / km, A = d.quotaApparatoBasso;
     let pae = (A - c * top) / (1 - c);
     let sx = (ki * kcS(n) * (top - pae)) / km;
@@ -86,13 +89,24 @@ export function calateIsconAltezza(d: DatiCalateAltezza): RisultatoCalateAltezza
     return { pae, x: sx < 0.2 ? 0 : 2 * sx };
   };
   let scelta: Cand | null = null;
-  for (const n of numeri) {
-    for (const v of ordine) {
+  // con l'obiettivo "basso" le antenne devono comunque restare sopra il tratto x della fine del cavo
+  const valida = (pae: number, x: number, lMax: number) => pae >= Math.max(base, top - (lMax - MARGINE)) - 1e-9 && pae < top && (!basso || d.quotaApparatoBasso == null || pae + x <= d.quotaApparatoBasso + 1e-9);
+  if (basso && (!d.nCalate || !d.versione)) {
+    // scendere il più possibile: tra le combinazioni ammesse quella con la fine del cavo più bassa (a parità, meno cavi e versione più semplice)
+    for (const n of numeri) for (const v of ordine) {
       if (!ammessaPerCorrente(v, d.lpl, n)) continue;
       const lMax = lunghezzaMassima(v, ki, kcS(n), km), { pae, x } = posizione(n, lMax);
-      if (pae >= Math.max(base, top - (lMax - MARGINE)) - 1e-9 && pae < top) { scelta = { n, v, lMax, x, pae }; break; }
+      if (valida(pae, x, lMax) && (!scelta || pae < scelta.pae - 0.05)) scelta = { n, v, lMax, x, pae };
     }
-    if (scelta) break;
+  } else {
+    for (const n of numeri) {
+      for (const v of ordine) {
+        if (!ammessaPerCorrente(v, d.lpl, n)) continue;
+        const lMax = lunghezzaMassima(v, ki, kcS(n), km), { pae, x } = posizione(n, lMax);
+        if (valida(pae, x, lMax)) { scelta = { n, v, lMax, x, pae }; break; }
+      }
+      if (scelta) break;
+    }
   }
   const vMax: VersioneIscon = d.versione ?? "premium", nMax = d.nCalate ? Math.min(4, d.nCalate) : 4;
   const lMassimaPossibile = lunghezzaMassima(vMax, ki, kcS(nMax), km);
@@ -139,6 +153,7 @@ export function calateIsconAltezza(d: DatiCalateAltezza): RisultatoCalateAltezza
       avvisi.push("Il palo sotto la fine del cavo porta la corrente di fulmine: schermi dei cavi d'antenna collegati al palo in alto e alla base, SPD di tipo 1 all'ingresso del locale apparati; per discese lunghe è buona pratica collegare gli schermi al palo anche a quote intermedie.");
     }
   }
+  if (basso) avvisi.push(`Fine del cavo il più in basso possibile: tutto quello che sta sul palo sopra ${f(pae + x, 1)} m (antenne e apparecchi a bordo) resta su un tratto che non porta corrente di fulmine; tra ${f(pae, 1)} e ${f(pae + x, 1)} m (tratto x) nessun apparecchio entro s = ${f(s, 3)} m dal cavo. Sotto ${f(pae, 1)} m il palo porta la corrente.`);
   avvisi.push(`Lungo il ${metallica ? "palo metallico" : "percorso"}: supporti al massimo ogni 1 m${metallica ? "; i supporti metallici isCon H VA 5408056 avvitati al palo collegano anche la guaina alle parti a terra, come chiedono le istruzioni OBO" : ""}. Raggio minimo di curvatura ${D.raggioCurvatura.nero} mm.`);
   if (n > 1) avvisi.push(d.calateDistanziate === false
     ? `Calate affiancate: la corrente si divide (${n} cavi) ma il kc della distanza resta 1 (istruzioni OBO).`
@@ -190,4 +205,14 @@ export function cosaMigliora(n: number, v: VersioneIscon, ki: number, lpl: Livel
   if (n >= 4) return `4 calate: come 3 per la norma (kc 0,44), quindi l massima uguale (${f(lm(4), 1)} m); in più ripartisce meglio la corrente sul palo e dà ridondanza, ma costa un cavo e un collegamento in più.`;
   const prima = lm(n - 1), dopo = lm(n);
   return `Da ${n - 1} a ${n} calate: kc da ${f(kcDi(n - 1), 2)} a ${f(kcDi(n), 2)}, l massima da ${f(prima, 1)} a ${f(dopo, 1)} m (+${f(((dopo / prima) - 1) * 100, 0)} %), s più bassa a parità di l, corrente per calata da ${f(corr(n - 1), 0)} a ${f(corr(n), 0)} kA; in più un cavo isCon e un collegamento al PAE.`;
+}
+
+export interface RigaPiuCavi { n: number; kc: number; lMax: number; quotaFine: number | null; s: number; corrente: number; metri: number; fattibile: boolean }
+/** Quanto si scende con 1, 2, 3, 4 cavi della stessa versione (fine del cavo il più in basso possibile). */
+export function scendiConPiuCavi(d: DatiCalateAltezza, v: VersioneIscon): RigaPiuCavi[] {
+  return [1, 2, 3, 4].map((n) => {
+    const r = calateIsconAltezza({ ...d, obiettivo: "basso", nCalate: n, versione: v });
+    const kc = d.calateDistanziate === false ? 1 : kcDi(n);
+    return { n, kc, lMax: lunghezzaMassima(v, r.ki, kc, r.km), quotaFine: r.quotaPAE, s: r.s, corrente: CORRENTE[d.lpl] * kcDi(n), metri: r.materiali.find((m) => m.unita === "m")?.quantita ?? 0, fattibile: r.fattibile };
+  });
 }

@@ -56,3 +56,19 @@ describe("scelta delle calate", () => {
     expect(iso.collegamentiTotali).toBe(2 * (1 + iso.livelliIntermedi));
   });
 });
+
+describe("scendere il più possibile", () => {
+  it("la fine del cavo scende con più cavi e versioni migliori", async () => {
+    const { scendiConPiuCavi } = await import("./isconAltezza");
+    const r = calateIsconAltezza({ ...base, obiettivo: "basso" });
+    expect(r.fattibile).toBe(true);
+    expect(r.versione).toBe("premium");
+    expect(r.n).toBe(3); // con 3 e 4 cavi kc 0,44: a parità si sceglie il numero minore
+    expect(r.quotaPAE!).toBeCloseTo(87.4 - (0.9 / (0.04 * 0.44) - 0.5), 6);
+    const righe = scendiConPiuCavi(base, "proplus");
+    expect(righe[0]!.quotaFine!).toBeGreaterThan(righe[1]!.quotaFine!);
+    expect(righe[1]!.quotaFine!).toBeGreaterThan(righe[2]!.quotaFine!);
+    expect(righe[2]!.quotaFine!).toBeCloseTo(righe[3]!.quotaFine!, 6);
+    expect(r.avvisi.some((a) => /il più in basso possibile/.test(a))).toBe(true);
+  });
+});

@@ -20,7 +20,7 @@ import { logoObo, svgPng } from "@/components/progetto/RelazioneTecnica";
 import { useState } from "react";
 import { ACCESSORI_ISCON, ISCON, VERSIONI_PROPOSTE, verificaIscon, versioniScelta, type VersioneIscon } from "@/calcoli/calate/iscon";
 import type { Livello } from "@/calcoli/calate/separazione";
-import { NOMI_STRUTTURA, confrontoCalate, cosaMigliora, type StrutturaSostegno } from "@/calcoli/calate/isconAltezza";
+import { NOMI_STRUTTURA, confrontoCalate, cosaMigliora, scendiConPiuCavi, type StrutturaSostegno } from "@/calcoli/calate/isconAltezza";
 import { SchemaCalateAltezza } from "@/components/antenne/SchemaCalateAltezza";
 
 const f = (v: number, c = 2) => (Number.isFinite(v) ? v.toLocaleString("it-IT", { minimumFractionDigits: c, maximumFractionDigits: c }) : "—");
@@ -35,6 +35,7 @@ export function AntennePage() {
   const auto = d.calateAuto !== false;
   const P = calcolaProgettoAntenne(d), { r, ca, apparatoBasso, lAuto, lUsata } = P;
   const confronto = confrontoCalate(P.datiCalate);
+  const vCavi: VersioneIscon = ca.versione ?? d.versione ?? "proplus", piuCavi = scendiConPiuCavi(P.datiCalate, vCavi), basso = d.obiettivo === "basso";
   const sol = r.soluzione.scelta;
   const [msgRel, setMsgRel] = useState("");
   async function relazioneWord() {
@@ -125,7 +126,12 @@ export function AntennePage() {
           <label className="flex items-center gap-2 self-end pb-2 text-sm" title="Istruzioni OBO: calate ad almeno 20 cm, il più possibile distanti; se corrono affiancate il kc non si riduce"><input type="checkbox" checked={d.calateDistanziate !== false} onChange={(e) => set({ calateDistanziate: e.target.checked })} />Calate distanziate ≥ 20 cm su lati opposti del palo (kc ridotto)</label>
         </div>
         <div className="mt-4 rounded-lg border bg-card p-3">
-          <div className="flex flex-wrap items-center gap-1.5" role="group" aria-label="Numero di calate">
+          <div className="flex flex-wrap items-center gap-1.5" role="group" aria-label="Fin dove isolare">
+            <span className="mr-1 text-sm font-semibold">Fin dove isolare:</span>
+            <Button size="sm" variant={!basso ? "default" : "outline"} aria-pressed={!basso} onClick={() => set({ obiettivo: "antenne" })}>Sotto l'antenna più bassa</Button>
+            <Button size="sm" variant={basso ? "default" : "outline"} aria-pressed={basso} onClick={() => set({ obiettivo: "basso" })}>Il più in basso possibile (anche apparecchi a bordo)</Button>
+          </div>
+          <div className="mt-2 flex flex-wrap items-center gap-1.5" role="group" aria-label="Numero di calate">
             <span className="mr-1 text-sm font-semibold">Calate in parallelo:</span>
             {(["auto", 1, 2, 3, 4] as const).map((k) => { const on = k === "auto" ? auto : !auto && Math.min(4, d.numeroCalate) === k; return <Button key={k} size="sm" variant={on ? "default" : "outline"} aria-pressed={on} onClick={() => set(k === "auto" ? { calateAuto: true } : { calateAuto: false, numeroCalate: k })}>{k === "auto" ? "Automatico" : k}</Button>; })}
           </div>
@@ -147,6 +153,17 @@ export function AntennePage() {
           </table></div>
           <p className="mt-1 text-xs text-muted-foreground">Tocca una casella per sceglierla. Con 3 o 4 calate il kc della norma è lo stesso (0,44): la 4ª calata non allunga la l massima.</p>
         </div>
+        <section className="mt-4 rounded-lg border bg-card p-3" aria-label="Come migliora con più cavi">
+          <h3 className="font-semibold">Come migliora con più cavi ({ISCON[vCavi].nome}, fine del cavo il più in basso possibile)</h3>
+          <p className="mt-1 text-sm">Con più cavi in parallelo la corrente di fulmine si divide: in ogni cavo passa meno corrente, la caduta di tensione lungo il cavo è più bassa e quindi, a parità di isolamento (se), il cavo può essere più lungo. Per la norma il coefficiente kc vale 1 con un cavo, 0,66 con due e 0,44 con tre o più; la lunghezza ammessa è se ÷ (ki × kc), quindi con due cavi si scende circa del 50 % in più e con tre più del doppio rispetto a uno. Dal quarto cavo il kc non scende più: serve solo per ridondanza. I cavi devono stare ad almeno 20 cm tra loro, il più possibile distanti (lati opposti del palo): se corrono affiancati il kc non si riduce.</p>
+          <div className="mt-3 space-y-1.5">{piuCavi.map((c) => { const isolato = c.quotaFine != null ? r.asta - c.quotaFine : 0, perc = Math.max(2, Math.min(100, (isolato / Math.max(1, r.asta)) * 100));
+            return <div key={c.n} className="grid grid-cols-[3.5rem_1fr] items-center gap-2 text-xs sm:grid-cols-[4.5rem_1fr_15rem] sm:text-sm">
+              <span className="font-semibold">{c.n} {c.n === 1 ? "cavo" : "cavi"}</span>
+              <div className="h-5 rounded bg-muted"><div className={`h-5 rounded ${c.fattibile ? "bg-primary" : "bg-[#b3261e]"}`} style={{ width: `${perc}%` }} title={`isolato per ${f(isolato, 1)} m`} /></div>
+              <span className="col-span-2 sm:col-span-1">{c.fattibile && c.quotaFine != null ? <>fino a <strong>{f(c.quotaFine, 1)} m</strong> · isolati {f(isolato, 1)} m · kc {f(c.kc, 2)} · {f(c.corrente, 0)} kA/cavo · {c.metri} m di cavo</> : <>non basta per le antenne (l max {f(c.lMax, 1)} m)</>}</span>
+            </div>; })}</div>
+          <p className="mt-2 text-xs text-muted-foreground">La barra è la parte del palo isolata dalla punta ({f(r.asta, 1)} m) verso terra. Sotto la fine del cavo il palo porta la corrente di fulmine.</p>
+        </section>
         <div className="mt-4 grid gap-4 md:grid-cols-[280px_1fr]">
           <SchemaCalateAltezza punta={r.asta} sommita={d.sommita} apparatoBasso={apparatoBasso} r={ca} piano={d.tipo === "tetto" ? "tetto" : "terreno"} finoATerra={false} />
           <div>

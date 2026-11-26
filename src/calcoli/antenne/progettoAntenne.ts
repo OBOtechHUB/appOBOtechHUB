@@ -21,7 +21,7 @@ export function calcolaProgettoAntenne(d: DatiAntenne): ProgettoAntenne {
   const auto = d.calateAuto !== false;
   const apparatoBasso = d.quotaApparatoBasso ?? Math.max(0, d.sommita - 3);
   const datiCalate: DatiCalateAltezza = { lpl: d.lpl, ki: d.ki, quotaPunta: r0.asta, quotaBase: 0, quotaApparatoBasso: apparatoBasso, struttura: d.struttura ?? "metallica",
-    nCalate: auto ? null : Math.min(4, d.numeroCalate), versione: d.versione ?? null, materiale: "aria", distanzaImpianti: d.distanzaImpianti ?? 0.5, isconFinoATerra: false, calateDistanziate: d.calateDistanziate !== false };
+    nCalate: auto ? null : Math.min(4, d.numeroCalate), versione: d.versione ?? null, materiale: "aria", distanzaImpianti: d.distanzaImpianti ?? 0.5, isconFinoATerra: false, calateDistanziate: d.calateDistanziate !== false, obiettivo: d.obiettivo ?? "antenne" };
   const ca = calateIsconAltezza(datiCalate);
   const lAuto = d.lAuto !== false && ca.fattibile;
   const lUsata = lAuto ? Math.round(ca.l * 100) / 100 : d.lunghezzaCalata;

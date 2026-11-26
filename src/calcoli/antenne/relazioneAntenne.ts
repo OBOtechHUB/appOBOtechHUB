@@ -8,7 +8,7 @@
 import type { Blocco, Documento, Run, Testo } from "@/lib/docx";
 import { PIEDE_OBO, dataLunga, dc, el, firma, h1, h2, it, oDc, p, tab, testataObo } from "@/calcoli/documenti/stileObo";
 import { ISCON, ISCON_COMUNE, verificaIscon } from "@/calcoli/calate/iscon";
-import { NOMI_STRUTTURA } from "@/calcoli/calate/isconAltezza";
+import { NOMI_STRUTTURA, scendiConPiuCavi } from "@/calcoli/calate/isconAltezza";
 import { NOMI_SITO, type DatiAntenne } from "./antenne";
 import { CORRENTE_LPL } from "./palo";
 import { calcolaProgettoAntenne, svgSchemaCalate } from "./progettoAntenne";
@@ -66,6 +66,13 @@ export function relazioneAntenne(x: IngressoRelazioneAntenne): Documento {
       r.soluzione.opzioni.map((o) => [String(o.n), it(o.kc, 2), it(o.s, 3), `${it(CORRENTE_LPL[d.lpl] * o.kc, 0)} kA`, o.versione ? ISCON[o.versione].nome : "nessuno", o.lMax ? it(o.lMax, 1) : "—"]),
       [2.2, 1.2, 2.1, 2.3, 2.8, 1.6], r.soluzione.scelta ? { evidenziaRighe: [r.soluzione.scelta.n - 1] } : {}),
   ];
+  {
+    const vC = ca.versione ?? d.versione ?? "proplus", righe = scendiConPiuCavi(P.datiCalate, vC);
+    B.push(h2(`Come migliora con più cavi (${ISCON[vC].nome})`),
+      p("Con più cavi in parallelo la corrente di fulmine si divide: in ogni cavo passa meno corrente, la caduta di tensione lungo il cavo si riduce e, a parità di isolamento del cavo (se), la lunghezza ammessa se ÷ (ki × kc) aumenta, quindi la fine del cavo può scendere più in basso e restano isolati più apparecchi a bordo. Il kc vale 1 con un cavo, 0,66 con due, 0,44 con tre o più: dal quarto cavo la lunghezza non aumenta più. I cavi vanno posati ad almeno 20 cm tra loro, il più possibile distanti; affiancati non riducono il kc (istruzioni OBO).", { allinea: "giustificato" }),
+      tab(["Cavi", "kc", "Lunghezza ammessa", "Fine del cavo più bassa", "Tratto isolato", "Corrente per cavo"], righe.map((c) => [String(c.n), it(c.kc, 2), `${it(c.lMax, 1)} m`, c.fattibile && c.quotaFine != null ? `${it(c.quotaFine, 1)} m` : "non basta", c.fattibile && c.quotaFine != null ? `${it(r.asta - c.quotaFine, 1)} m` : "—", `${it(c.corrente, 0)} kA`]), [1.4, 1.2, 2.4, 2.6, 2.2, 2.2], { evidenziaRighe: [ca.n - 1] }));
+    if (d.obiettivo === "basso") B.push(p([{ t: "Scelta del progettista: ", b: true }, { t: "fine del cavo il più in basso possibile, per isolare dalla corrente di fulmine anche gli apparecchi installati sul palo sotto le antenne." }]));
+  }
   if (ca.fattibile && D && ca.quotaPAE != null) {
     const v = verificaIscon(ca.versione!, ca.s, "aria");
     B.push(
