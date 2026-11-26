@@ -2,6 +2,18 @@
   "nota": "Registro degli aggiornamenti di Progettazione LPS. Una voce per aggiornamento, la più recente per prima (app: lps). Viene mostrato nella barra \"Aggiorna app\", nel riquadro Novità e nella pagina Novità di OBO Hub. Le novità solo grafiche (animazioni, sigle, aspetto) non si mostrano: restano conservate in 'grafica_non_mostrata'.",
   "aggiornamenti": [
     {
+      "id": "2026-11-26-lps-69",
+      "data": "2026-11-26",
+      "app": "lps",
+      "titolo": "Calate isCon secondo le istruzioni di montaggio OBO",
+      "voci": [
+        "Ogni calata isCon è un pezzo unico dalla punta alla fine del cavo, dove il conduttore interno si collega al palo: il cavo non si prolunga e la sua lunghezza (con 0,5 m per i collegamenti) resta entro quella ammessa",
+        "Terminale isCon PAE 5408036 sulla guaina a x = 2 × s dalla fine del cavo, con il tratto libero entro s (distanziatore isCon DH); lungo il palo supporti metallici isCon H VA ogni 1 m",
+        "Calate in parallelo: la corrente per calata scende (100 → 66 → 44 kA con LPL III); il kc della distanza si riduce solo con calate distanziate almeno 20 cm su lati opposti del palo (casella nuova), affiancate restano a kc 1",
+        "Distinta e relazione con i componenti OBO: elementi di collegamento superiore e inferiore, piastra AP1/AP2-16 VA, terminale PAE, distanziatore, supporti H VA, rame 6 mm², cartello; prove di continuità e di isolamento"
+      ]
+    },
+    {
       "id": "2026-11-26-lps-68",
       "data": "2026-11-26",
       "app": "lps",
