@@ -10,6 +10,8 @@ import { ISCON } from "@/calcoli/calate/iscon";
 import { particolareAsta, type ParticolareAsta } from "./astaIscon";
 
 export interface RigaMateriale { codice: string; descrizione: string; quantita: number; unita: "m" | "pz"; categoria: "calate" | "morsetti" | "supporti" | "accessori" | "captazione" }
+export interface Apparecchio { id: string; nome: string; quota: number; altezza: number }
+export interface StatoApparecchio extends Apparecchio { cima: number; isolato: boolean; esito: string }
 export interface ProgettoAntenne {
   r: RisultatoAntenne; ca: RisultatoCalateAltezza; datiCalate: DatiCalateAltezza; apparatoBasso: number; lAuto: boolean; lUsata: number;
   /** corrente di fulmine per conduttore (kA) con la soluzione scelta */
@@ -17,12 +19,20 @@ export interface ProgettoAntenne {
   materiali: RigaMateriale[];
   /** particolare dell'asta con il set di supporti isCon HM */
   asta: ParticolareAsta | null;
+  /** sommità usata nei calcoli: la più alta tra antenne e apparecchiature indicate */
+  sommita: number;
+  /** apparecchiature da proteggere con l'esito (isolate dalla corrente di fulmine o no) */
+  apparecchi: StatoApparecchio[];
 }
 
-export function calcolaProgettoAntenne(d: DatiAntenne): ProgettoAntenne {
+export function calcolaProgettoAntenne(d0: DatiAntenne): ProgettoAntenne {
+  const lista = (d0.apparecchi ?? []).filter((a) => Number.isFinite(a.quota) && Number.isFinite(a.altezza));
+  const cimaApp = lista.reduce((m, a) => Math.max(m, a.quota + a.altezza), 0);
+  // un'apparecchiatura più alta delle antenne alza la sommità da proteggere con la sfera rotolante
+  const d: DatiAntenne = cimaApp > d0.sommita ? { ...d0, sommita: cimaApp } : d0;
   const r0 = calcolaAntenne(d);
   const auto = d.calateAuto !== false;
-  const apparatoBasso = d.quotaApparatoBasso ?? Math.max(0, d.sommita - 3);
+  const apparatoBasso = lista.length ? Math.min(...lista.map((a) => a.quota)) : d.quotaApparatoBasso ?? Math.max(0, d.sommita - 3);
   const datiCalate: DatiCalateAltezza = { lpl: d.lpl, ki: d.ki, quotaPunta: r0.asta, quotaBase: 0, quotaApparatoBasso: apparatoBasso, struttura: d.struttura ?? "metallica",
     nCalate: auto ? null : Math.min(4, d.numeroCalate), versione: d.versione ?? null, materiale: "aria", distanzaImpianti: d.distanzaImpianti ?? 0.5, isconFinoATerra: false, calateDistanziate: d.calateDistanziate !== false, obiettivo: d.obiettivo ?? "antenne" };
   const ca = calateIsconAltezza(datiCalate);
@@ -37,11 +47,24 @@ export function calcolaProgettoAntenne(d: DatiAntenne): ProgettoAntenne {
   const materiali: RigaMateriale[] = ca.materiali.filter((m) => !(conSet && /^54080(26|28)$/.test(m.codice))).map((m) => ({ codice: m.codice, descrizione: m.descrizione, quantita: m.quantita, unita: m.unita === "m" ? "m" : "pz", categoria: cat(m.codice, m.descrizione) }));
   if (asta) materiali.push(...asta.materiali.map((m): RigaMateriale => ({ ...m, categoria: /fascetta di terra/i.test(m.descrizione) ? "morsetti" : /guaina/i.test(m.descrizione) ? "accessori" : "supporti" })));
   if (r.protette) materiali.unshift({ codice: "", descrizione: `Asta di captazione con la punta a ${r.asta.toLocaleString("it-IT", { maximumFractionDigits: 2 })} m (${(r.asta - d.sommita).toLocaleString("it-IT", { maximumFractionDigits: 2 })} m sopra le antenne), supporto isolato sul palo`, quantita: 1, unita: "pz", categoria: "captazione" });
-  return { r, ca, datiCalate, apparatoBasso, lAuto, lUsata, correntePerConduttore, materiali, asta };
+  const fm = (v: number) => v.toLocaleString("it-IT", { maximumFractionDigits: 2 });
+  const sotto = ca.fattibile && ca.quotaPAE != null ? ca.quotaPAE + ca.zonaX : null;
+  const apparecchi: StatoApparecchio[] = lista.map((a) => {
+    const cima = a.quota + a.altezza;
+    const sopraPunta = cima > r.asta + 1e-9;
+    const isolato = sotto != null && a.quota >= sotto - 1e-6 && r.protette && !sopraPunta;
+    const esito = sopraPunta ? "più alta della punta dell'asta: alzare l'asta"
+      : !r.protette ? "esposta alla fulminazione diretta: alzare l'asta"
+      : sotto == null ? "non isolata: nessuna soluzione isCon"
+      : isolato ? `protetta e isolata (sopra la fine del cavo ${fm(ca.quotaPAE!)} m e il tratto x)`
+      : `protetta dalla fulminazione diretta ma sotto la fine del cavo (${fm(sotto)} m con il tratto x): collegarla al palo, schermi dei cavi collegati e SPD di tipo 1`;
+    return { ...a, cima, isolato, esito };
+  });
+  return { r, ca, datiCalate, apparatoBasso, lAuto, lUsata, correntePerConduttore, materiali, asta, sommita: d.sommita, apparecchi };
 }
 
 /** Schema verticale delle calate in SVG (colori fissi, per la relazione Word). */
-export function svgSchemaCalate(punta: number, sommita: number, apparatoBasso: number, ca: RisultatoCalateAltezza, finoATerra: boolean, piano: string): string {
+export function svgSchemaCalate(punta: number, sommita: number, apparatoBasso: number, ca: RisultatoCalateAltezza, finoATerra: boolean, piano: string, apparecchi: StatoApparecchio[] = []): string {
   const W = 420, H = 520, top = 30, bot = 470, zMax = Math.max(punta, sommita, 1);
   const y = (z: number) => bot - (Math.max(0, z) / zMax) * (bot - top);
   const xP = 220, xI = 196, xA = 246, f = (v: number) => v.toLocaleString("it-IT", { maximumFractionDigits: 1 });
@@ -55,8 +78,13 @@ export function svgSchemaCalate(punta: number, sommita: number, apparatoBasso: n
     `<line x1="${xP}" x2="${xP}" y1="${y(Math.min(punta, sommita + 0.5))}" y2="${bot}" stroke="#7694a4" stroke-width="8" stroke-linecap="round"/>`,
     `<line x1="${xP}" x2="${xP}" y1="${y(punta)}" y2="${y(sommita)}" stroke="#f39b00" stroke-width="4"/>`,
     `<circle cx="${xP}" cy="${y(punta)}" r="5" fill="#f39b00"/>`, t(xP + 10, y(punta) + 5, `punta ${f(punta)} m`),
-    `<rect x="${xA}" y="${y(sommita)}" width="18" height="${Math.max(6, y(apparatoBasso) - y(sommita))}" rx="2" fill="#41525d"/>`, t(xA + 24, y(apparatoBasso) + 5, `antenne da ${f(apparatoBasso)} m`),
   ];
+  if (!apparecchi.length) parti.push(`<rect x="${xA}" y="${y(sommita)}" width="18" height="${Math.max(6, y(apparatoBasso) - y(sommita))}" rx="2" fill="#41525d"/>`, t(xA + 24, y(apparatoBasso) + 5, `antenne da ${f(apparatoBasso)} m`));
+  apparecchi.forEach((a, i) => {
+    const col = a.isolato ? "#1d7a45" : "#b3261e", yy = y(a.cima), h = Math.max(5, y(a.quota) - y(a.cima)), xx = xA + (i % 2) * 10;
+    parti.push(`<rect x="${xx}" y="${yy}" width="16" height="${h}" rx="2" fill="${col}" fill-opacity="0.85"/>`,
+      t(xA + 34, Math.min(bot - 4, yy + h / 2 + 4 + (i % 2) * 12), `${(a.nome || `apparecchio ${i + 1}`).slice(0, 16)} ${f(a.quota)}–${f(a.cima)} m`, col));
+  });
   if (pae != null) parti.push(
     `<line x1="${xI}" x2="${xI}" y1="${y(punta - 0.3)}" y2="${y(finoATerra ? 0 : pae)}" stroke="#1b1f23" stroke-width="5"/>`,
     `<rect x="${xI - 18}" y="${y(pae + ca.zonaX)}" width="36" height="${Math.max(3, y(pae) - y(pae + ca.zonaX))}" fill="#f39b00" fill-opacity="0.2"/>`,

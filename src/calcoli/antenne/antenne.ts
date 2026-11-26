@@ -59,6 +59,8 @@ export interface DatiAntenne {
   versione?: VersioneIscon | null | undefined;
   /** calate da grande altezza: quota dell'antenna più bassa (null = sommità − 3 m), struttura di sostegno, distanza disponibile, isCon fino a terra */
   quotaApparatoBasso?: number | null | undefined;
+  /** apparecchiature da proteggere sul palo: quota della base e altezza occupata (m, dal piano di riferimento) */
+  apparecchi?: { id: string; nome: string; quota: number; altezza: number }[] | undefined;
   struttura?: "metallica" | "armata" | "isolante" | undefined;
   distanzaImpianti?: number | undefined;
   isconFinoATerra?: boolean | undefined;

@@ -2,6 +2,17 @@
   "nota": "Registro degli aggiornamenti di Progettazione LPS. Una voce per aggiornamento, la più recente per prima (app: lps). Viene mostrato nella barra \"Aggiorna app\", nel riquadro Novità e nella pagina Novità di OBO Hub. Le novità solo grafiche (animazioni, sigle, aspetto) non si mostrano: restano conservate in 'grafica_non_mostrata'.",
   "aggiornamenti": [
     {
+      "id": "2026-11-26-lps-72",
+      "data": "2026-11-26",
+      "app": "lps",
+      "titolo": "Antenne: apparecchiature da proteggere con quota e altezza",
+      "voci": [
+        "Nella sezione 1 nuovo elenco «Apparecchiature da proteggere sul palo»: per ognuna nome, quota della base e altezza che occupa",
+        "La più bassa decide fin dove scende il cavo isCon; se una è più alta delle antenne l'asta si calcola su di lei",
+        "Nello schema della sezione 3 ogni apparecchiatura è disegnata alla sua quota: verde se resta isolata, rossa se sta sotto la fine del cavo (con cosa fare); elenco ed esito anche nella relazione Word"
+      ]
+    },
+    {
       "id": "2026-11-26-lps-71",
       "data": "2026-11-26",
       "app": "lps",

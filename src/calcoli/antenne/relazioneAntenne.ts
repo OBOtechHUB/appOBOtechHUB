@@ -41,10 +41,12 @@ export function relazioneAntenne(x: IngressoRelazioneAntenne): Documento {
       ["Struttura di sostegno", NOMI_STRUTTURA[struttura]],
       ["Livello di protezione (LPL)", d.lpl],
       [`Sommità delle antenne (dal ${piano})`, `${it(d.sommita, 2)} m`],
-      ["Antenna più bassa da isolare", `${it(P.apparatoBasso, 2)} m`],
+      [P.apparecchi.length ? "Apparecchiatura più bassa da isolare" : "Antenna più bassa da isolare", `${it(P.apparatoBasso, 2)} m`],
       ["Bordo esterno delle antenne dall'asse dell'asta", `${it(d.sbraccio, 2)} m`],
       ["Distanza reale asta nuda – antenne", `${it(d.distanzaReale, 2)} m`],
     ], [7, 5]),
+    ...(P.apparecchi.length ? [h2("Apparecchiature da proteggere"),
+      tab(["Apparecchiatura", "Da quota", "Altezza", "Fino a", "Esito"], P.apparecchi.map((a, i) => [a.nome || `Apparecchio ${i + 1}`, `${it(a.quota, 2)} m`, `${it(a.altezza, 2)} m`, `${it(a.cima, 2)} m`, a.esito]), [3, 1.6, 1.6, 1.6, 4.2])] : []),
     h1("3. Captazione"),
     p(`Metodo della sfera rotolante (CEI EN IEC 62305-3) con raggio r = ${it(r.r, 0)} m per LPL ${d.lpl}. La sfera più sfavorevole tocca la punta dell'asta e il ${piano}, oppure, quando l'asta supera il raggio, la punta e l'asta stessa sotto la punta: le antenne devono restare sotto la superficie della sfera.`, { allinea: "giustificato" }),
     tab(["Verifica", "Valore"], [
@@ -83,7 +85,7 @@ export function relazioneAntenne(x: IngressoRelazioneAntenne): Documento {
       p([{ t: "Collegamenti: ", b: true }, { t: `${ca.collegamentiTotali} collegamenti del conduttore al palo: ${ca.collegamentiPAE} a ${it(ca.quotaPAE, 2)} m (uno per calata, con il terminale PAE 5408036 sulla guaina ${it(ca.zonaX, 2)} m più in alto)${ca.livelliIntermedi ? ` e ${ca.livelliIntermedi} livelli intermedi con ${ca.n} collegamenti ciascuno` : ""}, più il collegamento all'impianto di terra alla base.` }]),
       p([{ t: "Parte nuda dell'asta: ", b: true }, { t: `distanza reale ${it(d.distanzaReale, 2)} m ${r.separazioneOk ? "≥" : "<"} s = ${it(r.s, 3)} m → ` }, { t: r.separazioneOk ? "VERIFICATA" : "NON VERIFICATA (supporto isolante più lungo)", b: true }]),
       h1("6. Collegamento al palo e collegamenti equipotenziali"),
-      { tipo: "immagine", svg: svgSchemaCalate(r.asta, d.sommita, P.apparatoBasso, ca, continuo, piano), larghezza: 9, altezza: 11.1, allinea: "centro" },
+      { tipo: "immagine", svg: svgSchemaCalate(r.asta, P.sommita, P.apparatoBasso, ca, continuo, piano, P.apparecchi), larghezza: 9, altezza: 11.1, allinea: "centro" },
       p("Figura – Schema verticale (non in scala orizzontale): asta, antenne, cavo isCon fino al collegamento sul palo, tratto x del terminale PAE, livelli equipotenziali e base.", { allinea: "centro", dimensione: 9 }),
     );
     if (P.asta) B.push(h2("Particolare dell'asta: fissaggio delle calate isCon"),

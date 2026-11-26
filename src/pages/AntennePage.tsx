@@ -26,6 +26,8 @@ import { svgParticolareAsta } from "@/calcoli/antenne/astaIscon";
 
 const f = (v: number, c = 2) => (Number.isFinite(v) ? v.toLocaleString("it-IT", { minimumFractionDigits: c, maximumFractionDigits: c }) : "—");
 
+const nuovoId = () => { try { return crypto.randomUUID(); } catch { return `a${Date.now().toString(36)}${Math.random().toString(36).slice(2, 7)}`; } };
+
 export function AntennePage() {
   const s = useEsteso(), de = useDatiEdificio();
   const d: DatiAntenne = { ...DATI_INIZIALI, lpl: ((de.lplProgetto ?? s.lpl) as Livello) || "III", ...(s.antenne ?? {}) };
@@ -34,6 +36,8 @@ export function AntennePage() {
   const num = (k: keyof DatiAntenne, etichetta: string, min = 0) =>
     <Campo etichetta={etichetta}><CampoNumero className={inputCls} valore={d[k] as number} min={min} onValore={(v) => { if (v != null) set({ [k]: v } as Partial<DatiAntenne>); }} /></Campo>;
   const auto = d.calateAuto !== false;
+  const apparecchi = d.apparecchi ?? [];
+  const cambiaApp = (id: string, q: Partial<(typeof apparecchi)[number]>) => set({ apparecchi: apparecchi.map((a) => (a.id === id ? { ...a, ...q } : a)) });
   const P = calcolaProgettoAntenne(d), { r, ca, apparatoBasso, lAuto, lUsata } = P;
   const confronto = confrontoCalate(P.datiCalate);
   const vCavi: VersioneIscon = ca.versione ?? d.versione ?? "proplus", piuCavi = scendiConPiuCavi(P.datiCalate, vCavi), basso = d.obiettivo === "basso";
@@ -69,6 +73,19 @@ export function AntennePage() {
           {num("sbraccio", "Bordo esterno delle antenne dall'asse dell'asta (m)")}
           <Campo etichetta="Punta dell'asta sul piano (m, vuoto = calcolata)"><CampoNumero className={inputCls} valore={d.astaPunta} placeholder={f(r.astaMinima, 1)} onValore={(v) => set({ astaPunta: v })} /></Campo>
           {d.tipo === "tetto" && <label className="flex items-center gap-2 self-end pb-2 text-sm"><input type="checkbox" checked={d.lpsEdificio} onChange={(e) => set({ lpsEdificio: e.target.checked })} />L'edificio ha già un LPS</label>}
+        </div>
+        <div className="mt-4 rounded-lg border bg-card p-3" aria-label="Apparecchiature da proteggere">
+          <h3 className="font-semibold">Apparecchiature da proteggere sul palo</h3>
+          <p className="mt-1 text-xs text-muted-foreground">Antenne, parabole, RRU, armadi, telecamere…: quota della base dal {d.tipo === "tetto" ? "piano del tetto" : "terreno"} e altezza che occupano. L'app le disegna nello schema della sezione 3 e dice se restano isolate dalla corrente di fulmine. Se non indichi nulla vale «Antenna più bassa da isolare» della sezione 3.</p>
+          {apparecchi.length > 0 && <div className="mt-2 space-y-2">{apparecchi.map((a, i) => <div key={a.id} className="grid grid-cols-2 items-end gap-2 sm:grid-cols-[1fr_8rem_8rem_auto]">
+            <div className="col-span-2 sm:col-span-1"><Campo etichetta="Apparecchiatura"><input className={inputCls} maxLength={120} value={a.nome} placeholder={`apparecchio ${i + 1}`} onChange={(e) => cambiaApp(a.id, { nome: e.target.value })} /></Campo></div>
+            <Campo etichetta="Quota base (m)"><CampoNumero className={inputCls} valore={a.quota} onValore={(v) => { if (v != null) cambiaApp(a.id, { quota: v }); }} /></Campo>
+            <Campo etichetta="Altezza (m)"><CampoNumero className={inputCls} valore={a.altezza} onValore={(v) => { if (v != null) cambiaApp(a.id, { altezza: v }); }} /></Campo>
+            <Button size="sm" variant="outline" className="col-span-2 sm:col-span-1" onClick={() => set({ apparecchi: apparecchi.filter((x) => x.id !== a.id) })}>Togli</Button>
+            {P.apparecchi[i] && <p className={`col-span-2 text-xs sm:col-span-4 ${P.apparecchi[i]!.isolato ? "text-[#1d7a45] dark:text-[#a7e3bd]" : "text-[#b3261e] dark:text-[#f5b4ad]"}`}>Da {f(a.quota, 2)} a {f(P.apparecchi[i]!.cima, 2)} m: {P.apparecchi[i]!.esito}</p>}
+          </div>)}</div>}
+          <Button size="sm" variant="outline" className="mt-3" onClick={() => set({ apparecchi: [...apparecchi, { id: nuovoId(), nome: apparecchi.length ? "" : "Antenne", quota: Math.max(0, (apparecchi.length ? Math.min(...apparecchi.map((x) => x.quota)) : d.sommita) - 3), altezza: apparecchi.length ? 1 : 3 }] })}>+ Aggiungi apparecchiatura</Button>
+          {P.sommita > d.sommita && <p className="mt-2 text-xs">Un'apparecchiatura arriva a {f(P.sommita, 2)} m, sopra la sommità delle antenne: l'asta è calcolata su questa quota.</p>}
         </div>
         <div className={`mt-4 rounded-lg border-l-4 p-4 ${ok(r.protette)}`} role="status">
           <p className="text-lg">Sfera r = {r.r} m · punta minima <strong>{f(r.astaMinima)} m</strong> sul piano ({f(r.astaMinima - d.sommita)} m sopra le antenne)</p>
@@ -119,7 +136,8 @@ export function AntennePage() {
         <h2 className="text-[1.7rem] font-medium">3 · Calate isCon da grande altezza e collegamenti equipotenziali</h2>
         <p className="mt-2 text-sm text-muted-foreground">L'isCon garantisce la distanza di separazione dalla punta fino al punto in cui il conduttore interno si collega al palo (fine del cavo: il cavo non si prolunga, istruzioni OBO). Qui l'app mette la fine del cavo subito sotto l'antenna più bassa, controlla che la lunghezza stia dentro la l massima della versione e dice cosa collegare a ogni quota fino a terra. Quote dal {d.tipo === "tetto" ? "piano del tetto" : "terreno"}.</p>
         <div className="mt-4 grid gap-4 sm:grid-cols-4">
-          <Campo etichetta={`Antenna più bassa da isolare (m; vuoto = ${f(Math.max(0, d.sommita - 3), 1)})`}><CampoNumero className={inputCls} valore={d.quotaApparatoBasso ?? null} placeholder={f(Math.max(0, d.sommita - 3), 1)} onValore={(v) => set({ quotaApparatoBasso: v })} /></Campo>
+          {apparecchi.length ? <Campo etichetta="Apparecchiatura più bassa da isolare (dalla sezione 1)"><input className={inputCls} readOnly value={`${f(apparatoBasso, 2)} m`} /></Campo>
+            : <Campo etichetta={`Antenna più bassa da isolare (m; vuoto = ${f(Math.max(0, d.sommita - 3), 1)})`}><CampoNumero className={inputCls} valore={d.quotaApparatoBasso ?? null} placeholder={f(Math.max(0, d.sommita - 3), 1)} onValore={(v) => set({ quotaApparatoBasso: v })} /></Campo>}
           <Campo etichetta="Struttura di sostegno"><select className={inputCls} value={d.struttura ?? "metallica"} onChange={(e) => set({ struttura: e.target.value as StrutturaSostegno })}>{(Object.keys(NOMI_STRUTTURA) as StrutturaSostegno[]).map((k) => <option key={k} value={k}>{NOMI_STRUTTURA[k]}</option>)}</select></Campo>
           {(d.struttura ?? "metallica") === "isolante" && <>
             <Campo etichetta="Distanza disponibile calate–cavi/impianti (m)"><CampoNumero className={inputCls} valore={d.distanzaImpianti ?? 0.5} onValore={(v) => { if (v != null && v > 0) set({ distanzaImpianti: v }); }} /></Campo>
@@ -166,7 +184,7 @@ export function AntennePage() {
           <p className="mt-2 text-xs text-muted-foreground">La barra è la parte del palo isolata dalla punta ({f(r.asta, 1)} m) verso terra. Sotto la fine del cavo il palo porta la corrente di fulmine.</p>
         </section>
         <div className="mt-4 grid gap-4 md:grid-cols-[280px_1fr]">
-          <SchemaCalateAltezza punta={r.asta} sommita={d.sommita} apparatoBasso={apparatoBasso} r={ca} piano={d.tipo === "tetto" ? "tetto" : "terreno"} finoATerra={false} />
+          <SchemaCalateAltezza punta={r.asta} sommita={P.sommita} apparatoBasso={apparatoBasso} r={ca} piano={d.tipo === "tetto" ? "tetto" : "terreno"} finoATerra={false} apparecchi={P.apparecchi} />
           <div>
             <div className={`rounded-lg border-l-4 p-4 ${ok(ca.fattibile)}`} role="status">
               {ca.fattibile && ca.versione && ca.quotaPAE != null ? <>

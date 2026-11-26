@@ -30,3 +30,21 @@ describe("particolare dell'asta con il set isCon HM", () => {
       expect(P.materiali.some((m) => m.codice === "5408026" || m.codice === "5408028")).toBe(false);
   });
 });
+
+describe("apparecchiature da proteggere", () => {
+  it("la più bassa decide la fine del cavo e ognuna ha il suo esito", () => {
+    const P = calcolaProgettoAntenne({ ...DATI_INIZIALI, tipo: "palo" as const, sommita: 80, lunghezzaCalata: 60,
+      apparecchi: [{ id: "a", nome: "Antenne", quota: 77, altezza: 3 }, { id: "b", nome: "RRU", quota: 74, altezza: 1.5 }, { id: "c", nome: "Parabola", quota: 40, altezza: 1 }] });
+    expect(P.apparatoBasso).toBe(40);
+    const Q = calcolaProgettoAntenne({ ...DATI_INIZIALI, tipo: "palo" as const, sommita: 80, lunghezzaCalata: 60,
+      apparecchi: [{ id: "a", nome: "Antenne", quota: 77, altezza: 3 }, { id: "b", nome: "RRU", quota: 74, altezza: 1.5 }] });
+    expect(Q.apparatoBasso).toBe(74);
+    expect(Q.ca.fattibile).toBe(true);
+    expect(Q.apparecchi.every((a) => a.isolato)).toBe(true);
+    expect(Q.apparecchi[1]!.cima).toBeCloseTo(75.5);
+    // apparecchiatura più alta delle antenne: la sommità sale
+    const R = calcolaProgettoAntenne({ ...DATI_INIZIALI, tipo: "palo" as const, sommita: 80, lunghezzaCalata: 60, apparecchi: [{ id: "a", nome: "Antenna alta", quota: 79, altezza: 3 }] });
+    expect(R.sommita).toBe(82);
+    expect(R.r.asta).toBeGreaterThan(82);
+  });
+});

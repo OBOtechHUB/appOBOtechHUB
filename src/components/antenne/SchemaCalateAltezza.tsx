@@ -3,10 +3,11 @@
  * al PAE, livelli equipotenziali intermedi e base. Disegno originale dell'app.
  */
 import type { RisultatoCalateAltezza } from "@/calcoli/calate/isconAltezza";
+import type { StatoApparecchio } from "@/calcoli/antenne/progettoAntenne";
 
 const f = (v: number) => v.toLocaleString("it-IT", { maximumFractionDigits: 1 });
 
-export function SchemaCalateAltezza({ punta, sommita, apparatoBasso, r, piano, finoATerra = false }: { punta: number; sommita: number; apparatoBasso: number; r: RisultatoCalateAltezza; piano: "tetto" | "terreno"; finoATerra?: boolean }) {
+export function SchemaCalateAltezza({ punta, sommita, apparatoBasso, r, piano, finoATerra = false, apparecchi = [] }: { punta: number; sommita: number; apparatoBasso: number; r: RisultatoCalateAltezza; piano: "tetto" | "terreno"; finoATerra?: boolean; apparecchi?: StatoApparecchio[] }) {
   const W = 280, H = 360, top = 18, bot = 326, zMax = Math.max(punta, sommita, 1);
   const y = (z: number) => bot - (Math.max(0, z) / zMax) * (bot - top);
   const xPalo = 150, xIscon = 132, xAnt = 172;
@@ -24,8 +25,14 @@ export function SchemaCalateAltezza({ punta, sommita, apparatoBasso, r, piano, f
     <circle cx={xPalo} cy={y(punta)} r={3.5} fill="#f39b00" />
     <text x={xPalo + 8} y={y(punta) + 4} fontSize={11} fill="currentColor">punta {f(punta)} m</text>
     {/* antenne */}
-    <rect x={xAnt} y={y(sommita)} width={14} height={Math.max(4, y(apparatoBasso) - y(sommita))} rx={2} fill="#41525d" opacity={0.85} />
-    <text x={xAnt + 18} y={y(apparatoBasso) + 4} fontSize={10} fill="currentColor">antenne da {f(apparatoBasso)} m</text>
+    {apparecchi.length === 0 && <>
+      <rect x={xAnt} y={y(sommita)} width={14} height={Math.max(4, y(apparatoBasso) - y(sommita))} rx={2} fill="#41525d" opacity={0.85} />
+      <text x={xAnt + 18} y={y(apparatoBasso) + 4} fontSize={10} fill="currentColor">antenne da {f(apparatoBasso)} m</text>
+    </>}
+    {apparecchi.map((a, i) => { const col = a.isolato ? "#1d9a55" : "#d0342c", yy = y(a.cima), h = Math.max(4, y(a.quota) - y(a.cima)), xx = xAnt + (i % 2) * 8;
+      return <g key={a.id}><title>{`${a.nome}: ${f(a.quota)}–${f(a.cima)} m · ${a.esito}`}</title>
+        <rect x={xx} y={yy} width={12} height={h} rx={2} fill={col} opacity={0.9} />
+        <text x={xAnt + 24} y={Math.min(bot - 4, yy + h / 2 + 4 + (i % 2) * 11)} fontSize={9.5} fill={col}>{(a.nome || `apparecchio ${i + 1}`).slice(0, 14)} {f(a.quota)}–{f(a.cima)} m</text></g>; })}
     {/* isCon dalla punta al PAE (o fino a terra) */}
     {pae != null && <line x1={xIscon} x2={xIscon} y1={y(punta - 0.3)} y2={y(finoATerra ? 0 : pae)} stroke="currentColor" strokeWidth={4} opacity={0.85} />}
     {pae != null && <>
