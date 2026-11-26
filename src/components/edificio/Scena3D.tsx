@@ -230,10 +230,10 @@ export function Luci({ b, sole, ombre, c }: { b: Limiti3D; sole: { azimut: numbe
     return () => { scene.remove(l.target); };
   }, [cx, cy, R, E, scene, invalidate, d[0], d[1], d[2]]);
   return <>
-    <hemisphereLight args={[c.cieloAlto, c.terreno, 0.75]} />
-    <ambientLight intensity={0.15} />
-    <directionalLight ref={ref} position={[cx + d[0] * E * 2.5, d[1] * E * 2.5, -cy + d[2] * E * 2.5]} intensity={2.1} castShadow={ombre} shadow-mapSize={[2048, 2048]} shadow-bias={-0.0004} shadow-normalBias={0.03} />
-    <Environment resolution={64} frames={1} environmentIntensity={0.55}>
+    <hemisphereLight args={[c.cieloAlto, c.terreno, 0.5]} />
+    <ambientLight intensity={0.08} />
+    <directionalLight ref={ref} position={[cx + d[0] * E * 2.5, d[1] * E * 2.5, -cy + d[2] * E * 2.5]} intensity={2.8} castShadow={ombre} shadow-mapSize={[2048, 2048]} shadow-bias={-0.0004} shadow-normalBias={0.03} />
+    <Environment resolution={64} frames={1} environmentIntensity={0.35}>
       <Lightformer form="rect" intensity={2} position={[0, 10, 0]} rotation-x={Math.PI / 2} scale={[30, 30, 1]} />
       <Lightformer form="rect" intensity={0.8} position={[-10, 3, 0]} rotation-y={Math.PI / 2} scale={[20, 6, 1]} />
       <Lightformer form="rect" intensity={0.8} position={[10, 3, 0]} rotation-y={-Math.PI / 2} scale={[20, 6, 1]} />
