@@ -88,7 +88,7 @@ export function AppHeader() {
             { etichetta: "Richiedi l'accesso", to: "/richiesta-accesso", icona: UserPlus },
           ],
     },
-    ...(admin ? [{ titolo: "Amministrazione", voci: [{ etichetta: "Accessi e utenti", to: "/admin", icona: ShieldCheck } as Voce, { etichetta: "Cruscotto di direzione", to: "/cruscotto", icona: BarChart3 } as Voce] }] : []),
+    ...(admin ? [{ titolo: "Amministrazione", voci: [{ etichetta: "Amministrazione OBO Hub", to: "/admin", icona: ShieldCheck } as Voce, { etichetta: "Cruscotto di direzione", to: "/cruscotto", icona: BarChart3 } as Voce] }] : []),
     {
       titolo: "Strumenti",
       voci: [
@@ -138,6 +138,29 @@ export function AppHeader() {
   const classeVoce = "group flex w-full items-center gap-3 rounded-lg px-2.5 py-2 text-[15px] text-foreground transition-colors hover:bg-primary/10 hover:text-primary";
   const pastiglia = "flex flex-col items-center justify-center gap-1 rounded-xl border-[0.8px] border-bordo-scheda bg-card px-1 py-2.5 text-[11px] font-semibold text-foreground transition-[transform,background-color,color] sm:text-xs hover:-translate-y-0.5 hover:bg-primary/10 hover:text-primary";
   let n = 0;
+
+  // Amministrazione: è di tutto OBO Hub (accessi di tutte le app), quindi ha la sua barra senza le voci di Progettazione LPS
+  if (/\/admin(\/|$)/.test(percorso)) {
+    const IT = iconaTema;
+    return (
+      <header className="sticky top-0 z-40 bg-background shadow-[0_2px_14px_rgba(0,0,0,0.07)]">
+        <div className="mx-auto flex h-[52px] max-w-6xl items-center gap-3 px-3 sm:h-14 sm:px-6">
+          <a href={URL_HUB} aria-label="OBO Hub – pagina iniziale" className="flex min-w-0 items-center gap-2.5">
+            <span className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-primary text-white sm:size-9"><LayoutGrid className="size-5" strokeWidth={1.8} /></span>
+            <span className="min-w-0">
+              <span className="block whitespace-nowrap text-base font-bold leading-tight sm:text-lg">Amministrazione<span className="hidden text-primary sm:inline"> OBO Hub</span></span>
+              <span className="block truncate text-[11px] text-muted-foreground sm:text-xs">Accessi, utenti e impostazioni di tutte le app</span>
+            </span>
+          </a>
+          <nav aria-label="Accessi rapidi" className="ml-auto flex items-stretch">
+            <a href={URL_HUB} title="Torna a OBO Hub (tutte le app)" className="flex min-w-[46px] flex-col items-center justify-center gap-0.5 px-1 text-[10px] font-bold text-primary hover:text-[#d98a00] sm:min-w-[60px] sm:text-xs"><LayoutGrid className="size-5 sm:size-[22px]" strokeWidth={2} /><span>OBO Hub</span></a>
+            <IconaBarra etichetta="Tema" icona={IT} onClick={cambiaTema} titolo={`Aspetto: ${NOMI_TEMA[tema]}`} />
+            {abilitato && <IconaBarra etichetta="Esci" icona={LogOut} onClick={() => void esci()} titolo="Esci da tutte le app di OBO Hub" />}
+          </nav>
+        </div>
+      </header>
+    );
+  }
 
   return (
     <>
