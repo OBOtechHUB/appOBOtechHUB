@@ -2,6 +2,18 @@
   "nota": "Registro degli aggiornamenti di Progettazione LPS. Una voce per aggiornamento, la più recente per prima (app: lps). Viene mostrato nella barra \"Aggiorna app\", nel riquadro Novità e nella pagina Novità di OBO Hub. Le novità solo grafiche (animazioni, sigle, aspetto) non si mostrano: restano conservate in 'grafica_non_mostrata'.",
   "aggiornamenti": [
     {
+      "id": "2026-11-26-lps-66",
+      "data": "2026-11-26",
+      "app": "lps",
+      "titolo": "Antenne: soluzione isCon automatica e numeri più facili da scrivere",
+      "voci": [
+        "Pagina Antenne: l'app propone da sola la soluzione con 1–4 calate isolate e la versione isCon che basta (o quella che scegli), con la tabella di tutte le possibilità",
+        "Se nessun isCon basta, indica la lunghezza massima e la quota minima a cui portare il collegamento equipotenziale",
+        "Campi numerici di Antenne e Impianti su palo con la virgola; svuotando un campo non torna più a 0",
+        "Riquadri verdi e rossi leggibili anche in tema scuro"
+      ]
+    },
+    {
       "id": "2026-11-26-lps-65",
       "data": "2026-11-26",
       "app": "lps",
