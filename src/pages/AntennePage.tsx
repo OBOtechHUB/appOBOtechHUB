@@ -4,13 +4,20 @@
  * i documenti tecnici in arrivo.
  */
 import { Link } from "@tanstack/react-router";
-import { RadioTower } from "lucide-react";
+import { FileText, RadioTower } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Campo, inputCls } from "@/components/Campo";
 import { CampoNumero } from "@/components/CampoNumero";
 import { aggiornaEsteso, useEsteso } from "@/lib/statoProgetto";
 import { useDatiEdificio } from "@/lib/progettoStore";
-import { calcolaAntenne, DATI_INIZIALI, NOMI_SITO, type DatiAntenne, type TipoSito } from "@/calcoli/antenne/antenne";
+import { DATI_INIZIALI, NOMI_SITO, type DatiAntenne, type TipoSito } from "@/calcoli/antenne/antenne";
+import { calcolaProgettoAntenne } from "@/calcoli/antenne/progettoAntenne";
+import { relazioneAntenne } from "@/calcoli/antenne/relazioneAntenne";
+import { creaDocx, rasterizza } from "@/lib/docx";
+import { scarica } from "@/lib/esportazioni";
+import { bloccoImmagine } from "@/calcoli/relazione/relazioneTecnica";
+import { logoObo, svgPng } from "@/components/progetto/RelazioneTecnica";
+import { useState } from "react";
 import { ACCESSORI_ISCON, ISCON, ORDINE_ISCON, verificaIscon, type VersioneIscon } from "@/calcoli/calate/iscon";
 import type { Livello } from "@/calcoli/calate/separazione";
 import { calateIsconAltezza, NOMI_STRUTTURA, type StrutturaSostegno } from "@/calcoli/calate/isconAltezza";
@@ -22,18 +29,23 @@ export function AntennePage() {
   const s = useEsteso(), de = useDatiEdificio();
   const d: DatiAntenne = { ...DATI_INIZIALI, lpl: ((de.lplProgetto ?? s.lpl) as Livello) || "III", ...(s.antenne ?? {}) };
   const set = (p: Partial<DatiAntenne>) => aggiornaEsteso({ antenne: { ...d, ...p }, tipologia: "antenne" });
-  const r0 = calcolaAntenne(d);
   // campi numerici con la virgola: se il campo resta vuoto si tiene l'ultimo valore valido (niente zero improvviso)
   const num = (k: keyof DatiAntenne, etichetta: string, min = 0) =>
     <Campo etichetta={etichetta}><CampoNumero className={inputCls} valore={d[k] as number} min={min} onValore={(v) => { if (v != null) set({ [k]: v } as Partial<DatiAntenne>); }} /></Campo>;
   const auto = d.calateAuto !== false;
-  const apparatoBasso = d.quotaApparatoBasso ?? Math.max(0, d.sommita - 3);
-  const ca = calateIsconAltezza({ lpl: d.lpl, ki: d.ki, quotaPunta: r0.asta, quotaBase: 0, quotaApparatoBasso: apparatoBasso, struttura: d.struttura ?? "metallica", nCalate: auto ? null : Math.min(4, d.numeroCalate), versione: d.versione ?? null, materiale: "aria", distanzaImpianti: d.distanzaImpianti ?? 0.5, isconFinoATerra: d.isconFinoATerra !== false });
-  // l della verifica: dal PAE trovato qui sotto (automatico) oppure quella scritta a mano
-  const lAuto = d.lAuto !== false && ca.fattibile;
-  const r = lAuto ? calcolaAntenne({ ...d, lunghezzaCalata: Math.round(ca.l * 100) / 100 }) : r0;
-  const lUsata = lAuto ? Math.round(ca.l * 100) / 100 : d.lunghezzaCalata;
+  const P = calcolaProgettoAntenne(d), { r, ca, apparatoBasso, lAuto, lUsata } = P;
   const sol = r.soluzione.scelta;
+  const [msgRel, setMsgRel] = useState("");
+  async function relazioneWord() {
+    setMsgRel("Preparo la relazione…");
+    try {
+      const rel = s.relazione, logo = await logoObo();
+      const doc = await rasterizza(relazioneAntenne({ dati: d, committente: rel?.committente, opera: rel?.titoloOpera || de.nomeProgetto || undefined, comune: de.comune || undefined, codice: de.nomeProgetto || undefined, tecnico: rel?.tecnico, albo: rel?.albo, logo: logo ? bloccoImmagine(logo, 4.2, "sinistra", 3) : undefined, data: new Date() }), svgPng);
+      const nome = `Relazione-antenne-${(de.nomeProgetto || de.comune || "progetto").replace(/[^\w.-]+/g, "_")}.docx`;
+      scarica(new Blob([creaDocx(doc)], { type: "application/vnd.openxmlformats-officedocument.wordprocessingml.document" }), nome);
+      setMsgRel("Relazione scaricata.");
+    } catch (e) { setMsgRel(e instanceof Error ? e.message : "Relazione non creata."); }
+  }
   const ok = (b: boolean) => (b ? "border-[#1d7a45] bg-[#e3f4ea] text-[#14532d] dark:bg-[#15291d] dark:text-[#a7e3bd]" : "border-[#b3261e] bg-[#fdecea] text-[#7a1f16] dark:bg-[#3a1715] dark:text-[#f5b4ad]");
 
   return <>
@@ -142,6 +154,12 @@ export function AntennePage() {
           <span className={`mt-0.5 shrink-0 rounded-full px-2 py-0.5 text-[11px] font-semibold ${m.obbligatoria ? "bg-primary text-white" : "bg-muted"}`}>{m.obbligatoria ? "da fare" : "consiglio"}</span>
           <div><p>{m.testo}</p><p className="mt-0.5 text-xs text-muted-foreground">CEI EN IEC {m.rif}</p></div></li>)}</ol>
         <Campo etichetta="Note del progetto"><textarea className={`${inputCls} min-h-24`} maxLength={5000} value={d.note ?? ""} onChange={(e) => set({ note: e.target.value })} /></Campo>
+      </section>
+
+      <section className="mt-10 rounded-lg border bg-card p-4" aria-label="Relazione">
+        <h2 className="text-[1.7rem] font-medium">5 · Relazione tecnica e distinta</h2>
+        <p className="mt-1 text-sm text-muted-foreground">La relazione contiene tutto: sito, captazione, distanza di separazione, numero di calate in parallelo e versione isCon, collegamento al palo (PAE) e collegamenti equipotenziali quota per quota con lo schema, cavi, SPD e terra, posa e materiali. I materiali entrano da soli nel Computo materiali.</p>
+        <div className="mt-3 flex flex-wrap items-center gap-3"><Button onClick={() => void relazioneWord()}><FileText strokeWidth={1.5} />Relazione tecnica (Word)</Button><Button asChild variant="outline"><Link to="/computo-materiali">Computo materiali</Link></Button><span role="status" className="text-sm">{msgRel}</span></div>
       </section>
 
       <div className="mt-8 flex flex-wrap gap-3">

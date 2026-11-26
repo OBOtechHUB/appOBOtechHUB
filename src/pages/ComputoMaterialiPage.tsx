@@ -22,6 +22,7 @@ import {particolareSchema} from "@/calcoli/particolari/selezione";
 import baseParticolari from "@/dati/particolari/particolari.json";
 import {righeProposta} from "@/lib/computoProposta";
 import { useRigheVento } from "@/lib/computoVento";
+import { useRigheAntenne } from "@/lib/computoAntenne";
 import {RiferimentoParticolare} from "@/components/particolari/RiferimentoParticolare";
 import { libreriaAttiva, type ParticolareLib } from "@/calcoli/particolari/allinea";
 import { codiciComputo } from "@/calcoli/materiali/codiciComputo";
@@ -43,7 +44,7 @@ export function ComputoMaterialiPage() {
   const {user}=useAuth();
   const c = useComputo(); const d = useDatiEdificio();
   const s=useEsteso();const lib=libreriaAttiva(s.particolari as ParticolareLib[],baseParticolari as ParticolareLib[]);const generico=generaComputo(c.risultati,c.configurazione,d.copertura,codiciComputo(lib,{copertura:d.copertura,parete:d.materiale.toLowerCase().includes("acciaio")?"lamiera":"muratura"}));const base={righe:generico.righe.filter((r)=>!s.terra||!["terra-picchetti","terra-anello"].includes(r.id)),mancanti:generico.mancanti.filter((m)=>!s.terra||m!=="Terra")};const dettagli=(()=>{const validi=(s.particolari.length?s.particolari:baseParticolari).flatMap((p)=>{const r=particolareSchema.safeParse(p);return r.success?[r.data]:[];});if(!validi.length)return {righe:[],mancanti:[]};try{return computoParticolari({...s,conduttori:s.terra?s.conduttori.filter((v)=>v.tipo!=="terra"):s.conduttori,particolari:validi});}catch{return {righe:[],mancanti:["Particolari costruttivi non applicabili al computo"]};}})();
-  const vento=useRigheVento(s);const daDistinta=s.distinta.length>0;const esterna=["Captazione","Calate"];
+  const vento=[...useRigheVento(s),...useRigheAntenne(s,d.lplProgetto)];const daDistinta=s.distinta.length>0;const esterna=["Captazione","Calate"];
   const generato = daDistinta
     ? {righe:[...righeProposta(s),...base.righe.filter((r)=>!esterna.includes(r.provenienza)),...vento],mancanti:base.mancanti.filter((m)=>!esterna.includes(m)&&!m.startsWith("Passo supporti"))}
     : {righe:[...base.righe,...dettagli.righe,...righeProposta(s),...vento],mancanti:[...base.mancanti,...dettagli.mancanti]};
