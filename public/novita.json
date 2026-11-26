@@ -2,6 +2,18 @@
   "nota": "Registro degli aggiornamenti di Progettazione LPS. Una voce per aggiornamento, la più recente per prima (app: lps). Viene mostrato nella barra \"Aggiorna app\", nel riquadro Novità e nella pagina Novità di OBO Hub. Le novità solo grafiche (animazioni, sigle, aspetto) non si mostrano: restano conservate in 'grafica_non_mostrata'.",
   "aggiornamenti": [
     {
+      "id": "2026-11-26-lps-62",
+      "data": "2026-11-26",
+      "app": "lps",
+      "titolo": "Impianti su palo con calate isolate isCon",
+      "voci": [
+        "Nuova pagina «Impianti su palo» (menu Strumenti): antenne radio/TV, telecamere, illuminazione e altri impianti su palo",
+        "Dalla quota della punta e del collegamento equipotenziale l'app calcola quanti conduttori isCon servono (1–4), quale modello e che lunghezza, con s = ki · kc / km · l e la corrente per conduttore",
+        "Verifica di ogni apparato: protezione con la sfera rotolante e distanza di separazione",
+        "Materiali OBO: conduttore, set di supporti HM SET, estensione per pali oltre 6 m, cartello"
+      ]
+    },
+    {
       "id": "2026-11-26-lps-61",
       "data": "2026-11-26",
       "app": "lps",

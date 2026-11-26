@@ -103,6 +103,7 @@ export function AppHeader() {
         { etichetta: "Norma 62305: calcoli e tabelle", to: "/norma", icona: BookOpen },
         { etichetta: "Edificio 3D", to: "/edificio-3d", icona: Box },
         { etichetta: "Antenne radiomobili (5G)", to: "/antenne", icona: RadioTower },
+        { etichetta: "Impianti su palo (isCon)", to: "/palo", icona: RadioTower },
         { etichetta: "Vento e zavorre delle aste", to: "/vento", icona: Wind },
         { etichetta: "Calate e distanza di separazione", to: "/calate", icona: ArrowDownToLine },
         { etichetta: "Scelta SPD", to: "/spd", icona: Cpu },

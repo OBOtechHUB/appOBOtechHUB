@@ -30,6 +30,7 @@ import { Route as DatiEdificioRouteImport } from './routes/dati-edificio'
 import { Route as DatiNormativiRouteImport } from './routes/dati-normativi'
 import { Route as DownloadCadRouteImport } from './routes/download-cad'
 import { Route as AntenneRouteImport } from './routes/antenne'
+import { Route as PaloRouteImport } from './routes/palo'
 import { Route as Edificio3dRouteImport } from './routes/edificio-3d'
 import { Route as GuidaRouteImport } from './routes/guida'
 import { Route as ParticolariRouteImport } from './routes/particolari'
@@ -143,6 +144,11 @@ const AntenneRoute = AntenneRouteImport.update({
   path: '/antenne',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PaloRoute = PaloRouteImport.update({
+  id: '/palo',
+  path: '/palo',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const DownloadCadRoute = DownloadCadRouteImport.update({
   id: '/download-cad',
   path: '/download-cad',
@@ -234,6 +240,7 @@ export interface FileRoutesByFullPath {
   '/dati-edificio': typeof DatiEdificioRoute
   '/dati-normativi': typeof DatiNormativiRoute
   '/antenne': typeof AntenneRoute
+  '/palo': typeof PaloRoute
   '/download-cad': typeof DownloadCadRoute
   '/edificio-3d': typeof Edificio3dRoute
   '/guida': typeof GuidaRoute
@@ -269,6 +276,7 @@ export interface FileRoutesByTo {
   '/dati-edificio': typeof DatiEdificioRoute
   '/dati-normativi': typeof DatiNormativiRoute
   '/antenne': typeof AntenneRoute
+  '/palo': typeof PaloRoute
   '/download-cad': typeof DownloadCadRoute
   '/edificio-3d': typeof Edificio3dRoute
   '/guida': typeof GuidaRoute
@@ -306,6 +314,7 @@ export interface FileRoutesById {
   '/dati-edificio': typeof DatiEdificioRoute
   '/dati-normativi': typeof DatiNormativiRoute
   '/antenne': typeof AntenneRoute
+  '/palo': typeof PaloRoute
   '/download-cad': typeof DownloadCadRoute
   '/edificio-3d': typeof Edificio3dRoute
   '/guida': typeof GuidaRoute
@@ -343,6 +352,7 @@ export interface FileRouteTypes {
     | '/dati-edificio'
     | '/dati-normativi'
     | '/antenne'
+    | '/palo'
     | '/download-cad'
     | '/edificio-3d'
     | '/guida'
@@ -378,6 +388,7 @@ export interface FileRouteTypes {
     | '/dati-edificio'
     | '/dati-normativi'
     | '/antenne'
+    | '/palo'
     | '/download-cad'
     | '/edificio-3d'
     | '/guida'
@@ -414,6 +425,7 @@ export interface FileRouteTypes {
     | '/dati-edificio'
     | '/dati-normativi'
     | '/antenne'
+    | '/palo'
     | '/download-cad'
     | '/edificio-3d'
     | '/guida'
@@ -451,6 +463,7 @@ export interface RootRouteChildren {
   DatiEdificioRoute: typeof DatiEdificioRoute
   DatiNormativiRoute: typeof DatiNormativiRoute
   AntenneRoute: typeof AntenneRoute
+  PaloRoute: typeof PaloRoute
   DownloadCadRoute: typeof DownloadCadRoute
   Edificio3dRoute: typeof Edificio3dRoute
   GuidaRoute: typeof GuidaRoute
@@ -607,6 +620,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AntenneRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/palo': {
+      id: '/palo'
+      path: '/palo'
+      fullPath: '/palo'
+      preLoaderRoute: typeof PaloRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/download-cad': {
       id: '/download-cad'
       path: '/download-cad'
@@ -742,6 +762,7 @@ const rootRouteChildren: RootRouteChildren = {
   DatiEdificioRoute: DatiEdificioRoute,
   DatiNormativiRoute: DatiNormativiRoute,
   AntenneRoute: AntenneRoute,
+  PaloRoute: PaloRoute,
   DownloadCadRoute: DownloadCadRoute,
   Edificio3dRoute: Edificio3dRoute,
   GuidaRoute: GuidaRoute,
