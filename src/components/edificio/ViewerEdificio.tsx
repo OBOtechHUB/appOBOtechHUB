@@ -113,7 +113,7 @@ const CHIAVE_PREF="lps-vista3d";
 function leggiPref():PrefVista{try{const v=JSON.parse(localStorage.getItem(CHIAVE_PREF)??"null") as Partial<PrefVista>|null;return {...PREF,...(v??{})};}catch{return PREF;}}
 const btn="inline-flex h-8 min-w-8 items-center justify-center gap-1 rounded-md border bg-background/90 px-2 text-xs font-semibold shadow-sm hover:bg-accent hover:text-accent-foreground";
 export default function ViewerEdificio(props:Props){
-  const [c,setC]=useState<ReturnType<typeof colors>|null>(null);const [trascina,setTrascina]=useState<string|null>(null);const [punti,setPunti]=useState<Punto3[]>([]);const [ready,setReady]=useState(false);const [deltaCorpo,setDeltaCorpo]=useState<{id:string;d:[number,number]}|null>(null);const presa=useRef<{id:string;piano:THREE.Plane;p0:THREE.Vector3}|null>(null);
+  const [c,setC]=useState<ReturnType<typeof colors>|null>(null);const [trascina,setTrascina]=useState<string|null>(null);const [punti,setPunti]=useState<Punto3[]>([]);const [ready,setReady]=useState(false);const [deltaCorpo,setDeltaCorpo]=useState<{id:string;d:[number,number]}|null>(null);const presa=useRef<{id:string;piano:THREE.Plane;p0:THREE.Vector3}|null>(null);const ctrlRef=useRef<{enabled:boolean}|null>(null);
   const [pref,setPrefStato]=useState<PrefVista>(PREF);const [richiesta,setRichiesta]=useState<RichiestaCamera|null>(null);const [stato,setStato]=useState("");const [viste,setViste]=useState<(Vista3D&{url:string})[]>([]);const [didascalia,setDidascalia]=useState("Vista 3D dell'edificio con l'impianto di protezione contro i fulmini");
   const barra=useRef<HTMLDivElement|null>(null),testoScala=useRef<HTMLSpanElement|null>(null),scatta=useRef<((tipo:"image/png"|"image/jpeg")=>Promise<Blob|null>)|null>(null),nRich=useRef(0),camRef=useRef<THREE.Camera|null>(null),targetRef=useRef<THREE.Vector3|null>(null);
   const semplice=!!props.semplice;
@@ -142,9 +142,12 @@ export default function ViewerEdificio(props:Props){
   const asteInsieme=new Set(trascinato?props.aste.filter((a)=>a.z>=zT-.5&&dentro(a.x,a.y)).map((a)=>a.id):[]);
   function sposta(e:ThreeEvent<PointerEvent>){const pr=presa.current;if(pr){e.stopPropagation();const v=new THREE.Vector3();if(!e.ray.intersectPlane(pr.piano,v))return;const k=props.modello.corpi.find((x)=>x.id===pr.id);if(!k)return;setDeltaCorpo({id:pr.id,d:agganciaSpostamento(k,props.modello.corpi,v.x-pr.p0.x,-(v.z-pr.p0.z))});return;}
     if(!trascina||!props.onTrascina)return;e.stopPropagation();props.onTrascina(trascina,[e.point.x,-e.point.z,e.point.y]);}
-  const fine=()=>{if(trascina)setTrascina(null);const pr=presa.current;if(pr){presa.current=null;const d=deltaCorpo?.id===pr.id?deltaCorpo.d:null;setDeltaCorpo(null);if(d&&(d[0]||d[1]))props.onSpostaCorpo?.(pr.id,d[0],d[1]);}};
+  const fine=()=>{if(ctrlRef.current)ctrlRef.current.enabled=true;if(trascina)setTrascina(null);const pr=presa.current;if(pr){presa.current=null;const d=deltaCorpo?.id===pr.id?deltaCorpo.d:null;setDeltaCorpo(null);if(d&&(d[0]||d[1]))props.onSpostaCorpo?.(pr.id,d[0],d[1]);}};
   const clicCorpo=(id:string)=>(e:ThreeEvent<MouseEvent>)=>{if(props.spostabile&&props.onSeleziona){e.stopPropagation();props.onSeleziona({tipo:"corpo",id});return;}click(e);};
-  const presaCorpo=(id:string)=>(e:ThreeEvent<PointerEvent>)=>{if(!props.spostabile||!props.onSpostaCorpo||!selez("corpo",id))return;e.stopPropagation();presa.current={id,piano:new THREE.Plane(new THREE.Vector3(0,1,0),-e.point.y),p0:e.point.clone()};setDeltaCorpo({id,d:[0,0]});};
+  /** ferma subito la rotazione della vista (prima che React aggiorni i controlli) */
+  const bloccaVista=()=>{if(ctrlRef.current)ctrlRef.current.enabled=false;};
+  // un solo gesto: in «Seleziona e sposta» premere su un blocco lo seleziona e lo trascina subito (la vista non ruota)
+  const presaCorpo=(id:string)=>(e:ThreeEvent<PointerEvent>)=>{if(!props.spostabile||!props.onSpostaCorpo||e.button!==0)return;e.stopPropagation();bloccaVista();if(!selez("corpo",id))props.onSeleziona?.({tipo:"corpo",id});presa.current={id,piano:new THREE.Plane(new THREE.Vector3(0,1,0),-e.point.y),p0:e.point.clone()};setDeltaCorpo({id,d:[0,0]});};
   const sel=(tipo:"asta"|"conduttore"|"picchetto",id:string)=>(e:ThreeEvent<MouseEvent>)=>{if(!props.onSeleziona)return;e.stopPropagation();props.onSeleziona({tipo,id});};
   const selez=(tipo:string,id:string)=>props.selezione?.tipo===tipo&&props.selezione.id===id;
   function click(e:ThreeEvent<MouseEvent>){e.stopPropagation();const p:Punto3=[e.point.x,-e.point.z,e.point.y];props.onPunto(p);if(props.misura)setPunti((prev)=>prev.length===1?[...prev,p]:[p]);}
@@ -167,7 +170,7 @@ export default function ViewerEdificio(props:Props){
     <Canvas shadows={!semplice} dpr={[1,2]} gl={{antialias:true,alpha:true}} onPointerUp={fine} onPointerLeave={fine} onPointerMissed={()=>{fine();}} frameloop={props.anima?"always":"demand"} camera={{position:[40,35,40],near:.1,far:20000,fov:50}} onCreated={(st)=>{st.gl.localClippingEnabled=true;st.gl.toneMapping=THREE.ACESFilmicToneMapping;camRef.current=st.camera;setReady(true);}}>
       <fog attach="fog" args={[c.cieloBasso,fogNear,fogNear*5]}/>
       <Luci b={b} sole={sole} ombre={ombre} c={c}/>
-      <OrbitControls makeDefault enabled={!trascina&&!deltaCorpo} enableDamping={false} ref={(o)=>{targetRef.current=o?o.target:null;}}/>
+      <OrbitControls makeDefault enabled={!trascina&&!deltaCorpo} enableDamping={false} ref={(o)=>{targetRef.current=o?o.target:null;ctrlRef.current=o;}}/>
       <ControlloCamera richiesta={richiesta}/>
       {!semplice&&<ScalaGrafica barra={barra} testo={testoScala}/>}
       {!semplice&&<Fotografo scatta={scatta} c={c}/>}
@@ -176,7 +179,7 @@ export default function ViewerEdificio(props:Props){
       {props.modello.corpi.map((body)=>{const off=deltaCorpo&&(deltaCorpo.id===body.id||(props.spostaConImpianto!==false&&insieme.has(body.id)))?deltaCorpo.d:null;return <group key={body.id} position={off?[off[0],0,-off[1]]:[0,0,0]}><CorpoMesh corpo={body} impianto={impianti.has(body.id)} c={c} s={stile} selezionato={selez("corpo",body.id)} onClick={clicCorpo(body.id)} onMove={sposta} onDoppio={doppio} onGiu={presaCorpo(body.id)}/></group>;})}
       </Bvh>
       {props.aste.map((x0)=>{const o=deltaCorpo&&props.spostaConImpianto!==false&&asteInsieme.has(x0.id)?deltaCorpo.d:([0,0] as [number,number]);const x={...x0,x:x0.x+o[0],y:x0.y+o[1]};return <Line key={`l-${x.id}`} points={[[x.x,x.z,-x.y],[x.x,x.z+x.altezza,-x.y]]} color={selez("asta",x.id)?c.accent:pref.evidenzia||semplice?c.metal:"#aeb5bb"} lineWidth={selez("asta",x.id)?5:3}/>;})}
-      {props.aste.map((x)=>{const on=selez("asta",x.id);const off=deltaCorpo&&props.spostaConImpianto!==false&&asteInsieme.has(x.id)?deltaCorpo.d:null;return <Asta3D key={x.id} a={off?{...x,x:x.x+off[0],y:x.y+off[1]}:x} on={on} evidenzia={pref.evidenzia} c={c} ombra={ombre} onClick={sel("asta",x.id)} onPointerDown={(e)=>{if(on&&props.spostabile&&props.onTrascina){e.stopPropagation();setTrascina(x.id);}}}/>;})}
+      {props.aste.map((x)=>{const on=selez("asta",x.id);const off=deltaCorpo&&props.spostaConImpianto!==false&&asteInsieme.has(x.id)?deltaCorpo.d:null;return <Asta3D key={x.id} a={off?{...x,x:x.x+off[0],y:x.y+off[1]}:x} on={on} evidenzia={pref.evidenzia} c={c} ombra={ombre} onClick={sel("asta",x.id)} onPointerDown={(e)=>{if(props.spostabile&&props.onTrascina&&e.button===0){e.stopPropagation();bloccaVista();if(!on)props.onSeleziona?.({tipo:"asta",id:x.id});setTrascina(x.id);}}}/>;})}
       {props.suggerite.map((x)=><mesh key={x.id} position={[x.x,x.z+x.altezza/2,-x.y]}><cylinderGeometry args={[Math.max(.08,x.diametro/2),Math.max(.08,x.diametro/2),x.altezza,8]}/><meshStandardMaterial color={c.accent} transparent opacity={.7}/></mesh>)}
       <ConduttoriTubi conduttori={props.conduttori} c={c} ombra={ombre} evidenzia={pref.evidenzia&&!semplice}/>
       {props.conduttori.map((line)=>{const on=selez("conduttore",line.id);return <Line key={line.id} onClick={sel("conduttore",line.id)} points={line.punti.map((p)=>[p[0],p[2]+.01,-p[1]] as [number,number,number])} color={on?c.accent:line.tipo==="terra"?c.terra:pref.evidenzia||semplice?c.metal:coloreMateriale(line.materiale,line.tipo)} depthTest={line.tipo!=="terra"} renderOrder={line.tipo==="terra"?2:0} lineWidth={on?6:2}/>;})}
@@ -202,6 +205,7 @@ export default function ViewerEdificio(props:Props){
         <button type="button" className={btn} title="Inquadra tutto" aria-label="Inquadra tutto" onClick={()=>vai("assonometria")}><Maximize className="h-4 w-4"/></button>
         <button type="button" className={btn} title="Inquadra la selezione" aria-label="Inquadra la selezione" onClick={inquadraSelezione}><Crosshair className="h-4 w-4"/></button>
       </div>
+      {props.spostabile&&!deltaCorpo&&<div className="pointer-events-none rounded-md border border-primary bg-background/95 px-2 py-1 text-xs font-semibold shadow-sm">Trascina un blocco o un'asta per spostarlo · clic per il pannello</div>}
       {deltaCorpo&&<div className="pointer-events-auto rounded-md border bg-background/95 px-2 py-1 font-mono text-xs shadow-sm">Sposto il blocco: Δx {deltaCorpo.d[0].toFixed(2)} m · Δy {deltaCorpo.d[1].toFixed(2)} m</div>}
       {misura&&<div className="pointer-events-auto rounded-md border bg-background/95 px-2 py-1 font-mono text-xs shadow-sm">{misura.d.toFixed(2)} m · orizz. {misura.o.toFixed(2)} m · Δh {misura.h>=0?"+":""}{misura.h.toFixed(2)} m</div>}
     </div>}
