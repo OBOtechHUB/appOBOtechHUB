@@ -25,7 +25,7 @@ const server = createServer((rq, rs) => {
 });
 await new Promise((r) => server.listen(0, "127.0.0.1", r));
 const ORIGINE = `http://127.0.0.1:${server.address().port}`;
-const PAGINE = ["", "dati-edificio", "edificio-3d", "rischio", "calate", "computo-materiali", "antenne", "vento", "download-cad", "progetti"];
+const PAGINE = ["", "dati-edificio", "edificio-3d", "rischio", "calate", "computo-materiali", "antenne", "palo", "vento", "download-cad", "progetti"];
 const problemi = [];
 const b = await chromium.launch();
 for (const pg of PAGINE) {
