@@ -7,7 +7,7 @@ import type { StatoEsteso } from "./statoProgetto";
 /** Righe del computo dalla pagina Antenne: asta, isCon (numero di calate in parallelo automatico), collegamento al palo, supporti, cartello. */
 export function righeAntenne(s: StatoEsteso, lplProgetto?: string | null): RigaComputo[] {
   if (!s.antenne || s.tipologia !== "antenne") return [];
-  const d: DatiAntenne = { ...DATI_INIZIALI, lpl: ((lplProgetto ?? s.lpl) as DatiAntenne["lpl"]) || "III", ...s.antenne };
+  const d: DatiAntenne = { ...DATI_INIZIALI, ...s.antenne }; void lplProgetto;
   const P = calcolaProgettoAntenne(d);
   return P.materiali.map((m, i) => ({ id: `antenne-${i}-${m.codice || "x"}`, codice: m.codice, descrizione: m.descrizione, categoria: m.categoria, unita: m.unita, quantita: m.quantita, provenienza: "Antenne – calate isCon", materiale: "", sezione: "" }));
 }
