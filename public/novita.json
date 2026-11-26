@@ -2,6 +2,18 @@
   "nota": "Registro degli aggiornamenti di Progettazione LPS. Una voce per aggiornamento, la più recente per prima (app: lps). Viene mostrato nella barra \"Aggiorna app\", nel riquadro Novità e nella pagina Novità di OBO Hub. Le novità solo grafiche (animazioni, sigle, aspetto) non si mostrano: restano conservate in 'grafica_non_mostrata'.",
   "aggiornamenti": [
     {
+      "id": "2026-11-26-lps-67",
+      "data": "2026-11-26",
+      "app": "lps",
+      "titolo": "Antenne: calate isCon da grande altezza e collegamenti equipotenziali",
+      "voci": [
+        "Nuova sezione «Calate isCon da grande altezza»: l'app mette il collegamento equipotenziale principale (PAE) subito sotto l'antenna più bassa e controlla che la lunghezza stia nella l massima della versione isCon",
+        "Per ogni quota (PAE, livelli intermedi, base) dice cosa collegare: conduttore interno, guaina, zona x libera, supporti delle antenne, schermi dei cavi, SPD",
+        "Con palo o traliccio metallico o calcestruzzo armato la corrente scende nella struttura; con struttura non conduttiva calcola i livelli equipotenziali intermedi (dalla distanza disponibile, o con isCon fino a terra)",
+        "Schema verticale, materiali (isCon, piastre, supporti, cartello) e pulsante per usare la lunghezza trovata nella verifica"
+      ]
+    },
+    {
       "id": "2026-11-26-lps-66",
       "data": "2026-11-26",
       "app": "lps",
