@@ -12,4 +12,4 @@ export function Campo({ etichetta, children }: { etichetta: string; children: Re
 }
 
 export const inputCls =
-  "w-full rounded-md border border-input bg-card px-3 py-2.5 text-base text-foreground focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/30";
+  "w-full rounded-md border border-input bg-card px-3 py-2 text-base text-foreground focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/30";

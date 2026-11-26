@@ -82,8 +82,8 @@ export function SopralluogoPage() {
         {CATEGORIE.map(([v, t]) => <Button key={v} type="button" role="radio" aria-checked={categoriaNuove === v} variant={categoriaNuove === v ? "default" : "outline"} className="h-auto min-h-11 whitespace-normal px-2 py-1 text-sm leading-tight" onClick={() => setCategoriaNuove(v)}>{t}</Button>)}
       </div>
       <div className="grid grid-cols-2 gap-2">
-        <Button type="button" className="h-14 whitespace-normal px-2 text-base leading-tight" disabled={occupato} onClick={() => fotoRef.current?.click()}><Camera />Scatta foto</Button>
-        <Button type="button" variant="outline" className="h-14 whitespace-normal px-2 text-base leading-tight" disabled={occupato} onClick={() => galleriaRef.current?.click()}><ImagePlus />Dalla galleria</Button>
+        <Button type="button" className="h-12 whitespace-normal px-2 text-sm leading-tight" disabled={occupato} onClick={() => fotoRef.current?.click()}><Camera />Scatta foto</Button>
+        <Button type="button" variant="outline" className="h-12 whitespace-normal px-2 text-sm leading-tight" disabled={occupato} onClick={() => galleriaRef.current?.click()}><ImagePlus />Dalla galleria</Button>
       </div>
       <input ref={fotoRef} type="file" accept="image/*" capture="environment" className="hidden" onChange={(e) => void aggiungiFoto(e.target.files)} />
       <input ref={galleriaRef} type="file" accept="image/*" multiple className="hidden" onChange={(e) => void aggiungiFoto(e.target.files)} />
