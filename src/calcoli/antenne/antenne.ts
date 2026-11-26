@@ -62,6 +62,8 @@ export interface DatiAntenne {
   struttura?: "metallica" | "armata" | "isolante" | undefined;
   distanzaImpianti?: number | undefined;
   isconFinoATerra?: boolean | undefined;
+  /** calate distanziate almeno 20 cm su lati opposti del palo (kc ridotto); false = affiancate */
+  calateDistanziate?: boolean | undefined;
   /** l della verifica presa dal calcolo delle calate da grande altezza (true o assente) */
   lAuto?: boolean | undefined;
   ki: number | null;
@@ -85,16 +87,16 @@ export interface SoluzioneIscon { opzioni: OpzioneCalate[]; scelta: OpzioneCalat
  * fisso si usa quello, altrimenti il minimo che basta. Se nessuna combinazione basta, la l massima possibile
  * (4 calate, la versione con se più alta) e la quota minima del collegamento equipotenziale per stare sotto quella l.
  */
-export function soluzioneIscon(ki: number, l: number, lpl: Livello, nFisso: number | null, versione: VersioneIscon | null, quotaPunta: number): SoluzioneIscon {
+export function soluzioneIscon(ki: number, l: number, lpl: Livello, nFisso: number | null, versione: VersioneIscon | null, quotaPunta: number, distanziate = true): SoluzioneIscon {
   const opzioni: OpzioneCalate[] = [1, 2, 3, 4].map((n) => {
-    const kc = kcCalate(n), s = ki * kc * Math.max(0, l);
+    const kc = distanziate ? kcCalate(n) : 1, s = ki * kc * Math.max(0, l);
     const ok = (v: VersioneIscon) => verificaIscon(v, s).conforme && ammessaPerCorrente(v, lpl, n);
     const v = versione ? (ok(versione) ? versione : null) : (["basic", "proplus", "premium"] as VersioneIscon[]).find(ok) ?? null;
     return { n, kc, s, versione: v, lMax: v ? lunghezzaMassima(v, ki, kc) : null };
   });
   const scelta = nFisso ? opzioni.find((o) => o.n === Math.min(4, Math.max(1, nFisso))) ?? null : opzioni.find((o) => o.versione) ?? null;
   const vMax: VersioneIscon = versione ?? "premium";
-  const lMassima = lunghezzaMassima(vMax, ki, kcCalate(nFisso ? Math.min(4, nFisso) : 4));
+  const lMassima = lunghezzaMassima(vMax, ki, distanziate ? kcCalate(nFisso ? Math.min(4, nFisso) : 4) : 1);
   const quotaCollegamentoMinima = Number.isFinite(quotaPunta) && l > lMassima ? Math.max(0, quotaPunta - lMassima) : null;
   return { opzioni, scelta, lMassima, versioneLMassima: vMax, quotaCollegamentoMinima };
 }
@@ -114,10 +116,10 @@ export function calcolaAntenne(d: DatiAntenne): RisultatoAntenne {
   const protette = puntoProtetto(asta, d.sbraccio, d.sommita, r);
   const ki = d.ki ?? KI[d.lpl];
   const auto = d.calateAuto !== false;
-  const soluzione = soluzioneIscon(ki, d.lunghezzaCalata, d.lpl, auto ? null : d.numeroCalate, d.versione ?? null, d.quotaPiano + asta);
+  const soluzione = soluzioneIscon(ki, d.lunghezzaCalata, d.lpl, auto ? null : d.numeroCalate, d.versione ?? null, d.quotaPiano + asta, d.calateDistanziate !== false);
   // numero di calate usato: quello della soluzione (automatico) oppure quello scelto; senza soluzione 4 (il caso migliore)
   const nCalate = auto ? soluzione.scelta?.n ?? 4 : Math.min(50, Math.max(1, d.numeroCalate));
-  const kc = kcCalate(nCalate);
+  const kc = d.calateDistanziate === false ? 1 : kcCalate(nCalate);
   // separazione tra l'asta isolata e le antenne: la lunghezza è quella dal punto vicino alle antenne al collegamento equipotenziale
   const s = distanzaSeparazione(ki, kc, 1, Math.max(0, d.lunghezzaCalata));
   const misure: RisultatoAntenne["misure"] = [];

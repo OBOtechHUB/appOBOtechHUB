@@ -6,15 +6,15 @@ import { relazioneAntenne } from "./relazioneAntenne";
 const palo80 = { ...DATI_INIZIALI, tipo: "palo" as const, sommita: 80, quotaApparatoBasso: 77, lunghezzaCalata: 60 };
 
 describe("progetto e relazione antenne", () => {
-  it("materiali con calate in parallelo, isCon continuo e collegamento al palo", () => {
+  it("materiali con calate in parallelo, cavo isCon a misura e collegamento al palo", () => {
     const P = calcolaProgettoAntenne(palo80);
     expect(P.ca.fattibile).toBe(true);
     expect(P.lAuto).toBe(true);
     expect(P.lUsata).toBeCloseTo(P.ca.l, 2);
     const iscon = P.materiali.find((m) => m.unita === "m")!;
-    expect(iscon.quantita).toBe(Math.ceil((P.r.asta + 1) * P.ca.n));
-    expect(P.materiali.some((m) => /Collegamento del conduttore interno al palo/.test(m.descrizione))).toBe(true);
-    expect(svgSchemaCalate(P.r.asta, 80, 77, P.ca, true, "terreno")).toContain("PAE");
+    expect(iscon.quantita).toBe(Math.ceil(P.ca.l + 0.5) * P.ca.n);
+    expect(P.materiali.some((m) => /Elemento di collegamento isCon inferiore/.test(m.descrizione))).toBe(true);
+    expect(svgSchemaCalate(P.r.asta, 80, 77, P.ca, false, "terreno")).toContain("fine isCon");
   });
   it("relazione completa con tutte le sezioni", () => {
     const doc = relazioneAntenne({ dati: palo80, comune: "Paese" });

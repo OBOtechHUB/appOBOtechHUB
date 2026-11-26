@@ -78,7 +78,7 @@ export function AntennePage() {
       <section className="mt-10" aria-label="Separazione">
         <h2 className="text-[1.7rem] font-medium">2 · Asta isolata e calata isCon</h2>
         <div className="mt-4 grid gap-4 sm:grid-cols-4">
-          <Campo etichetta={`l: dalla punta al PAE (m; vuoto = ${lAuto ? "calcolata, " + f(lUsata, 2) : "dal calcolo della sezione 3"})`}><CampoNumero className={inputCls} valore={d.lAuto !== false ? null : d.lunghezzaCalata} placeholder={f(lUsata, 2)} onValore={(v) => set(v == null ? { lAuto: true } : { lAuto: false, lunghezzaCalata: v })} /></Campo>
+          <Campo etichetta={`l: dalla punta alla fine del cavo sul palo (m; vuoto = ${lAuto ? "calcolata, " + f(lUsata, 2) : "dal calcolo della sezione 3"})`}><CampoNumero className={inputCls} valore={d.lAuto !== false ? null : d.lunghezzaCalata} placeholder={f(lUsata, 2)} onValore={(v) => set(v == null ? { lAuto: true } : { lAuto: false, lunghezzaCalata: v })} /></Campo>
           <Campo etichetta="Calate isolate"><select className={inputCls} value={auto ? "auto" : String(Math.min(4, d.numeroCalate))} onChange={(e) => set(e.target.value === "auto" ? { calateAuto: true } : { calateAuto: false, numeroCalate: Number(e.target.value) })}><option value="auto">Automatico (fino a 4)</option>{[1, 2, 3, 4].map((n) => <option key={n} value={n}>{n}</option>)}</select></Campo>
           <Campo etichetta="Versione isCon"><select className={inputCls} value={d.versione ?? ""} onChange={(e) => set({ versione: (e.target.value || null) as VersioneIscon | null })}><option value="">La più semplice che basta</option>{versioniScelta(d.versione).map((v) => <option key={v} value={v}>{ISCON[v].nome}</option>)}</select></Campo>
           <Campo etichetta={`ki (LPL ${d.lpl}; vuoto = da norma)`}><CampoNumero className={inputCls} valore={d.ki} placeholder={f(r.ki, 2)} max={1} onValore={(v) => set({ ki: v && v > 0 ? v : null })} /></Campo>
@@ -115,14 +115,14 @@ export function AntennePage() {
 
       <section className="mt-10" aria-label="Calate da grande altezza">
         <h2 className="text-[1.7rem] font-medium">3 · Calate isCon da grande altezza e collegamenti equipotenziali</h2>
-        <p className="mt-2 text-sm text-muted-foreground">L'isCon garantisce la distanza di separazione solo dalla punta al primo collegamento equipotenziale (PAE). Qui l'app mette il PAE subito sotto l'antenna più bassa, controlla che la lunghezza stia dentro la l massima della versione e dice cosa collegare a ogni quota fino a terra. Quote dal {d.tipo === "tetto" ? "piano del tetto" : "terreno"}.</p>
+        <p className="mt-2 text-sm text-muted-foreground">L'isCon garantisce la distanza di separazione dalla punta fino al punto in cui il conduttore interno si collega al palo (fine del cavo: il cavo non si prolunga, istruzioni OBO). Qui l'app mette la fine del cavo subito sotto l'antenna più bassa, controlla che la lunghezza stia dentro la l massima della versione e dice cosa collegare a ogni quota fino a terra. Quote dal {d.tipo === "tetto" ? "piano del tetto" : "terreno"}.</p>
         <div className="mt-4 grid gap-4 sm:grid-cols-4">
           <Campo etichetta={`Antenna più bassa da isolare (m; vuoto = ${f(Math.max(0, d.sommita - 3), 1)})`}><CampoNumero className={inputCls} valore={d.quotaApparatoBasso ?? null} placeholder={f(Math.max(0, d.sommita - 3), 1)} onValore={(v) => set({ quotaApparatoBasso: v })} /></Campo>
           <Campo etichetta="Struttura di sostegno"><select className={inputCls} value={d.struttura ?? "metallica"} onChange={(e) => set({ struttura: e.target.value as StrutturaSostegno })}>{(Object.keys(NOMI_STRUTTURA) as StrutturaSostegno[]).map((k) => <option key={k} value={k}>{NOMI_STRUTTURA[k]}</option>)}</select></Campo>
           {(d.struttura ?? "metallica") === "isolante" && <>
             <Campo etichetta="Distanza disponibile calate–cavi/impianti (m)"><CampoNumero className={inputCls} valore={d.distanzaImpianti ?? 0.5} onValore={(v) => { if (v != null && v > 0) set({ distanzaImpianti: v }); }} /></Campo>
             </>}
-          <label className="flex items-center gap-2 self-end pb-2 text-sm"><input type="checkbox" checked={d.isconFinoATerra !== false} onChange={(e) => set({ isconFinoATerra: e.target.checked })} />isCon continuo dalla punta fino a terra (senza tagli)</label>
+          <label className="flex items-center gap-2 self-end pb-2 text-sm" title="Istruzioni OBO: calate ad almeno 20 cm, il più possibile distanti; se corrono affiancate il kc non si riduce"><input type="checkbox" checked={d.calateDistanziate !== false} onChange={(e) => set({ calateDistanziate: e.target.checked })} />Calate distanziate ≥ 20 cm su lati opposti del palo (kc ridotto)</label>
         </div>
         <div className="mt-4 rounded-lg border bg-card p-3">
           <div className="flex flex-wrap items-center gap-1.5" role="group" aria-label="Numero di calate">
@@ -140,7 +140,7 @@ export function AntennePage() {
               <td className="p-2 font-semibold">{n}<span className="block text-[11px] font-normal text-muted-foreground">kc {f(n <= 1 ? 1 : n === 2 ? 0.66 : 0.44, 2)}</span></td>
               {VERSIONI_PROPOSTE.map((v) => { const c = confronto.find((x) => x.n === n && x.versione === v)!; const scelta = ca.fattibile && ca.n === n && ca.versione === v;
                 return <td key={v} className="p-1"><button type="button" onClick={() => set({ calateAuto: false, numeroCalate: n, versione: v })} className={`w-full rounded-md border p-2 text-left ${scelta ? "border-primary bg-primary/10" : c.fattibile ? "hover:border-primary" : "opacity-70"}`}>
-                  {c.fattibile ? <><span className="font-semibold text-[#1d7a45]">basta</span> · PAE {f(c.quotaPAE ?? NaN, 1)} m<br />l {f(c.l, 1)} / max {f(c.lMax, 1)} m · s {f(c.s, 3)} m<br />{c.metriIscon} m isCon · {c.collegamenti} {c.collegamenti === 1 ? "collegamento" : "collegamenti"} · {f(c.correntePerCalata, 0)} kA/calata</>
+                  {c.fattibile ? <><span className="font-semibold text-[#1d7a45]">basta</span> · fine a {f(c.quotaPAE ?? NaN, 1)} m<br />l {f(c.l, 1)} / max {f(c.lMax, 1)} m · s {f(c.s, 3)} m<br />{c.metriIscon} m isCon · {c.collegamenti} {c.collegamenti === 1 ? "collegamento" : "collegamenti"} · {f(c.correntePerCalata, 0)} kA/calata</>
                     : <><span className="font-semibold text-[#b3261e]">non basta</span><br />l max {f(c.lMax, 1)} m</>}
                 </button></td>; })}
             </tr>)}</tbody>
@@ -148,13 +148,13 @@ export function AntennePage() {
           <p className="mt-1 text-xs text-muted-foreground">Tocca una casella per sceglierla. Con 3 o 4 calate il kc della norma è lo stesso (0,44): la 4ª calata non allunga la l massima.</p>
         </div>
         <div className="mt-4 grid gap-4 md:grid-cols-[280px_1fr]">
-          <SchemaCalateAltezza punta={r.asta} sommita={d.sommita} apparatoBasso={apparatoBasso} r={ca} piano={d.tipo === "tetto" ? "tetto" : "terreno"} finoATerra={d.isconFinoATerra !== false} />
+          <SchemaCalateAltezza punta={r.asta} sommita={d.sommita} apparatoBasso={apparatoBasso} r={ca} piano={d.tipo === "tetto" ? "tetto" : "terreno"} finoATerra={false} />
           <div>
             <div className={`rounded-lg border-l-4 p-4 ${ok(ca.fattibile)}`} role="status">
               {ca.fattibile && ca.versione && ca.quotaPAE != null ? <>
-                <p className="text-lg font-semibold">{ca.n} {ca.n === 1 ? "calata isolata" : "calate isolate"} {ISCON[ca.versione].nome} dalla punta ({f(r.asta, 1)} m) al PAE a {f(ca.quotaPAE, 2)} m</p>
+                <p className="text-lg font-semibold">{ca.n} {ca.n === 1 ? "calata isolata" : "calate isolate"} {ISCON[ca.versione].nome} dalla punta ({f(r.asta, 1)} m) al collegamento sul palo a {f(ca.quotaPAE, 2)} m</p>
                 <p className="mt-1 text-sm">l = {f(ca.l, 2)} m ≤ l massima {f(ca.lMax, 1)} m · s = {f(ca.ki, 2)} · {f(ca.kc, 2)} · {f(ca.l, 1)} = <strong>{f(ca.s, 3)} m</strong> ≤ {f(ISCON[ca.versione].sAria)} m · zona x {f(ca.zonaX)} m{ca.passoIntermedi ? ` · livelli intermedi ogni ${f(ca.passoIntermedi, 1)} m al massimo` : ""}</p>
-                <p className="mt-1 text-sm"><strong>Collegamenti equipotenziali (PAE): {ca.collegamentiTotali}</strong> – {ca.collegamentiPAE} al PAE a {f(ca.quotaPAE, 2)} m (uno per calata){ca.livelliIntermedi ? ` + ${ca.livelliIntermedi} ${ca.livelliIntermedi === 1 ? "livello intermedio" : "livelli intermedi"} × ${ca.n}` : ""}, poi il collegamento a terra alla base.</p>
+                <p className="mt-1 text-sm"><strong>Collegamenti del conduttore al palo: {ca.collegamentiTotali}</strong> – {ca.collegamentiPAE} a {f(ca.quotaPAE, 2)} m (uno per calata, fine del cavo){ca.zonaX > 0 ? `, ognuno con il terminale PAE 5408036 sulla guaina ${f(ca.zonaX, 2)} m più in alto` : ""}{ca.livelliIntermedi ? ` + ${ca.livelliIntermedi} ${ca.livelliIntermedi === 1 ? "livello intermedio" : "livelli intermedi"} × ${ca.n}` : ""}, poi il collegamento a terra alla base.</p>
                 {!lAuto && Math.abs(ca.l - d.lunghezzaCalata) > 0.05 && <Button size="sm" variant="outline" className="mt-2" onClick={() => set({ lAuto: true })}>Usa l = {f(ca.l, 2)} m nella verifica della sezione 2</Button>}
               </> : <p className="text-lg font-semibold">Non si può isolare tutto con l'isCon</p>}
               {ca.avvisi.map((a, i) => <p key={i} className="mt-1 text-sm">{a}</p>)}

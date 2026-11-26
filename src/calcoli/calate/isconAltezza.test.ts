@@ -7,18 +7,20 @@ describe("calate isCon da grande altezza", () => {
   it("palo metallico di 80 m: PAE sotto l'antenna più bassa, il resto scende nel palo", () => {
     const r = calateIsconAltezza(base);
     expect(r.fattibile).toBe(true);
-    expect(r.quotaPAE).toBeCloseTo(74 - 1.5, 6); // zona x 1,5 m (Pro+/Premium)
-    expect(r.l).toBeCloseTo(87.4 - 72.5, 6);
+    // fine del cavo sotto l'antenna più bassa lasciando x = 2·s per il terminale PAE (istruzioni OBO)
+    expect(r.zonaX).toBeCloseTo(2 * r.s, 9);
+    expect(r.quotaPAE! + r.zonaX).toBeCloseTo(74, 6);
+    expect(r.l).toBeCloseTo(87.4 - r.quotaPAE!, 6);
     expect(r.s).toBeLessThanOrEqual(0.75 + 1e-9);
-    expect(r.n).toBe(1); expect(r.versione).toBe("proplus"); // s = 0,04 · 14,9 = 0,596 m: Basic non basta, Pro+ sì
-    expect(r.livelli.map((l) => l.tipo)).toEqual(["principale", "base"]);
+    expect(r.n).toBe(1); expect(r.versione).toBe("proplus"); // l ≈ 14,6 m: Basic (11,25 m) non basta, Pro+ (18,75 m) sì
+    expect(r.livelli.map((l) => l.tipo)).toEqual(["principale", "principale", "base"]);
   });
   it("struttura non conduttiva: livelli intermedi con passo da distanza disponibile", () => {
     const r = calateIsconAltezza({ ...base, struttura: "isolante", distanzaImpianti: 0.5 });
     expect(r.passoIntermedi).toBeGreaterThan(0);
     const inter = r.livelli.filter((l) => l.tipo === "intermedio");
     expect(inter.length).toBeGreaterThan(0);
-    const quote = r.livelli.map((l) => l.quota);
+    const quote = r.livelli.slice(1).map((l) => l.quota);
     for (let i = 1; i < quote.length; i++) expect(quote[i - 1]! - quote[i]!).toBeLessThanOrEqual(r.passoIntermedi! + 1e-9);
   });
   it("antenna troppo bassa: non fattibile e quota minima del PAE", () => {
@@ -27,12 +29,18 @@ describe("calate isCon da grande altezza", () => {
     expect(r.lMassimaPossibile).toBeCloseTo(0.9 / (0.04 * 0.44), 3);
     expect(r.quotaPAEMinima).toBeCloseTo(87.4 - 0.9 / (0.04 * 0.44), 3);
   });
-  it("isCon continuo fino a terra su palo metallico: niente tagli, materiali per tutta l'altezza", () => {
+  it("il cavo isCon non si prolunga: un pezzo unico per calata entro la lunghezza ammessa", () => {
     const r = calateIsconAltezza({ ...base, isconFinoATerra: true });
-    expect(r.fattibile).toBe(true);
-    expect(r.materiali[0]!.quantita).toBe(Math.ceil(87.4 + 1));
-    expect(r.avvisi.some((a) => /non si taglia/.test(a))).toBe(true);
+    expect(r.materiali[0]!.quantita).toBe(Math.ceil(r.l + 0.5) * r.n);
+    expect(r.l + 0.5).toBeLessThanOrEqual(r.lMax + 1e-9);
+    expect(r.avvisi.some((a) => /non si può prolungare/.test(a))).toBe(true);
+    expect(r.materiali.some((m) => m.codice === "5408036")).toBe(true);
   });
+  it("calate affiancate: kc 1 per la distanza", () => {
+    const a = calateIsconAltezza({ ...base, nCalate: 2, versione: "proplus" }), b = calateIsconAltezza({ ...base, nCalate: 2, versione: "proplus", calateDistanziate: false });
+    expect(a.kc).toBeCloseTo(0.66); expect(b.kc).toBe(1); expect(b.lMax).toBeLessThan(a.lMax);
+  });
+
 });
 
 describe("scelta delle calate", () => {

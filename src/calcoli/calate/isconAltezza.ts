@@ -39,8 +39,10 @@ export interface DatiCalateAltezza {
   materiale: "aria" | "solido";
   /** con struttura non conduttiva: distanza disponibile tra calate nude e impianti interni o cavi (m) */
   distanzaImpianti: number;
-  /** isCon continuo dalla punta fino a terra (il cavo non si taglia al PAE): con struttura non conduttiva sostituisce le calate nude */
+  /** non più usato: le istruzioni OBO non permettono di prolungare il conduttore isCon (resta per i progetti salvati) */
   isconFinoATerra: boolean;
+  /** calate distanziate almeno 20 cm e su lati opposti (kc ridotto); false = affiancate (kc 1 per la distanza) */
+  calateDistanziate?: boolean | undefined;
 }
 
 export interface LivelloEquipotenziale { quota: number; tipo: "principale" | "intermedio" | "base"; titolo: string; cosa: string[] }
@@ -59,86 +61,107 @@ export interface RisultatoCalateAltezza {
   collegamentiPAE: number; livelliIntermedi: number; collegamentiTotali: number;
 }
 
+/** lunghezza in più del cavo per i collegamenti alle due estremità (m), compresa nella verifica della lunghezza ammessa */
+const MARGINE = 0.5;
 const kcDi = (n: number) => (n <= 1 ? 1 : n === 2 ? 0.66 : 0.44);
 const f = (v: number, c = 2) => (Number.isFinite(v) ? v.toLocaleString("it-IT", { maximumFractionDigits: c }) : "—");
 
 export function calateIsconAltezza(d: DatiCalateAltezza): RisultatoCalateAltezza {
   const ki = d.ki ?? KI[d.lpl], km = d.materiale === "solido" ? 0.5 : 1;
   const top = d.quotaPunta, base = Math.min(d.quotaBase, top);
+  // calate affiancate: la corrente si divide ma il kc della distanza non si riduce (istruzioni OBO isCon)
+  const kcS = (n: number) => (d.calateDistanziate === false ? 1 : kcDi(n));
   const ordine: VersioneIscon[] = d.versione ? [d.versione] : ["basic", "proplus", "premium"];
   const numeri = d.nCalate ? [Math.min(4, Math.max(1, d.nCalate))] : [1, 2, 3, 4];
   type Cand = { n: number; v: VersioneIscon; lMax: number; x: number; pae: number };
+  // quota della fine del cavo: subito sotto l'antenna più bassa lasciando il tratto x = 2·s (terminale PAE della guaina);
+  // x dipende da s, che dipende dalla lunghezza: pae = A − 2·s(pae) → pae = (A − c·top) / (1 − c) con c = 2·ki·kc/km
+  const posizione = (n: number, lMax: number): { pae: number; x: number } => {
+    const minimo = Math.max(base, top - (lMax - MARGINE));
+    if (d.quotaApparatoBasso == null) { const sx = (ki * kcS(n) * (top - minimo)) / km; return { pae: minimo, x: sx < 0.2 ? 0 : 2 * sx }; }
+    const c = (2 * ki * kcS(n)) / km, A = d.quotaApparatoBasso;
+    let pae = (A - c * top) / (1 - c);
+    let sx = (ki * kcS(n) * (top - pae)) / km;
+    if (sx < 0.2) { pae = A - 0.3; sx = (ki * kcS(n) * (top - pae)) / km; }
+    return { pae, x: sx < 0.2 ? 0 : 2 * sx };
+  };
   let scelta: Cand | null = null;
   for (const n of numeri) {
     for (const v of ordine) {
       if (!ammessaPerCorrente(v, d.lpl, n)) continue;
-      const lMax = lunghezzaMassima(v, ki, kcDi(n), km), x = ISCON[v].zonaPotenziale;
-      const minimo = Math.max(base, top - lMax);
-      // con apparati da isolare il PAE sta subito sotto il più basso (zona x libera), così l è la più corta possibile
-      const pae = d.quotaApparatoBasso != null ? d.quotaApparatoBasso - x : minimo;
-      if (pae >= minimo - 1e-9 && pae < top) { scelta = { n, v, lMax, x, pae }; break; }
+      const lMax = lunghezzaMassima(v, ki, kcS(n), km), { pae, x } = posizione(n, lMax);
+      if (pae >= Math.max(base, top - (lMax - MARGINE)) - 1e-9 && pae < top) { scelta = { n, v, lMax, x, pae }; break; }
     }
     if (scelta) break;
   }
   const vMax: VersioneIscon = d.versione ?? "premium", nMax = d.nCalate ? Math.min(4, d.nCalate) : 4;
-  const lMassimaPossibile = lunghezzaMassima(vMax, ki, kcDi(nMax), km);
+  const lMassimaPossibile = lunghezzaMassima(vMax, ki, kcS(nMax), km);
   const quotaPAEMinima = top - lMassimaPossibile;
   const avvisi: string[] = [];
   if (!scelta) {
-    const n = nMax, kc = kcDi(n), x = ISCON[vMax].zonaPotenziale;
+    const n = nMax, kc = kcS(n), x = 2 * ISCON[vMax].sAria;
     const serve = d.quotaApparatoBasso != null ? top - (d.quotaApparatoBasso - x) : top - base;
-    avvisi.push(`Nessuna combinazione basta: con ${n} ${n === 1 ? "calata" : "calate"} ${ISCON[vMax].nome} la l massima è ${f(lMassimaPossibile, 1)} m, ma ${d.quotaApparatoBasso != null ? "per isolare l'apparato più basso" : "fino al piano di riferimento"} servono ${f(serve, 1)} m.`);
-    if (d.quotaApparatoBasso != null) avvisi.push(`Soluzioni: isolare solo gli apparati sopra ${f(quotaPAEMinima + x, 1)} m (PAE ad almeno ${f(quotaPAEMinima, 1)} m e apparati più bassi collegati alla struttura, con schermi dei cavi collegati e SPD di tipo 1 dove i cavi entrano), oppure avvicinare la punta agli apparati.`);
+    avvisi.push(`Nessuna combinazione basta: con ${n} ${n === 1 ? "calata" : "calate"} ${ISCON[vMax].nome} il cavo può essere lungo al massimo ${f(lMassimaPossibile, 1)} m, ma ${d.quotaApparatoBasso != null ? "per isolare l'antenna più bassa" : "fino al piano di riferimento"} servono ${f(serve, 1)} m.`);
+    if (d.quotaApparatoBasso != null) avvisi.push(`Soluzioni: isolare solo le antenne sopra ${f(quotaPAEMinima + x, 1)} m (fine del cavo e collegamento al palo ad almeno ${f(quotaPAEMinima, 1)} m, antenne più basse collegate al palo, con schermi dei cavi collegati e SPD di tipo 1 dove i cavi entrano), avvicinare la punta alle antenne, oppure un palo di captazione separato.`);
+    if (d.calateDistanziate === false) avvisi.push("Con le calate distanziate (almeno 20 cm, su lati opposti del palo) il kc si riduce e la lunghezza ammessa aumenta.");
     return { collegamentiPAE: 0, livelliIntermedi: 0, collegamentiTotali: 0, fattibile: false, ki, km, n, kc, versione: null, lMax: lMassimaPossibile, zonaX: x, quotaPAE: null, l: serve, s: (ki * kc * serve) / km, passoIntermedi: null, livelli: [], materiali: [], avvisi, lMassimaPossibile, quotaPAEMinima };
   }
   const { n, v, lMax, x } = scelta;
-  const kc = kcDi(n), pae = scelta.pae, l = top - pae, s = (ki * kc * l) / km;
-  const D = ISCON[v];
+  const kc = kcS(n), pae = scelta.pae, l = top - pae, s = (ki * kc * l) / km;
+  const D = ISCON[v], metallica = d.struttura !== "isolante";
+  const conPAE = s >= 0.2;
   const livelli: LivelloEquipotenziale[] = [];
-  livelli.push({ quota: pae, tipo: "principale", titolo: "Collegamento equipotenziale principale (PAE)", cosa: [
-    `Conduttore interno di ogni isCon collegato a ${d.struttura === "isolante" ? "l'anello equipotenziale (o la barra) di questa quota" : "la struttura metallica"} con l'elemento di collegamento isCon (piastra per 1 o 2 conduttori).`,
-    D.equipotenziale.palo ? `Guaina esterna collegata all'equipotenziale qui e all'altro capo (${D.nome}).` : `${D.nome}: nessun collegamento della guaina al palo; all'altro capo morsetto PAE oppure distanza x = ${f(x)} m tra elemento di collegamento e ultimo distanziatore isolato.`,
-    `Zona x = ${f(x)} m sopra il PAE senza parti conduttrici entro s = ${f(s, 3)} m dal conduttore.`,
-    "Alla stessa quota: supporti metallici degli apparati, schermi dei cavi coassiali e altre parti metalliche collegati allo stesso punto.",
-    `Sopra il PAE: nessuna parte metallica entro s = ${f(s, 3)} m dalle parti nude della captazione (asta, punta, morsetti).`,
+  livelli.push({ quota: top, tipo: "principale", titolo: "Collegamento superiore all'asta", cosa: [
+    "Elemento di collegamento isCon sull'asta (connect 5408022, con 2 5408021 o con PRE 5408023 secondo la versione; ASE 23 5408080 se si vuole la prova di isolamento, con Pro+ e Premium); sull'asta la piastra AP1-16 VA o AP2-16 VA.",
+    `Tratto di 1,5 m sotto il collegamento (asta centrale in vetroresina isFang) senza parti conduttrici entro s = ${f(s, 3)} m; poi il potenziale della guaina si collega con l'elemento interno dell'asta o con la molletta 927 2 6-K.`,
+    `Antenne e parti metalliche ad almeno s = ${f(s, 3)} m dalle parti nude (punta, asta, collegamento superiore).`,
+  ] });
+  livelli.push({ quota: pae, tipo: "principale", titolo: "Fine del cavo isCon e collegamento al palo", cosa: [
+    `Conduttore interno collegato ${metallica ? "al palo" : "all'anello o alla barra equipotenziale"} con l'elemento di collegamento isCon inferiore (stessa famiglia del superiore): qui il cavo finisce, non si prolunga.`,
+    conPAE ? `Terminale isCon PAE 5408036 sulla guaina a x = 2 · s = ${f(x, 2)} m sopra la fine del cavo, collegato all'equipotenziale con un conduttore in rame di almeno 6 mm².` : `s = ${f(s, 3)} m < 0,20 m: non serve il terminale PAE prima della fine del cavo.`,
+    conPAE ? `Tra il terminale PAE e la fine del cavo nessuna parte conduttrice entro s = ${f(s, 3)} m: in quel tratto il cavo resta staccato dal palo (distanziatore isCon DH 5408043).` : "Fissaggio fino al collegamento con i supporti isCon.",
+    "Alla stessa quota: supporti metallici delle antenne, schermi dei cavi coassiali e altre parti metalliche collegati al palo.",
   ] });
   let passo: number | null = null;
   const sotto = pae - base;
   if (sotto > 0.1) {
-    if (d.struttura === "isolante") {
-      passo = d.isconFinoATerra ? lMax : (Math.max(0.01, d.distanzaImpianti) * km) / (ki * kc);
+    if (!metallica) {
+      passo = (Math.max(0.01, d.distanzaImpianti) * km) / (ki * kc);
       const nLiv = Math.max(0, Math.ceil(sotto / passo - 1e-9) - 1), h = sotto / (nLiv + 1);
       for (let i = 1; i <= nLiv; i++) livelli.push({ quota: pae - i * h, tipo: "intermedio", titolo: `Livello equipotenziale intermedio ${i}`, cosa: [
-        d.isconFinoATerra ? "Conduttore interno degli isCon collegato all'anello o alla barra equipotenziale di questa quota (come al PAE)." : "Calate collegate all'anello o alla barra equipotenziale di questa quota.",
+        "Calate (conduttori nudi sotto la fine dell'isCon) collegate all'anello o alla barra equipotenziale di questa quota.",
         "Schermi dei cavi e parti metalliche della stessa quota collegati allo stesso anello.",
-        `Tra due livelli al massimo ${f(passo, 1)} m (s = ${f((ki * kc * h) / km, 3)} m ≤ ${d.isconFinoATerra ? `${f(D.sAria * (km < 1 ? 2 : 1))} m dell'isCon` : `${f(d.distanzaImpianti)} m disponibili`}).`,
+        `Tra due livelli al massimo ${f(passo, 1)} m (s = ${f((ki * kc * h) / km, 3)} m ≤ ${f(d.distanzaImpianti)} m disponibili).`,
       ] });
-    } else if (d.isconFinoATerra) {
-      avvisi.push(`Il cavo isCon non si taglia: prosegue intero dalla punta fino al dispersore (${f(top - base, 1)} m), fissato ${d.struttura === "metallica" ? "al palo o traliccio" : "alla struttura"}. Al PAE il conduttore interno si collega ${d.struttura === "metallica" ? "al palo" : "ai ferri"}: da lì in giù cavo e struttura portano insieme la corrente, quindi non servono altri collegamenti intermedi né altre verifiche della distanza.`);
-      avvisi.push(`La verifica vale solo per i ${f(l, 1)} m sopra il PAE: senza il collegamento al PAE il tratto isolato sarebbe lungo ${f(top - base, 1)} m e nessun isCon basterebbe (s = ${f((ki * kc * (top - base)) / km, 2)} m).`);
     } else {
-      avvisi.push(d.struttura === "metallica"
-        ? "Sotto il PAE la corrente scende nel palo o traliccio (calata naturale): continuità dei giunti e collegamento a terra alla base, senza altri collegamenti intermedi."
-        : "Sotto il PAE la corrente scende nei ferri d'armatura: verifica la continuità elettrica dei ferri (misura) e collegali a terra alla base.");
+      avvisi.push(`Il conduttore isCon non si può prolungare (istruzioni OBO): ogni calata è un pezzo unico dalla punta alla fine del cavo, lungo al massimo ${f(lMax, 1)} m. Sotto la fine del cavo la corrente scende nel ${d.struttura === "metallica" ? "palo o traliccio" : "calcestruzzo armato (ferri)"} fino a terra.`);
+      avvisi.push(`Perché basta un solo collegamento al palo (${n} ${n === 1 ? "collegamento" : "collegamenti"}, uno per calata): la distanza di separazione si calcola fino al collegamento equipotenziale più vicino. Vale solo se ${d.struttura === "metallica" ? "il palo è metallico, con giunti elettricamente continui per tutta l'altezza" : "i ferri sono continui per tutta l'altezza (verificato con misura)"} e collegato a terra alla base; se non è così scegli «Struttura non conduttiva».`);
+      avvisi.push("Il palo sotto la fine del cavo porta la corrente di fulmine: schermi dei cavi d'antenna collegati al palo in alto e alla base, SPD di tipo 1 all'ingresso del locale apparati; per discese lunghe è buona pratica collegare gli schermi al palo anche a quote intermedie.");
     }
   }
-  if (d.struttura !== "isolante" && sotto > 0.1) {
-    avvisi.push(`Perché basta un solo livello di PAE (${n} ${n === 1 ? "collegamento" : "collegamenti"}, uno per calata): la distanza di separazione si calcola fino al collegamento equipotenziale più vicino. Sotto il PAE cavo isCon e ${d.struttura === "metallica" ? "palo" : "ferri"} sono collegati tra loro in alto (PAE) e in basso (terra) e portano la corrente insieme: tra i due non serve distanza. Vale solo se ${d.struttura === "metallica" ? "il palo è metallico, con giunti elettricamente continui per tutta l'altezza" : "i ferri sono continui per tutta l'altezza (verificato con misura)"} e collegato a terra alla base; se non è così scegli «Struttura non conduttiva» e l'app aggiunge i livelli intermedi.`);
-    avvisi.push("Schermi dei cavi d'antenna collegati al palo al PAE e alla base (ingresso del locale apparati); per discese lunghe è buona pratica collegarli al palo anche a quote intermedie, con i kit di messa a terra dei cavi.");
-  }
+  avvisi.push(`Lungo il ${metallica ? "palo metallico" : "percorso"}: supporti al massimo ogni 1 m${metallica ? "; i supporti metallici isCon H VA 5408056 avvitati al palo collegano anche la guaina alle parti a terra, come chiedono le istruzioni OBO" : ""}. Raggio minimo di curvatura ${D.raggioCurvatura.nero} mm.`);
+  if (n > 1) avvisi.push(d.calateDistanziate === false
+    ? `Calate affiancate: la corrente si divide (${n} cavi) ma il kc della distanza resta 1 (istruzioni OBO).`
+    : "Calate in parallelo: almeno 20 cm tra loro e il più possibile distanti (lati opposti del palo); se corrono affiancate il kc non si riduce. I valori di kc valgono con dispersore di tipo B, o di tipo A con resistenze di terra simili (entro un fattore 2).");
   livelli.push({ quota: base, tipo: "base", titolo: base > 0.05 ? "Piano di riferimento (copertura con LPS)" : "Base: collegamento a terra", cosa: [
-    d.struttura === "isolante" ? `Calate (${n}) collegate all'impianto di terra con punto di sezionamento per le misure.` : `Struttura collegata all'impianto di terra in almeno ${Math.max(2, n)} punti.`,
+    !metallica ? `Calate (${n}) collegate all'impianto di terra con punto di sezionamento per le misure.` : `Struttura collegata all'impianto di terra in almeno ${Math.max(2, n)} punti.`,
     "Barra equipotenziale principale: schermi dei cavi collegati all'ingresso del locale apparati, SPD di tipo 1 sulle linee che entrano.",
   ] });
-  if (v === "proplus") avvisi.push("Con Pro+ 75 GR (grigio) la protezione dalle tensioni di contatto vale al massimo per 5 m, con la guaina collegata dopo 0,5 m dal collegamento superiore.");
+  if (v === "proplus") avvisi.push("Con Pro+ 75 GR (grigio) la protezione dalle tensioni di contatto vale al massimo per 5 m, con il primo supporto 0,5 m sotto il collegamento.");
   if (d.lpl === "I" && n === 1) avvisi.push("LPL I con una sola calata isolata: serve la classe H2 (200 kA), cioè Premium 90.");
   if (!verificaIscon(v, s, d.materiale).conforme) avvisi.push("Controllo: s supera la distanza equivalente dell'isCon.");
-  const metriIsconPerCalata = l + (d.isconFinoATerra ? sotto : 0) + 1;
+  const cavo = Math.ceil(l + MARGINE);
+  avvisi.push(`Cavo a misura: ${f(l + MARGINE, 2)} m per calata (l più ${f(MARGINE, 1)} m per i collegamenti) ≤ ${f(lMax, 2)} m ammessi; non si giunta.`);
   const materiali: RisultatoCalateAltezza["materiali"] = [
-    { codice: D.codici[0]!.codice, descrizione: `${D.nome} – ${n} ${n === 1 ? "calata" : "calate"} (l ${f(l, 1)} m${d.isconFinoATerra ? ` + ${f(sotto, 1)} m fino a terra, senza tagli` : ""} + 1 m di riserva per calata)`, quantita: Math.ceil(metriIsconPerCalata * n), unita: "m" },
-    n >= 2 ? { codice: "5408028", descrizione: "Piastra di collegamento per due conduttori isCon (al PAE)", quantita: Math.ceil(n / 2) * (1 + livelli.filter((x) => x.tipo === "intermedio").length * (d.isconFinoATerra ? 1 : 0)), unita: "pz" }
-      : { codice: "5408026", descrizione: "Piastra di collegamento per un conduttore isCon (al PAE)", quantita: 1 + livelli.filter((x) => x.tipo === "intermedio").length * (d.isconFinoATerra ? 1 : 0), unita: "pz" },
-    { codice: "", descrizione: "Supporti per isCon lungo il percorso, al massimo ogni 1 m", quantita: Math.ceil(metriIsconPerCalata) * n, unita: "pz" },
+    { codice: D.codici[0]!.codice, descrizione: `${D.nome} – ${n} ${n === 1 ? "calata" : "calate"}: un pezzo unico per calata tagliato a ${f(l + MARGINE, 2)} m (massimo ${f(lMax, 2)} m)`, quantita: cavo * n, unita: "m" },
+    { codice: "5408022 / 5408021 / 5408023", descrizione: "Elemento di collegamento isCon superiore, all'asta (connect / con 2 / con PRE secondo la versione)", quantita: n, unita: "pz" },
+    { codice: "5408022 / 5408021 / 5408023", descrizione: `Elemento di collegamento isCon inferiore, fine del cavo ${metallica ? "sul palo" : "sull'anello"} (stessa famiglia)`, quantita: n, unita: "pz" },
+    n >= 2 ? { codice: "5408028", descrizione: "Piastra di collegamento AP2-16 VA per due conduttori, all'asta (per quattro due piastre)", quantita: Math.ceil(n / 2), unita: "pz" }
+      : { codice: "5408026", descrizione: "Piastra di collegamento AP1-16 VA per un conduttore, all'asta", quantita: 1, unita: "pz" },
+    ...(conPAE ? [{ codice: "5408036", descrizione: `Terminale isCon PAE sulla guaina, a ${f(x, 2)} m dalla fine del cavo`, quantita: n, unita: "pz" },
+      { codice: "5408043", descrizione: "Distanziatore isCon DH per il tratto tra terminale PAE e fine del cavo", quantita: n * Math.max(1, Math.ceil(x)), unita: "pz" },
+      { codice: "", descrizione: "Conduttore di collegamento in rame ≥ 6 mm² per i terminali PAE", quantita: n, unita: "m" }] : []),
+    { codice: metallica ? "5408056" : "", descrizione: metallica ? "Supporto metallico isCon H VA (sul palo, collega anche la guaina), al massimo ogni 1 m" : "Supporti per isCon al massimo ogni 1 m", quantita: Math.ceil(l) * n, unita: "pz" },
     { codice: "5408058", descrizione: "Cartello informativo isCon", quantita: 1, unita: "pz" },
   ];
   const livelliIntermedi = livelli.filter((x) => x.tipo === "intermedio").length;
@@ -154,7 +177,7 @@ export function confrontoCalate(d: DatiCalateAltezza, versioni: VersioneIscon[] 
   for (const n of [1, 2, 3, 4]) for (const v of versioni) {
     const r = calateIsconAltezza({ ...d, nCalate: n, versione: v });
     const metri = r.materiali.find((m) => m.unita === "m")?.quantita ?? 0;
-    out.push({ n, versione: v, fattibile: r.fattibile, quotaPAE: r.quotaPAE, l: r.l, lMax: lunghezzaMassima(v, r.ki, kcDi(n), r.km), s: r.s, metriIscon: metri, collegamenti: r.collegamentiTotali, livelliIntermedi: r.livelliIntermedi, correntePerCalata: CORRENTE[d.lpl] * kcDi(n) });
+    out.push({ n, versione: v, fattibile: r.fattibile, quotaPAE: r.quotaPAE, l: r.l, lMax: lunghezzaMassima(v, r.ki, d.calateDistanziate === false ? 1 : kcDi(n), r.km), s: r.s, metriIscon: metri, collegamenti: r.collegamentiTotali, livelliIntermedi: r.livelliIntermedi, correntePerCalata: CORRENTE[d.lpl] * kcDi(n) });
   }
   return out;
 }

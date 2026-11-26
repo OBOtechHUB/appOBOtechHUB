@@ -1,7 +1,7 @@
 /**
  * Relazione tecnica completa (Word, stile OBO) della protezione contro i fulmini delle antenne: sito, captazione con la
  * sfera rotolante, distanza di separazione, calate isolate isCon con il numero di conduttori in parallelo, collegamento
- * al palo (PAE) e collegamenti equipotenziali quota per quota, cavi, SPD e terra, prescrizioni di posa e materiali.
+ * al palo (fine del cavo) e collegamenti equipotenziali quota per quota, cavi, SPD e terra, prescrizioni di posa e materiali.
  * Riferimenti: CEI EN IEC 62305-3:2026-10 (6.3, Tab. 11-12, Allegato B), CEI EN IEC 62305-4:2026-10 (B.11, B.12),
  * dati del costruttore OBO isCon (IEC TS 62561-8). Testi scritti con parole nostre, nessun testo della norma copiato.
  */
@@ -22,7 +22,7 @@ export interface IngressoRelazioneAntenne {
 export function relazioneAntenne(x: IngressoRelazioneAntenne): Documento {
   const d = x.dati, P = calcolaProgettoAntenne(d), r = P.r, ca = P.ca, data = x.data ?? new Date();
   const D = ca.versione ? ISCON[ca.versione] : null, piano = d.tipo === "tetto" ? "piano del tetto" : "terreno";
-  const struttura = d.struttura ?? "metallica", continuo = d.isconFinoATerra !== false;
+  const struttura = d.struttura ?? "metallica", continuo = false;
   const B: Blocco[] = [
     ...testataObo("Relazione tecnica – protezione contro i fulmini delle antenne", "Captazione isolata e calate OBO isCon · CEI EN IEC 62305-3 e 62305-4:2026-10", x.logo),
     tab(["Dato", "Valore"], [
@@ -33,7 +33,7 @@ export function relazioneAntenne(x: IngressoRelazioneAntenne): Documento {
       ["Data", dataLunga(data)],
     ], [4, 8]),
     h1("1. Oggetto"),
-    p("La relazione dimensiona la protezione delle antenne dalla fulminazione diretta con un'asta di captazione in sommità, isolata dalle antenne, e calate isolate ad alta tensione OBO isCon. Indica il numero di conduttori in parallelo, la versione del conduttore, la quota del collegamento al palo (PAE) e i collegamenti equipotenziali da realizzare fino all'impianto di terra, con i materiali.", { allinea: "giustificato" }),
+    p("La relazione dimensiona la protezione delle antenne dalla fulminazione diretta con un'asta di captazione in sommità, isolata dalle antenne, e calate isolate ad alta tensione OBO isCon. Indica il numero di conduttori in parallelo, la versione del conduttore, la quota del collegamento al palo (fine del cavo isCon) e i collegamenti equipotenziali da realizzare fino all'impianto di terra, con i materiali.", { allinea: "giustificato" }),
     h1("2. Dati del sito"),
     tab(["Grandezza", "Valore"], [
       ["Tipo di installazione", NOMI_SITO[d.tipo]],
@@ -57,11 +57,11 @@ export function relazioneAntenne(x: IngressoRelazioneAntenne): Documento {
     el(`ki = ${it(r.ki, 2)} (LPL ${d.lpl}, Tab. 11);`,
       "kc = 1 con un conduttore, 0,66 con due, 0,44 con tre o più (ripartizione della corrente tra le calate in parallelo);",
       "km = 1 in aria (Tab. 12);",
-      "l = lunghezza lungo captazione e calata dalla punta al collegamento equipotenziale più vicino (PAE)."),
+      "l = lunghezza lungo captazione e calata dalla punta al collegamento equipotenziale più vicino: il punto in cui il conduttore interno dell'isCon si collega al palo (fine del cavo)."),
     p(`Un conduttore isCon è adeguato se s ≤ se, distanza equivalente certificata dal costruttore (prova ${ISCON_COMUNE.norma}); cioè se l ≤ l max = se × km / (ki × kc). Con LPL I e un solo conduttore serve la classe H2 (Premium 90).`, { allinea: "giustificato" }),
     tab(["Versione OBO isCon", "Codice", "se in aria", "Classe", "Zona x"], (["basic", "proplus", "premium"] as const).map((v) => [ISCON[v].nome, ISCON[v].codici[0]!.codice, `${it(ISCON[v].sAria, 2)} m`, `${ISCON[v].classe} (${ISCON[v].iimp} kA)`, `${it(ISCON[v].zonaPotenziale, 2)} m`]), [3.6, 2, 2, 2.4, 2]),
     h1("5. Numero di conduttori in parallelo e versione isCon"),
-    p(`Il collegamento al palo (PAE) si pone subito sotto l'antenna più bassa, lasciando libera la zona x del conduttore: così la lunghezza isolata l è la più corta possibile. Per ogni numero di calate da 1 a 4 si cerca la versione più semplice che soddisfa s ≤ se e la corrente; si adotta il numero minimo di calate che basta${d.calateAuto === false ? " (qui fissato dal progettista)" : ""}.`, { allinea: "giustificato" }),
+    p(`La fine del cavo isCon, dove il conduttore interno si collega al palo, si pone subito sotto l'antenna più bassa, lasciando libero il tratto x = 2 × s del terminale PAE sulla guaina (istruzioni OBO): così la lunghezza isolata l è la più corta possibile. Per ogni numero di calate da 1 a 4 si cerca la versione più semplice che soddisfa s ≤ se e la corrente; si adotta il numero minimo di calate che basta${d.calateAuto === false ? " (qui fissato dal progettista)" : ""}.`, { allinea: "giustificato" }),
     tab(["Calate in parallelo", "kc", "s richiesta (m)", "Corrente per calata", "isCon che basta", "l max (m)"],
       r.soluzione.opzioni.map((o) => [String(o.n), it(o.kc, 2), it(o.s, 3), `${it(CORRENTE_LPL[d.lpl] * o.kc, 0)} kA`, o.versione ? ISCON[o.versione].nome : "nessuno", o.lMax ? it(o.lMax, 1) : "—"]),
       [2.2, 1.2, 2.1, 2.3, 2.8, 1.6], r.soluzione.scelta ? { evidenziaRighe: [r.soluzione.scelta.n - 1] } : {}),
@@ -71,28 +71,30 @@ export function relazioneAntenne(x: IngressoRelazioneAntenne): Documento {
     B.push(
       p([{ t: "Verifica della tenuta dell'isolamento: ", b: true }, { t: `s = ${it(ca.ki, 2)} × ${it(ca.kc, 2)} / 1 × ${it(ca.l, 2)} = ${it(ca.s, 3)} m ≤ se = ${it(D.sAria, 2)} m (${D.nome}) → ` }, { t: v.conforme ? "VERIFICATA" : "NON VERIFICATA", b: true }]),
       p([{ t: "Verifica della corrente: ", b: true }, { t: `${it(CORRENTE_LPL[d.lpl], 0)} kA × ${it(ca.kc, 2)} = ${it(P.correntePerConduttore ?? NaN, 0)} kA per calata ≤ ${D.iimp} kA (classe ${D.classe}) → ` }, { t: (P.correntePerConduttore ?? Infinity) <= D.iimp ? "VERIFICATA" : "NON VERIFICATA", b: true }]),
-      p([{ t: "Soluzione: ", b: true }, { t: `${ca.n} ${ca.n === 1 ? "calata isolata" : "calate isolate"} ${D.nome} in parallelo, PAE a ${it(ca.quotaPAE, 2)} m, tratto isolato l = ${it(ca.l, 2)} m (l max ${it(ca.lMax, 1)} m)${continuo ? `; il cavo prosegue intero fino a terra (${it(r.asta, 1)} m per calata, senza tagli)` : ""}.` }]),
-      p([{ t: "Collegamenti equipotenziali: ", b: true }, { t: `${ca.collegamentiTotali} in tutto: ${ca.collegamentiPAE} al PAE a ${it(ca.quotaPAE, 2)} m (uno per calata)${ca.livelliIntermedi ? ` e ${ca.livelliIntermedi} livelli intermedi con ${ca.n} collegamenti ciascuno` : ""}, più il collegamento all'impianto di terra alla base.` }]),
+      p([{ t: "Soluzione: ", b: true }, { t: `${ca.n} ${ca.n === 1 ? "calata isolata" : "calate isolate"} ${D.nome} in parallelo; ogni calata è un pezzo unico di cavo dalla punta al collegamento sul palo a ${it(ca.quotaPAE, 2)} m, l = ${it(ca.l, 2)} m (lunghezza ammessa ${it(ca.lMax, 1)} m); sotto, la corrente scende nel palo.` }]),
+      p([{ t: "Collegamenti: ", b: true }, { t: `${ca.collegamentiTotali} collegamenti del conduttore al palo: ${ca.collegamentiPAE} a ${it(ca.quotaPAE, 2)} m (uno per calata, con il terminale PAE 5408036 sulla guaina ${it(ca.zonaX, 2)} m più in alto)${ca.livelliIntermedi ? ` e ${ca.livelliIntermedi} livelli intermedi con ${ca.n} collegamenti ciascuno` : ""}, più il collegamento all'impianto di terra alla base.` }]),
       p([{ t: "Parte nuda dell'asta: ", b: true }, { t: `distanza reale ${it(d.distanzaReale, 2)} m ${r.separazioneOk ? "≥" : "<"} s = ${it(r.s, 3)} m → ` }, { t: r.separazioneOk ? "VERIFICATA" : "NON VERIFICATA (supporto isolante più lungo)", b: true }]),
       h1("6. Collegamento al palo e collegamenti equipotenziali"),
       { tipo: "immagine", svg: svgSchemaCalate(r.asta, d.sommita, P.apparatoBasso, ca, continuo, piano), larghezza: 9, altezza: 11.1, allinea: "centro" },
-      p("Figura – Schema verticale (non in scala orizzontale): asta, antenne, tratto isolato fino al PAE, livelli equipotenziali e base.", { allinea: "centro", dimensione: 9 }),
+      p("Figura – Schema verticale (non in scala orizzontale): asta, antenne, cavo isCon fino al collegamento sul palo, tratto x del terminale PAE, livelli equipotenziali e base.", { allinea: "centro", dimensione: 9 }),
     );
     for (const l of ca.livelli) B.push(h2(`${l.titolo} – quota ${it(l.quota, 2)} m`), el(...l.cosa));
-    if (ca.avvisi.length) B.push(h2("Note sul tratto sotto il PAE"), el(...ca.avvisi));
+    if (ca.avvisi.length) B.push(h2("Note di posa e sul tratto sotto il collegamento"), el(...ca.avvisi));
   } else {
     B.push(p([{ t: "Esito: ", b: true }, { t: "nessuna combinazione fino a 4 conduttori isola tutte le antenne. " }, ...ca.avvisi.map((a): Run => ({ t: a + " " }))]),
-      p([dc("scegliere la soluzione: PAE più in alto con antenne basse collegate al palo, oppure punta più vicina alle antenne")]));
+      p([dc("scegliere la soluzione: collegamento al palo più in alto con antenne basse collegate al palo, punta più vicina alle antenne, oppure palo di captazione separato")]));
   }
   B.push(
     h1(ca.fattibile ? "7. Cavi, SPD e terra" : "6. Cavi, SPD e terra"),
     el(...r.misure.map((m): Testo => [{ t: m.obbligatoria ? "" : "(consiglio) " }, { t: m.testo }, { t: ` [CEI EN IEC ${m.rif}]` }])),
     h1(ca.fattibile ? "8. Prescrizioni di posa" : "7. Prescrizioni di posa"),
-    el(...(D ? [D.equipotenziale.nota, `Zona di controllo del potenziale: nel tratto x = ${it(D.zonaPotenziale, 2)} m sopra il PAE nessuna parte conduttrice entro la distanza s.`,
+    el(...(D ? [D.equipotenziale.nota, `Terminale PAE 5408036 sulla guaina a x = 2 × s = ${it(ca.zonaX, 2)} m dalla fine del cavo, collegato con rame ≥ 6 mm²; in quel tratto nessuna parte conduttrice entro s (distanziatore isCon DH 5408043).`,
       `Raggio minimo di curvatura ${D.raggioCurvatura.nero} mm; trazione massima ${ISCON_COMUNE.trazioneMax} N; temperatura di posa ${ISCON_COMUNE.temperaturaPosa}.`] : []),
       "Supporti lungo tutto il percorso al massimo ogni 1 m; impiegare solo componenti OBO provati con il conduttore isCon.",
-      "Palo o struttura collegati all'impianto di terra alla base; schermi dei cavi d'antenna collegati al PAE e all'ingresso del locale apparati; SPD di tipo 1 sulle linee che entrano.",
-      "Il modo di collegare il conduttore interno al palo al PAE senza interrompere il cavo va confermato con le istruzioni di montaggio OBO isCon."),
+      "Il conduttore isCon non si prolunga: un pezzo unico per calata, collegato solo con gli elementi di collegamento OBO della stessa variante; calate ad almeno 20 cm tra loro e il più possibile distanti.",
+      "Palo o struttura collegati all'impianto di terra alla base; schermi dei cavi d'antenna collegati al palo alla quota del collegamento e all'ingresso del locale apparati; SPD di tipo 1 sulle linee che entrano.",
+      "Prove: continuità aprendo il punto di separazione; con gli elementi ASE prova di isolamento a 500 V c.c. per almeno 3 s (oltre 500 MΩ = isolamento integro).",
+      "Riferimento: istruzioni di montaggio OBO isCon (241076.02, 12/2025)."),
     h1(ca.fattibile ? "9. Materiali" : "8. Materiali"),
     P.materiali.length ? tab(["Codice", "Descrizione", "Quantità"], P.materiali.map((m) => [m.codice || "—", m.descrizione, `${m.quantita} ${m.unita}`]), [2, 8, 2]) : p([dc("materiali")]),
     p("Quantità con 1 m di riserva per calata; codici da verificare con il listino OBO in vigore.", { dimensione: 9 }),

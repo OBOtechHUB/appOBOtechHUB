@@ -21,16 +21,14 @@ export function calcolaProgettoAntenne(d: DatiAntenne): ProgettoAntenne {
   const auto = d.calateAuto !== false;
   const apparatoBasso = d.quotaApparatoBasso ?? Math.max(0, d.sommita - 3);
   const datiCalate: DatiCalateAltezza = { lpl: d.lpl, ki: d.ki, quotaPunta: r0.asta, quotaBase: 0, quotaApparatoBasso: apparatoBasso, struttura: d.struttura ?? "metallica",
-    nCalate: auto ? null : Math.min(4, d.numeroCalate), versione: d.versione ?? null, materiale: "aria", distanzaImpianti: d.distanzaImpianti ?? 0.5, isconFinoATerra: d.isconFinoATerra !== false };
+    nCalate: auto ? null : Math.min(4, d.numeroCalate), versione: d.versione ?? null, materiale: "aria", distanzaImpianti: d.distanzaImpianti ?? 0.5, isconFinoATerra: false, calateDistanziate: d.calateDistanziate !== false };
   const ca = calateIsconAltezza(datiCalate);
   const lAuto = d.lAuto !== false && ca.fattibile;
   const lUsata = lAuto ? Math.round(ca.l * 100) / 100 : d.lunghezzaCalata;
   const r = lAuto ? calcolaAntenne({ ...d, lunghezzaCalata: lUsata }) : r0;
-  const correntePerConduttore = ca.fattibile ? CORRENTE_LPL[d.lpl] * ca.kc : null;
+  const correntePerConduttore = ca.fattibile ? CORRENTE_LPL[d.lpl] * (ca.n <= 1 ? 1 : ca.n === 2 ? 0.66 : 0.44) : null;
   const cat = (codice: string, descr: string): RigaMateriale["categoria"] => (codice === "5408058" ? "accessori" : /piastra|collegamento/i.test(descr) ? "morsetti" : /supporti/i.test(descr) ? "supporti" : "calate");
   const materiali: RigaMateriale[] = ca.materiali.map((m) => ({ codice: m.codice, descrizione: m.descrizione, quantita: m.quantita, unita: m.unita === "m" ? "m" : "pz", categoria: cat(m.codice, m.descrizione) }));
-  if (ca.fattibile && ca.quotaPAE != null && (d.struttura ?? "metallica") !== "isolante")
-    materiali.push({ codice: "", descrizione: `Collegamento del conduttore interno al palo al PAE (quota ${ca.quotaPAE.toLocaleString("it-IT", { maximumFractionDigits: 2 })} m): fascetta/morsetto per il palo, uno per calata`, quantita: ca.n, unita: "pz", categoria: "morsetti" });
   if (r.protette) materiali.unshift({ codice: "", descrizione: `Asta di captazione con la punta a ${r.asta.toLocaleString("it-IT", { maximumFractionDigits: 2 })} m (${(r.asta - d.sommita).toLocaleString("it-IT", { maximumFractionDigits: 2 })} m sopra le antenne), supporto isolato sul palo`, quantita: 1, unita: "pz", categoria: "captazione" });
   return { r, ca, datiCalate, apparatoBasso, lAuto, lUsata, correntePerConduttore, materiali };
 }
@@ -57,9 +55,9 @@ export function svgSchemaCalate(punta: number, sommita: number, apparatoBasso: n
     `<rect x="${xI - 18}" y="${y(pae + ca.zonaX)}" width="36" height="${Math.max(3, y(pae) - y(pae + ca.zonaX))}" fill="#f39b00" fill-opacity="0.2"/>`,
     `<line x1="40" x2="${W - 40}" y1="${y(pae)}" y2="${y(pae)}" stroke="#f39b00" stroke-width="2.5"/>`,
     `<rect x="${xI - 7}" y="${y(pae) - 7}" width="14" height="14" fill="#f39b00"/>`,
-    t(34, y(pae) - 8, `PAE ${f(pae)} m`, "#c47a00", true),
+    t(34, y(pae) - 8, `fine isCon ${f(pae)} m`, "#c47a00", true),
     t(34, (y(punta) + y(pae)) / 2 + 4, `l = ${f(ca.l)} m`),
-    t(34, bot - 14, `isCon ${finoATerra ? "continuo fino a terra" : "fino al PAE"} · ${ca.n} ${ca.n === 1 ? "calata" : "calate"}`),
+    t(34, bot - 14, `isCon dalla punta al collegamento sul palo · ${ca.n} ${ca.n === 1 ? "calata" : "calate"}`),
   );
   for (const l of ca.livelli.filter((x) => x.tipo === "intermedio")) parti.push(`<line x1="50" x2="${W - 50}" y1="${y(l.quota)}" y2="${y(l.quota)}" stroke="#2b7de9" stroke-width="1.5" stroke-dasharray="6 5"/>`, t(34, y(l.quota) - 5, `${f(l.quota)} m`, "#2b7de9"));
   return `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}">${parti.join("")}</svg>`;

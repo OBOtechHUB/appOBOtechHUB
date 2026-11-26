@@ -31,7 +31,7 @@ export function SchemaCalateAltezza({ punta, sommita, apparatoBasso, r, piano, f
     {pae != null && <>
       <line x1={30} x2={W - 30} y1={y(pae)} y2={y(pae)} stroke="#f39b00" strokeWidth={2} />
       <rect x={xIscon - 5} y={y(pae) - 5} width={10} height={10} fill="#f39b00" />
-      <text x={24} y={y(pae) - 6} fontSize={11} fontWeight={700} fill="#d98a00">PAE {f(pae)} m</text>
+      <text x={24} y={y(pae) - 6} fontSize={11} fontWeight={700} fill="#d98a00">fine isCon {f(pae)} m</text>
       <text x={24} y={(y(punta) + y(pae)) / 2} fontSize={10} fill="currentColor">l = {f(r.l)} m</text>
       {/* zona x senza parti conduttrici */}
       <rect x={xIscon - 14} y={y(pae + r.zonaX)} width={28} height={Math.max(2, y(pae) - y(pae + r.zonaX))} fill="#f39b00" opacity={0.18} />
