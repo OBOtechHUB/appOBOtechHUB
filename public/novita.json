@@ -2,6 +2,18 @@
   "nota": "Registro degli aggiornamenti di Progettazione LPS. Una voce per aggiornamento, la più recente per prima (app: lps). Viene mostrato nella barra \"Aggiorna app\", nel riquadro Novità e nella pagina Novità di OBO Hub. Le novità solo grafiche (animazioni, sigle, aspetto) non si mostrano: restano conservate in 'grafica_non_mostrata'.",
   "aggiornamenti": [
     {
+      "id": "2026-11-26-lps-65",
+      "data": "2026-11-26",
+      "app": "lps",
+      "titolo": "Edificio 3D: blocchi spostabili a mano",
+      "voci": [
+        "Con «Seleziona e sposta» si clicca un blocco (corpo dell'edificio) e lo si trascina nel 3D: si aggancia ogni 10 cm e ai lati degli altri blocchi",
+        "Pannello del blocco: spostamento preciso in X (est) e Y (nord) o con le frecce da 0,5 m",
+        "Con la spunta (di default) si spostano anche i blocchi appoggiati sulla copertura, le aste, i conduttori di captazione e le calate, i supporti e i dispersori al piede delle calate; i conduttori di terra restano dove sono",
+        "Ctrl+Z annulla lo spostamento"
+      ]
+    },
+    {
       "id": "2026-11-26-lps-64",
       "data": "2026-11-26",
       "app": "lps",
