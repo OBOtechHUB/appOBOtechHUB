@@ -81,7 +81,7 @@ export function calataDaPunto(corpi: Corpo[], p: Punto3, cat: CatalogoCaptazione
   }
   const sc = SUPPORTI_CALATA[parete] ?? SUPPORTI_CALATA["muratura"]!;
   out.conduttori.push({ id: uid(), tipo: "calata", punti: [testa, piede], ...base });
-  out.supporti.push(...supportiLungo([testa, [piede[0], piede[1], 0.5]], sc.passoMax, "supporto calata", sc.codice));
+  out.supporti.push(...supportiLungo([testa, [piede[0], piede[1], 0.5]], sc.passoMax ?? 1, "supporto calata", sc.codice));
   out.morsetti.push({ tipo: "connettore", x: testa[0], y: testa[1], z: testa[2], codiceOBO: cat.connettore.codice });
   if (conDispersore) out.picchetti.push({ id: uid(), x: piede[0], y: piede[1], z: 0, lunghezza: PICCHETTO_BP.lunghezza, diametro: PICCHETTO_BP.diametro, codiceOBO: PICCHETTO_BP.codice });
   return out;

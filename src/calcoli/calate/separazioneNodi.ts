@@ -123,9 +123,10 @@ export function separazioneNodi(x: { conduttori: Conduttore[]; aste: Asta[]; cor
   const m = inc.length, A = new Float64Array(m * m);
   for (const t of tratti) {
     const g = 1 / Math.max(t.l, 0.01), pa = pos[t.a]!, pb = pos[t.b]!;
-    if (pa >= 0) A[pa * m + pa] += g;
-    if (pb >= 0) A[pb * m + pb] += g;
-    if (pa >= 0 && pb >= 0) { A[pa * m + pb] -= g; A[pb * m + pa] -= g; }
+    const agg = (k: number, v: number) => { A[k] = (A[k] ?? 0) + v; };
+    if (pa >= 0) agg(pa * m + pa, g);
+    if (pb >= 0) agg(pb * m + pb, g);
+    if (pa >= 0 && pb >= 0) { agg(pa * m + pb, -g); agg(pb * m + pa, -g); }
   }
   const V = new Float64Array(n).fill(NaN);
   for (let i = 0; i < n; i++) if (terra[i] && conTerra[comp[i]!]) V[i] = 0;
