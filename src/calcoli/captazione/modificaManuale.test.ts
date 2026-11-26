@@ -35,7 +35,7 @@ describe("spostamento dei blocchi", () => {
   const B: Corpo = { id: "B", nome: "B", impronta: [[30, 0], [40, 0], [40, 10], [30, 10]], quotaBase: 0, altezzaGronda: 5, tipoTetto: "piano", altezzaColmo: 5 };
   const k = (id: string, tipo: "captazione" | "calata" | "terra", punti: [number, number, number][]) => ({ id, tipo, punti, materiale: "Al", sezione: "Ø 8 mm", codiceOBO: "" });
   const st = {
-    corpi: [A, B],
+    corpi: [A, B, { ...B, id: "U", nome: "UTA", impronta: [[5, 5], [8, 5], [8, 7], [5, 7]] as [number, number][], quotaBase: 8, altezzaGronda: 2, altezzaColmo: 2 }],
     aste: [{ id: "a1", x: 5, y: 5, z: 8, altezza: 2, diametro: 0.016, codiceOBO: "" }, { id: "a2", x: 35, y: 5, z: 5, altezza: 2, diametro: 0.016, codiceOBO: "" }],
     conduttori: [k("c1", "captazione", [[0, 0, 8], [20, 0, 8]]), k("c2", "calata", [[0, 0, 8], [0, 0, 0]]), k("t", "terra", [[0, 0, -0.5], [30, 0, -0.5]])],
     supporti: [{ x: 10, y: 0, z: 8 }, { x: 35, y: 0, z: 5 }, { x: 0, y: 0, z: 4 }], morsetti: [], compensatori: [],
@@ -45,6 +45,7 @@ describe("spostamento dei blocchi", () => {
     const r = spostaCorpo(st, "A", 2, 3);
     expect(r.corpi[0]!.impronta[0]).toEqual([2, 3]);
     expect(r.corpi[1]).toBe(B);
+    expect(r.corpi[2]!.impronta[0]).toEqual([7, 8]);
     expect(r.aste.map((a) => [a.x, a.y])).toEqual([[7, 8], [35, 5]]);
     expect(r.conduttori[0]!.punti[1]).toEqual([22, 3, 8]);
     expect(r.conduttori[1]!.punti[1]).toEqual([2, 3, 0]);

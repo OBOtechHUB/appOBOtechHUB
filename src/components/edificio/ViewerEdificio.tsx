@@ -14,13 +14,14 @@ import type {AstaCAD,ComponenteCAD,ConduttoreCAD,PicchettoCAD} from "@/calcoli/c
 import {coloreMateriale,corpiInCopertura,etichettaCorpo,giornoDellAnno,posizioneSole,vistaCamera,type Limiti3D,type VistaPredefinita} from "@/calcoli/edificio/vista3d";
 import {Asta3D,Componenti3D,ConduttoriTubi,ControlloCamera,CorpoMesh,Fotografo,Luci,Picchetto3D,ScalaGrafica,Terreno,type Componente3D,type RichiestaCamera,type StileScena} from "./Scena3D";
 import {agganciaSpostamento} from "@/calcoli/captazione/modificaManuale";
+import {puntoInPoligono} from "@/calcoli/captazione/sferaRotolante";
 import {salvaVista3D,togliDallaRelazione,visteRelazione,type Vista3D} from "@/lib/viste3d";
 export type InviluppoGriglia={x0:number;y0:number;passo:number;nx:number;ny:number;z:number[][]};
 export type PropostaViewer={conduttori:ConduttoreCAD[];aste:AstaCAD[];supporti:ComponenteCAD[];morsetti:ComponenteCAD[];compensatori?:ComponenteCAD[]};
 export type SelezioneViewer={tipo:"asta"|"conduttore"|"picchetto"|"corpo";id:string}|null;
 export type TrattoColorato={a:Punto3;b:Punto3;colore:string};
 export type EtichettaViewer={p:Punto3;testo:string;colore:string};
-type Props={onSpostaCorpo?:(id:string,dx:number,dy:number)=>void;selezione?:SelezioneViewer;onSeleziona?:(s:SelezioneViewer)=>void;onTrascina?:(id:string,p:Punto3)=>void;spostabile?:boolean;trattiColorati?:TrattoColorato[];etichette?:EtichettaViewer[];particolari?:MarcatoreParticolare[];onParticolare?:(id:string)=>void;picchetti?:PicchettoCAD[];propostaTerra?:PropostaTerra|null;modello:ModelloEdificio;aste:Asta[];conduttori:Conduttore[];alto:boolean;misura:boolean;onPunto:(p:Punto3)=>void;risultato?:RisultatoSfera|undefined;combinata?:RisultatoCombinato|undefined;maglia?:RisultatoMaglia|null|undefined;mostraMaglie?:boolean;magliaEvidenziata?:number|null;inviluppo?:InviluppoGriglia|undefined;mostraInviluppo:boolean;anima:boolean;centriSfera:Punto3[];posizioneSfera:number;suggerite:Asta[];proposta?:PropostaViewer|null|undefined;
+type Props={onSpostaCorpo?:(id:string,dx:number,dy:number)=>void;spostaConImpianto?:boolean;selezione?:SelezioneViewer;onSeleziona?:(s:SelezioneViewer)=>void;onTrascina?:(id:string,p:Punto3)=>void;spostabile?:boolean;trattiColorati?:TrattoColorato[];etichette?:EtichettaViewer[];particolari?:MarcatoreParticolare[];onParticolare?:(id:string)=>void;picchetti?:PicchettoCAD[];propostaTerra?:PropostaTerra|null;modello:ModelloEdificio;aste:Asta[];conduttori:Conduttore[];alto:boolean;misura:boolean;onPunto:(p:Punto3)=>void;risultato?:RisultatoSfera|undefined;combinata?:RisultatoCombinato|undefined;maglia?:RisultatoMaglia|null|undefined;mostraMaglie?:boolean;magliaEvidenziata?:number|null;inviluppo?:InviluppoGriglia|undefined;mostraInviluppo:boolean;anima:boolean;centriSfera:Punto3[];posizioneSfera:number;suggerite:Asta[];proposta?:PropostaViewer|null|undefined;
   /** supporti e morsetti del progetto, disegnati a grandezza reale */
   supporti?:Componente3D[]|undefined;morsetti?:Componente3D[]|undefined;
   /** vista ridotta (confronto dei livelli): niente ombre, comandi e cubo */
@@ -119,7 +120,8 @@ export default function ViewerEdificio(props:Props){
   useEffect(()=>{setC(colors());if(!semplice)setPrefStato(leggiPref());const o=new MutationObserver(()=>setC(colors()));o.observe(document.documentElement,{attributes:true,attributeFilter:["class","data-theme","style"]});return ()=>o.disconnect();},[semplice]);
   const setPref=(p:Partial<PrefVista>)=>setPrefStato((v)=>{const n={...v,...p};try{localStorage.setItem(CHIAVE_PREF,JSON.stringify(n));}catch{/* senza memoria del browser */}return n;});
   const lim=limitiModello(props.modello);const b:Limiti3D=useMemo(()=>({minX:Number.isFinite(lim.minX)?lim.minX:0,maxX:Number.isFinite(lim.maxX)?lim.maxX:20,minY:Number.isFinite(lim.minY)?lim.minY:0,maxY:Number.isFinite(lim.maxY)?lim.maxY:20,H:Number.isFinite(lim.H)?Math.max(lim.H,1):10}),[lim.minX,lim.maxX,lim.minY,lim.maxY,lim.H]);
-  const chiaveLimiti=[b.minX,b.maxX,b.minY,b.maxY,b.H].map((v)=>Math.round(v)).join("|");
+  // nuova inquadratura solo quando cambiano i blocchi (importazione, nuovo corpo), non quando si spostano o si modificano
+  const chiaveLimiti=props.modello.corpi.map((k)=>k.id).join("|");
   const vai=useCallback((v:VistaPredefinita,subito=false)=>{const x=vistaCamera(b,v);setRichiesta({n:++nRich.current,posizione:x.posizione,obiettivo:x.obiettivo,subito});},[b]);
   // inquadratura iniziale e quando cambiano molto le dimensioni dell'edificio (non a ogni modifica)
   useEffect(()=>{vai(props.alto?"pianta":"assonometria",nRich.current===0);},[chiaveLimiti]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -133,6 +135,11 @@ export default function ViewerEdificio(props:Props){
   const caricaViste=useCallback(async()=>{if(!props.chiaveViste)return;const l=await visteRelazione(props.chiaveViste);setViste((prima)=>{prima.forEach((v)=>URL.revokeObjectURL(v.url));return l.map((v)=>({...v,url:URL.createObjectURL(v.immagine)}));});},[props.chiaveViste]);
   useEffect(()=>{if(!semplice)void caricaViste();},[caricaViste,semplice]);
   if(!c)return <div className="viewer-canvas bg-secondary"/>;
+  // durante il trascinamento di un blocco si muovono con lui (a vista) i blocchi appoggiati e le aste sulla copertura
+  const trascinato=deltaCorpo?props.modello.corpi.find((k)=>k.id===deltaCorpo.id):undefined;const zT=trascinato?(trascinato.quotaBase??0)+trascinato.altezzaGronda:0;
+  const dentro=(x:number,y:number)=>!!trascinato&&puntoInPoligono(x,y,trascinato.impronta);
+  const insieme=new Set(trascinato?props.modello.corpi.filter((k)=>k.id!==trascinato.id&&(k.quotaBase??0)>=zT-.5&&dentro(etichettaCorpo(k).p[0],etichettaCorpo(k).p[1])).map((k)=>k.id):[]);
+  const asteInsieme=new Set(trascinato?props.aste.filter((a)=>a.z>=zT-.5&&dentro(a.x,a.y)).map((a)=>a.id):[]);
   function sposta(e:ThreeEvent<PointerEvent>){const pr=presa.current;if(pr){e.stopPropagation();const v=new THREE.Vector3();if(!e.ray.intersectPlane(pr.piano,v))return;const k=props.modello.corpi.find((x)=>x.id===pr.id);if(!k)return;setDeltaCorpo({id:pr.id,d:agganciaSpostamento(k,props.modello.corpi,v.x-pr.p0.x,-(v.z-pr.p0.z))});return;}
     if(!trascina||!props.onTrascina)return;e.stopPropagation();props.onTrascina(trascina,[e.point.x,-e.point.z,e.point.y]);}
   const fine=()=>{if(trascina)setTrascina(null);const pr=presa.current;if(pr){presa.current=null;const d=deltaCorpo?.id===pr.id?deltaCorpo.d:null;setDeltaCorpo(null);if(d&&(d[0]||d[1]))props.onSpostaCorpo?.(pr.id,d[0],d[1]);}};
@@ -166,10 +173,10 @@ export default function ViewerEdificio(props:Props){
       {!semplice&&<Fotografo scatta={scatta} c={c}/>}
       <Terreno b={b} modo={semplice?"griglia":pref.terreno==="satellite"&&!origine?"griglia":pref.terreno} c={c} s={stile} origine={origine} onStato={onStato} onClick={click} onMove={sposta} onDoppio={doppio}/>
       <Bvh firstHitOnly>
-      {props.modello.corpi.map((body)=>{const off=deltaCorpo?.id===body.id?deltaCorpo.d:null;return <group key={body.id} position={off?[off[0],0,-off[1]]:[0,0,0]}><CorpoMesh corpo={body} impianto={impianti.has(body.id)} c={c} s={stile} selezionato={selez("corpo",body.id)} onClick={clicCorpo(body.id)} onMove={sposta} onDoppio={doppio} onGiu={presaCorpo(body.id)}/></group>;})}
+      {props.modello.corpi.map((body)=>{const off=deltaCorpo&&(deltaCorpo.id===body.id||(props.spostaConImpianto!==false&&insieme.has(body.id)))?deltaCorpo.d:null;return <group key={body.id} position={off?[off[0],0,-off[1]]:[0,0,0]}><CorpoMesh corpo={body} impianto={impianti.has(body.id)} c={c} s={stile} selezionato={selez("corpo",body.id)} onClick={clicCorpo(body.id)} onMove={sposta} onDoppio={doppio} onGiu={presaCorpo(body.id)}/></group>;})}
       </Bvh>
-      {props.aste.map((x)=><Line key={`l-${x.id}`} points={[[x.x,x.z,-x.y],[x.x,x.z+x.altezza,-x.y]]} color={selez("asta",x.id)?c.accent:pref.evidenzia||semplice?c.metal:"#aeb5bb"} lineWidth={selez("asta",x.id)?5:3}/>)}
-      {props.aste.map((x)=>{const on=selez("asta",x.id);return <Asta3D key={x.id} a={x} on={on} evidenzia={pref.evidenzia} c={c} ombra={ombre} onClick={sel("asta",x.id)} onPointerDown={(e)=>{if(on&&props.spostabile&&props.onTrascina){e.stopPropagation();setTrascina(x.id);}}}/>;})}
+      {props.aste.map((x0)=>{const o=deltaCorpo&&props.spostaConImpianto!==false&&asteInsieme.has(x0.id)?deltaCorpo.d:[0,0];const x={...x0,x:x0.x+o[0],y:x0.y+o[1]};return <Line key={`l-${x.id}`} points={[[x.x,x.z,-x.y],[x.x,x.z+x.altezza,-x.y]]} color={selez("asta",x.id)?c.accent:pref.evidenzia||semplice?c.metal:"#aeb5bb"} lineWidth={selez("asta",x.id)?5:3}/>;})}
+      {props.aste.map((x)=>{const on=selez("asta",x.id);const off=deltaCorpo&&props.spostaConImpianto!==false&&asteInsieme.has(x.id)?deltaCorpo.d:null;return <Asta3D key={x.id} a={off?{...x,x:x.x+off[0],y:x.y+off[1]}:x} on={on} evidenzia={pref.evidenzia} c={c} ombra={ombre} onClick={sel("asta",x.id)} onPointerDown={(e)=>{if(on&&props.spostabile&&props.onTrascina){e.stopPropagation();setTrascina(x.id);}}}/>;})}
       {props.suggerite.map((x)=><mesh key={x.id} position={[x.x,x.z+x.altezza/2,-x.y]}><cylinderGeometry args={[Math.max(.08,x.diametro/2),Math.max(.08,x.diametro/2),x.altezza,8]}/><meshStandardMaterial color={c.accent} transparent opacity={.7}/></mesh>)}
       <ConduttoriTubi conduttori={props.conduttori} c={c} ombra={ombre} evidenzia={pref.evidenzia&&!semplice}/>
       {props.conduttori.map((line)=>{const on=selez("conduttore",line.id);return <Line key={line.id} onClick={sel("conduttore",line.id)} points={line.punti.map((p)=>[p[0],p[2]+.01,-p[1]] as [number,number,number])} color={on?c.accent:line.tipo==="terra"?c.terra:pref.evidenzia||semplice?c.metal:coloreMateriale(line.materiale,line.tipo)} depthTest={line.tipo!=="terra"} renderOrder={line.tipo==="terra"?2:0} lineWidth={on?6:2}/>;})}

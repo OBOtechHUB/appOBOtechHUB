@@ -172,11 +172,11 @@ export function spostaCorpo<S extends PuntoZ, P extends PuntoZ>(st: StatoSpostam
   const c = st.corpi.find((k) => k.id === id);
   if (!c || (!dx && !dy)) return st;
   const zTetto = (c.quotaBase ?? 0) + c.altezzaGronda;
-  const corpo: Corpo = {
-    ...c, impronta: c.impronta.map((p) => [p[0] + dx, p[1] + dy] as Punto2),
-    ...(c.mesh ? { mesh: { ...c.mesh, posizioni: c.mesh.posizioni.map((v, i) => (i % 3 === 0 ? v + dx : i % 3 === 1 ? v + dy : v)) } } : {}),
-  };
-  const corpi = st.corpi.map((k) => (k.id === id ? corpo : k));
+  const trasla = (k: Corpo): Corpo => ({ ...k, impronta: k.impronta.map((p) => [p[0] + dx, p[1] + dy] as Punto2), ...(k.mesh ? { mesh: { ...k.mesh, posizioni: k.mesh.posizioni.map((v, i) => (i % 3 === 0 ? v + dx : i % 3 === 1 ? v + dy : v)) } } : {}) });
+  // blocchi appoggiati sulla copertura (impianti, lucernari): seguono il blocco se si sposta l'impianto
+  const centro = (k: Corpo) => { let x = 0, y = 0; for (const p of k.impronta) { x += p[0]; y += p[1]; } return [x / k.impronta.length, y / k.impronta.length] as Punto2; };
+  const appoggiati = new Set(conImpianto ? st.corpi.filter((k) => k.id !== id && (k.quotaBase ?? 0) >= zTetto - 0.5 && puntoInPoligono(centro(k)[0], centro(k)[1], c.impronta)).map((k) => k.id) : []);
+  const corpi = st.corpi.map((k) => (k.id === id ? trasla(k) : appoggiati.has(k.id) ? trasla(k) : k));
   if (!conImpianto) return { ...st, corpi };
   const sopra = (p: PuntoZ) => p.z >= zTetto - 0.5 && sulCorpo(c, p.x, p.y);
   const muovi = <T extends PuntoZ>(p: T): T => (sopra(p) ? { ...p, x: p.x + dx, y: p.y + dy } : p);
