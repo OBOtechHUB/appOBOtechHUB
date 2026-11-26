@@ -2,6 +2,17 @@
   "nota": "Registro degli aggiornamenti di Progettazione LPS. Una voce per aggiornamento, la più recente per prima (app: lps). Viene mostrato nella barra \"Aggiorna app\", nel riquadro Novità e nella pagina Novità di OBO Hub. Le novità solo grafiche (animazioni, sigle, aspetto) non si mostrano: restano conservate in 'grafica_non_mostrata'.",
   "aggiornamenti": [
     {
+      "id": "2026-11-26-lps-71",
+      "data": "2026-11-26",
+      "app": "lps",
+      "titolo": "Antenne: particolare dell'asta con il set di supporti isCon HM",
+      "voci": [
+        "Nuovo riquadro «Particolare dell'asta»: disegno con piastra di contatto, supporti delle calate al massimo ogni 1 m, fascetta MBS 100 A2 almeno 20 cm sotto l'ultimo supporto e fascetta di terra 927 2 6-K alla muffa di collegamento",
+        "Scelta automatica dell'asta standard (4, 6, 8 o 10 m), del set isCon HM SET 5408090 e del set di estensione HM ERW 5408094 per aste oltre 6 m; una fascetta di terra ogni 2 calate",
+        "Materiali aggiunti in pagina, nel computo e nella relazione Word (con il disegno e le note di montaggio); con il set la piastra di contatto è compresa, quindi non si contano più le piastre AP1/AP2"
+      ]
+    },
+    {
       "id": "2026-11-26-lps-70",
       "data": "2026-11-26",
       "app": "lps",
