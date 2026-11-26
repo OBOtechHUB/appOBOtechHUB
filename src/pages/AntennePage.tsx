@@ -18,9 +18,9 @@ import { scarica } from "@/lib/esportazioni";
 import { bloccoImmagine } from "@/calcoli/relazione/relazioneTecnica";
 import { logoObo, svgPng } from "@/components/progetto/RelazioneTecnica";
 import { useState } from "react";
-import { ACCESSORI_ISCON, ISCON, ORDINE_ISCON, verificaIscon, type VersioneIscon } from "@/calcoli/calate/iscon";
+import { ACCESSORI_ISCON, ISCON, VERSIONI_PROPOSTE, verificaIscon, versioniScelta, type VersioneIscon } from "@/calcoli/calate/iscon";
 import type { Livello } from "@/calcoli/calate/separazione";
-import { calateIsconAltezza, NOMI_STRUTTURA, type StrutturaSostegno } from "@/calcoli/calate/isconAltezza";
+import { NOMI_STRUTTURA, confrontoCalate, cosaMigliora, type StrutturaSostegno } from "@/calcoli/calate/isconAltezza";
 import { SchemaCalateAltezza } from "@/components/antenne/SchemaCalateAltezza";
 
 const f = (v: number, c = 2) => (Number.isFinite(v) ? v.toLocaleString("it-IT", { minimumFractionDigits: c, maximumFractionDigits: c }) : "—");
@@ -34,6 +34,7 @@ export function AntennePage() {
     <Campo etichetta={etichetta}><CampoNumero className={inputCls} valore={d[k] as number} min={min} onValore={(v) => { if (v != null) set({ [k]: v } as Partial<DatiAntenne>); }} /></Campo>;
   const auto = d.calateAuto !== false;
   const P = calcolaProgettoAntenne(d), { r, ca, apparatoBasso, lAuto, lUsata } = P;
+  const confronto = confrontoCalate(P.datiCalate);
   const sol = r.soluzione.scelta;
   const [msgRel, setMsgRel] = useState("");
   async function relazioneWord() {
@@ -79,7 +80,7 @@ export function AntennePage() {
         <div className="mt-4 grid gap-4 sm:grid-cols-4">
           <Campo etichetta={`l: dalla punta al PAE (m; vuoto = ${lAuto ? "calcolata, " + f(lUsata, 2) : "dal calcolo della sezione 3"})`}><CampoNumero className={inputCls} valore={d.lAuto !== false ? null : d.lunghezzaCalata} placeholder={f(lUsata, 2)} onValore={(v) => set(v == null ? { lAuto: true } : { lAuto: false, lunghezzaCalata: v })} /></Campo>
           <Campo etichetta="Calate isolate"><select className={inputCls} value={auto ? "auto" : String(Math.min(4, d.numeroCalate))} onChange={(e) => set(e.target.value === "auto" ? { calateAuto: true } : { calateAuto: false, numeroCalate: Number(e.target.value) })}><option value="auto">Automatico (fino a 4)</option>{[1, 2, 3, 4].map((n) => <option key={n} value={n}>{n}</option>)}</select></Campo>
-          <Campo etichetta="Versione isCon"><select className={inputCls} value={d.versione ?? ""} onChange={(e) => set({ versione: (e.target.value || null) as VersioneIscon | null })}><option value="">La più semplice che basta</option>{ORDINE_ISCON.map((v) => <option key={v} value={v}>{ISCON[v].nome}</option>)}</select></Campo>
+          <Campo etichetta="Versione isCon"><select className={inputCls} value={d.versione ?? ""} onChange={(e) => set({ versione: (e.target.value || null) as VersioneIscon | null })}><option value="">La più semplice che basta</option>{versioniScelta(d.versione).map((v) => <option key={v} value={v}>{ISCON[v].nome}</option>)}</select></Campo>
           <Campo etichetta={`ki (LPL ${d.lpl}; vuoto = da norma)`}><CampoNumero className={inputCls} valore={d.ki} placeholder={f(r.ki, 2)} max={1} onValore={(v) => set({ ki: v && v > 0 ? v : null })} /></Campo>
           {num("distanzaReale", "Distanza reale asta nuda–antenne (m)")}
         </div>
@@ -102,7 +103,7 @@ export function AntennePage() {
         </table></div>
         <div className="mt-4 overflow-x-auto"><table className="w-full min-w-[560px] text-sm">
           <thead><tr className="border-b text-left"><th className="p-2">Conduttore isolato</th><th className="p-2">Codici</th><th className="p-2 text-right">s equivalente in aria</th><th className="p-2">Esito con s = {f(r.s, 3)} m</th></tr></thead>
-          <tbody>{ORDINE_ISCON.map((v) => { const e = verificaIscon(v, r.s); return <tr key={v} className={`border-b ${r.isconConsigliato === v ? "bg-primary/10 font-medium" : ""}`}>
+          <tbody>{VERSIONI_PROPOSTE.map((v) => { const e = verificaIscon(v, r.s); return <tr key={v} className={`border-b ${r.isconConsigliato === v ? "bg-primary/10 font-medium" : ""}`}>
             <td className="p-2">{ISCON[v].nome} ({ISCON[v].sigla}){r.isconConsigliato === v ? " · consigliato" : ""}</td>
             <td className="p-2 font-mono text-xs">{ISCON[v].codici.map((c) => `${c.codice} ${c.colore}`).join(", ")}</td>
             <td className="p-2 text-right font-mono">{f(e.sEq)} m</td>
@@ -123,6 +124,29 @@ export function AntennePage() {
             </>}
           <label className="flex items-center gap-2 self-end pb-2 text-sm"><input type="checkbox" checked={d.isconFinoATerra !== false} onChange={(e) => set({ isconFinoATerra: e.target.checked })} />isCon continuo dalla punta fino a terra (senza tagli)</label>
         </div>
+        <div className="mt-4 rounded-lg border bg-card p-3">
+          <div className="flex flex-wrap items-center gap-1.5" role="group" aria-label="Numero di calate">
+            <span className="mr-1 text-sm font-semibold">Calate in parallelo:</span>
+            {(["auto", 1, 2, 3, 4] as const).map((k) => { const on = k === "auto" ? auto : !auto && Math.min(4, d.numeroCalate) === k; return <Button key={k} size="sm" variant={on ? "default" : "outline"} aria-pressed={on} onClick={() => set(k === "auto" ? { calateAuto: true } : { calateAuto: false, numeroCalate: k })}>{k === "auto" ? "Automatico" : k}</Button>; })}
+          </div>
+          <div className="mt-2 flex flex-wrap items-center gap-1.5" role="group" aria-label="Versione isCon">
+            <span className="mr-1 text-sm font-semibold">Versione isCon:</span>
+            {([null, ...VERSIONI_PROPOSTE] as (VersioneIscon | null)[]).map((v) => { const on = (d.versione ?? null) === v; return <Button key={v ?? "auto"} size="sm" variant={on ? "default" : "outline"} aria-pressed={on} onClick={() => set({ versione: v })}>{v ? ISCON[v].nome.replace("isCon ", "") : "La più semplice"}</Button>; })}
+          </div>
+          {ca.fattibile && ca.versione && <p className="mt-2 text-sm"><strong>Cosa cambia:</strong> {cosaMigliora(ca.n, ca.versione, ca.ki, d.lpl)}</p>}
+          <div className="mt-3 overflow-x-auto"><table className="w-full min-w-[640px] text-xs sm:text-sm">
+            <thead><tr className="border-b text-left"><th className="p-2">Calate</th>{VERSIONI_PROPOSTE.map((v) => <th key={v} className="p-2">{ISCON[v].nome.replace("isCon ", "")} (se {f(ISCON[v].sAria)} m)</th>)}</tr></thead>
+            <tbody>{[1, 2, 3, 4].map((n) => <tr key={n} className="border-b align-top">
+              <td className="p-2 font-semibold">{n}<span className="block text-[11px] font-normal text-muted-foreground">kc {f(n <= 1 ? 1 : n === 2 ? 0.66 : 0.44, 2)}</span></td>
+              {VERSIONI_PROPOSTE.map((v) => { const c = confronto.find((x) => x.n === n && x.versione === v)!; const scelta = ca.fattibile && ca.n === n && ca.versione === v;
+                return <td key={v} className="p-1"><button type="button" onClick={() => set({ calateAuto: false, numeroCalate: n, versione: v })} className={`w-full rounded-md border p-2 text-left ${scelta ? "border-primary bg-primary/10" : c.fattibile ? "hover:border-primary" : "opacity-70"}`}>
+                  {c.fattibile ? <><span className="font-semibold text-[#1d7a45]">basta</span> · PAE {f(c.quotaPAE ?? NaN, 1)} m<br />l {f(c.l, 1)} / max {f(c.lMax, 1)} m · s {f(c.s, 3)} m<br />{c.metriIscon} m isCon · {c.collegamenti} {c.collegamenti === 1 ? "collegamento" : "collegamenti"} · {f(c.correntePerCalata, 0)} kA/calata</>
+                    : <><span className="font-semibold text-[#b3261e]">non basta</span><br />l max {f(c.lMax, 1)} m</>}
+                </button></td>; })}
+            </tr>)}</tbody>
+          </table></div>
+          <p className="mt-1 text-xs text-muted-foreground">Tocca una casella per sceglierla. Con 3 o 4 calate il kc della norma è lo stesso (0,44): la 4ª calata non allunga la l massima.</p>
+        </div>
         <div className="mt-4 grid gap-4 md:grid-cols-[280px_1fr]">
           <SchemaCalateAltezza punta={r.asta} sommita={d.sommita} apparatoBasso={apparatoBasso} r={ca} piano={d.tipo === "tetto" ? "tetto" : "terreno"} finoATerra={d.isconFinoATerra !== false} />
           <div>
@@ -130,6 +154,7 @@ export function AntennePage() {
               {ca.fattibile && ca.versione && ca.quotaPAE != null ? <>
                 <p className="text-lg font-semibold">{ca.n} {ca.n === 1 ? "calata isolata" : "calate isolate"} {ISCON[ca.versione].nome} dalla punta ({f(r.asta, 1)} m) al PAE a {f(ca.quotaPAE, 2)} m</p>
                 <p className="mt-1 text-sm">l = {f(ca.l, 2)} m ≤ l massima {f(ca.lMax, 1)} m · s = {f(ca.ki, 2)} · {f(ca.kc, 2)} · {f(ca.l, 1)} = <strong>{f(ca.s, 3)} m</strong> ≤ {f(ISCON[ca.versione].sAria)} m · zona x {f(ca.zonaX)} m{ca.passoIntermedi ? ` · livelli intermedi ogni ${f(ca.passoIntermedi, 1)} m al massimo` : ""}</p>
+                <p className="mt-1 text-sm"><strong>Collegamenti equipotenziali (PAE): {ca.collegamentiTotali}</strong> – {ca.collegamentiPAE} al PAE a {f(ca.quotaPAE, 2)} m (uno per calata){ca.livelliIntermedi ? ` + ${ca.livelliIntermedi} ${ca.livelliIntermedi === 1 ? "livello intermedio" : "livelli intermedi"} × ${ca.n}` : ""}, poi il collegamento a terra alla base.</p>
                 {!lAuto && Math.abs(ca.l - d.lunghezzaCalata) > 0.05 && <Button size="sm" variant="outline" className="mt-2" onClick={() => set({ lAuto: true })}>Usa l = {f(ca.l, 2)} m nella verifica della sezione 2</Button>}
               </> : <p className="text-lg font-semibold">Non si può isolare tutto con l'isCon</p>}
               {ca.avvisi.map((a, i) => <p key={i} className="mt-1 text-sm">{a}</p>)}

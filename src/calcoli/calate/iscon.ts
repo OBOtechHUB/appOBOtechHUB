@@ -50,6 +50,10 @@ export const ISCON_COMUNE = { sezione: 35, trazioneMax: 1750, temperaturaEserciz
 /** Pro+ 75 GR (grigio): protezione dalle tensioni di contatto (100 kV 1,2/50 µs sotto pioggia, CEI EN IEC 62305-3): al massimo 5 m, guaina collegata al supporto metallico isCon H VA dopo 0,5 m dal collegamento superiore. */
 export const ISCON_GR_CONTATTO = { lunghezzaMax: 5, collegamentoGuaina: 0.5 };
 export const ORDINE_ISCON: VersioneIscon[] = ["basic", "pro", "proplus", "premium"];
+/** Versioni proposte nelle scelte e nelle tabelle (Marco, 26/11/2026: la Pro 75 normale non si propone più; i dati restano per i progetti che la usano). */
+export const VERSIONI_PROPOSTE: VersioneIscon[] = ["basic", "proplus", "premium"];
+/** Opzioni di scelta: le proposte più quella già scelta nel progetto, se è una versione non più proposta. */
+export const versioniScelta = (attuale?: VersioneIscon | null): VersioneIscon[] => (attuale && !VERSIONI_PROPOSTE.includes(attuale) ? [...VERSIONI_PROPOSTE, attuale] : VERSIONI_PROPOSTE);
 /** Accessori del sistema presenti nel catalogo OBO dell'app. */
 export const ACCESSORI_ISCON = [
   { codice: "5408090", descrizione: "isCon HM SET: set di supporti per fissare fino a 4 conduttori isCon al palo di captazione (pali 4/6/8/10 m)" },
@@ -93,7 +97,7 @@ export function scegliIscon(e: EsigenzeIscon): { versione: VersioneIscon; colore
     return { versione: "proplus", colore: gr ? "grigio chiaro" : "nero", codice: gr ? "5407995" : "5408002", motivo: motivi };
   }
   if (e.sAria <= 0.45 + 1e-9) return { versione: "basic", colore: "nero", codice: "5408014", motivo: "s in aria fino a 0,45 m" };
-  return { versione: "pro", colore: "nero", codice: "5408008", motivo: "s in aria fino a 0,75 m" };
+  return { versione: "proplus", colore: "nero", codice: "5408002", motivo: "s in aria fino a 0,75 m" };
 }
 /** Lunghezza massima l del conduttore (m) dal punto più alto al collegamento equipotenziale con quella versione
  * (come la tabella OBO: es. LPL II, 1 calata, Pro 75 → 12,50 m; 2 calate → 18,94 m; ≥ 3 → 28,41 m). */

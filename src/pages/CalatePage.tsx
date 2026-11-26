@@ -10,7 +10,7 @@ import {
   KI, KM, NOMI_MATERIALE, distanzaSeparazione, kcDettagliato, kcDettagliatoNelCampo, kcSemplificato, numeroCalate, passoCalate, perimetro, verificaPunti,
   type Livello, type Materiale,
 } from "@/calcoli/calate/separazione";
-import { ACCESSORI_ISCON, ISCON, ISCON_COMUNE, ISCON_GR_CONTATTO, ORDINE_ISCON, ammessaPerCorrente, lunghezzaMassima, scegliIscon, verificaIscon, versioneMinima, type VersioneIscon } from "@/calcoli/calate/iscon";
+import { ACCESSORI_ISCON, ISCON, ISCON_COMUNE, ISCON_GR_CONTATTO, VERSIONI_PROPOSTE, versioniScelta, ammessaPerCorrente, lunghezzaMassima, scegliIscon, verificaIscon, versioneMinima, type VersioneIscon } from "@/calcoli/calate/iscon";
 
 const f = (v: number, c = 2) => (Number.isFinite(v) ? v.toLocaleString("it-IT", { minimumFractionDigits: c, maximumFractionDigits: c }) : "—");
 const lunghezza = (p: [number, number, number][]) => p.slice(1).reduce((t, q, i) => { const a = p[i]!; return t + Math.hypot(q[0] - a[0], q[1] - a[1], q[2] - a[2]); }, 0);
@@ -119,7 +119,7 @@ export function CalatePage() {
           const setIc = (p: Partial<typeof ic>) => aggiorna({ iscon: { ...ic, ...p } });
           return <>
             <div className="mt-4 grid gap-4 sm:grid-cols-3">
-              <Campo etichetta="Versione isCon"><select className={inputCls} value={ic.versione} onChange={(e) => setIc({ versione: e.target.value as VersioneIscon })}>{ORDINE_ISCON.map((v) => <option key={v} value={v}>{ISCON[v].nome} ({ISCON[v].sigla})</option>)}</select></Campo>
+              <Campo etichetta="Versione isCon"><select className={inputCls} value={ic.versione} onChange={(e) => setIc({ versione: e.target.value as VersioneIscon })}>{versioniScelta(ic.versione).map((v) => <option key={v} value={v}>{ISCON[v].nome} ({ISCON[v].sigla})</option>)}</select></Campo>
               <Campo etichetta="Posa del conduttore"><select className={inputCls} value={ic.materiale} onChange={(e) => setIc({ materiale: e.target.value as "aria" | "solido" })}><option value="aria">In aria</option><option value="solido">Su / in materiale solido</option></select></Campo>
               <Campo etichetta={`l fino al collegamento equipotenziale (m, vuoto = h ${f(altezza, 1)})`}><input className={inputCls} type="number" min={0} step={0.5} value={ic.l ?? ""} placeholder={f(altezza, 1)} onChange={(e) => setIc({ l: e.target.value === "" ? null : Number(e.target.value) })} /></Campo>
             </div>
@@ -141,7 +141,7 @@ export function CalatePage() {
               <p className="sm:col-span-2 text-muted-foreground">Fissaggio al palo: {ACCESSORI_ISCON.filter((a) => a.codice === "5408090" || a.codice === "5408094").map((a) => `${a.codice} ${a.descrizione}`).join("; ")}. Supporti ogni 1 m al massimo; fascetta MBS 100 almeno 20 cm sotto il supporto più basso; al massimo 2 conduttori per fascetta di messa a terra. Usare solo componenti OBO provati con isCon (IEC TS 62561-8, Allegato F). Comune a tutte: conduttore {ISCON_COMUNE.sezione} mm², trazione max {ISCON_COMUNE.trazioneMax} N, posa {ISCON_COMUNE.temperaturaPosa}.</p>
             </div>
             <div className="mt-3 overflow-x-auto"><table className="w-full min-w-[520px] text-sm"><thead><tr className="border-b text-left"><th className="p-2">Versione</th><th className="p-2">Codici</th><th className="p-2 text-right">s equivalente ({ic.materiale === "aria" ? "aria" : "solido"})</th><th className="p-2">Esito</th></tr></thead>
-              <tbody>{ORDINE_ISCON.map((v) => { const e = verificaIscon(v, sRic, ic.materiale); return <tr key={v} className="border-b"><td className="p-2">{ISCON[v].nome} ({ISCON[v].sigla})</td><td className="p-2 font-mono text-xs">{ISCON[v].codici.map((c) => c.codice).join(", ")}</td><td className="p-2 text-right font-mono">{f(e.sEq, 2)} m</td><td className="p-2">{(() => { const ok = e.conforme && ammessaPerCorrente(v, lpl, nIso); return <span className={`rounded-full px-3 py-0.5 text-xs font-semibold ${ok ? "bg-[#e3f4ea] text-[#1d7a45]" : "bg-[#fdecea] text-[#b3261e]"}`}>{ok ? "sufficiente" : e.conforme ? "serve H2 (200 kA)" : "non sufficiente"}</span>; })()}</td></tr>; })}</tbody></table></div>
+              <tbody>{VERSIONI_PROPOSTE.map((v) => { const e = verificaIscon(v, sRic, ic.materiale); return <tr key={v} className="border-b"><td className="p-2">{ISCON[v].nome} ({ISCON[v].sigla})</td><td className="p-2 font-mono text-xs">{ISCON[v].codici.map((c) => c.codice).join(", ")}</td><td className="p-2 text-right font-mono">{f(e.sEq, 2)} m</td><td className="p-2">{(() => { const ok = e.conforme && ammessaPerCorrente(v, lpl, nIso); return <span className={`rounded-full px-3 py-0.5 text-xs font-semibold ${ok ? "bg-[#e3f4ea] text-[#1d7a45]" : "bg-[#fdecea] text-[#b3261e]"}`}>{ok ? "sufficiente" : e.conforme ? "serve H2 (200 kA)" : "non sufficiente"}</span>; })()}</td></tr>; })}</tbody></table></div>
             <p className="mt-2 text-xs text-muted-foreground">Dati dai certificati OBO BET (prova secondo {ISCON_COMUNE.norma}) e dalla documentazione tecnica isCon nuova generazione.</p>
           </>; })()}
       </section>

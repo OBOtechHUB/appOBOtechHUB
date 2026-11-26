@@ -32,7 +32,7 @@ describe("conduttore isolato isCon", () => {
   it("guida alla scelta OBO", () => {
     expect(scegliIscon({ sAria: 0.8 })?.versione).toBe("premium");
     expect(scegliIscon({ sAria: 0.4 })?.versione).toBe("basic");
-    expect(scegliIscon({ sAria: 0.6 })?.versione).toBe("pro");
+    expect(scegliIscon({ sAria: 0.6 })?.versione).toBe("proplus"); // la Pro 75 normale non si propone più
     expect(scegliIscon({ sAria: 0.4, atex: true })?.codice).toBe("5408002");
     expect(scegliIscon({ sAria: 0.4, tensioniContatto: true })?.colore).toBe("grigio chiaro");
     expect(scegliIscon({ sAria: 1 })).toBeNull();

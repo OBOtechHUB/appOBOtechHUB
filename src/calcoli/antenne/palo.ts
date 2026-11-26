@@ -61,7 +61,7 @@ function versionePer(n: number, s: number, d: DatiPalo): VersioneIscon | null {
   if (d.versione) return verificaIscon(d.versione, s, d.materiale).conforme && ammessaPerCorrente(d.versione, d.lpl, n) ? d.versione : null;
   const sAria = d.materiale === "solido" ? s / 2 : s;
   const g = scegliIscon({ sAria, ...d.esigenze });
-  const ordine: VersioneIscon[] = g ? [g.versione, ...(["basic", "pro", "proplus", "premium"] as VersioneIscon[]).filter((v) => v !== g.versione)] : ["premium"];
+  const ordine: VersioneIscon[] = g ? [g.versione, ...(["basic", "proplus", "premium"] as VersioneIscon[]).filter((v) => v !== g.versione)] : ["premium"];
   const vuoleProplus = !!(d.esigenze.verniciabile || d.esigenze.atex || d.esigenze.protezioneMeccanica || d.esigenze.tensioniContatto);
   for (const v of ordine) {
     if (vuoleProplus && v !== "proplus" && v !== "premium") continue;

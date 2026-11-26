@@ -34,3 +34,17 @@ describe("calate isCon da grande altezza", () => {
     expect(r.avvisi.some((a) => /non si taglia/.test(a))).toBe(true);
   });
 });
+
+describe("scelta delle calate", () => {
+  it("confronto 1–4 calate × Basic/Pro+/Premium e conteggio dei collegamenti", async () => {
+    const { confrontoCalate, cosaMigliora } = await import("./isconAltezza");
+    const c = confrontoCalate(base);
+    expect(c).toHaveLength(12);
+    expect(c.some((x) => x.versione === ("pro" as never))).toBe(false);
+    const due = c.find((x) => x.n === 2 && x.versione === "basic")!;
+    expect(due.collegamenti).toBe(2);
+    expect(cosaMigliora(2, "proplus", 0.04, "III")).toMatch(/l massima da 18,8 a 28,4 m/);
+    const iso = calateIsconAltezza({ ...base, struttura: "isolante", isconFinoATerra: true, nCalate: 2, versione: "basic" });
+    expect(iso.collegamentiTotali).toBe(2 * (1 + iso.livelliIntermedi));
+  });
+});

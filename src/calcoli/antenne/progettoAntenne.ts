@@ -4,13 +4,13 @@
  * Unica fonte per la pagina Antenne, il computo materiali e la relazione tecnica.
  */
 import { calcolaAntenne, type DatiAntenne, type RisultatoAntenne } from "./antenne";
-import { calateIsconAltezza, type RisultatoCalateAltezza } from "@/calcoli/calate/isconAltezza";
+import { calateIsconAltezza, type DatiCalateAltezza, type RisultatoCalateAltezza } from "@/calcoli/calate/isconAltezza";
 import { CORRENTE_LPL } from "./palo";
 import { ISCON } from "@/calcoli/calate/iscon";
 
 export interface RigaMateriale { codice: string; descrizione: string; quantita: number; unita: "m" | "pz"; categoria: "calate" | "morsetti" | "supporti" | "accessori" | "captazione" }
 export interface ProgettoAntenne {
-  r: RisultatoAntenne; ca: RisultatoCalateAltezza; apparatoBasso: number; lAuto: boolean; lUsata: number;
+  r: RisultatoAntenne; ca: RisultatoCalateAltezza; datiCalate: DatiCalateAltezza; apparatoBasso: number; lAuto: boolean; lUsata: number;
   /** corrente di fulmine per conduttore (kA) con la soluzione scelta */
   correntePerConduttore: number | null;
   materiali: RigaMateriale[];
@@ -20,8 +20,9 @@ export function calcolaProgettoAntenne(d: DatiAntenne): ProgettoAntenne {
   const r0 = calcolaAntenne(d);
   const auto = d.calateAuto !== false;
   const apparatoBasso = d.quotaApparatoBasso ?? Math.max(0, d.sommita - 3);
-  const ca = calateIsconAltezza({ lpl: d.lpl, ki: d.ki, quotaPunta: r0.asta, quotaBase: 0, quotaApparatoBasso: apparatoBasso, struttura: d.struttura ?? "metallica",
-    nCalate: auto ? null : Math.min(4, d.numeroCalate), versione: d.versione ?? null, materiale: "aria", distanzaImpianti: d.distanzaImpianti ?? 0.5, isconFinoATerra: d.isconFinoATerra !== false });
+  const datiCalate: DatiCalateAltezza = { lpl: d.lpl, ki: d.ki, quotaPunta: r0.asta, quotaBase: 0, quotaApparatoBasso: apparatoBasso, struttura: d.struttura ?? "metallica",
+    nCalate: auto ? null : Math.min(4, d.numeroCalate), versione: d.versione ?? null, materiale: "aria", distanzaImpianti: d.distanzaImpianti ?? 0.5, isconFinoATerra: d.isconFinoATerra !== false };
+  const ca = calateIsconAltezza(datiCalate);
   const lAuto = d.lAuto !== false && ca.fattibile;
   const lUsata = lAuto ? Math.round(ca.l * 100) / 100 : d.lunghezzaCalata;
   const r = lAuto ? calcolaAntenne({ ...d, lunghezzaCalata: lUsata }) : r0;
@@ -31,7 +32,7 @@ export function calcolaProgettoAntenne(d: DatiAntenne): ProgettoAntenne {
   if (ca.fattibile && ca.quotaPAE != null && (d.struttura ?? "metallica") !== "isolante")
     materiali.push({ codice: "", descrizione: `Collegamento del conduttore interno al palo al PAE (quota ${ca.quotaPAE.toLocaleString("it-IT", { maximumFractionDigits: 2 })} m): fascetta/morsetto per il palo, uno per calata`, quantita: ca.n, unita: "pz", categoria: "morsetti" });
   if (r.protette) materiali.unshift({ codice: "", descrizione: `Asta di captazione con la punta a ${r.asta.toLocaleString("it-IT", { maximumFractionDigits: 2 })} m (${(r.asta - d.sommita).toLocaleString("it-IT", { maximumFractionDigits: 2 })} m sopra le antenne), supporto isolato sul palo`, quantita: 1, unita: "pz", categoria: "captazione" });
-  return { r, ca, apparatoBasso, lAuto, lUsata, correntePerConduttore, materiali };
+  return { r, ca, datiCalate, apparatoBasso, lAuto, lUsata, correntePerConduttore, materiali };
 }
 
 /** Schema verticale delle calate in SVG (colori fissi, per la relazione Word). */

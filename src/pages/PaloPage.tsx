@@ -11,7 +11,7 @@ import { CampoNumero } from "@/components/CampoNumero";
 import { aggiornaEsteso, useEsteso } from "@/lib/statoProgetto";
 import { useDatiEdificio } from "@/lib/progettoStore";
 import { calcolaPalo, DATI_PALO, kcConduttori, type ApparatoPalo, type DatiPalo } from "@/calcoli/antenne/palo";
-import { ISCON } from "@/calcoli/calate/iscon";
+import { ISCON, versioniScelta } from "@/calcoli/calate/iscon";
 import type { Livello } from "@/calcoli/calate/separazione";
 import { relazionePalo } from "@/calcoli/antenne/relazionePalo";
 import { creaDocx } from "@/lib/docx";
@@ -60,7 +60,7 @@ export function PaloPage() {
           {num("mastoIsolato", "Lunghezza del palo isolato isFang (m)", 1)}
           <Campo etichetta="Posa dei conduttori"><select className={inputCls} value={d.materiale} onChange={(e) => set({ materiale: e.target.value as "aria" | "solido" })}><option value="aria">In aria (lungo il palo)</option><option value="solido">Su / in materiale solido</option></select></Campo>
           <Campo etichetta="Numero di conduttori"><select className={inputCls} value={d.conduttori ?? ""} onChange={(e) => set({ conduttori: e.target.value ? Number(e.target.value) : null })}><option value="">Il minimo che basta</option>{[1, 2, 3, 4].map((n) => <option key={n} value={n}>{n}</option>)}</select></Campo>
-          <Campo etichetta="Versione isCon"><select className={inputCls} value={d.versione ?? ""} onChange={(e) => set({ versione: (e.target.value || null) as DatiPalo["versione"] })}><option value="">La più semplice che basta</option>{(["basic", "pro", "proplus", "premium"] as const).map((v) => <option key={v} value={v}>{ISCON[v].nome}</option>)}</select></Campo>
+          <Campo etichetta="Versione isCon"><select className={inputCls} value={d.versione ?? ""} onChange={(e) => set({ versione: (e.target.value || null) as DatiPalo["versione"] })}><option value="">La più semplice che basta</option>{versioniScelta(d.versione).map((v) => <option key={v} value={v}>{ISCON[v].nome}</option>)}</select></Campo>
           <Campo etichetta={`ki (LPL ${d.lpl})`}><CampoNumero className={inputCls} max={1} valore={d.ki} placeholder={r.ki.toLocaleString("it-IT")} onValore={(v) => set({ ki: v && v > 0 ? v : null })} /></Campo>
         </div>
         <p className="mt-2 text-sm text-muted-foreground">l = punta − collegamento = <strong>{f(r.l, 2)} m</strong>. Sotto il collegamento la corrente scende lungo il palo metallico collegato a terra (o lungo una calata). Di solito il collegamento si mette sotto l'apparato più basso.</p>
