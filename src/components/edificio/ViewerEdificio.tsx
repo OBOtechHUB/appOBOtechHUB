@@ -205,7 +205,7 @@ export default function ViewerEdificio(props:Props){
         <button type="button" className={btn} title="Inquadra tutto" aria-label="Inquadra tutto" onClick={()=>vai("assonometria")}><Maximize className="h-4 w-4"/></button>
         <button type="button" className={btn} title="Inquadra la selezione" aria-label="Inquadra la selezione" onClick={inquadraSelezione}><Crosshair className="h-4 w-4"/></button>
       </div>
-      {props.spostabile&&!deltaCorpo&&<div className="pointer-events-none rounded-md border border-primary bg-background/95 px-2 py-1 text-xs font-semibold shadow-sm">Trascina un blocco o un'asta per spostarlo · clic per il pannello</div>}
+      {props.spostabile&&!deltaCorpo&&<div className="pointer-events-none rounded-md border border-primary bg-background/95 px-2 py-1 text-xs font-semibold shadow-sm">Trascina un blocco o un'asta per spostarlo</div>}
       {deltaCorpo&&<div className="pointer-events-auto rounded-md border bg-background/95 px-2 py-1 font-mono text-xs shadow-sm">Sposto il blocco: Δx {deltaCorpo.d[0].toFixed(2)} m · Δy {deltaCorpo.d[1].toFixed(2)} m</div>}
       {misura&&<div className="pointer-events-auto rounded-md border bg-background/95 px-2 py-1 font-mono text-xs shadow-sm">{misura.d.toFixed(2)} m · orizz. {misura.o.toFixed(2)} m · Δh {misura.h>=0?"+":""}{misura.h.toFixed(2)} m</div>}
     </div>}
