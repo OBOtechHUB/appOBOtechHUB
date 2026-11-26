@@ -1,5 +1,5 @@
 import {useCallback,useEffect,useMemo,useRef,useState} from "react";
-import {Canvas,type ThreeEvent} from "@react-three/fiber";
+import {Canvas,useFrame,type ThreeEvent} from "@react-three/fiber";
 import {OrbitControls,Line,Html,GizmoHelper,GizmoViewcube,Bvh} from "@react-three/drei";
 import * as THREE from "three";
 import {Box,Camera as IconaCamera,Crosshair,Download,FileImage,Maximize,Square} from "lucide-react";
