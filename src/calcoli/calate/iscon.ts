@@ -83,7 +83,7 @@ export function versioneMinima(sRichiesta: number, materiale: "aria" | "solido" 
 }
 
 /** Guida alla scelta OBO (Selection Aid): dalle esigenze del punto di posa alla versione e al colore. */
-export interface EsigenzeIscon { sAria: number; verniciabile?: boolean; atex?: boolean; protezioneMeccanica?: boolean; tensioniContatto?: boolean }
+export interface EsigenzeIscon { sAria: number; verniciabile?: boolean | undefined; atex?: boolean | undefined; protezioneMeccanica?: boolean | undefined; tensioniContatto?: boolean | undefined }
 export function scegliIscon(e: EsigenzeIscon): { versione: VersioneIscon; colore: "nero" | "grigio chiaro"; codice: string; motivo: string } | null {
   if (e.sAria > 0.9 + 1e-9) return null;
   if (e.sAria > 0.75 + 1e-9) return { versione: "premium", colore: "nero", codice: "5408018", motivo: "s in aria oltre 0,75 m" };
