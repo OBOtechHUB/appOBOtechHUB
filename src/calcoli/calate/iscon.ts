@@ -5,13 +5,17 @@
  * Fonti (26/11/2026, documenti OBO mandati da Marco): certificati OBO BET 02-250_ZG-BET (isCon Pro 75 SW, Pro+ 75 SW,
  * Pro+ 75 GR, Premium 90 SW, 2018, prova secondo IEC TS 62561-8), presentazione «isCon System – New Generation»
  * (dati tecnici, lunghezze massime, guida alla scelta, posa), istruzioni isCon HM SET 5408090 (10/2026).
+ * Schede tecniche OBO 08/2026 (mandate da Marco il 27/11/2026): codici al metro «IL» (ordine minimo 6 m, poi a multipli
+ * di 1 m), bobine, peso e carico d'incendio; confermano se, classe di corrente e diametri.
  */
 export type VersioneIscon = "basic" | "pro" | "proplus" | "premium";
 export type ClasseIscon = "H1" | "H2";
 
 export interface DatiIscon {
   nome: string; sigla: string; sAria: number; sSolido: number;
-  codici: { codice: string; colore: string; nota?: string }[];
+  codici: { codice: string; colore: string; nota?: string; /** lunghezza della bobina (m) */ bobina?: number; /** venduto al metro: ordine minimo 6 m, poi multipli di 1 m */ alMetro?: boolean }[];
+  /** peso (kg per 100 m) e carico d'incendio (kWh/m) dalla scheda tecnica OBO */
+  peso?: number; caricoIncendio?: number;
   /** diametro esterno (mm) per colore (nero / grigio chiaro) */
   diametro: { nero: number; grigio?: number };
   /** raggio minimo di curvatura (mm) */
@@ -26,21 +30,21 @@ export interface DatiIscon {
 }
 
 export const ISCON: Record<VersioneIscon, DatiIscon> = {
-  basic: { nome: "isCon Basic 45", sigla: "Basic 45 SW", sAria: 0.45, sSolido: 0.9, codici: [{ codice: "5408014", colore: "nero" }],
+  basic: { nome: "isCon Basic 45", sigla: "Basic 45 SW", sAria: 0.45, sSolido: 0.9, codici: [{ codice: "5408014", colore: "nero", bobina: 100, nota: "bobina 100 m" }, { codice: "5407980", colore: "nero", alMetro: true, nota: "al metro, minimo 6 m" }], peso: 57, caricoIncendio: 3.3,
     diametro: { nero: 20 }, raggioCurvatura: { nero: 200 }, classe: "H1", iimp: 150, zonaPotenziale: 0.9,
     equipotenziale: { palo: false, altroCapo: false, nota: "Nessun collegamento equipotenziale al palo (il morsetto PAE interno al palo va comunque montato). Dall'altra parte: morsetto PAE oppure, in alternativa, distanza x = 0,90 m tra elemento di collegamento e ultimo distanziatore isolato." },
     verniciabile: false, atex: false, protezioneMeccanica: false },
-  pro: { nome: "isCon Pro 75", sigla: "Pro 75 SW", sAria: 0.75, sSolido: 1.5, codici: [{ codice: "5408008", colore: "nero" }],
+  pro: { nome: "isCon Pro 75", sigla: "Pro 75 SW", sAria: 0.75, sSolido: 1.5, codici: [{ codice: "5408008", colore: "nero" }, { codice: "5407982", colore: "nero", alMetro: true, nota: "al metro, minimo 6 m" }], peso: 57, caricoIncendio: 3.3,
     diametro: { nero: 20 }, raggioCurvatura: { nero: 200 }, classe: "H1", iimp: 150, zonaPotenziale: 1.5,
     equipotenziale: { palo: true, altroCapo: true, nota: "Collegamento equipotenziale al palo (morsetto PAE interno) e all'altro capo; tratto x = 1,50 m su entrambi i lati senza parti conduttrici entro s." },
     verniciabile: false, atex: false, protezioneMeccanica: false },
   proplus: { nome: "isCon Pro+ 75", sigla: "Pro+ 75 SW / GR", sAria: 0.75, sSolido: 1.5,
-    codici: [{ codice: "5408002", colore: "nero" }, { codice: "5408004", colore: "nero" }, { codice: "5408006", colore: "nero" },
+    codici: [{ codice: "5408002", colore: "nero" }, { codice: "5408004", colore: "nero" }, { codice: "5408006", colore: "nero", bobina: 250, nota: "bobina 250 m" },
       { codice: "5407995", colore: "grigio chiaro", nota: "protezione dalle tensioni di contatto" }, { codice: "5407997", colore: "grigio chiaro", nota: "protezione dalle tensioni di contatto" }],
-    diametro: { nero: 23, grigio: 26 }, raggioCurvatura: { nero: 230, grigio: 260 }, classe: "H1", iimp: 150, zonaPotenziale: 1.5,
+    diametro: { nero: 23, grigio: 26 }, raggioCurvatura: { nero: 230, grigio: 260 }, classe: "H1", iimp: 150, zonaPotenziale: 1.5, peso: 69.4, caricoIncendio: 4.3,
     equipotenziale: { palo: true, altroCapo: true, nota: "Come Pro 75. La guaina esterna può essere danneggiata (resta ≥ 0,2 mm su tutto il perimetro, tagli < 1,3 mm) senza perdere l'isolamento." },
     verniciabile: true, atex: true, protezioneMeccanica: true },
-  premium: { nome: "isCon Premium 90", sigla: "Premium 90 SW", sAria: 0.9, sSolido: 1.8, codici: [{ codice: "5408018", colore: "nero" }],
+  premium: { nome: "isCon Premium 90", sigla: "Premium 90 SW", sAria: 0.9, sSolido: 1.8, codici: [{ codice: "5408018", colore: "nero", bobina: 100, nota: "bobina 100 m" }, { codice: "5407984", colore: "nero", alMetro: true, nota: "al metro, minimo 6 m" }], peso: 66.6, caricoIncendio: 4.2,
     diametro: { nero: 23 }, raggioCurvatura: { nero: 230 }, classe: "H2", iimp: 200, zonaPotenziale: 1.5,
     equipotenziale: { palo: true, altroCapo: true, nota: "Collegamento equipotenziale al palo (morsetto PAE interno) e all'altro capo; tratto x = 1,50 m su entrambi i lati senza parti conduttrici entro s." },
     verniciabile: false, atex: false, protezioneMeccanica: false },
@@ -62,6 +66,20 @@ export const ACCESSORI_ISCON = [
   { codice: "5408028", descrizione: "Piastra di collegamento per due conduttori isCon" },
   { codice: "5408058", descrizione: "Cartello informativo isCon" },
 ];
+
+/** Ordine minimo e passo dei codici isCon venduti al metro (schede tecniche OBO «IL»). */
+export const ISCON_AL_METRO = { minimo: 6, passo: 1 };
+/**
+ * Codice da ordinare per i metri che servono: sotto la lunghezza della bobina il codice al metro «IL» (minimo 6 m,
+ * multipli di 1 m), altrimenti la bobina. Le versioni senza codice al metro noto (Pro+) restano sul primo codice.
+ */
+export function codiceIscon(v: VersioneIscon, metri: number): { codice: string; quantita: number; nota: string } {
+  const D = ISCON[v], bobina = D.codici.find((c) => c.bobina), il = D.codici.find((c) => c.alMetro);
+  const m = Math.max(0, Math.ceil(metri - 1e-9));
+  if (il && (!bobina?.bobina || m < bobina.bobina)) return { codice: il.codice, quantita: Math.max(ISCON_AL_METRO.minimo, m), nota: `al metro, ordine minimo ${ISCON_AL_METRO.minimo} m` };
+  if (bobina?.bobina && il) return { codice: bobina.codice, quantita: m, nota: `bobina da ${bobina.bobina} m` };
+  return { codice: D.codici[0]!.codice, quantita: m, nota: "" };
+}
 
 /** sEq della versione nel materiale indicato ("solido" = calcestruzzo, mattoni, legno). */
 export function sEquivalente(v: VersioneIscon, materiale: "aria" | "solido" = "aria"): number {

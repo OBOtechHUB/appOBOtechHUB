@@ -8,7 +8,7 @@ describe("impianti su palo con calate isolate isCon", () => {
     expect(r.scelta?.n).toBe(1);
     expect(r.scelta?.s).toBeCloseTo(0.36, 3);
     expect(r.scelta?.versione).toBe("basic");
-    expect(r.materiali.some((m) => m.codice === "5408014")).toBe(true);
+    expect(r.materiali.some((m) => m.codice === "5407980" && m.quantita === 10)).toBe(true);
   });
   it("tratto lungo: servono più conduttori", () => {
     const r = calcolaPalo({ ...DATI_PALO, lpl: "II", quotaPunta: 40, quotaCollegamento: 20 });
@@ -28,7 +28,7 @@ describe("impianti su palo con calate isolate isCon", () => {
     expect(calcolaPalo({ ...DATI_PALO, versione: "proplus" }).scelta?.versione).toBe("proplus");
     const r = calcolaPalo({ ...DATI_PALO, versione: "premium" });
     expect(r.scelta?.versione).toBe("premium");
-    expect(r.materiali.some((m) => m.codice === "5408018")).toBe(true);
+    expect(r.materiali.some((m) => m.codice === "5407984")).toBe(true);
     const lungo = calcolaPalo({ ...DATI_PALO, lpl: "II", quotaPunta: 40, quotaCollegamento: 20, versione: "proplus" });
     expect(lungo.scelta?.n).toBe(3); // 0,06 × 0,44 × 20 = 0,53 ≤ 0,75
   });

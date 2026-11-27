@@ -14,7 +14,7 @@
  * Testi scritti con parole nostre: valori e verifiche, nessun testo della norma o del costruttore copiato.
  */
 import { KI, type Livello } from "./separazione";
-import { ISCON, ammessaPerCorrente, lunghezzaMassima, verificaIscon, type VersioneIscon } from "./iscon";
+import { ISCON, codiceIscon, ammessaPerCorrente, lunghezzaMassima, verificaIscon, type VersioneIscon } from "./iscon";
 
 export type StrutturaSostegno = "metallica" | "armata" | "isolante";
 export const NOMI_STRUTTURA: Record<StrutturaSostegno, string> = {
@@ -167,8 +167,9 @@ export function calateIsconAltezza(d: DatiCalateAltezza): RisultatoCalateAltezza
   if (!verificaIscon(v, s, d.materiale).conforme) avvisi.push("Controllo: s supera la distanza equivalente dell'isCon.");
   const cavo = Math.ceil(l + MARGINE);
   avvisi.push(`Cavo a misura: ${f(l + MARGINE, 2)} m per calata (l più ${f(MARGINE, 1)} m per i collegamenti) ≤ ${f(lMax, 2)} m ammessi; non si giunta.`);
+  const ordineCavo = codiceIscon(v, cavo * n);
   const materiali: RisultatoCalateAltezza["materiali"] = [
-    { codice: D.codici[0]!.codice, descrizione: `${D.nome} – ${n} ${n === 1 ? "calata" : "calate"}: un pezzo unico per calata tagliato a ${f(l + MARGINE, 2)} m (massimo ${f(lMax, 2)} m)`, quantita: cavo * n, unita: "m" },
+    { codice: ordineCavo.codice, descrizione: `${D.nome} – ${n} ${n === 1 ? "calata" : "calate"}: un pezzo unico per calata tagliato a ${f(l + MARGINE, 2)} m (massimo ${f(lMax, 2)} m)${ordineCavo.nota ? `; ${ordineCavo.nota}` : ""}`, quantita: ordineCavo.quantita, unita: "m" },
     { codice: "5408022 / 5408021 / 5408023", descrizione: "Elemento di collegamento isCon superiore, all'asta (connect / con 2 / con PRE secondo la versione)", quantita: n, unita: "pz" },
     { codice: "5408022 / 5408021 / 5408023", descrizione: `Elemento di collegamento isCon inferiore, fine del cavo ${metallica ? "sul palo" : "sull'anello"} (stessa famiglia)`, quantita: n, unita: "pz" },
     n >= 2 ? { codice: "5408028", descrizione: "Piastra di collegamento AP2-16 VA per due conduttori, all'asta (per quattro due piastre)", quantita: Math.ceil(n / 2), unita: "pz" }

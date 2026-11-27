@@ -12,7 +12,7 @@
  *  - posa: supporti ogni 1 m, set HM SET per fino a 4 conduttori, estensione per pali isolati oltre 6 m.
  */
 import { KI, type Livello } from "@/calcoli/calate/separazione";
-import { ISCON, ammessaPerCorrente, lunghezzaMassima, scegliIscon, verificaIscon, type EsigenzeIscon, type VersioneIscon } from "@/calcoli/calate/iscon";
+import { ISCON, codiceIscon, ammessaPerCorrente, lunghezzaMassima, scegliIscon, verificaIscon, type EsigenzeIscon, type VersioneIscon } from "@/calcoli/calate/iscon";
 import { puntoProtetto, raggioSfera } from "@/calcoli/antenne/antenne";
 
 export interface ApparatoPalo { id: string; nome: string; quota: number; sbraccio: number; distanza: number }
@@ -96,8 +96,8 @@ export function calcolaPalo(d: DatiPalo): RisultatoPalo {
   const materiali: RisultatoPalo["materiali"] = [];
   if (scelta?.versione) {
     const D = ISCON[scelta.versione], gr = !!d.esigenze.tensioniContatto && scelta.versione === "proplus";
-    const cod = gr ? "5407995" : D.codici[0]!.codice;
-    materiali.push({ codice: cod, descrizione: `${D.nome}${gr ? " GR" : ""} – conduttore isolato (l + 1 m di riserva per conduttore)`, quantita: Math.ceil((l + 1) * scelta.n), unita: "m" });
+    const metri = Math.ceil((l + 1) * scelta.n), ord = gr ? { codice: "5407995", quantita: metri, nota: "" } : codiceIscon(scelta.versione, metri);
+    materiali.push({ codice: ord.codice, descrizione: `${D.nome}${gr ? " GR" : ""} – conduttore isolato (l + 1 m di riserva per conduttore)${ord.nota ? `; ${ord.nota}` : ""}`, quantita: ord.quantita, unita: "m" });
     materiali.push({ codice: "5408090", descrizione: "isCon HM SET – supporti al palo per fino a 4 conduttori", quantita: Math.ceil(scelta.n / 4), unita: "pz" });
     if (d.mastoIsolato > 6) materiali.push({ codice: "5408094", descrizione: "isCon HM ERW – estensione per pali oltre 6 m", quantita: Math.ceil(scelta.n / 4), unita: "pz" });
     materiali.push({ codice: "5408058", descrizione: "Cartello informativo isCon", quantita: 1, unita: "pz" });

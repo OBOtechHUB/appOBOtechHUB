@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { ammessaPerCorrente, lunghezzaMassima, scegliIscon, verificaIscon, versioneMinima } from "./iscon";
+import { ammessaPerCorrente, codiceIscon, lunghezzaMassima, scegliIscon, verificaIscon, versioneMinima } from "./iscon";
 
 describe("conduttore isolato isCon", () => {
   it("verifica s richiesta contro s equivalente", () => {
@@ -36,5 +36,12 @@ describe("conduttore isolato isCon", () => {
     expect(scegliIscon({ sAria: 0.4, atex: true })?.codice).toBe("5408002");
     expect(scegliIscon({ sAria: 0.4, tensioniContatto: true })?.colore).toBe("grigio chiaro");
     expect(scegliIscon({ sAria: 1 })).toBeNull();
+  });
+  it("codice da ordinare: al metro (minimo 6 m) sotto la bobina, altrimenti bobina", () => {
+    expect(codiceIscon("basic", 4.2)).toMatchObject({ codice: "5407980", quantita: 6 });
+    expect(codiceIscon("basic", 37.1)).toMatchObject({ codice: "5407980", quantita: 38 });
+    expect(codiceIscon("basic", 120)).toMatchObject({ codice: "5408014", quantita: 120 });
+    expect(codiceIscon("premium", 20)).toMatchObject({ codice: "5407984", quantita: 20 });
+    expect(codiceIscon("proplus", 20)).toMatchObject({ codice: "5408002", quantita: 20 });
   });
 });

@@ -2,6 +2,21 @@
   "nota": "Registro degli aggiornamenti di Progettazione LPS. Una voce per aggiornamento, la più recente per prima (app: lps). Viene mostrato nella barra \"Aggiorna app\", nel riquadro Novità e nella pagina Novità di OBO Hub. Le novità solo grafiche (animazioni, sigle, aspetto) non si mostrano: restano conservate in 'grafica_non_mostrata'.",
   "aggiornamenti": [
     {
+      "id": "2026-11-27-lps-76",
+      "data": "2026-11-27",
+      "app": "lps",
+      "titolo": "isCon: codici al metro nella distinta",
+      "voci": [
+        "Dati isCon confermati con le schede tecniche OBO (distanza equivalente, classe di corrente, diametri)",
+        "Nella distinta di Antenne e Impianti su palo, quando servono meno metri di una bobina, compare il codice al metro (5407980 Basic, 5407984 Premium) con ordine minimo 6 m; altrimenti la bobina"
+      ],
+      "titolo_en": "isCon: per-metre article numbers in the bill of materials",
+      "voci_en": [
+        "isCon data confirmed with the OBO data sheets (equivalent distance, current class, diameters)",
+        "In the Antennas and Pole bills of materials, when less than a coil is needed, the per-metre article (5407980 Basic, 5407984 Premium) is listed with a 6 m minimum order; otherwise the coil"
+      ]
+    },
+    {
       "id": "2026-11-27-lps-75",
       "data": "2026-11-27",
       "app": "lps",
