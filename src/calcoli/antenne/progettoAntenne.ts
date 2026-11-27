@@ -58,7 +58,9 @@ export function calcolaProgettoAntenne(d0: DatiAntenne): ProgettoAntenne {
       : sotto == null ? "non isolata: nessuna soluzione isCon"
       : isolato ? `protetta e isolata (sopra la fine del cavo ${fm(ca.quotaPAE!)} m e il tratto x)`
       : `protetta dalla fulminazione diretta ma sotto la fine del cavo (${fm(sotto)} m con il tratto x): collegarla al palo, schermi dei cavi collegati e SPD di tipo 1`;
-    return { ...a, cima, isolato, esito };
+    // oltre 60 m dal suolo possono arrivare fulmini sui lati (62305-3, 5.2.3): l'asta in cima non basta
+    const laterale = d.quotaPiano + cima > 60 && !sopraPunta ? " Oltre i 60 m dal suolo: verifica i fulmini laterali (62305-3, 5.2.3)." : "";
+    return { ...a, cima, isolato, esito: esito + laterale };
   });
   return { r, ca, datiCalate, apparatoBasso, lAuto, lUsata, correntePerConduttore, materiali, asta, sommita: d.sommita, apparecchi };
 }

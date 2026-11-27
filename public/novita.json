@@ -2,6 +2,23 @@
   "nota": "Registro degli aggiornamenti di Progettazione LPS. Una voce per aggiornamento, la più recente per prima (app: lps). Viene mostrato nella barra \"Aggiorna app\", nel riquadro Novità e nella pagina Novità di OBO Hub. Le novità solo grafiche (animazioni, sigle, aspetto) non si mostrano: restano conservate in 'grafica_non_mostrata'.",
   "aggiornamenti": [
     {
+      "id": "2026-11-27-lps-74",
+      "data": "2026-11-27",
+      "app": "lps",
+      "titolo": "Antenne: ricontrollo con la norma e nuove avvertenze",
+      "voci": [
+        "Ricontrollati con la CEI EN IEC 62305 raggi della sfera rotolante, coefficienti ki e kc e correnti: i valori erano corretti",
+        "Nuove misure nella pagina Antenne e nella relazione: fulmini laterali oltre i 60 m dal suolo, condizione di validità di kc con più calate (dispersore di tipo B o tipo A simili) e correzione per l'altitudine",
+        "Se un'apparecchiatura sul palo supera i 60 m dal suolo l'esito ricorda di verificare i fulmini laterali"
+      ],
+      "titolo_en": "Antennas: re-check against the standard and new warnings",
+      "voci_en": [
+        "Sphere radii, ki and kc coefficients and currents re-checked against IEC 62305: values were correct",
+        "New measures in the Antennas page and report: side flashes above 60 m from the ground, validity condition of kc with several down-conductors (type B earthing or similar type A) and altitude correction",
+        "If equipment on the pole is above 60 m from the ground, its result now reminds you to check side flashes"
+      ]
+    },
+    {
       "id": "2026-11-27-lps-73",
       "data": "2026-11-27",
       "app": "lps",

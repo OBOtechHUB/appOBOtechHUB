@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { altezzaAstaMinima, calcolaAntenne, DATI_INIZIALI, puntoProtetto, soluzioneIscon } from "./antenne";
+import { altezzaAstaMinima, calcolaAntenne, DATI_INIZIALI, kcCalate, puntoProtetto, raggioSfera, soluzioneIscon } from "./antenne";
 
 describe("antenne radiomobili", () => {
   it("asta bassa sul tetto: piano + punta (H ≤ r)", () => {
@@ -36,5 +36,30 @@ describe("antenne radiomobili", () => {
     expect(r.misure[0]!.testo).toMatch(/nessun isCon basta neanche con 4 calate/);
     const c = soluzioneIscon(0.1, 5, "I", 1, null, 20);
     expect(c.scelta?.versione).toBe("premium"); // LPL I con una calata: solo Premium
+  });
+  it("valori della CEI EN IEC 62305: raggi sfera, ki e kc", () => {
+    // 62305-1 Tab. 4 (r), 62305-3 Tab. 11 (ki) e Tab. 13 (kc)
+    expect([20, 30, 45, 60]).toEqual(["I", "II", "III", "IV"].map((l) => raggioSfera(l as "I")));
+    expect(calcolaAntenne({ ...DATI_INIZIALI, lpl: "I" }).ki).toBe(0.08);
+    expect(calcolaAntenne({ ...DATI_INIZIALI, lpl: "II" }).ki).toBe(0.06);
+    expect(calcolaAntenne({ ...DATI_INIZIALI, lpl: "IV" }).ki).toBe(0.04);
+    expect([1, 2, 3, 4].map(kcCalate)).toEqual([1, 0.66, 0.44, 0.44]);
+  });
+  it("raggio protetto al piano di un'asta H ≤ r: sqrt(2·r·H − H²)", () => {
+    for (const [H, r] of [[10, 45], [20, 20], [6, 30], [12, 60]] as const) {
+      const R = Math.sqrt(2 * r * H - H * H);
+      expect(puntoProtetto(H, R - 0.01, 0, r)).toBe(true);
+      expect(puntoProtetto(H, R + 0.01, 0, r)).toBe(false);
+    }
+  });
+  it("misure: fulmini laterali oltre 60 m, condizione di kc e altitudine", () => {
+    const basso = calcolaAntenne({ ...DATI_INIZIALI, tipo: "palo", sommita: 20, lunghezzaCalata: 8 });
+    expect(basso.misure.some((m) => /60 m/.test(m.testo))).toBe(false);
+    const alto = calcolaAntenne({ ...DATI_INIZIALI, tipo: "palo", sommita: 80, lunghezzaCalata: 60 });
+    expect(alto.misure.some((m) => /oltre i 60 m/.test(m.testo) && /5\.2\.3/.test(m.rif))).toBe(true);
+    expect(alto.misure.some((m) => /Tab\. 13/.test(m.rif) && /tipo B/.test(m.testo))).toBe(true);
+    expect(alto.misure.some((m) => /IEC 60071-2/.test(m.testo) && !m.obbligatoria)).toBe(true);
+    const unaCalata = calcolaAntenne({ ...DATI_INIZIALI, calateAuto: false, numeroCalate: 1 });
+    expect(unaCalata.misure.some((m) => /Tab\. 13/.test(m.rif))).toBe(false);
   });
 });
