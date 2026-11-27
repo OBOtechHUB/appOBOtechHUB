@@ -2,6 +2,21 @@
   "nota": "Registro degli aggiornamenti di Progettazione LPS. Una voce per aggiornamento, la più recente per prima (app: lps). Viene mostrato nella barra \"Aggiorna app\", nel riquadro Novità e nella pagina Novità di OBO Hub. Le novità solo grafiche (animazioni, sigle, aspetto) non si mostrano: restano conservate in 'grafica_non_mostrata'.",
   "aggiornamenti": [
     {
+      "id": "2026-11-27-lps-78",
+      "data": "2026-11-27",
+      "app": "lps",
+      "titolo": "Progetti salvati: avviso quando cambiano i calcoli",
+      "voci": [
+        "Quando apri un progetto salvato prima di un aggiornamento dei calcoli, l'app elenca cosa è cambiato e chiede se ricalcolarlo con le nuove specifiche o lasciarlo com'è",
+        "La scelta resta nel progetto: la domanda torna solo al prossimo aggiornamento dei calcoli"
+      ],
+      "titolo_en": "Saved projects: notice when the calculations change",
+      "voci_en": [
+        "When you open a project saved before a calculation update, the app lists what changed and asks whether to recalculate it with the new specifications or leave it as it is",
+        "The choice is stored in the project: the question comes back only at the next calculation update"
+      ]
+    },
+    {
       "id": "2026-11-27-lps-77",
       "data": "2026-11-27",
       "app": "lps",

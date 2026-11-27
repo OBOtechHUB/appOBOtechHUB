@@ -22,6 +22,9 @@ App di progettazione della protezione contro i fulmini (CEI EN IEC 62305:2026-10
 ## Versioni CAD e istruzioni
 - Ad ogni modifica di `public/cad/LPS.lsp` o delle istruzioni: aggiornare `src/calcoli/cad/versioni.ts` (`LSP_VERSIONE`, `ISTRUZIONI` rev/data), rigenerare i documenti e copiarli in `public/istruzioni/`. LPS.lsp è in latin-1.
 
+## Specifiche di calcolo
+- Ad ogni modifica che cambia i risultati di un progetto già salvato (regole di calcolo, valori di norma, codici in distinta): aggiungere una voce in fondo a `src/calcoli/progetto/specifiche.ts`. All'apertura di un progetto più vecchio l'app chiede se ricalcolarlo (`AvvisoSpecifiche.tsx`). I codici OBO vanno prima controllati sul catalogo obo.it (`prodotti/dati/prodotti.json` del repo hub).
+
 ## Novità e recap
 - Nuova voce in cima a `public/novita.json` (id `AAAA-MM-GG-lps-N`) solo per modifiche che gli utenti notano. **Niente novità per modifiche solo grafiche** (eventualmente in `grafica_non_mostrata`) né per Amministrazione, visitatori o funzioni solo admin.
 - Dopo ogni modifica aggiornare il recap `claude/recap-obo-hub.md` nel progetto claude.ai "OBOtechHUB".
