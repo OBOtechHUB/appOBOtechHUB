@@ -2,6 +2,17 @@
   "nota": "Registro degli aggiornamenti di Progettazione LPS. Una voce per aggiornamento, la più recente per prima (app: lps). Viene mostrato nella barra \"Aggiorna app\", nel riquadro Novità e nella pagina Novità di OBO Hub. Le novità solo grafiche (animazioni, sigle, aspetto) non si mostrano: restano conservate in 'grafica_non_mostrata'.",
   "aggiornamenti": [
     {
+      "id": "2026-11-27-lps-73",
+      "data": "2026-11-27",
+      "app": "lps",
+      "titolo": "Avviso «Attenzione: perderai i dati» quando esci senza salvare",
+      "voci": [
+        "Con un progetto aperto: se le ultime modifiche non sono ancora salvate e vai su OBO Hub o un'altra app compare l'avviso con «Resta qui», «Salva ed esci» o «Esci senza salvare»",
+        "Senza progetto aperto: l'avviso ricorda che il lavoro non è in nessun progetto, con «Vai a Progetti» per salvarlo",
+        "Se chiudi o ricarichi la scheda avvisa il browser; i cambi pagina dentro l'app non danno avvisi perché non si perde nulla"
+      ]
+    },
+    {
       "id": "2026-11-26-lps-72",
       "data": "2026-11-26",
       "app": "lps",

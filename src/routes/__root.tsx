@@ -19,6 +19,7 @@ import { AppFooter } from "@/components/AppFooter";
 import { AuthProvider, useAuth } from "@/lib/auth";
 import { supabase } from "@/integrations/supabase/client";
 import { ProjectSync } from "@/components/ProjectSync";
+import { AvvisoUscita } from "@/components/AvvisoUscita";
 import { ControlloAccesso } from "@/components/accesso/ControlloAccesso";
 import { aggiornaAccesso } from "@/lib/accesso";
 import { impostaAttivo,ripristinaLocale,aggiornaEsteso } from "@/lib/statoProgetto";
@@ -136,5 +137,5 @@ function PortalShell(){
   },[router,queryClient,setUser,setPronto]);
   useEffect(()=>avviaEffetti(),[]);
   useEffect(()=>avviaAnnulla(),[]);
-  return <><AggiornaApp/><AppHeader/><AvvisoVersioneCAD/><AvvisoEmissione/><ProjectSync/><ControlloAccesso/><AppFooter/></>;
+  return <><AggiornaApp/><AppHeader/><AvvisoVersioneCAD/><AvvisoEmissione/><ProjectSync/><AvvisoUscita/><ControlloAccesso/><AppFooter/></>;
 }
