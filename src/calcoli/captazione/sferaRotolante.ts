@@ -877,6 +877,31 @@ export function confrontaLivelli(
  * vengono segnalate negli avvisi.
  */
 /**
+ * Zone esposte minori: gruppi di celle esposte collegate (anche in diagonale) con area sotto `areaMin` e sommità più
+ * bassa di 3 m rispetto al punto più alto dell'edificio. Sono cornicioni, balconi e piccole sporgenze di facciata dei
+ * modelli 3D importati: non si propone un'asta per ognuna. Le zone piccole vicino alla sommità contano sempre.
+ */
+export function zoneEsposteMinori(ris: RisultatoSfera, areaMin: number): { maschera: Uint8Array; zone: number; area: number } {
+  const g = ris.griglia, n = g.nx * g.ny, maschera = new Uint8Array(n);
+  if (!(areaMin > 0)) return { maschera, zone: 0, area: 0 };
+  let hMax = 0; for (let k = 0; k < n; k++) if (ris.esposta[k]! !== 0 && ris.altezze[k]! > hMax) hMax = ris.altezze[k]!;
+  const visto = new Uint8Array(n), a1 = g.passo * g.passo; let zone = 0, area = 0;
+  for (let s0 = 0; s0 < n; s0++) {
+    if (ris.esposta[s0]! !== 1 || visto[s0]) continue;
+    const celle = [s0]; visto[s0] = 1; let zTop = -Infinity;
+    for (let q = 0; q < celle.length; q++) {
+      const k = celle[q]!, i = k % g.nx, j = (k - i) / g.nx; if (ris.altezze[k]! > zTop) zTop = ris.altezze[k]!;
+      for (let dj = -1; dj <= 1; dj++) for (let di = -1; di <= 1; di++) {
+        if (!di && !dj) continue; const a = i + di, b = j + dj; if (a < 0 || b < 0 || a >= g.nx || b >= g.ny) continue;
+        const w = b * g.nx + a; if (ris.esposta[w]! === 1 && !visto[w]) { visto[w] = 1; celle.push(w); }
+      }
+    }
+    if (celle.length * a1 < areaMin && zTop < hMax - 3) { for (const k of celle) maschera[k] = 1; zone++; area += celle.length * a1; }
+  }
+  return { maschera, zone, area };
+}
+
+/**
  * Proposta di aste a catalogo senza limite di numero: ogni asta ha l'altezza di un prodotto reale (set su treppiede
  * 1,5–4 m, aste a parete vicino al bordo, irod se ammesse). Si cercano poche aste: a ogni passo si sceglie la coppia
  * posizione/altezza che protegge più copertura esposta; alla fine ogni asta viene abbassata all'altezza a catalogo
@@ -885,8 +910,8 @@ export function confrontaLivelli(
 export function suggerisciAsteCatalogo(
   inp: InputSfera,
   catalogo: { posa: string; altezza: number; diametro: number; codice: string; descrizione: string }[],
-  opzioni: { iterazioniMax?: number | undefined; limiteSicurezza?: number | undefined } = {},
-): { asteAggiunte: Asta[]; risultato: RisultatoSfera; avvisi: string[] } {
+  opzioni: { iterazioniMax?: number | undefined; limiteSicurezza?: number | undefined; /** zone esposte più piccole di così (m²) e più basse della sommità non ricevono aste: cornicioni, balconi, piccole sporgenze */ areaMinimaZona?: number | undefined } = {},
+): { asteAggiunte: Asta[]; risultato: RisultatoSfera; avvisi: string[]; ignorate: { zone: number; area: number } } {
   const r = inp.raggio, iterMax = opzioni.iterazioniMax ?? 12, LIM = opzioni.limiteSicurezza ?? 400;
   const avvisi: string[] = [];
   const aggiunte: (Asta & { cat: typeof catalogo[number] })[] = [];
@@ -900,13 +925,18 @@ export function suggerisciAsteCatalogo(
   };
   const raggioProt = (h: number, dz: number, fattore: number) => { if (dz >= h) return 0; const hr = Math.min(h - dz, r); return Math.sqrt(hr * (2 * r - hr)) * fattore; };
   let ris = calcolaSferaRotolante(inp);
+  // zone esposte minori (prima di mettere aste): non si inseguono con un'asta ciascuna, si segnalano
+  const g0 = ris.griglia, minori = zoneEsposteMinori(ris, opzioni.areaMinimaZona ?? 0);
+  const stessa = (q: RisultatoSfera) => q.griglia.nx === g0.nx && q.griglia.ny === g0.ny && q.griglia.x0 === g0.x0 && q.griglia.y0 === g0.y0;
+  const conta = (q: RisultatoSfera) => { if (!minori.zone || !stessa(q)) return q.areaCoperturaEsposta > 0 ? 1 : 0; let n = 0; for (let k = 0; k < q.esposta.length; k++) if (q.esposta[k] === 1 && !minori.maschera[k]) n++; return n; };
+  const salta = (q: RisultatoSfera, k: number) => minori.zone > 0 && stessa(q) && minori.maschera[k] === 1;
   const seme = (x: number, y: number, z: number) => {
     const cat = (bordo(x, y) < 1 && pareti.length ? pareti : treppiedi).slice(-1)[0]!; if (!cat) return;
     if ([...(inp.aste ?? []), ...aggiunte].some((a) => Math.hypot(a.x - x, a.y - y) < 5)) return;
     aggiunte.push({ id: `S${aggiunte.length + 1}`, x, y, zBase: z, altezza: cat.altezza, codiceOBO: cat.codice, diametro: cat.diametro, posa: cat.posa, descrizione: cat.descrizione, cat });
   };
   // 1) aste sugli spigoli convessi delle coperture esposte (rientrate di 1 m): è lì che la sfera tocca per prima
-  if (ris.areaCoperturaEsposta > 0) {
+  if (conta(ris) > 0) {
     const g = ris.griglia;
     for (const c of inp.corpi) {
       const p = c.impronta, n = p.length; const area = p.reduce((t, q, k) => t + q[0] * p[(k + 1) % n]![1] - p[(k + 1) % n]![0] * q[1], 0);
@@ -925,14 +955,14 @@ export function suggerisciAsteCatalogo(
     }
     if (aggiunte.length) ris = calcolaSferaRotolante({ ...inp, aste: [...(inp.aste ?? []), ...aggiunte] });
   }
-  for (let it = 0; it < iterMax && ris.areaCoperturaEsposta > 0 && aggiunte.length < LIM; it++) {
+  for (let it = 0; it < iterMax && conta(ris) > 0 && aggiunte.length < LIM; it++) {
     const fattore = 0.9 * Math.pow(0.8, it);
     const g = ris.griglia, esposte: Punto3[] = [], candidati: Punto3[] = [];
     const salto = Math.max(1, Math.round(1.5 / g.passo));
     for (let j = 0; j < g.ny; j++) for (let i = 0; i < g.nx; i++) {
       const idx = j * g.nx + i; if (ris.esposta[idx]! === 0) continue;
       const p: Punto3 = [g.x0 + i * g.passo, g.y0 + j * g.passo, ris.altezze[idx]!];
-      if (ris.esposta[idx]! === 1) esposte.push(p);
+      if (ris.esposta[idx]! === 1 && !salta(ris, idx)) esposte.push(p);
       if (i % salto === 0 && j % salto === 0) candidati.push(p);
     }
     // prima si cerca il numero minimo di aste con l'altezza massima ammessa; l'abbassamento viene dopo
@@ -961,18 +991,18 @@ export function suggerisciAsteCatalogo(
     ris = calcolaSferaRotolante({ ...inp, aste: [...(inp.aste ?? []), ...aggiunte] });
   }
   // 2) aste superflue: si prova a togliere ognuna (dalle meno utili) e si tiene la rimozione se la copertura resta protetta
-  if (aggiunte.length > 1 && ris.areaCoperturaEsposta === 0) {
+  if (aggiunte.length > 1 && conta(ris) === 0) {
     const ordine = [...aggiunte].sort((a, b) => a.altezza - b.altezza);
     let prove = 0;
     for (const a of ordine) {
       if (prove++ > 80) break;
       const resto = aggiunte.filter((b) => b !== a);
       const r2 = calcolaSferaRotolante({ ...inp, aste: [...(inp.aste ?? []), ...resto] });
-      if (r2.areaCoperturaEsposta === 0) { aggiunte.splice(aggiunte.indexOf(a), 1); ris = r2; }
+      if (conta(r2) === 0) { aggiunte.splice(aggiunte.indexOf(a), 1); ris = r2; }
     }
   }
   // 3) altezze: ogni asta scende all'altezza a catalogo più bassa con cui la copertura resta protetta (verifica con la sfera)
-  if (aggiunte.length && ris.areaCoperturaEsposta === 0) {
+  if (aggiunte.length && conta(ris) === 0) {
     let prove = 0;
     for (const a of [...aggiunte].sort((x, y) => y.altezza - x.altezza)) {
       const scelte = (a.posa === "parete" ? pareti : treppiedi).filter((h) => h.altezza < a.altezza);
@@ -980,16 +1010,17 @@ export function suggerisciAsteCatalogo(
         if (prove++ > 70) break;
         const prima = { ...a }; Object.assign(a, { altezza: h.altezza, codiceOBO: h.codice, diametro: h.diametro, descrizione: h.descrizione, cat: h });
         const r2 = calcolaSferaRotolante({ ...inp, aste: [...(inp.aste ?? []), ...aggiunte] });
-        if (r2.areaCoperturaEsposta === 0) { ris = r2; break; }
+        if (conta(r2) === 0) { ris = r2; break; }
         Object.assign(a, prima);
       }
     }
   }
-  if (ris.areaCoperturaEsposta > 0) avvisi.push(`Restano ${ris.areaCoperturaEsposta.toFixed(1)} m² di copertura esposta: ammetti aste più alte (es. irod) oppure completa con conduttori di captazione`);
+  if (conta(ris) > 0) avvisi.push(`Restano ${ris.areaCoperturaEsposta.toFixed(1)} m² di copertura esposta: ammetti aste più alte (es. irod) oppure completa con conduttori di captazione`);
+  if (minori.zone) avvisi.push(`${minori.zone} zone esposte minori non hanno ricevuto un'asta (in tutto ${minori.area.toFixed(1)} m², ognuna sotto ${(opzioni.areaMinimaZona ?? 0).toFixed(0)} m² e più bassa della sommità: cornicioni, balconi, piccole sporgenze). Restano segnate in rosso: valuta se proteggerle a parte o se sono trascurabili (sotto i 60 m gli impatti laterali contano solo per le parti che sporgono molto, 62305-3, 5.2.3)`);
   if (ris.facceEsposte.length) avvisi.push(`Pareti esposte per ${ris.areaPareteEsposta.toFixed(1)} m² (fulminazione laterale): prevedere captatori in facciata o anelli`);
-  const conta = new Map<string, number>(); for (const a of aggiunte) conta.set(a.descrizione ?? `${a.altezza} m`, (conta.get(a.descrizione ?? `${a.altezza} m`) ?? 0) + 1);
-  if (aggiunte.length) avvisi.unshift(`${aggiunte.length} aste a catalogo: ${[...conta].map(([d, n]) => `${n} × ${d}`).join(", ")}`);
-  return { asteAggiunte: aggiunte.map(({ cat: _c, ...a }) => { void _c; return a; }), risultato: ris, avvisi };
+  const perTipo = new Map<string, number>(); for (const a of aggiunte) perTipo.set(a.descrizione ?? `${a.altezza} m`, (perTipo.get(a.descrizione ?? `${a.altezza} m`) ?? 0) + 1);
+  if (aggiunte.length) avvisi.unshift(`${aggiunte.length} aste a catalogo: ${[...perTipo].map(([d, n]) => `${n} × ${d}`).join(", ")}`);
+  return { asteAggiunte: aggiunte.map(({ cat: _c, ...a }) => { void _c; return a; }), risultato: ris, avvisi, ignorate: { zone: minori.zone, area: minori.area } };
 }
 
 export function suggerisciAste(

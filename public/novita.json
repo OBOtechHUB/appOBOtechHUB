@@ -2,6 +2,27 @@
   "nota": "Registro degli aggiornamenti di Progettazione LPS. Una voce per aggiornamento, la più recente per prima (app: lps). Viene mostrato nella barra \"Aggiorna app\", nel riquadro Novità e nella pagina Novità di OBO Hub. Le novità solo grafiche (animazioni, sigle, aspetto) non si mostrano: restano conservate in 'grafica_non_mostrata'.",
   "aggiornamenti": [
     {
+      "id": "2026-11-27-lps-79",
+      "data": "2026-11-27",
+      "app": "lps",
+      "titolo": "Edificio 3D: importazione e aste proposte più chiare",
+      "voci": [
+        "Modelli IFC e 3D: «Suggerisci aste» propone molte meno aste, perché non ne mette più una per ogni cornicione o balcone; le piccole sporgenze restano segnate in rosso ed elencate (soglia modificabile)",
+        "Le aste proposte si vedono nel modello: linea arancione con un pallino in cima, più l'elenco con posizione e altezza",
+        "Senza captatori le zone che la sfera non raggiunge sono grigie, non verdi: niente è ancora protetto dall'impianto. Sotto il modello c'è la legenda dei colori",
+        "Corpi con molti lati: un solo campo per il materiale di tutte le facciate (lato per lato solo se serve) e altezze con due decimali",
+        "DWG e DXF: se il file è un prospetto o una sezione l'app lo dice e non crea corpi da tratti minuscoli"
+      ],
+      "titolo_en": "3D building: clearer import and proposed rods",
+      "voci_en": [
+        "IFC and 3D models: «Suggest rods» proposes far fewer rods, as it no longer adds one for every cornice or balcony; small protrusions stay marked in red and listed (threshold can be changed)",
+        "Proposed rods are visible in the model: orange line with a dot on top, plus a list with position and height",
+        "With no air terminals, areas the sphere cannot reach are grey, not green: nothing is protected by the system yet. A colour legend is shown under the model",
+        "Bodies with many sides: a single field for the material of all facades (side by side only if needed) and heights with two decimals",
+        "DWG and DXF: if the file is an elevation or a section the app says so and does not create bodies from tiny strokes"
+      ]
+    },
+    {
       "id": "2026-11-27-lps-78",
       "data": "2026-11-27",
       "app": "lps",

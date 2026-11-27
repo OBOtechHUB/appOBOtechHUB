@@ -21,7 +21,7 @@ import type { AstaCatalogo } from "./asteCatalogo";
 export type RichiestaSfera =
   | { id: number; tipo: "calcola"; input: InputSfera; passoInviluppo?: number | undefined; maglia?: ParametriMaglia | null | undefined }
   | { id: number; tipo: "confronta"; base: Omit<InputSfera, "raggio">; raggi: Record<string, number | null> }
-  | { id: number; tipo: "suggerisci"; input: InputSfera; altezzaAsta: number; asteMax?: number | undefined; catalogo?: AstaCatalogo[] | undefined }
+  | { id: number; tipo: "suggerisci"; input: InputSfera; altezzaAsta: number; asteMax?: number | undefined; catalogo?: AstaCatalogo[] | undefined; areaMinimaZona?: number | undefined }
   | { id: number; tipo: "proponi"; corpi: Corpo[]; parametri: ParametriProposta };
 
 self.onmessage = (ev: MessageEvent<RichiestaSfera>) => {
@@ -41,7 +41,7 @@ self.onmessage = (ev: MessageEvent<RichiestaSfera>) => {
     } else if (msg.tipo === "proponi") {
       dati = proponiCaptazione(msg.corpi, msg.parametri);
     } else {
-      dati = msg.catalogo?.length ? suggerisciAsteCatalogo(msg.input, msg.catalogo) : suggerisciAste(msg.input, msg.altezzaAsta, { asteMax: msg.asteMax });
+      dati = msg.catalogo?.length ? suggerisciAsteCatalogo(msg.input, msg.catalogo, { areaMinimaZona: msg.areaMinimaZona }) : suggerisciAste(msg.input, msg.altezzaAsta, { asteMax: msg.asteMax });
     }
     (self as unknown as Worker).postMessage({ id: msg.id, ok: true, dati });
   } catch (e) {

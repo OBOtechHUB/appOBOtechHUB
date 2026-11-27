@@ -53,6 +53,23 @@ export function altezzaDaTesto(t: string): number | null {
 }
 const parolaLucernario = /lucern|skylight|cupol|evacuatore|exutor|lanternino/i;
 
+/** Un contorno isolato più piccolo di così (m²) o più stretto di così (m) non viene proposto come corpo dell'edificio (si può cambiare a mano). */
+export const AREA_MINIMA_CORPO = 4, LATO_MINIMO_CORPO = 0.5;
+
+/**
+ * Il disegno sembra un prospetto o una sezione e non una pianta? Lo dice il nome del file (prospetto, elevation,
+ * sezione, section, facciata) oppure il contenuto: nessun contorno che possa essere un corpo, o corpi che coprono
+ * meno del 2 % dell'ingombro del disegno. Restituisce il testo dell'avviso, oppure null.
+ */
+export function sembraProspetto(nomeFile: string, elementi: { ruolo: Ruolo; area: number }[], ingombro: number[]): string | null {
+  const daNome = /prospett|elevation|elevazion|sezion|section|facciat|fronte|ansicht|schnitt/i.test(nomeFile);
+  const corpi = elementi.filter((e) => e.ruolo === "corpo"), areaCorpi = corpi.reduce((t, e) => t + e.area, 0);
+  const areaDisegno = (ingombro[0] ?? 0) * (ingombro[1] ?? 0);
+  const vuoto = elementi.length > 0 && (!corpi.length || (areaDisegno > 0 && areaCorpi < 0.02 * areaDisegno));
+  if (!daNome && !vuoto) return null;
+  return `${daNome ? "Dal nome, questo file sembra un prospetto o una sezione" : "Questo disegno non sembra una pianta"}: ${!corpi.length ? "nei layer scelti non c'è nessun contorno chiuso grande come un edificio" : `i contorni trovati coprono solo ${areaCorpi.toLocaleString("it-IT", { maximumFractionDigits: 1 })} m²`}. Da qui si importa la pianta delle coperture (contorni chiusi visti dall'alto). Un prospetto serve per le altezze: importa prima la pianta, poi in Edificio 3D usa «Altezze da un prospetto o da una sezione» (PDF o immagine del prospetto).`;
+}
+
 /** Riconosce il ruolo di ogni contorno e ne propone l'altezza. `fattore` = metri per unità del file. */
 export function analizzaPianta(poli: PoliCad[], testi: TestoCad[], fattore: number): ElementoPianta[] {
   const chiuse = polilineeChiuse(poli).map((p) => ({ ...p, area: areaPoligono(p.punti) * fattore * fattore, c: baricentro(p.punti) }));
@@ -75,7 +92,11 @@ export function analizzaPianta(poli: PoliCad[], testi: TestoCad[], fattore: numb
     const conAltezza = miei.map((t) => ({ t, h: altezzaDaTesto(t.testo) })).find((x) => x.h !== null);
     const testo = miei.map((t) => t.testo.replace(/\\[A-Za-z][^;]*;|[{}]/g, "").trim()).filter(Boolean).join(" · ").slice(0, 80);
     let ruolo: Ruolo = "corpo";
+    // contorni minuscoli o sottilissimi senza un corpo intorno: tratti di un prospetto, retini, simboli. Non sono edifici.
+    const xs = p.punti.map((q) => q[0]), ys = p.punti.map((q) => q[1]);
+    const latoMin = Math.min(Math.max(...xs) - Math.min(...xs), Math.max(...ys) - Math.min(...ys)) * fattore;
     if (copia || p.area < 0.2) ruolo = "ignora";
+    else if (genitore === null && (p.area < AREA_MINIMA_CORPO || latoMin < LATO_MINIMO_CORPO)) ruolo = "ignora";
     else if (genitore !== null) {
       const g = ord[genitore]!;
       if (p.area / g.area < 0.4) ruolo = parolaLucernario.test(p.layer) || parolaLucernario.test(testo) ? "lucernario" : "impianto";

@@ -12,6 +12,7 @@ export const SPECIFICHE: Specifica[] = [
   { id: "2026-11-27-1", data: "27/11/2026", titolo: "Antenne: nuove avvertenze di norma", cosa: "Fulmini laterali oltre 60 m, condizione di validità di kc con più calate, correzione per l'altitudine.", riguarda: ["antenne"] },
   { id: "2026-11-27-2", data: "27/11/2026", titolo: "Controllo del progetto", cosa: "Edifici oltre 60 m e dispersori aggiuntivi dell'anello di terra.", riguarda: ["edificio"] },
   { id: "2026-11-27-3", data: "27/11/2026", titolo: "Codici isCon in distinta", cosa: "Cavo al metro o in bobina, elemento di collegamento e supporto secondo la versione, Pro+ con il codice a catalogo.", riguarda: ["edificio", "antenne"] },
+  { id: "2026-11-27-4", data: "27/11/2026", titolo: "Aste proposte sui modelli 3D importati", cosa: "«Suggerisci aste» non mette più un'asta per ogni cornicione o balcone: le piccole sporgenze basse restano segnalate. Le proposte già accettate non cambiano.", riguarda: ["edificio"] },
 ];
 
 export const SPECIFICA_ATTUALE = SPECIFICHE[SPECIFICHE.length - 1]!.id;

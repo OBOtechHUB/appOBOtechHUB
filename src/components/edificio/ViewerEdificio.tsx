@@ -28,14 +28,17 @@ type Props={onSpostaCorpo?:(id:string,dx:number,dy:number)=>void;spostaConImpian
   semplice?:boolean;
   /** chiave del progetto per le immagini salvate per la relazione */
   chiaveViste?:string|undefined};
+/** celle che la sfera non raggiunge quando non c'è nessun captatore */
+const COLORE_RIPARATA="#8f9aa3";
 function colors(){const css=getComputedStyle(document.documentElement);const get=(name:string,riserva:string)=>css.getPropertyValue(name).trim()||riserva;return {terra:get("--viewer-terra","#875b32"),surface:get("--viewer-surface","#d7e0e5"),roof:get("--viewer-roof","#718e9d"),metal:get("--viewer-metal","#f27d2b"),grid:get("--viewer-grid","#93a7b3"),exposed:get("--viewer-exposed","#dc4545"),protected:get("--viewer-protected","#28a861"),maglia:get("--viewer-maglia","#2b7de9"),accent:get("--accent","#f39b00"),
   parete:get("--viewer-parete","#e9edf0"),tetto:get("--viewer-tetto","#b5c2ca"),falde:get("--viewer-falde","#b3654a"),impianto:get("--viewer-impianto","#6d7f8c"),spigolo:get("--viewer-spigolo","#3c4a54"),terreno:get("--viewer-terreno","#c6d0c2"),cieloAlto:get("--viewer-cielo-alto","#cfe3f1"),cieloBasso:get("--viewer-cielo-basso","#f4f7f9"),cemento:get("--viewer-cemento","#a7abae")};}
 /** Celle di copertura colorate (InstancedMesh): verde = protetta dalla sfera, blu = protetta dalla maglia, rosso = esposta. */
-function CelleCopertura({r,combinata,c}:{r:RisultatoSfera;combinata?:RisultatoCombinato|undefined;c:ReturnType<typeof colors>}){
+/** Senza captatori (`senza`) le celle che la sfera non tocca non sono «protette»: sono solo riparate dalle parti più alte dell'edificio, e si disegnano in grigio. */
+function CelleCopertura({r,combinata,c,senza}:{r:RisultatoSfera;combinata?:RisultatoCombinato|undefined;c:ReturnType<typeof colors>;senza?:boolean}){
   const {esposte,protette,daMaglia}=useMemo(()=>{const g=r.griglia,esposte:[number,number,number][]=[],protette:[number,number,number][]=[],daMaglia:[number,number,number][]=[];for(let k=0;k<r.esposta.length;k++){const v=r.esposta[k];if(!v)continue;const i=k%g.nx,j=Math.floor(k/g.nx);const p:[number,number,number]=[g.x0+i*g.passo,g.y0+j*g.passo,r.altezze[k]??0];if(combinata){const st=combinata.stato[k];if(st===1)protette.push(p);else if(st===2)daMaglia.push(p);else if(st===3)esposte.push(p);}else (v===1?esposte:protette).push(p);}return {esposte,protette,daMaglia};},[r,combinata]);
   const build=(lista:[number,number,number][],color:string)=>{const geo=new THREE.PlaneGeometry(r.griglia.passo,r.griglia.passo);const mat=new THREE.MeshBasicMaterial({color,side:THREE.DoubleSide});const m=new THREE.InstancedMesh(geo,mat,Math.max(1,lista.length));const o=new THREE.Object3D();lista.forEach((p,i)=>{o.position.set(p[0],p[2]+.06,-p[1]);o.rotation.set(-Math.PI/2,0,0);o.updateMatrix();m.setMatrixAt(i,o.matrix);});m.count=lista.length;m.instanceMatrix.needsUpdate=true;return m;};
   const mE=useMemo(()=>build(esposte,c.exposed),[esposte,c.exposed,r.griglia.passo]);
-  const mP=useMemo(()=>build(protette,c.protected),[protette,c.protected,r.griglia.passo]);
+  const colP=senza?COLORE_RIPARATA:c.protected;const mP=useMemo(()=>build(protette,colP),[protette,colP,r.griglia.passo]);
   const mM=useMemo(()=>build(daMaglia,c.maglia),[daMaglia,c.maglia,r.griglia.passo]);
   useEffect(()=>()=>{mE.geometry.dispose();mP.geometry.dispose();mM.geometry.dispose();},[mE,mP,mM]);
   return <group>{esposte.length>0&&<primitive object={mE}/>}{protette.length>0&&<primitive object={mP}/>}{daMaglia.length>0&&<primitive object={mM}/>}</group>;
@@ -120,6 +123,10 @@ export default function ViewerEdificio(props:Props){
   useEffect(()=>{setC(colors());if(!semplice)setPrefStato(leggiPref());const o=new MutationObserver(()=>setC(colors()));o.observe(document.documentElement,{attributes:true,attributeFilter:["class","data-theme","style"]});return ()=>o.disconnect();},[semplice]);
   const setPref=(p:Partial<PrefVista>)=>setPrefStato((v)=>{const n={...v,...p};try{localStorage.setItem(CHIAVE_PREF,JSON.stringify(n));}catch{/* senza memoria del browser */}return n;});
   const lim=limitiModello(props.modello);const b:Limiti3D=useMemo(()=>({minX:Number.isFinite(lim.minX)?lim.minX:0,maxX:Number.isFinite(lim.maxX)?lim.maxX:20,minY:Number.isFinite(lim.minY)?lim.minY:0,maxY:Number.isFinite(lim.maxY)?lim.maxY:20,H:Number.isFinite(lim.H)?Math.max(lim.H,1):10}),[lim.minX,lim.maxX,lim.minY,lim.maxY,lim.H]);
+  // segno in cima alle aste proposte: grande abbastanza da vedersi anche su edifici grandi
+  const raggioSegno=Math.max(.3,Math.max(b.maxX-b.minX,b.maxY-b.minY,b.H)/130);
+  // nessun captatore (né aste, né proposte, né conduttori di captazione): le celle non raggiunte dalla sfera non sono «protette»
+  const senzaCaptatori=!props.aste.length&&!props.suggerite.length&&!props.conduttori.some((x)=>x.tipo==="captazione");
   // nuova inquadratura solo quando cambiano i blocchi (importazione, nuovo corpo), non quando si spostano o si modificano
   const chiaveLimiti=props.modello.corpi.map((k)=>k.id).join("|");
   const vai=useCallback((v:VistaPredefinita,subito=false)=>{const x=vistaCamera(b,v);setRichiesta({n:++nRich.current,posizione:x.posizione,obiettivo:x.obiettivo,subito});},[b]);
@@ -180,7 +187,7 @@ export default function ViewerEdificio(props:Props){
       </Bvh>
       {props.aste.map((x0)=>{const o=deltaCorpo&&props.spostaConImpianto!==false&&asteInsieme.has(x0.id)?deltaCorpo.d:([0,0] as [number,number]);const x={...x0,x:x0.x+o[0],y:x0.y+o[1]};return <Line key={`l-${x.id}`} points={[[x.x,x.z,-x.y],[x.x,x.z+x.altezza,-x.y]]} color={selez("asta",x.id)?c.accent:pref.evidenzia||semplice?c.metal:"#aeb5bb"} lineWidth={selez("asta",x.id)?5:3}/>;})}
       {props.aste.map((x)=>{const on=selez("asta",x.id);const off=deltaCorpo&&props.spostaConImpianto!==false&&asteInsieme.has(x.id)?deltaCorpo.d:null;return <Asta3D key={x.id} a={off?{...x,x:x.x+off[0],y:x.y+off[1]}:x} on={on} evidenzia={pref.evidenzia} c={c} ombra={ombre} onClick={sel("asta",x.id)} onPointerDown={(e)=>{if(props.spostabile&&props.onTrascina&&e.button===0){e.stopPropagation();bloccaVista();if(!on)props.onSeleziona?.({tipo:"asta",id:x.id});setTrascina(x.id);}}}/>;})}
-      {props.suggerite.map((x)=><mesh key={x.id} position={[x.x,x.z+x.altezza/2,-x.y]}><cylinderGeometry args={[Math.max(.08,x.diametro/2),Math.max(.08,x.diametro/2),x.altezza,8]}/><meshStandardMaterial color={c.accent} transparent opacity={.7}/></mesh>)}
+      {props.suggerite.map((x)=><group key={x.id}><Line points={[[x.x,x.z,-x.y],[x.x,x.z+x.altezza,-x.y]]} color={c.accent} lineWidth={4}/><mesh position={[x.x,x.z+x.altezza,-x.y]}><sphereGeometry args={[raggioSegno,12,8]}/><meshBasicMaterial color={c.accent}/></mesh></group>)}
       <ConduttoriTubi conduttori={props.conduttori} c={c} ombra={ombre} evidenzia={pref.evidenzia&&!semplice}/>
       {props.conduttori.map((line)=>{const on=selez("conduttore",line.id);return <Line key={line.id} onClick={sel("conduttore",line.id)} points={line.punti.map((p)=>[p[0],p[2]+.01,-p[1]] as [number,number,number])} color={on?c.accent:line.tipo==="terra"?c.terra:pref.evidenzia||semplice?c.metal:coloreMateriale(line.materiale,line.tipo)} depthTest={line.tipo!=="terra"} renderOrder={line.tipo==="terra"?2:0} lineWidth={on?6:2}/>;})}
       {!semplice&&<Componenti3D supporti={props.supporti??[]} morsetti={props.morsetti??[]} c={c} ombra={ombre}/>}
@@ -191,7 +198,7 @@ export default function ViewerEdificio(props:Props){
       {props.propostaTerra&&<group>{props.propostaTerra.conduttori.map((line,i)=><Line key={`terra-${i}`} points={line.punti.map((p)=>[p[0],p[2],-p[1]] as [number,number,number])} color={c.terra} depthTest={false} renderOrder={2} lineWidth={3} dashed dashSize={.4} gapSize={.2}/>)}{props.propostaTerra.picchetti.map((p,i)=><Line key={`picchetto-preview-${i}`} points={[[p.x,p.z??0,-p.y],[p.x,(p.z??0)-p.lunghezza,-p.y]]} color={c.terra} depthTest={false} renderOrder={2} lineWidth={4}/>)}{props.propostaTerra.morsetti.map((p,i)=><mesh key={`morsetto-terra-${i}`} position={[p.x,p.z,-p.y]}><sphereGeometry args={[.15,8,6]}/><meshBasicMaterial color={c.terra}/></mesh>)}</group>}
       {props.proposta&&<Proposta p={props.proposta} c={c}/>}
       {props.particolari&&props.particolari.length>0&&<MarcatoriParticolari marcatori={props.particolari} onSeleziona={(id)=>{props.onParticolare?.(id);}}/>}
-      {props.risultato&&<><CelleCopertura r={props.risultato} combinata={props.combinata} c={c}/><FacceEsposte r={props.risultato} c={c}/>{props.mostraMaglie&&props.maglia&&<Maglie rm={props.maglia} r={props.risultato} c={c} evidenziata={props.magliaEvidenziata}/>}{props.mostraInviluppo&&props.inviluppo&&<Inviluppo inv={props.inviluppo} c={c}/>}<Sfera r={props.risultato} anima={props.anima} centri={props.centriSfera} posizione={props.posizioneSfera} color={c.metal}/></>}
+      {props.risultato&&<><CelleCopertura r={props.risultato} combinata={props.combinata} c={c} senza={senzaCaptatori}/><FacceEsposte r={props.risultato} c={c}/>{props.mostraMaglie&&props.maglia&&<Maglie rm={props.maglia} r={props.risultato} c={c} evidenziata={props.magliaEvidenziata}/>}{props.mostraInviluppo&&props.inviluppo&&<Inviluppo inv={props.inviluppo} c={c}/>}<Sfera r={props.risultato} anima={props.anima} centri={props.centriSfera} posizione={props.posizioneSfera} color={c.metal}/></>}
       {a&&<mesh position={[a[0],a[2]+.1,-a[1]]}><sphereGeometry args={[.12,12,8]}/><meshBasicMaterial color={c.accent}/></mesh>}
       {bb&&<mesh position={[bb[0],bb[2]+.1,-bb[1]]}><sphereGeometry args={[.12,12,8]}/><meshBasicMaterial color={c.accent}/></mesh>}
       {a&&bb&&<Line points={[[a[0],a[2]+.1,-a[1]],[bb[0],bb[2]+.1,-bb[1]]]} color={c.accent} lineWidth={3}/>}
@@ -225,6 +232,14 @@ export default function ViewerEdificio(props:Props){
     <label className="flex items-center gap-1.5">Sezione <select aria-label="Sezione" className="h-8 max-w-[11rem] rounded-md border bg-background px-1" value={pref.sezione} onChange={(e)=>setPref({sezione:e.target.value as PrefVista["sezione"]})}><option value="no">nessuna</option><option value="orizzontale">taglio orizzontale</option><option value="ns">verticale nord-sud</option><option value="eo">verticale est-ovest</option></select></label>
     {pref.sezione!=="no"&&<input type="range" aria-label="Posizione della sezione" min={0} max={1} step={.01} value={pref.taglio} onChange={(e)=>setPref({taglio:Number(e.target.value)})} className="w-32"/>}
     <span className="text-xs text-muted-foreground">Doppio clic: centra la vista sul punto. Cubo in basso a destra: clic su una faccia.</span>
+    {props.risultato&&<div className="flex w-full flex-wrap items-center gap-x-4 gap-y-1 border-t pt-2 text-xs" aria-label="Legenda dei colori della copertura">
+      <span className="font-semibold">Colori</span>
+      <span className="flex items-center gap-1"><span className="inline-block h-3 w-3 rounded-sm" style={{background:c.exposed}}/>esposta: la sfera la tocca</span>
+      {senzaCaptatori
+        ?<span className="flex items-center gap-1"><span className="inline-block h-3 w-3 rounded-sm" style={{background:COLORE_RIPARATA}}/>non raggiunta dalla sfera: la riparano parti più alte dell'edificio</span>
+        :<><span className="flex items-center gap-1"><span className="inline-block h-3 w-3 rounded-sm" style={{background:c.protected}}/>protetta dalla sfera</span><span className="flex items-center gap-1"><span className="inline-block h-3 w-3 rounded-sm" style={{background:c.maglia}}/>protetta dalla maglia</span></>}
+      {senzaCaptatori&&<span className="w-full text-muted-foreground">Non c'è ancora nessun captatore: niente è protetto dall'impianto. Le zone grigie non vengono colpite direttamente perché la sfera tocca prima i bordi più alti (parapetti, volumi sopra); i fulmini cadono sulle zone rosse.</span>}
+    </div>}
     <div className="flex w-full flex-wrap items-center gap-2 border-t pt-2">
       <button type="button" className={btn} onClick={()=>void salvaPng()}><Download className="h-4 w-4"/>Salva immagine (PNG)</button>
       {props.chiaveViste&&<><input aria-label="Didascalia della vista per la relazione" className="h-8 min-w-0 flex-1 rounded-md border bg-background px-2 text-xs sm:max-w-md" value={didascalia} onChange={(e)=>setDidascalia(e.target.value)}/><button type="button" className={btn} onClick={()=>void perRelazione()}><FileImage className="h-4 w-4"/>Usa nella relazione</button></>}

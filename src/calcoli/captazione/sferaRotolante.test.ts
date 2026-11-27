@@ -4,6 +4,8 @@ import {
   inviluppoInPunto,
   confrontaLivelli,
   suggerisciAste,
+  suggerisciAsteCatalogo,
+  zoneEsposteMinori,
   percorsoSfera,
   inviluppoSuGriglia,
   distanzaQuadra,
@@ -232,4 +234,30 @@ describe("sfera rotolante – casi di progetto", () => {
     const ris = calcolaSferaRotolante({ corpi: [rett("A", 0, 0, 40, 20, 12)], raggio: 60 });
     expect(ris.tempoMs).toBeLessThan(3000);
   });
+});
+
+describe("zone esposte minori (cornicioni, balconi dei modelli importati)", () => {
+  // corpo alto 20 m e, lontano, un piccolo volume basso che la sfera tocca
+  const corpi = [rett("A", 0, 0, 20, 20, 20), rett("mensola", 80, 8, 2, 2, 8)];
+  const catalogo = [1.5, 2, 3, 4].map((h) => ({ posa: "treppiede", altezza: h, diametro: 0.016, codice: `T${h}`, descrizione: `asta ${h} m` }));
+  it("riconosce la zona piccola e bassa, non la copertura alta", () => {
+    const r = calcolaSferaRotolante({ corpi, raggio: 45, passo: 1 });
+    const g = r.griglia, cella = (x: number, y: number) => Math.round((y - g.y0) / g.passo) * g.nx + Math.round((x - g.x0) / g.passo);
+    expect(r.esposta[cella(81, 9)]).toBe(1);
+    const m = zoneEsposteMinori(r, 10);
+    expect(m.zone).toBe(1); expect(m.area).toBeGreaterThan(1); expect(m.area).toBeLessThan(10);
+    expect(m.maschera[cella(81, 9)]).toBe(1);
+    expect(m.maschera[cella(10, 10)]).toBe(0);
+    expect(zoneEsposteMinori(r, 0).zone).toBe(0);
+  });
+  it("con la soglia non mette un'asta sulla sporgenza e lo dice", () => {
+    const tutte = suggerisciAsteCatalogo({ corpi, raggio: 45, passo: 1 }, catalogo);
+    const poche = suggerisciAsteCatalogo({ corpi, raggio: 45, passo: 1 }, catalogo, { areaMinimaZona: 10 });
+    expect(tutte.asteAggiunte.some((a) => a.x > 60)).toBe(true);
+    expect(poche.asteAggiunte.some((a) => a.x > 60)).toBe(false);
+    expect(poche.asteAggiunte.length).toBeLessThan(tutte.asteAggiunte.length);
+    expect(poche.ignorate.zone).toBe(1);
+    expect(poche.avvisi.some((a) => /zone esposte minori/.test(a))).toBe(true);
+    expect(tutte.ignorate.zone).toBe(0);
+  }, 60000);
 });

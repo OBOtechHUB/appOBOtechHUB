@@ -51,8 +51,8 @@ export function useSferaRotolante() {
     confronta: (base: Omit<InputSfera, "raggio">, raggi: Record<string, number | null>) =>
       invia<{ riepilogo: RiepilogoLivello[]; risultati: Record<string, RisultatoSfera> }>({ tipo: "confronta", base, raggi }),
     /** aste proposte: con il catalogo, aste reali senza limite di numero (altezze e diametri a catalogo) */
-    suggerisci: (input: InputSfera, altezzaAsta: number, asteMax?: number, catalogo?: AstaCatalogo[]) =>
-      invia<{ asteAggiunte: Asta[]; risultato: RisultatoSfera; avvisi: string[] }>({ tipo: "suggerisci", input, altezzaAsta, asteMax, catalogo }),
+    suggerisci: (input: InputSfera, altezzaAsta: number, asteMax?: number, catalogo?: AstaCatalogo[], areaMinimaZona?: number) =>
+      invia<{ asteAggiunte: Asta[]; risultato: RisultatoSfera; avvisi: string[] }>({ tipo: "suggerisci", input, altezzaAsta, asteMax, catalogo, areaMinimaZona }),
     /** proposta automatica di captazione (maglia, calate, aste, supporti, connettori) */
     proponi: (corpi: Corpo[], parametri: ParametriProposta) =>
       invia<PropostaCaptazione>({ tipo: "proponi", corpi, parametri }),

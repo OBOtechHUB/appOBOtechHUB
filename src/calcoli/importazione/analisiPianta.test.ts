@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { altezzaDaTesto, analizzaPianta, corpiDaPianta, type PoliCad } from "./analisiPianta";
+import { altezzaDaTesto, analizzaPianta, corpiDaPianta, sembraProspetto, type PoliCad } from "./analisiPianta";
 
 const rett = (layer: string, x: number, y: number, w: number, h: number, chiusa = true): PoliCad => ({ layer, chiusa, punti: [[x, y], [x + w, y], [x + w, y + h], [x, y + h]] });
 
@@ -44,5 +44,20 @@ describe("analisi della pianta CAD", () => {
   it("una grande parte interna è un corpo (es. corpo più alto), non un impianto", () => {
     const el = analizzaPianta([rett("A", 0, 0, 30, 20), rett("A", 0, 0, 20, 20)], [], 1);
     expect(el.map((e) => e.ruolo)).toEqual(["corpo", "corpo"]);
+  });
+});
+
+describe("prospetti scambiati per piante", () => {
+  const q = (x: number, y: number, l: number, h: number): [number, number][] => [[x, y], [x + l, y], [x + l, y + h], [x, y + h]];
+  it("contorni minuscoli o sottili senza un corpo intorno non sono corpi", () => {
+    const el = analizzaPianta([{ layer: "A-ROOF", punti: q(0, 0, 7, 0.06), chiusa: true }, { layer: "A-ROOF", punti: q(20, 0, 0.6, 0.6), chiusa: true }, { layer: "A", punti: q(0, 10, 30, 20), chiusa: true }], [], 1);
+    expect(el.filter((e) => e.ruolo === "corpo").map((e) => Math.round(e.area))).toEqual([600]);
+    expect(el.filter((e) => e.ruolo === "ignora").length).toBe(2);
+  });
+  it("avviso dal nome del file o dal contenuto", () => {
+    expect(sembraProspetto("--Elevation - HPS_Prospetto 01.dwg", [{ ruolo: "corpo", area: 600 }], [30, 20])).toMatch(/prospetto o una sezione/);
+    expect(sembraProspetto("pianta coperture.dwg", [{ ruolo: "corpo", area: 600 }], [30, 20])).toBeNull();
+    expect(sembraProspetto("disegno.dwg", [{ ruolo: "ignora", area: 0.4 }, { ruolo: "ignora", area: 0.2 }], [71.3, 41.4])).toMatch(/non sembra una pianta/);
+    expect(sembraProspetto("disegno.dwg", [], [10, 10])).toBeNull();
   });
 });

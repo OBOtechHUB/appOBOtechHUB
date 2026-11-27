@@ -14,7 +14,7 @@ import { ESTENSIONI_3D, applicaQuota0, dimensioniCorpo, leggiDXF, leggiMesh, quo
 import { leggiImmagine, leggiPdf, type PianoImportato } from "@/lib/leggiPdf";
 import { leggiDWG } from "@/lib/leggiDwg";
 import type { LetturaCad } from "@/lib/letturaCad";
-import { analizzaPianta, corpiDaPianta, type Ruolo } from "@/calcoli/importazione/analisiPianta";
+import { analizzaPianta, corpiDaPianta, sembraProspetto, type Ruolo } from "@/calcoli/importazione/analisiPianta";
 
 type Tipo = "dxf" | "3d" | "pdf" | "img";
 type P2 = [number, number];
@@ -109,6 +109,8 @@ export function ImportaFile({ onImporta, paginaIntera = false, daAprire }: { onI
   const elementi = useMemo(() => tipo === "dxf" && dxf && fattore ? analizzaPianta(dxf.poligoni.filter((p) => layersSel.includes(p.layer)), dxf.testi, fattore) : [], [tipo, dxf, layersSel, fattore]);
   const elementiScelti = elementi.map((e) => { const c = scelte[e.id]; const h = c?.altezza !== undefined ? num(c.altezza) : NaN; return { ...e, ruolo: c?.ruolo ?? e.ruolo, altezza: Number.isFinite(h) && h > 0 ? h : e.altezza }; });
   const contaRuolo = (r: Ruolo) => elementiScelti.filter((e) => e.ruolo === r).length;
+  // prospetto o sezione scambiati per una pianta (nome del file o contenuto)
+  const avvisoProspetto = tipo === "dxf" && dxf && layersSel.length ? sembraProspetto(files[0]?.name ?? "", elementiScelti, dimFinali) : null;
 
   async function cambiaAsse(z: boolean) {
     if (!files.length) return;
@@ -120,7 +122,7 @@ export function ImportaFile({ onImporta, paginaIntera = false, daAprire }: { onI
       const h = num(altezzaDxf), hi = num(hImpianti), hl = num(hLucernari);
       const senzaAltezza = elementiScelti.filter((e) => e.ruolo === "corpo" && !e.altezza).length;
       const corpi = corpiDaPianta(elementiScelti, fattore, { corpo: h > 0 ? h : 0, impianto: hi > 0 ? hi : 1.5, lucernario: hl > 0 ? hl : 0.6 }).map((c) => corpoSchema.parse({ id: crypto.randomUUID(), ...c }));
-      if (!corpi.length) { setErrore("Nei layer scelti non ci sono polilinee chiuse da importare."); return; }
+      if (!corpi.length) { setErrore(elementi.length ? "Niente da importare: tutti i contorni sono su «Non importare». Sono troppo piccoli per essere edifici (probabile prospetto o sezione). Se uno è davvero un corpo, sceglilo nella tabella." : "Nei layer scelti non ci sono polilinee chiuse da importare: scegli i layer con il contorno delle coperture."); return; }
       const parti = ([["corpo", "corpo", "corpi"], ["impianto", "impianto sul tetto", "impianti sul tetto"], ["lucernario", "lucernario", "lucernari"]] as const).map(([r, uno, piu]) => [contaRuolo(r), uno, piu] as const).filter(([n]) => n > 0).map(([n, uno, piu]) => `${n} ${n === 1 ? uno : piu}`);
       onImporta({ corpi }); setFatto(`Importati ${parti.join(", ")} dai layer ${layersSel.join(", ")}${senzaAltezza && !(h > 0) ? `: l'altezza di ${senzaAltezza === 1 ? "un corpo" : `${senzaAltezza} corpi`} si imposta in Edificio 3D` : ". Le altezze si possono correggere in Edificio 3D"}.`); setAltezzaDxf(""); azzera();
     } else if (tipo === "3d" && corpoQ) {
@@ -278,6 +280,7 @@ export function ImportaFile({ onImporta, paginaIntera = false, daAprire }: { onI
               </table>
             </div>
           </fieldset>
+          {avvisoProspetto && <p role="alert" className="mt-4 rounded-md border-l-4 border-[#f39b00] bg-[#fff4e0] p-3 text-sm text-[#5c3b00] dark:bg-[#3a2a08] dark:text-[#ffd9a0]">{avvisoProspetto}</p>}
           <h3 className="mt-4 font-display text-lg font-semibold">2. Controlla e importa</h3>
           {fattore ? (
             <p className="mt-1 text-sm">Dimensioni dopo l'importazione: <strong className="font-mono">{descriviDimensioni(dimFinali)}</strong>
