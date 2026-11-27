@@ -33,7 +33,7 @@ describe("conduttore isolato isCon", () => {
     expect(scegliIscon({ sAria: 0.8 })?.versione).toBe("premium");
     expect(scegliIscon({ sAria: 0.4 })?.versione).toBe("basic");
     expect(scegliIscon({ sAria: 0.6 })?.versione).toBe("proplus"); // la Pro 75 normale non si propone più
-    expect(scegliIscon({ sAria: 0.4, atex: true })?.codice).toBe("5408002");
+    expect(scegliIscon({ sAria: 0.4, atex: true })?.codice).toBe("5408006");
     expect(scegliIscon({ sAria: 0.4, tensioniContatto: true })?.colore).toBe("grigio chiaro");
     expect(scegliIscon({ sAria: 1 })).toBeNull();
   });
@@ -42,6 +42,6 @@ describe("conduttore isolato isCon", () => {
     expect(codiceIscon("basic", 37.1)).toMatchObject({ codice: "5407980", quantita: 38 });
     expect(codiceIscon("basic", 120)).toMatchObject({ codice: "5408014", quantita: 120 });
     expect(codiceIscon("premium", 20)).toMatchObject({ codice: "5407984", quantita: 20 });
-    expect(codiceIscon("proplus", 20)).toMatchObject({ codice: "5408002", quantita: 20 });
+    expect(codiceIscon("proplus", 20)).toMatchObject({ codice: "5408006", quantita: 20 });
   });
 });

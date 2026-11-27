@@ -39,7 +39,7 @@ export const ISCON: Record<VersioneIscon, DatiIscon> = {
     equipotenziale: { palo: true, altroCapo: true, nota: "Collegamento equipotenziale al palo (morsetto PAE interno) e all'altro capo; tratto x = 1,50 m su entrambi i lati senza parti conduttrici entro s." },
     verniciabile: false, atex: false, protezioneMeccanica: false },
   proplus: { nome: "isCon Pro+ 75", sigla: "Pro+ 75 SW / GR", sAria: 0.75, sSolido: 1.5,
-    codici: [{ codice: "5408002", colore: "nero" }, { codice: "5408004", colore: "nero" }, { codice: "5408006", colore: "nero", bobina: 250, nota: "bobina 250 m" },
+    codici: [{ codice: "5408006", colore: "nero", bobina: 250, nota: "bobina 250 m" }, { codice: "5408002", colore: "nero", nota: "dal certificato 2018, non nel catalogo obo.it" }, { codice: "5408004", colore: "nero", nota: "dal certificato 2018, non nel catalogo obo.it" },
       { codice: "5407995", colore: "grigio chiaro", nota: "protezione dalle tensioni di contatto" }, { codice: "5407997", colore: "grigio chiaro", nota: "protezione dalle tensioni di contatto" }],
     diametro: { nero: 23, grigio: 26 }, raggioCurvatura: { nero: 230, grigio: 260 }, classe: "H1", iimp: 150, zonaPotenziale: 1.5, peso: 69.4, caricoIncendio: 4.3,
     equipotenziale: { palo: true, altroCapo: true, nota: "Come Pro 75. La guaina esterna può essere danneggiata (resta ≥ 0,2 mm su tutto il perimetro, tagli < 1,3 mm) senza perdere l'isolamento." },
@@ -66,6 +66,19 @@ export const ACCESSORI_ISCON = [
   { codice: "5408028", descrizione: "Piastra di collegamento per due conduttori isCon" },
   { codice: "5408058", descrizione: "Cartello informativo isCon" },
 ];
+
+/**
+ * Componenti del sistema per versione, dal catalogo obo.it (controllati il 27/11/2026 uno per uno):
+ * elemento di collegamento 5408021 per Basic e Professional (150 kA), 5408023 per Premium (200 kA), 5408022 terminale
+ * avvitabile (150 kA, nel catalogo senza versione indicata: usato per Pro+); supporto in acciaio inox 5408056 solo per
+ * Pro+ e Premium, per Basic e Pro il supporto in poliammide con fascetta 5408066.
+ */
+export const COMPONENTI_ISCON: Record<VersioneIscon, { collegamento: string; collegamentoNota: string; supporto: string; supportoNota: string; supportoMetallico: boolean }> = {
+  basic: { collegamento: "5408021", collegamentoNota: "per isCon Basic e Professional, 150 kA", supporto: "5408066", supportoNota: "supporto in poliammide con fascetta, montaggio su tubo", supportoMetallico: false },
+  pro: { collegamento: "5408021", collegamentoNota: "per isCon Basic e Professional, 150 kA", supporto: "5408066", supportoNota: "supporto in poliammide con fascetta, montaggio su tubo", supportoMetallico: false },
+  proplus: { collegamento: "5408022", collegamentoNota: "terminale avvitabile, 150 kA: da confermare per Pro+", supporto: "5408056", supportoNota: "supporto in acciaio inox per Pro+ e Premium", supportoMetallico: true },
+  premium: { collegamento: "5408023", collegamentoNota: "per isCon Premium, 200 kA", supporto: "5408056", supportoNota: "supporto in acciaio inox per Pro+ e Premium", supportoMetallico: true },
+};
 
 /** Ordine minimo e passo dei codici isCon venduti al metro (schede tecniche OBO «IL»). */
 export const ISCON_AL_METRO = { minimo: 6, passo: 1 };
@@ -112,10 +125,10 @@ export function scegliIscon(e: EsigenzeIscon): { versione: VersioneIscon; colore
   if (e.verniciabile || e.atex || e.protezioneMeccanica || e.tensioniContatto) {
     const gr = !!e.tensioniContatto;
     const motivi = [e.verniciabile && "verniciabile", e.atex && "zona ATEX", e.protezioneMeccanica && "protezione meccanica", e.tensioniContatto && "protezione dalle tensioni di contatto"].filter(Boolean).join(", ");
-    return { versione: "proplus", colore: gr ? "grigio chiaro" : "nero", codice: gr ? "5407995" : "5408002", motivo: motivi };
+    return { versione: "proplus", colore: gr ? "grigio chiaro" : "nero", codice: gr ? "5407995" : "5408006", motivo: motivi };
   }
   if (e.sAria <= 0.45 + 1e-9) return { versione: "basic", colore: "nero", codice: "5408014", motivo: "s in aria fino a 0,45 m" };
-  return { versione: "proplus", colore: "nero", codice: "5408002", motivo: "s in aria fino a 0,75 m" };
+  return { versione: "proplus", colore: "nero", codice: "5408006", motivo: "s in aria fino a 0,75 m" };
 }
 /** Lunghezza massima l del conduttore (m) dal punto più alto al collegamento equipotenziale con quella versione
  * (come la tabella OBO: es. LPL II, 1 calata, Pro 75 → 12,50 m; 2 calate → 18,94 m; ≥ 3 → 28,41 m). */

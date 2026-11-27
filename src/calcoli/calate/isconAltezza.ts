@@ -14,7 +14,7 @@
  * Testi scritti con parole nostre: valori e verifiche, nessun testo della norma o del costruttore copiato.
  */
 import { KI, type Livello } from "./separazione";
-import { ISCON, codiceIscon, ammessaPerCorrente, lunghezzaMassima, verificaIscon, type VersioneIscon } from "./iscon";
+import { COMPONENTI_ISCON, ISCON, codiceIscon, ammessaPerCorrente, lunghezzaMassima, verificaIscon, type VersioneIscon } from "./iscon";
 
 export type StrutturaSostegno = "metallica" | "armata" | "isolante";
 export const NOMI_STRUTTURA: Record<StrutturaSostegno, string> = {
@@ -122,11 +122,11 @@ export function calateIsconAltezza(d: DatiCalateAltezza): RisultatoCalateAltezza
   }
   const { n, v, lMax, x } = scelta;
   const kc = kcS(n), pae = scelta.pae, l = top - pae, s = (ki * kc * l) / km;
-  const D = ISCON[v], metallica = d.struttura !== "isolante";
+  const D = ISCON[v], C = COMPONENTI_ISCON[v], metallica = d.struttura !== "isolante";
   const conPAE = s >= 0.2;
   const livelli: LivelloEquipotenziale[] = [];
   livelli.push({ quota: top, tipo: "principale", titolo: "Collegamento superiore all'asta", cosa: [
-    "Elemento di collegamento isCon sull'asta (connect 5408022, con 2 5408021 o con PRE 5408023 secondo la versione; ASE 23 5408080 se si vuole la prova di isolamento, con Pro+ e Premium); sull'asta la piastra AP1-16 VA o AP2-16 VA, oppure la piastra di contatto del set isCon HM (5408090) sull'asta di captazione.",
+    `Elemento di collegamento isCon sull'asta: ${C.collegamento} (${C.collegamentoNota})${v === "proplus" || v === "premium" ? "; in alternativa il set ASE 5408080 se si vuole la prova di isolamento" : ""}; sull'asta la piastra AP1-16 VA o AP2-16 VA, oppure la piastra di contatto del set isCon HM (5408090) sull'asta di captazione.`,
     `Tratto di 1,5 m sotto il collegamento (asta centrale in vetroresina isFang) senza parti conduttrici entro s = ${f(s, 3)} m; poi il potenziale della guaina si collega con l'elemento interno dell'asta o con la molletta 927 2 6-K.`,
     `Antenne e parti metalliche ad almeno s = ${f(s, 3)} m dalle parti nude (punta, asta, collegamento superiore).`,
   ] });
@@ -154,7 +154,7 @@ export function calateIsconAltezza(d: DatiCalateAltezza): RisultatoCalateAltezza
     }
   }
   if (basso) avvisi.push(`Fine del cavo il più in basso possibile: tutto quello che sta sul palo sopra ${f(pae + x, 1)} m (antenne e apparecchi a bordo) resta su un tratto che non porta corrente di fulmine; tra ${f(pae, 1)} e ${f(pae + x, 1)} m (tratto x) nessun apparecchio entro s = ${f(s, 3)} m dal cavo. Sotto ${f(pae, 1)} m il palo porta la corrente.`);
-  avvisi.push(`Lungo il ${metallica ? "palo metallico" : "percorso"}: supporti al massimo ogni 1 m${metallica ? "; i supporti metallici isCon H VA 5408056 avvitati al palo collegano anche la guaina alle parti a terra, come chiedono le istruzioni OBO" : ""}. Raggio minimo di curvatura ${D.raggioCurvatura.nero} mm.`);
+  avvisi.push(`Lungo il ${metallica ? "palo metallico" : "percorso"}: supporti al massimo ogni 1 m${metallica && C.supportoMetallico ? "; i supporti metallici isCon H VA 5408056 avvitati al palo collegano anche la guaina alle parti a terra, come chiedono le istruzioni OBO" : `; supporto ${C.supporto} (${C.supportoNota})`}. Raggio minimo di curvatura ${D.raggioCurvatura.nero} mm.`);
   if (n > 1) avvisi.push(d.calateDistanziate === false
     ? `Calate affiancate: la corrente si divide (${n} cavi) ma il kc della distanza resta 1 (istruzioni OBO).`
     : "Calate in parallelo: almeno 20 cm tra loro e il più possibile distanti (lati opposti del palo); se corrono affiancate il kc non si riduce. I valori di kc valgono con dispersore di tipo B, o di tipo A con resistenze di terra simili (entro un fattore 2).");
@@ -170,14 +170,13 @@ export function calateIsconAltezza(d: DatiCalateAltezza): RisultatoCalateAltezza
   const ordineCavo = codiceIscon(v, cavo * n);
   const materiali: RisultatoCalateAltezza["materiali"] = [
     { codice: ordineCavo.codice, descrizione: `${D.nome} – ${n} ${n === 1 ? "calata" : "calate"}: un pezzo unico per calata tagliato a ${f(l + MARGINE, 2)} m (massimo ${f(lMax, 2)} m)${ordineCavo.nota ? `; ${ordineCavo.nota}` : ""}`, quantita: ordineCavo.quantita, unita: "m" },
-    { codice: "5408022 / 5408021 / 5408023", descrizione: "Elemento di collegamento isCon superiore, all'asta (connect / con 2 / con PRE secondo la versione)", quantita: n, unita: "pz" },
-    { codice: "5408022 / 5408021 / 5408023", descrizione: `Elemento di collegamento isCon inferiore, fine del cavo ${metallica ? "sul palo" : "sull'anello"} (stessa famiglia)`, quantita: n, unita: "pz" },
+    { codice: C.collegamento, descrizione: `Elemento di collegamento isCon (${C.collegamentoNota}): uno in alto all'asta e uno alla fine del cavo ${metallica ? "sul palo" : "sull'anello"}, per ogni calata`, quantita: 2 * n, unita: "pz" },
     n >= 2 ? { codice: "5408028", descrizione: "Piastra di collegamento AP2-16 VA per due conduttori, all'asta (per quattro due piastre)", quantita: Math.ceil(n / 2), unita: "pz" }
       : { codice: "5408026", descrizione: "Piastra di collegamento AP1-16 VA per un conduttore, all'asta", quantita: 1, unita: "pz" },
     ...(conPAE ? [{ codice: "5408036", descrizione: `Terminale isCon PAE sulla guaina, a ${f(x, 2)} m dalla fine del cavo`, quantita: n, unita: "pz" },
       { codice: "5408043", descrizione: "Distanziatore isCon DH per il tratto tra terminale PAE e fine del cavo", quantita: n * Math.max(1, Math.ceil(x)), unita: "pz" },
       { codice: "", descrizione: "Conduttore di collegamento in rame ≥ 6 mm² per i terminali PAE", quantita: n, unita: "m" }] : []),
-    { codice: metallica ? "5408056" : "", descrizione: metallica ? "Supporto metallico isCon H VA (sul palo, collega anche la guaina), al massimo ogni 1 m" : "Supporti per isCon al massimo ogni 1 m", quantita: Math.ceil(l) * n, unita: "pz" },
+    { codice: C.supporto, descrizione: C.supportoMetallico ? `Supporto in acciaio inox isCon H VA per Pro+ e Premium${metallica ? " (sul palo, collega anche la guaina)" : ""}, al massimo ogni 1 m` : "Supporto in poliammide con fascetta per cavo isCon (montaggio su tubo), al massimo ogni 1 m", quantita: Math.ceil(l) * n, unita: "pz" },
     { codice: "5408058", descrizione: "Cartello informativo isCon", quantita: 1, unita: "pz" },
   ];
   const livelliIntermedi = livelli.filter((x) => x.tipo === "intermedio").length;

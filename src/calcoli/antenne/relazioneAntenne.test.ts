@@ -13,7 +13,7 @@ describe("progetto e relazione antenne", () => {
     expect(P.lUsata).toBeCloseTo(P.ca.l, 2);
     const iscon = P.materiali.find((m) => m.unita === "m")!;
     expect(iscon.quantita).toBe(Math.ceil(P.ca.l + 0.5) * P.ca.n);
-    expect(P.materiali.some((m) => /Elemento di collegamento isCon inferiore/.test(m.descrizione))).toBe(true);
+    expect(P.materiali.some((m) => /Elemento di collegamento isCon/.test(m.descrizione) && /^54080(21|22|23)$/.test(m.codice))).toBe(true);
     expect(svgSchemaCalate(P.r.asta, 80, 77, P.ca, false, "terreno")).toContain("fine isCon");
   });
   it("relazione completa con tutte le sezioni", () => {

@@ -2,6 +2,25 @@
   "nota": "Registro degli aggiornamenti di Progettazione LPS. Una voce per aggiornamento, la più recente per prima (app: lps). Viene mostrato nella barra \"Aggiorna app\", nel riquadro Novità e nella pagina Novità di OBO Hub. Le novità solo grafiche (animazioni, sigle, aspetto) non si mostrano: restano conservate in 'grafica_non_mostrata'.",
   "aggiornamenti": [
     {
+      "id": "2026-11-27-lps-77",
+      "data": "2026-11-27",
+      "app": "lps",
+      "titolo": "isCon: un solo codice per riga nella distinta",
+      "voci": [
+        "Codici isCon ricontrollati uno per uno sul catalogo obo.it",
+        "Elemento di collegamento secondo la versione: 5408021 per Basic, 5408023 per Premium, 5408022 per Pro+ (non più tre codici insieme)",
+        "Supporti: 5408056 in acciaio inox solo per Pro+ e Premium; per Basic il supporto con fascetta 5408066",
+        "Pro+ 75: codice 5408006, quello presente nel catalogo"
+      ],
+      "titolo_en": "isCon: one article number per line in the bill of materials",
+      "voci_en": [
+        "isCon article numbers re-checked one by one against the obo.it catalogue",
+        "Connection element by version: 5408021 for Basic, 5408023 for Premium, 5408022 for Pro+ (no longer three numbers together)",
+        "Holders: stainless steel 5408056 only for Pro+ and Premium; for Basic the holder with strap 5408066",
+        "Pro+ 75: article 5408006, the one in the catalogue"
+      ]
+    },
+    {
       "id": "2026-11-27-lps-76",
       "data": "2026-11-27",
       "app": "lps",
