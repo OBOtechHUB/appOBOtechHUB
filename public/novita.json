@@ -2,6 +2,23 @@
   "nota": "Registro degli aggiornamenti di Progettazione LPS. Una voce per aggiornamento, la più recente per prima (app: lps). Viene mostrato nella barra \"Aggiorna app\", nel riquadro Novità e nella pagina Novità di OBO Hub. Le novità solo grafiche (animazioni, sigle, aspetto) non si mostrano: restano conservate in 'grafica_non_mostrata'.",
   "aggiornamenti": [
     {
+      "id": "2026-11-27-lps-75",
+      "data": "2026-11-27",
+      "app": "lps",
+      "titolo": "Controllo del progetto: edifici oltre 60 m e dispersori aggiuntivi",
+      "voci": [
+        "Ricontrollate con la norma le tabelle usate nei calcoli (parametri del fulmine, sezioni minime, dispersori, spessori delle lastre, distanze tra le calate): valori corretti",
+        "Il controllo del progetto avvisa se l'edificio supera i 60 m: la parte alta delle facciate va protetta dai fulmini laterali",
+        "Se l'anello di terra è sotto la lunghezza minima, il controllo indica quanti dispersori aggiuntivi servono e quanto devono essere lunghi"
+      ],
+      "titolo_en": "Project check: buildings above 60 m and additional earth electrodes",
+      "voci_en": [
+        "Tables used in the calculations re-checked against the standard (lightning parameters, minimum cross-sections, earth electrodes, sheet thickness, down-conductor spacing): values correct",
+        "The project check warns when the building is taller than 60 m: the upper part of the facades must be protected against side flashes",
+        "If the ring earth electrode is below the minimum length, the check says how many additional electrodes are needed and how long"
+      ]
+    },
+    {
       "id": "2026-11-27-lps-74",
       "data": "2026-11-27",
       "app": "lps",

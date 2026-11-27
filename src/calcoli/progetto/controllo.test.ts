@@ -33,4 +33,11 @@ describe("controllo del progetto completo", () => {
     const v = controllaProgetto({ edificio: { L: 0, W: 0, H: 0, comune: "", lplProgetto: null }, rischio: { valutato: false, lplMinimo: null, conformeConProgetto: null }, captazione: { conduttori: 0, aste: 0, areaEsposta: null }, calate: { numero: 0, perimetro: 0, distanzaTipica: null }, separazione: { punti: 0, nonConformi: 0, peggiore: null }, terra: { tipo: null, elementi: 0, l1: null, lunghezzaMinPicchetto: null, raggioEquivalente: null }, spd: { linee: 0, dispositivi: 0 } });
     expect(v.filter((x) => x.livello === "errore").map((x) => x.id)).toEqual(["edificio", "rischio", "captazione", "terra"]);
   });
+  it("edificio oltre 60 m: avviso sui fulmini laterali; anello sotto l1: lunghezza dei dispersori aggiuntivi", () => {
+    expect(controllaProgetto(completo).some((x) => x.id === "laterali")).toBe(false);
+    const alto = controllaProgetto({ ...completo, edificio: { ...completo.edificio, H: 90 } }).find((x) => x.id === "laterali")!;
+    expect(alto.livello).toBe("avviso"); expect(alto.dettaglio).toMatch(/da 72 m/);
+    const t = controllaProgetto({ ...completo, terra: { tipo: "B", elementi: 1, l1: 10, lunghezzaMinPicchetto: null, raggioEquivalente: 6 } }).find((x) => x.id === "terra")!;
+    expect(t.livello).toBe("avviso"); expect(t.dettaglio).toMatch(/4 m se orizzontale o 2 m se verticale/); expect(t.dettaglio).toMatch(/\(8\)/);
+  });
 });

@@ -38,6 +38,8 @@ export function controllaProgetto(f: FattiProgetto): VoceControllo[] {
   else if (f.captazione.areaEsposta == null) add("captazione", "avviso", "Captazione non verificata", "Esegui la verifica con sfera rotolante e maglia.", "/edificio-3d");
   else if (f.captazione.areaEsposta > 0.01) add("captazione", "errore", "Parti della copertura non protette", `Area esposta ${m(f.captazione.areaEsposta)} m² dopo la verifica.`, "/edificio-3d");
   else add("captazione", "ok", "Captazione verificata", `${f.captazione.conduttori} conduttori, ${f.captazione.aste} aste, nessuna area esposta`, "/edificio-3d");
+  // fulmini laterali: oltre 60 m dal suolo il 20 % superiore delle facciate si tratta come le sporgenze sui tetti (62305-3, 5.2.3 e D.5.2.3.1)
+  if (e.H > 60) add("laterali", "avviso", "Edificio più alto di 60 m: fulmini sui lati", `Altezza ${m(e.H)} m: da ${m(Math.max(60, 0.8 * e.H))} m in su le facciate, e soprattutto le parti che sporgono (balconi, antenne, telecamere), vanno protette come le sporgenze sui tetti. Verifica a mano: la sfera rotolante dell'app controlla le coperture.`, "/edificio-3d");
   // calate
   if (f.captazione.conduttori || f.captazione.aste) {
     const c = f.calate;
@@ -56,7 +58,7 @@ export function controllaProgetto(f: FattiProgetto): VoceControllo[] {
   else if (t.l1 == null) add("terra", "avviso", "Lunghezza minima l1 non verificata", "Indica la resistività del terreno per ricavare l1.", "/edificio-3d");
   else if (t.tipo === "A" && t.elementi < 2) add("terra", "errore", "Dispersore di tipo A con meno di 2 elementi", "Servono almeno 2 elementi, consigliato uno per calata.", "/edificio-3d");
   else if (t.tipo === "A" && t.lunghezzaMinPicchetto != null && t.lunghezzaMinPicchetto < 0.5 * t.l1 - 1e-9) add("terra", "errore", "Picchetti più corti di 0,5 · l1", `Picchetto più corto ${m(t.lunghezzaMinPicchetto)} m, richiesti ${m(0.5 * t.l1)} m (l1 = ${m(t.l1)} m), oppure resistenza di terra sotto 10 Ω.`, "/edificio-3d");
-  else if (t.tipo !== "A" && t.raggioEquivalente != null && t.raggioEquivalente < t.l1 - 1e-9) add("terra", "avviso", "Raggio equivalente dell'anello sotto l1", `re = ${m(t.raggioEquivalente)} m < l1 = ${m(t.l1)} m: servono almeno 2 dispersori aggiuntivi.`, "/edificio-3d");
+  else if (t.tipo !== "A" && t.raggioEquivalente != null && t.raggioEquivalente < t.l1 - 1e-9) add("terra", "avviso", "Raggio equivalente dell'anello sotto l1", `re = ${m(t.raggioEquivalente)} m < l1 = ${m(t.l1)} m: servono dispersori aggiuntivi collegati all'anello alle calate, almeno 2 e non meno del numero delle calate${f.calate.numero > 2 ? ` (${f.calate.numero})` : ""}, ognuno lungo ${m(t.l1 - t.raggioEquivalente, 2)} m se orizzontale o ${m((t.l1 - t.raggioEquivalente) / 2, 2)} m se verticale (62305-3, 5.4.2.3).`, "/edificio-3d");
   else add("terra", "ok", "Impianto di terra", `Tipo ${t.tipo}, l1 = ${m(t.l1)} m`, "/edificio-3d");
   // SPD
   if (f.spd.linee > 0 && !f.spd.dispositivi) add("spd", "errore", "SPD non scelti", `${f.spd.linee} ${f.spd.linee === 1 ? "linea entrante" : "linee entranti"} senza SPD per il collegamento equipotenziale.`, "/spd");
