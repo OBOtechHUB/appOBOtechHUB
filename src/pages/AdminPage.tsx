@@ -299,7 +299,7 @@ export function AdminPage() {
       {!impostazioni["password_iniziale"] && <p className="mb-4 rounded-lg border-l-4 border-[#b3261e] bg-[#fdecea] p-3 text-sm">Imposta la <strong>password iniziale comune</strong> nella scheda Impostazioni prima di approvare le richieste.</p>}
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-6">
-        <Kpi titolo="Richieste in attesa" valore={totaleAttesa} evidenzia={totaleAttesa > 0} nota={appInAttesa.length ? `${appInAttesa.length} per abilitare un'app` : undefined} />
+        <Kpi titolo="Richieste in attesa" valore={totaleAttesa} evidenzia={totaleAttesa > 0} {...(appInAttesa.length ? { nota: `${appInAttesa.length} per abilitare un'app` } : {})} />
         <Kpi titolo="Utenti attivi" valore={profili.filter((p) => p.stato === "attivo" && p.ruolo !== "admin").length} nota={`più ${profili.filter((p) => p.ruolo === "admin").length} amministratori`} />
         <Kpi titolo="Accessi oggi" valore={accessiTutti.filter((e) => chiaveGiorno(new Date(e.quando)) === chiaveGiorno(new Date())).length} />
         <Kpi titolo="Accessi nel periodo" valore={accessi.length} nota={nomePeriodo} />
