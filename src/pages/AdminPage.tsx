@@ -19,6 +19,17 @@ import { formattaNome } from "@/lib/nomi";
 interface Richiesta { id: string; email: string; nome: string; azienda: string; motivo: string; stato: "in_attesa" | "approvata" | "rifiutata"; sezioni: string[]; creata_il: string; gestita_il: string | null }
 interface Evento { id: number; utente: string | null; email: string | null; evento: string; quando: string; dettagli: Record<string, unknown> }
 
+/** Richiesta di accesso a un'app da parte di chi ha già un account (OBO Hub, scheda bloccata; tabella richieste_app, SQL 21). */
+interface RichiestaApp { id: string; utente: string; email: string; nome: string; app: string; motivo: string; stato: "in_attesa" | "approvata" | "rifiutata"; creata_il: string; gestita_il: string | null }
+const NOMI_APP: Record<string, string> = { lps: "Progettazione LPS", mappa: "Mappa carichi ufficio tecnico", prodotti: "Prodotti OBO", zavorra: "Zavorra telai inverter WRR", torrette: "Configuratore torrette" };
+/** Sezioni da aggiungere per abilitare l'app (come hub/config.js): per LPS le sezioni predefinite (o tutte se non ce ne sono). */
+function sezioniPerApp(app: string, predefinite: string[]): string[] {
+  if (app === "mappa") return ["app_mappa"];
+  if (app === "prodotti") return ["app_prodotti"];
+  if (app === "zavorra") return ["app_zavorra"];
+  if (app === "lps") { const p = predefinite.filter((x) => !x.startsWith("app_") && x !== "tutte"); return p.length ? p : SEZIONI.filter((s) => !s.id.startsWith("app_")).map((s) => s.id); }
+  return [];
+}
 const data = (d: string | null) => (d ? new Date(d).toLocaleString("it-IT", { dateStyle: "short", timeStyle: "short" }) : "—");
 const NOMI_EVENTO: Record<string, string> = { accesso: "Accesso", uscita: "Uscita", password_cambiata: "Password cambiata", authenticator_attivato: "Authenticator collegato", approvazione: "Richiesta approvata", rifiuto: "Richiesta rifiutata", modifica_utente: "Utente modificato", reimpostazione: "Reimpostazione", eliminazione: "Utente eliminato", invito: "Invito creato", accesso_negato: "Accesso negato" };
 
@@ -128,6 +139,7 @@ export function AdminPage() {
   const io = useAccesso();
   const [profili, setProfili] = useState<Profilo[]>([]);
   const [richieste, setRichieste] = useState<Richiesta[]>([]);
+  const [richiesteApp, setRichiesteApp] = useState<RichiestaApp[] | null>(null); // null = SQL 21 non ancora eseguito
   const [eventi, setEventi] = useState<Evento[]>([]);
   const [impostazioni, setImpostazioni] = useState<Record<string, string>>({});
   const [conAuth, setConAuth] = useState<Set<string> | null>(null); // null = dato non disponibile
@@ -175,6 +187,7 @@ export function AdminPage() {
     }
     setProfili((p.data ?? []) as Profilo[]);
     setRichieste((r.data ?? []) as Richiesta[]);
+    try { const ra = await db().from("richieste_app").select("*").order("creata_il", { ascending: false }).limit(500); setRichiesteApp(ra.error ? null : (ra.data ?? []) as RichiestaApp[]); } catch { setRichiesteApp(null); }
     setEventi((e.data ?? []) as Evento[]);
     setErroreRegistro(e.error ? e.error.message : "");
     setImpostazioni(Object.fromEntries(((i.data ?? []) as { chiave: string; valore: string }[]).map((x) => [x.chiave, x.valore])));
@@ -189,6 +202,8 @@ export function AdminPage() {
 
   const predefinite = (impostazioni["sezioni_predefinite"] ?? "").split(",").map((x) => x.trim()).filter(Boolean);
   const inAttesa = richieste.filter((r) => r.stato === "in_attesa");
+  const appInAttesa = (richiesteApp ?? []).filter((r) => r.stato === "in_attesa");
+  const totaleAttesa = inAttesa.length + appInAttesa.length;
   const [periodo, setPeriodo] = useState<Periodo>("mese");
   const settimanaOra = numeroSettimana(new Date());
   const nomePeriodo = periodo === "settimana" ? (() => { const { barre } = barrePeriodo("settimana"); const f = (d: Date) => `${d.getDate()} ${MESI[d.getMonth()]}`; return `settimana lavorativa ${settimanaOra} (${f(barre[0]!.da)} – ${f(barre[barre.length - 1]!.da)})`; })() : PERIODI.find((x) => x.id === periodo)!.nome.toLowerCase();
@@ -284,7 +299,7 @@ export function AdminPage() {
       {!impostazioni["password_iniziale"] && <p className="mb-4 rounded-lg border-l-4 border-[#b3261e] bg-[#fdecea] p-3 text-sm">Imposta la <strong>password iniziale comune</strong> nella scheda Impostazioni prima di approvare le richieste.</p>}
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-6">
-        <Kpi titolo="Richieste in attesa" valore={inAttesa.length} evidenzia={inAttesa.length > 0} />
+        <Kpi titolo="Richieste in attesa" valore={totaleAttesa} evidenzia={totaleAttesa > 0} nota={appInAttesa.length ? `${appInAttesa.length} per abilitare un'app` : undefined} />
         <Kpi titolo="Utenti attivi" valore={profili.filter((p) => p.stato === "attivo" && p.ruolo !== "admin").length} nota={`più ${profili.filter((p) => p.ruolo === "admin").length} amministratori`} />
         <Kpi titolo="Accessi oggi" valore={accessiTutti.filter((e) => chiaveGiorno(new Date(e.quando)) === chiaveGiorno(new Date())).length} />
         <Kpi titolo="Accessi nel periodo" valore={accessi.length} nota={nomePeriodo} />
@@ -313,10 +328,31 @@ export function AdminPage() {
         </div>
       </section>
 
-      <Tabs defaultValue={inAttesa.length ? "richieste" : "utenti"} className="mt-8">
-        <TabsList className="h-auto flex-wrap"><TabsTrigger value="richieste">Richieste{inAttesa.length ? ` (${inAttesa.length})` : ""}</TabsTrigger><TabsTrigger value="utenti">Utenti ({profili.length})</TabsTrigger><TabsTrigger value="invita">Invita</TabsTrigger><TabsTrigger value="progetti">Progetti salvati</TabsTrigger><TabsTrigger value="registro">Registro accessi</TabsTrigger><TabsTrigger value="uso">Uso delle app</TabsTrigger><TabsTrigger value="errori">Errori</TabsTrigger><TabsTrigger value="listino">Listino prezzi</TabsTrigger><TabsTrigger value="copia">Copia di sicurezza</TabsTrigger><TabsTrigger value="impostazioni">Impostazioni</TabsTrigger></TabsList>
+      <Tabs defaultValue={totaleAttesa ? "richieste" : "utenti"} className="mt-8">
+        <TabsList className="h-auto flex-wrap"><TabsTrigger value="richieste">Richieste{totaleAttesa ? ` (${totaleAttesa})` : ""}</TabsTrigger><TabsTrigger value="utenti">Utenti ({profili.length})</TabsTrigger><TabsTrigger value="invita">Invita</TabsTrigger><TabsTrigger value="progetti">Progetti salvati</TabsTrigger><TabsTrigger value="registro">Registro accessi</TabsTrigger><TabsTrigger value="uso">Uso delle app</TabsTrigger><TabsTrigger value="errori">Errori</TabsTrigger><TabsTrigger value="listino">Listino prezzi</TabsTrigger><TabsTrigger value="copia">Copia di sicurezza</TabsTrigger><TabsTrigger value="impostazioni">Impostazioni</TabsTrigger></TabsList>
 
         <TabsContent value="richieste" className="mt-4 space-y-4">
+          <h2 className="text-lg font-semibold">Accesso alle app (personale con account)</h2>
+          {richiesteApp === null && <p className="text-sm text-muted-foreground">Per ricevere le richieste di accesso alle app da OBO Hub esegui <strong>supabase/richieste-app.sql</strong> (SQL 21).</p>}
+          {richiesteApp !== null && !appInAttesa.length && <p className="text-sm text-muted-foreground">Nessuna richiesta di accesso alle app in attesa.</p>}
+          {appInAttesa.map((r) => { const chi = profili.find((x) => x.utente === r.utente); const sez = sezioniPerApp(r.app, predefinite);
+            return <div key={r.id} className="rounded-lg border-[0.8px] border-primary p-4">
+              <p className="text-lg font-semibold">{formattaNome(r.nome, r.email)} <span className="font-normal text-muted-foreground">chiede</span> {NOMI_APP[r.app] ?? r.app}</p>
+              <p className="text-sm">{r.email} · {data(r.creata_il)}</p>{r.motivo && <p className="mt-2 max-w-3xl text-sm italic">“{r.motivo}”</p>}
+              <p className="mt-2 text-xs text-muted-foreground">{chi?.sezioni.includes("tutte") ? "Ha già tutte le app: approvando la richiesta si chiude e basta." : `Approvando si aggiunge: ${sez.length ? sez.map((x) => SEZIONI.find((y) => y.id === x)?.nome ?? x).join(", ") : "nessuna sezione (app solo per amministratori)"}. Si può cambiare dopo con «Cambia sezioni».`}{r.app === "mappa" ? " Per la Mappa collega poi la persona nella colonna «Mappa carichi» della scheda Utenti." : ""}</p>
+              <div className="mt-3 flex flex-wrap gap-2">
+                <Button disabled={busy || !chi} onClick={() => void azione(async () => {
+                  if (chi && !chi.sezioni.includes("tutte") && sez.length) { const u = await db().from("accessi_profili").update({ sezioni: [...new Set([...chi.sezioni, ...sez])] }).eq("utente", r.utente); if (u.error) throw new Error(u.error.message); }
+                  const g = await db().from("richieste_app").update({ stato: "approvata", gestita_il: new Date().toISOString(), gestita_da: io.profilo?.utente ?? null }).eq("id", r.id); if (g.error) throw new Error(g.error.message);
+                }, `${NOMI_APP[r.app] ?? r.app} abilitata per ${formattaNome(r.nome, r.email)}: la vede al prossimo accesso a OBO Hub.`)}><UserCheck strokeWidth={1.5} />Approva e abilita</Button>
+                <Button variant="outline" disabled={busy} onClick={() => void azione(async () => { const g = await db().from("richieste_app").update({ stato: "rifiutata", gestita_il: new Date().toISOString(), gestita_da: io.profilo?.utente ?? null }).eq("id", r.id); if (g.error) throw new Error(g.error.message); }, "Richiesta rifiutata.")}><UserX strokeWidth={1.5} />Rifiuta</Button>
+                {!chi && <span className="self-center text-xs text-[#b3261e]">Utente non trovato tra gli account.</span>}
+              </div>
+            </div>; })}
+          {(richiesteApp ?? []).some((r) => r.stato !== "in_attesa") && <details className="rounded-lg border-[0.8px] border-bordo-scheda p-4"><summary className="cursor-pointer font-semibold">Richieste di app gestite</summary>
+            <ul className="mt-3 divide-y text-sm">{(richiesteApp ?? []).filter((r) => r.stato !== "in_attesa").map((r) => <li key={r.id} className="flex flex-wrap justify-between gap-2 py-2"><span>{formattaNome(r.nome, r.email)} · {NOMI_APP[r.app] ?? r.app}</span><span className={r.stato === "approvata" ? "text-[#1d7a45]" : "text-[#b3261e]"}>{r.stato} il {data(r.gestita_il)}</span></li>)}</ul>
+          </details>}
+          <h2 className="pt-2 text-lg font-semibold">Nuovi account</h2>
           {!inAttesa.length && <p className="text-sm text-muted-foreground">Nessuna richiesta in attesa.</p>}
           {inAttesa.map((r) => { const sez = sezioniRichiesta[r.id] ?? predefinite; return <div key={r.id} className="rounded-lg border-[0.8px] border-primary p-4">
             <div className="flex flex-wrap items-start justify-between gap-3"><div><p className="text-lg font-semibold">{formattaNome(r.nome, r.email)} <span className="font-normal text-muted-foreground">· {r.azienda || "azienda non indicata"}</span></p><p className="text-sm">{r.email} · {data(r.creata_il)}</p>{r.motivo && <p className="mt-2 max-w-3xl text-sm italic">“{r.motivo}”</p>}</div></div>
