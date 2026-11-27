@@ -17,6 +17,8 @@ CREATE TABLE IF NOT EXISTS public.richieste_app (
   gestita_il timestamptz,
   gestita_da uuid
 );
+-- quando la funzione richiesta-accesso ha mandato l'email all'amministratore (una sola volta per richiesta)
+ALTER TABLE public.richieste_app ADD COLUMN IF NOT EXISTS avvisata_il timestamptz;
 CREATE INDEX IF NOT EXISTS richieste_app_utente ON public.richieste_app(utente, app, stato);
 
 ALTER TABLE public.richieste_app ENABLE ROW LEVEL SECURITY;
@@ -58,4 +60,5 @@ GRANT EXECUTE ON FUNCTION public.richiedi_app(jsonb) TO authenticated;
 SELECT
   CASE WHEN to_regclass('public.richieste_app') IS NOT NULL THEN 'ok' ELSE 'MANCA' END AS tabella,
   CASE WHEN EXISTS (SELECT 1 FROM pg_proc WHERE proname = 'richiedi_app') THEN 'ok' ELSE 'MANCA' END AS funzione,
-  CASE WHEN (SELECT relrowsecurity FROM pg_class WHERE oid = 'public.richieste_app'::regclass) THEN 'ok' ELSE 'MANCA' END AS rls;
+  CASE WHEN (SELECT relrowsecurity FROM pg_class WHERE oid = 'public.richieste_app'::regclass) THEN 'ok' ELSE 'MANCA' END AS rls,
+  CASE WHEN EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'richieste_app' AND column_name = 'avvisata_il') THEN 'ok' ELSE 'MANCA' END AS email;
