@@ -18,11 +18,15 @@ export async function utenteId(): Promise<string> {
   return data.user.id;
 }
 
-export async function elencaProgetti({ data }: { data: { pagina?: number } }) {
-  const { pagina } = z.object({ pagina: z.number().int().nonnegative().default(0) }).parse(data);
+export async function elencaProgetti({ data }: { data: { pagina?: number; cerca?: string } }) {
+  const { pagina, cerca } = z.object({ pagina: z.number().int().nonnegative().default(0), cerca: z.string().max(80).default("") }).parse(data);
   const utente = await utenteId();
   // solo i propri progetti (l'amministratore vede quelli degli altri nella sezione Admin)
-  const { data: righe, error, count } = await supabase.from("progetti").select("id,codice,nome,comune,data_creazione,data_modifica", { count: "exact" }).eq("utente", utente).order("data_modifica", { ascending: false }).range(pagina * 20, pagina * 20 + 19);
+  let q = supabase.from("progetti").select("id,codice,nome,comune,data_creazione,data_modifica", { count: "exact" }).eq("utente", utente);
+  // ricerca per numero CRM, nome o comune (come in tutte le app di OBO Hub)
+  const t = cerca.replace(/[,()%*\\]/g, " ").trim();
+  if (t) q = q.or(`codice.ilike.%${t}%,nome.ilike.%${t}%,comune.ilike.%${t}%`);
+  const { data: righe, error, count } = await q.order("data_modifica", { ascending: false }).range(pagina * 20, pagina * 20 + 19);
   if (error) throw new Error("Impossibile leggere i progetti.");
   return { righe: righe ?? [], count: count ?? 0 };
 }
