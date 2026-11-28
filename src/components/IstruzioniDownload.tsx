@@ -28,7 +28,7 @@ export function IstruzioniDownload({ compatto = false }: { compatto?: boolean })
         {scaricata ? <> Su questo dispositivo hai scaricato <b>{scaricata.replace("-", " · Rev. ")}</b>.</> : " Su questo dispositivo non l'hai ancora scaricata."}</p>
       {!compatto && <p className="mt-1">In CAD il comando <b>LPS-VERSIONE</b> mostra la versione caricata; da LPS.lsp 3.6, aprendo un progetto dell'app, se il programma è vecchio compare un avviso.</p>}
       <div className="mt-3 flex flex-wrap gap-2">
-        <Button size="sm" onClick={() => void pacchetto()} disabled={!!busy}><Package />Pacchetto completo (.zip): istruzioni PDF e Word, LPS.lsp, progetto di prova</Button>
+        <Button size="sm" className="h-auto min-h-8 max-w-full whitespace-normal py-1.5 text-left" onClick={() => void pacchetto()} disabled={!!busy}><Package className="shrink-0" />Pacchetto completo (.zip): istruzioni PDF e Word, LPS.lsp, progetto di prova</Button>
         <Button size="sm" variant="outline" asChild><a href={risorsa("cad/LPS.lsp")} download="LPS.lsp" onClick={() => segnaScaricato()}><Download />Solo LPS.lsp {LSP_VERSIONE}</a></Button>
         {compatto && <Button size="sm" variant="ghost" asChild><Link to="/download-cad">Istruzioni e download</Link></Button>}
       </div>
