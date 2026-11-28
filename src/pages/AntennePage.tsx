@@ -57,7 +57,7 @@ export function AntennePage() {
   // in basso, sempre visibile: la soluzione delle calate
   const esito = ca.fattibile && ca.versione
     ? <><b>{ca.n} {ca.n === 1 ? "calata" : "calate"} {ISCON[ca.versione].nome.replace("isCon ", "")}</b> · cavo {f(ca.l + 0.5, 1)} m{r.protette ? "" : " · antenne esposte"}</>
-    : <b className="text-[#b3261e]">Non isolabile con l'isCon</b>;
+    : <><b className="text-[#b3261e]">Non isolabile</b> · servono {f(ca.l, 1)} m, massimo {f(ca.lMassimaPossibile, 1)} m</>;
   const ok = (b: boolean) => (b ? "border-[#1d7a45] bg-[#e3f4ea] text-[#14532d] dark:bg-[#15291d] dark:text-[#a7e3bd]" : "border-[#b3261e] bg-[#fdecea] text-[#7a1f16] dark:bg-[#3a1715] dark:text-[#f5b4ad]");
 
   return <>
