@@ -419,3 +419,5 @@ section.bg-ardesia::after {
   .ns-dove { display: none; }
   .ns-btn { padding: 9px 12px; }
 }
+/* con le schede la barra in basso è occupata da Indietro/Avanti: il pulsante «Torna su» sale sopra la barra */
+body:has(.ns-piede) .torna-su { bottom: calc(5.25rem + env(safe-area-inset-bottom)); }
