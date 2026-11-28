@@ -2,6 +2,21 @@
   "nota": "Registro degli aggiornamenti di Progettazione LPS. Una voce per aggiornamento, la più recente per prima (app: lps). Viene mostrato nella barra \"Aggiorna app\", nel riquadro Novità e nella pagina Novità di OBO Hub. Le novità solo grafiche (animazioni, sigle, aspetto) non si mostrano: restano conservate in 'grafica_non_mostrata'.",
   "aggiornamenti": [
     {
+      "id": "2026-11-28-lps-81",
+      "data": "2026-11-28",
+      "app": "lps",
+      "titolo": "Cerca i progetti per numero CRM, nome o comune",
+      "voci": [
+        "In «I miei progetti» c'è la ricerca: scrivi numero CRM, nome o comune e vedi subito i progetti che corrispondono, anche quelli nelle pagine successive",
+        "Filtra anche i progetti condivisi con te"
+      ],
+      "titolo_en": "Find projects by CRM number, name or town",
+      "voci_en": [
+        "«My projects» has a search: type CRM number, name or town and see the matching projects, also those on later pages",
+        "It also filters the projects shared with you"
+      ]
+    },
+    {
       "id": "2026-11-28-lps-80",
       "data": "2026-11-28",
       "app": "lps",
