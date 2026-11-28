@@ -18,9 +18,10 @@ import { scarica } from "@/lib/esportazioni";
 import { bloccoImmagine } from "@/calcoli/relazione/relazioneTecnica";
 import { logoObo, svgPng } from "@/components/progetto/RelazioneTecnica";
 import { useState } from "react";
-import { ACCESSORI_ISCON, ISCON, VERSIONI_PROPOSTE, verificaIscon, versioniScelta, type VersioneIscon } from "@/calcoli/calate/iscon";
+import { ACCESSORI_ISCON, ISCON, VERSIONI_PROPOSTE, lunghezzaMassima, verificaIscon, versioniScelta, type VersioneIscon } from "@/calcoli/calate/iscon";
 import type { Livello } from "@/calcoli/calate/separazione";
 import { NOMI_STRUTTURA, confrontoCalate, cosaMigliora, scendiConPiuCavi, type StrutturaSostegno } from "@/calcoli/calate/isconAltezza";
+import { NastroSchede } from "@/components/NastroSchede";
 import { SchemaCalateAltezza } from "@/components/antenne/SchemaCalateAltezza";
 import { svgParticolareAsta } from "@/calcoli/antenne/astaIscon";
 
@@ -40,7 +41,7 @@ export function AntennePage() {
   const cambiaApp = (id: string, q: Partial<(typeof apparecchi)[number]>) => set({ apparecchi: apparecchi.map((a) => (a.id === id ? { ...a, ...q } : a)) });
   const P = calcolaProgettoAntenne(d), { r, ca, apparatoBasso, lAuto, lUsata } = P;
   const confronto = confrontoCalate(P.datiCalate);
-  const vCavi: VersioneIscon = ca.versione ?? d.versione ?? "proplus", piuCavi = scendiConPiuCavi(P.datiCalate, vCavi), basso = d.obiettivo === "basso";
+  const vCavi: VersioneIscon = ca.versione ?? d.versione ?? "proplus", piuCavi = scendiConPiuCavi(P.datiCalate, vCavi), basso = d.obiettivo !== "antenne";
   const sol = r.soluzione.scelta;
   const [msgRel, setMsgRel] = useState("");
   async function relazioneWord() {
@@ -53,6 +54,10 @@ export function AntennePage() {
       setMsgRel("Relazione scaricata.");
     } catch (e) { setMsgRel(e instanceof Error ? e.message : "Relazione non creata."); }
   }
+  // in basso, sempre visibile: la soluzione delle calate
+  const esito = ca.fattibile && ca.versione
+    ? <><b>{ca.n} {ca.n === 1 ? "calata" : "calate"} {ISCON[ca.versione].nome.replace("isCon ", "")}</b> · cavo {f(ca.l + 0.5, 1)} m{r.protette ? "" : " · antenne esposte"}</>
+    : <b className="text-[#b3261e]">Non isolabile con l'isCon</b>;
   const ok = (b: boolean) => (b ? "border-[#1d7a45] bg-[#e3f4ea] text-[#14532d] dark:bg-[#15291d] dark:text-[#a7e3bd]" : "border-[#b3261e] bg-[#fdecea] text-[#7a1f16] dark:bg-[#3a1715] dark:text-[#f5b4ad]");
 
   return <>
@@ -61,11 +66,9 @@ export function AntennePage() {
       <h1 className="mt-2 text-3xl font-bold">Protezione contro i fulmini delle antenne</h1>
       <p className="mt-2 max-w-3xl text-white/90">Asta di captazione sopra le antenne con la sfera rotolante, distanza di separazione, calata isolata isCon, schermi dei cavi, SPD e terra (CEI EN IEC 62305-3 e 62305-4).</p>
     </div></section>
-    <main className="mx-auto max-w-5xl px-4 py-8">
-      <p className="rounded-lg border-l-4 border-primary bg-muted p-3 text-sm">Sezione nuova, prima versione: i calcoli usano i metodi della CEI EN IEC 62305 già presenti nell'app (sfera rotolante, s = ki · kc / km · l). Sarà completata con i documenti tecnici specifici per le stazioni radio base.</p>
-
-      <section className="mt-8" aria-label="Sito">
-        <h2 className="text-[1.7rem] font-medium">1 · Sito e antenne</h2>
+    <main className="mx-auto max-w-5xl px-4 py-6">
+      <NastroSchede esito={esito} schede={[
+        { id: "sito", nome: "Antenne", titolo: "Sito, antenne e asta di captazione", aiuto: "Dove sono le antenne e che cosa c'è sul palo: l'app calcola la punta dell'asta con la sfera rotolante.", contenuto: <>
         <div className="mt-4 grid gap-4 sm:grid-cols-3">
           <Campo etichetta="Tipo di installazione"><select className={inputCls} value={d.tipo} onChange={(e) => set({ tipo: e.target.value as TipoSito })}>{(Object.keys(NOMI_SITO) as TipoSito[]).map((t) => <option key={t} value={t}>{NOMI_SITO[t]}</option>)}</select></Campo>
           <Campo etichetta="Livello di protezione (LPL)"><select className={inputCls} value={d.lpl} onChange={(e) => set({ lpl: e.target.value as Livello })}>{(["I", "II", "III", "IV"] as Livello[]).map((l) => <option key={l}>{l}</option>)}</select></Campo>
@@ -76,7 +79,7 @@ export function AntennePage() {
         </div>
         <div className="mt-4 rounded-lg border bg-card p-3" aria-label="Apparecchiature da proteggere">
           <h3 className="font-semibold">Apparecchiature da proteggere sul palo</h3>
-          <p className="mt-1 text-xs text-muted-foreground">Antenne, parabole, RRU, armadi, telecamere…: quota della base dal {d.tipo === "tetto" ? "piano del tetto" : "terreno"} e altezza che occupano. L'app le disegna nello schema della sezione 3 e dice se restano isolate dalla corrente di fulmine. Se non indichi nulla vale «Antenna più bassa da isolare» della sezione 3.</p>
+          <p className="mt-1 text-xs text-muted-foreground">Antenne, parabole, RRU, armadi, telecamere…: quota della base dal {d.tipo === "tetto" ? "piano del tetto" : "terreno"} e altezza che occupano. L'app le disegna nello schema del passo 2 e dice se restano isolate dalla corrente di fulmine. Se non indichi nulla vale «Antenna più bassa da isolare» del passo 2.</p>
           {apparecchi.length > 0 && <div className="mt-2 space-y-2">{apparecchi.map((a, i) => <div key={a.id} className="grid grid-cols-2 items-end gap-2 sm:grid-cols-[1fr_8rem_8rem_auto]">
             <div className="col-span-2 sm:col-span-1"><Campo etichetta="Apparecchiatura"><input className={inputCls} maxLength={120} value={a.nome} placeholder={`apparecchio ${i + 1}`} onChange={(e) => cambiaApp(a.id, { nome: e.target.value })} /></Campo></div>
             <Campo etichetta="Quota base (m)"><CampoNumero className={inputCls} valore={a.quota} onValore={(v) => { if (v != null) cambiaApp(a.id, { quota: v }); }} /></Campo>
@@ -92,12 +95,104 @@ export function AntennePage() {
           <p className="mt-1 text-sm">Con la punta a {f(r.asta)} m le antenne sono {r.protette ? "protette dalla fulminazione diretta" : "ESPOSTE: alza l'asta o avvicinala alle antenne"}.</p>
           <p className="mt-1 text-xs opacity-80">Bordo delle antenne a {f(d.sbraccio)} m dall'asse. Oltre l'altezza della sfera la sfera può toccare il palo di lato: per strutture alte la punta deve stare più in alto.</p>
         </div>
-      </section>
-
-      <section className="mt-10" aria-label="Separazione">
-        <h2 className="text-[1.7rem] font-medium">2 · Asta isolata e calata isCon</h2>
+        </> },
+        { id: "calate", nome: "Calate isCon", titolo: "Calate isolate isCon e collegamenti al palo", aiuto: "Quante calate in parallelo, quale isCon e quanto cavo: lunghezza massima per ogni soluzione, schema quota per quota e materiali.", contenuto: <>
+        <p className="mt-2 text-sm text-muted-foreground">L'isCon garantisce la distanza di separazione dalla punta fino al punto in cui il conduttore interno si collega al palo (fine del cavo: il cavo non si prolunga, istruzioni OBO). L'app sceglie il numero di calate e la versione che isolano le antenne, poi usa il cavo per tutta la lunghezza ammessa (fine del cavo il più in basso possibile) e dice cosa collegare a ogni quota fino a terra. Quote dal {d.tipo === "tetto" ? "piano del tetto" : "terreno"}.</p>
         <div className="mt-4 grid gap-4 sm:grid-cols-4">
-          <Campo etichetta={`l: dalla punta alla fine del cavo sul palo (m; vuoto = ${lAuto ? "calcolata, " + f(lUsata, 2) : "dal calcolo della sezione 3"})`}><CampoNumero className={inputCls} valore={d.lAuto !== false ? null : d.lunghezzaCalata} placeholder={f(lUsata, 2)} onValore={(v) => set(v == null ? { lAuto: true } : { lAuto: false, lunghezzaCalata: v })} /></Campo>
+          {apparecchi.length ? <Campo etichetta="Apparecchiatura più bassa da isolare (dal passo 1)"><input className={inputCls} readOnly value={`${f(apparatoBasso, 2)} m`} /></Campo>
+            : <Campo etichetta={`Antenna più bassa da isolare (m; vuoto = ${f(Math.max(0, d.sommita - 3), 1)})`}><CampoNumero className={inputCls} valore={d.quotaApparatoBasso ?? null} placeholder={f(Math.max(0, d.sommita - 3), 1)} onValore={(v) => set({ quotaApparatoBasso: v })} /></Campo>}
+          <Campo etichetta="Struttura di sostegno"><select className={inputCls} value={d.struttura ?? "metallica"} onChange={(e) => set({ struttura: e.target.value as StrutturaSostegno })}>{(Object.keys(NOMI_STRUTTURA) as StrutturaSostegno[]).map((k) => <option key={k} value={k}>{NOMI_STRUTTURA[k]}</option>)}</select></Campo>
+          {(d.struttura ?? "metallica") === "isolante" && <>
+            <Campo etichetta="Distanza disponibile calate–cavi/impianti (m)"><CampoNumero className={inputCls} valore={d.distanzaImpianti ?? 0.5} onValore={(v) => { if (v != null && v > 0) set({ distanzaImpianti: v }); }} /></Campo>
+            </>}
+          <label className="flex items-center gap-2 self-end pb-2 text-sm" title="Istruzioni OBO: calate ad almeno 20 cm, il più possibile distanti; se corrono affiancate il kc non si riduce"><input type="checkbox" checked={d.calateDistanziate !== false} onChange={(e) => set({ calateDistanziate: e.target.checked })} />Calate distanziate ≥ 20 cm su lati opposti del palo (kc ridotto)</label>
+        </div>
+        <div className="mt-4 rounded-lg border bg-card p-3">
+          <div className="flex flex-wrap items-center gap-1.5" role="group" aria-label="Fin dove isolare">
+            <span className="mr-1 text-sm font-semibold">Lunghezza del cavo:</span>
+            <Button size="sm" variant={basso ? "default" : "outline"} aria-pressed={basso} onClick={() => set({ obiettivo: "basso" })}>Lunga quanto ammesso (consigliato)</Button>
+            <Button size="sm" variant={!basso ? "default" : "outline"} aria-pressed={!basso} onClick={() => set({ obiettivo: "antenne" })}>Corta: finisce sotto l'antenna più bassa</Button>
+          </div>
+          <div className="mt-2 flex flex-wrap items-center gap-1.5" role="group" aria-label="Numero di calate">
+            <span className="mr-1 text-sm font-semibold">Calate in parallelo:</span>
+            {(["auto", 1, 2, 3, 4] as const).map((k) => { const on = k === "auto" ? auto : !auto && Math.min(4, d.numeroCalate) === k; return <Button key={k} size="sm" variant={on ? "default" : "outline"} aria-pressed={on} onClick={() => set(k === "auto" ? { calateAuto: true } : { calateAuto: false, numeroCalate: k })}>{k === "auto" ? "Automatico" : k}</Button>; })}
+          </div>
+          <div className="mt-2 flex flex-wrap items-center gap-1.5" role="group" aria-label="Versione isCon">
+            <span className="mr-1 text-sm font-semibold">Versione isCon:</span>
+            {([null, ...VERSIONI_PROPOSTE] as (VersioneIscon | null)[]).map((v) => { const on = (d.versione ?? null) === v; return <Button key={v ?? "auto"} size="sm" variant={on ? "default" : "outline"} aria-pressed={on} onClick={() => set({ versione: v })}>{v ? ISCON[v].nome.replace("isCon ", "") : "La più semplice"}</Button>; })}
+          </div>
+          <div className="mt-3 overflow-x-auto" aria-label="Lunghezza massima del cavo isCon">
+            <p className="text-sm font-semibold">Lunghezza massima del cavo isCon (LPL {d.lpl}, ki {f(ca.ki, 2)}, in aria{d.calateDistanziate === false ? ", calate affiancate: kc 1" : ""})</p>
+            <table className="mt-1 w-full min-w-[520px] text-xs sm:text-sm">
+              <thead><tr className="border-b text-left"><th className="p-2">Calate</th>{VERSIONI_PROPOSTE.map((v) => <th key={v} className="p-2 text-right">{ISCON[v].nome.replace("isCon ", "")}</th>)}</tr></thead>
+              <tbody>{[1, 2, 3, 4].map((n) => { const kc = d.calateDistanziate === false ? 1 : n <= 1 ? 1 : n === 2 ? 0.66 : 0.44; return <tr key={n} className="border-b">
+                <td className="p-2 font-semibold">{n === 1 ? "Singola" : `${n} in parallelo`}<span className="block text-[11px] font-normal text-muted-foreground">kc {f(kc, 2)}</span></td>
+                {VERSIONI_PROPOSTE.map((v) => { const lm = lunghezzaMassima(v, ca.ki, kc, 1), noCorr = d.lpl === "I" && n === 1 && v !== "premium", sc = ca.fattibile && ca.n === n && ca.versione === v;
+                  return <td key={v} className={`p-2 text-right font-mono ${sc ? "bg-primary/15 font-bold" : ""}`}>{noCorr ? <span className="text-muted-foreground">no (LPL I)</span> : <>{f(lm - 0.5, 1)} m<span className="block text-[11px] font-normal text-muted-foreground">max {f(lm, 2)} m</span></>}</td>; })}
+              </tr>; })}</tbody>
+            </table>
+            <p className="mt-1 text-xs text-muted-foreground">Lunghezza utilizzabile = lunghezza ammessa se × km ÷ (ki × kc) meno 0,5 m per i collegamenti alle estremità. Dalla punta in giù, un pezzo unico per calata: il cavo non si giunta.</p>
+          </div>
+          {ca.fattibile && ca.versione && <p className="mt-2 text-sm"><strong>Cosa cambia:</strong> {cosaMigliora(ca.n, ca.versione, ca.ki, d.lpl)}</p>}
+          <div className="mt-3 overflow-x-auto"><table className="w-full min-w-[640px] text-xs sm:text-sm">
+            <thead><tr className="border-b text-left"><th className="p-2">Calate</th>{VERSIONI_PROPOSTE.map((v) => <th key={v} className="p-2">{ISCON[v].nome.replace("isCon ", "")} (se {f(ISCON[v].sAria)} m)</th>)}</tr></thead>
+            <tbody>{[1, 2, 3, 4].map((n) => <tr key={n} className="border-b align-top">
+              <td className="p-2 font-semibold">{n}<span className="block text-[11px] font-normal text-muted-foreground">kc {f(n <= 1 ? 1 : n === 2 ? 0.66 : 0.44, 2)}</span></td>
+              {VERSIONI_PROPOSTE.map((v) => { const c = confronto.find((x) => x.n === n && x.versione === v)!; const scelta = ca.fattibile && ca.n === n && ca.versione === v;
+                return <td key={v} className="p-1"><button type="button" onClick={() => set({ calateAuto: false, numeroCalate: n, versione: v })} className={`w-full rounded-md border p-2 text-left ${scelta ? "border-primary bg-primary/10" : c.fattibile ? "hover:border-primary" : "opacity-70"}`}>
+                  {c.fattibile ? <><span className="font-semibold text-[#1d7a45]">basta</span> · fine a {f(c.quotaPAE ?? NaN, 1)} m<br />l {f(c.l, 1)} / max {f(c.lMax, 1)} m · s {f(c.s, 3)} m<br />{c.metriIscon} m isCon · {c.collegamenti} {c.collegamenti === 1 ? "collegamento" : "collegamenti"} · {f(c.correntePerCalata, 0)} kA/calata</>
+                    : <><span className="font-semibold text-[#b3261e]">non basta</span><br />l max {f(c.lMax, 1)} m</>}
+                </button></td>; })}
+            </tr>)}</tbody>
+          </table></div>
+          <p className="mt-1 text-xs text-muted-foreground">Tocca una casella per sceglierla. Con 3 o 4 calate il kc della norma è lo stesso (0,44): la 4ª calata non allunga la l massima.</p>
+        </div>
+        <section className="mt-4 rounded-lg border bg-card p-3" aria-label="Come migliora con più cavi">
+          <h3 className="font-semibold">Come migliora con più cavi ({ISCON[vCavi].nome}, cavo lungo quanto ammesso)</h3>
+          <p className="mt-1 text-sm">Con più cavi in parallelo la corrente di fulmine si divide: in ogni cavo passa meno corrente, la caduta di tensione lungo il cavo è più bassa e quindi, a parità di isolamento (se), il cavo può essere più lungo. Per la norma il coefficiente kc vale 1 con un cavo, 0,66 con due e 0,44 con tre o più; la lunghezza ammessa è se ÷ (ki × kc), quindi con due cavi si scende circa del 50 % in più e con tre più del doppio rispetto a uno. Dal quarto cavo il kc non scende più: serve solo per ridondanza. I cavi devono stare ad almeno 20 cm tra loro, il più possibile distanti (lati opposti del palo): se corrono affiancati il kc non si riduce.</p>
+          <div className="mt-3 space-y-1.5">{piuCavi.map((c) => { const isolato = c.quotaFine != null ? r.asta - c.quotaFine : 0, perc = Math.max(2, Math.min(100, (isolato / Math.max(1, r.asta)) * 100));
+            return <div key={c.n} className="grid grid-cols-[3.5rem_1fr] items-center gap-2 text-xs sm:grid-cols-[4.5rem_1fr_15rem] sm:text-sm">
+              <span className="font-semibold">{c.n} {c.n === 1 ? "cavo" : "cavi"}</span>
+              <div className="h-5 rounded bg-muted"><div className={`h-5 rounded ${c.fattibile ? "bg-primary" : "bg-[#b3261e]"}`} style={{ width: `${perc}%` }} title={`isolato per ${f(isolato, 1)} m`} /></div>
+              <span className="col-span-2 sm:col-span-1">{c.fattibile && c.quotaFine != null ? <>fino a <strong>{f(c.quotaFine, 1)} m</strong> · isolati {f(isolato, 1)} m · kc {f(c.kc, 2)} · {f(c.corrente, 0)} kA/cavo · {c.metri} m di cavo</> : <>non basta per le antenne (l max {f(c.lMax, 1)} m)</>}</span>
+            </div>; })}</div>
+          <p className="mt-2 text-xs text-muted-foreground">La barra è la parte del palo isolata dalla punta ({f(r.asta, 1)} m) verso terra. Sotto la fine del cavo il palo porta la corrente di fulmine.</p>
+        </section>
+        <div className="mt-4 grid gap-4 md:grid-cols-[340px_1fr]">
+          <SchemaCalateAltezza punta={r.asta} sommita={P.sommita} apparatoBasso={apparatoBasso} r={ca} piano={d.tipo === "tetto" ? "tetto" : "terreno"} finoATerra={false} apparecchi={P.apparecchi} />
+          <div>
+            <div className={`rounded-lg border-l-4 p-4 ${ok(ca.fattibile)}`} role="status">
+              {ca.fattibile && ca.versione && ca.quotaPAE != null ? <>
+                <p className="text-lg font-semibold">{ca.n} {ca.n === 1 ? "calata isolata" : "calate isolate"} {ISCON[ca.versione].nome} dalla punta ({f(r.asta, 1)} m) al collegamento sul palo a {f(ca.quotaPAE, 2)} m</p>
+                <p className="mt-1 text-sm">l = {f(ca.l, 2)} m ≤ l massima {f(ca.lMax, 1)} m · s = {f(ca.ki, 2)} · {f(ca.kc, 2)} · {f(ca.l, 1)} = <strong>{f(ca.s, 3)} m</strong> ≤ {f(ISCON[ca.versione].sAria)} m · zona x {f(ca.zonaX)} m{ca.passoIntermedi ? ` · livelli intermedi ogni ${f(ca.passoIntermedi, 1)} m al massimo` : ""}</p>
+                <p className="mt-1 text-sm"><strong>Collegamenti del conduttore al palo: {ca.collegamentiTotali}</strong> – {ca.collegamentiPAE} a {f(ca.quotaPAE, 2)} m (uno per calata, fine del cavo){ca.zonaX > 0 ? `, ognuno con il terminale PAE 5408036 sulla guaina ${f(ca.zonaX, 2)} m più in alto` : ""}{ca.livelliIntermedi ? ` + ${ca.livelliIntermedi} ${ca.livelliIntermedi === 1 ? "livello intermedio" : "livelli intermedi"} × ${ca.n}` : ""}, poi il collegamento a terra alla base.</p>
+                {!lAuto && Math.abs(ca.l - d.lunghezzaCalata) > 0.05 && <Button size="sm" variant="outline" className="mt-2" onClick={() => set({ lAuto: true })}>Usa l = {f(ca.l, 2)} m nella verifica del passo 3</Button>}
+              </> : <p className="text-lg font-semibold">Non si può isolare tutto con l'isCon</p>}
+              {ca.avvisi.map((a, i) => <p key={i} className="mt-1 text-sm">{a}</p>)}
+            </div>
+            {ca.livelli.length > 0 && <ol className="mt-4 space-y-2">{ca.livelli.map((l, i) => <li key={i} className="rounded-md border p-3 text-sm">
+              <p className="font-semibold"><span className="mr-2 rounded-full bg-primary px-2 py-0.5 text-xs text-primary-foreground">{f(l.quota, 2)} m</span>{l.titolo}</p>
+              <ul className="mt-1 list-disc space-y-0.5 pl-5">{l.cosa.map((c, k) => <li key={k}>{c}</li>)}</ul>
+            </li>)}</ol>}
+            {P.materiali.length > 0 && <div className="mt-4 overflow-x-auto"><table className="w-full min-w-[420px] text-sm"><thead><tr className="border-b text-left"><th className="p-2">Codice</th><th className="p-2">Materiale</th><th className="p-2 text-right">Quantità</th></tr></thead>
+              <tbody>{P.materiali.map((m, i) => <tr key={i} className="border-b"><td className="p-2 font-mono text-xs">{m.codice || "—"}</td><td className="p-2">{m.descrizione}</td><td className="p-2 text-right font-mono">{m.quantita} {m.unita}</td></tr>)}</tbody></table></div>}
+          </div>
+        </div>
+        {P.asta && <section className="mt-4 rounded-lg border bg-card p-3" aria-label="Particolare dell'asta">
+          <h3 className="font-semibold">Particolare dell'asta: calate isCon fissate con il set isCon HM</h3>
+          <div className="mt-2 grid gap-4 md:grid-cols-[minmax(0,340px)_1fr]">
+            <img src={`data:image/svg+xml;charset=utf-8,${encodeURIComponent(svgParticolareAsta(P.asta))}`} alt="Particolare dell'asta con piastra di contatto, supporti, fascetta e fascetta di terra" className="w-full max-w-[340px] rounded-md border bg-white" />
+            <div className="text-sm">
+              {P.asta.setApplicabile && <p className="font-semibold">Asta da {P.asta.lunghezza} m · set HM SET 5408090{P.asta.estensioni ? " + estensione HM ERW 5408094" : ""} · {P.asta.supporti} supporti · {P.asta.fascetteTerra} {P.asta.fascetteTerra === 1 ? "fascetta" : "fascette"} di terra 927 2 6-K</p>}
+              <ul className="mt-1 list-disc space-y-1 pl-5">{P.asta.note.map((n, i) => <li key={i}>{n}</li>)}</ul>
+              <p className="mt-2 text-xs text-muted-foreground">Dalle istruzioni di montaggio OBO del set isCon HM SET (5408090) e del set di estensione HM ERW (5408094). I materiali sono già nella tabella sopra e nel computo.</p>
+            </div>
+          </div>
+        </section>}
+        </> },
+        { id: "separazione", nome: "Separazione", titolo: "Distanza di separazione dell'asta", aiuto: "Verifica di s = ki · kc / km · l per la soluzione scelta e confronto tra le versioni isCon.", contenuto: <>
+        <div className="mt-4 grid gap-4 sm:grid-cols-4">
+          <Campo etichetta={`l: dalla punta alla fine del cavo sul palo (m; vuoto = ${lAuto ? "calcolata, " + f(lUsata, 2) : "dal calcolo del passo 2"})`}><CampoNumero className={inputCls} valore={d.lAuto !== false ? null : d.lunghezzaCalata} placeholder={f(lUsata, 2)} onValore={(v) => set(v == null ? { lAuto: true } : { lAuto: false, lunghezzaCalata: v })} /></Campo>
           <Campo etichetta="Calate isolate"><select className={inputCls} value={auto ? "auto" : String(Math.min(4, d.numeroCalate))} onChange={(e) => set(e.target.value === "auto" ? { calateAuto: true } : { calateAuto: false, numeroCalate: Number(e.target.value) })}><option value="auto">Automatico (fino a 4)</option>{[1, 2, 3, 4].map((n) => <option key={n} value={n}>{n}</option>)}</select></Campo>
           <Campo etichetta="Versione isCon"><select className={inputCls} value={d.versione ?? ""} onChange={(e) => set({ versione: (e.target.value || null) as VersioneIscon | null })}><option value="">La più semplice che basta</option>{versioniScelta(d.versione).map((v) => <option key={v} value={v}>{ISCON[v].nome}</option>)}</select></Campo>
           <Campo etichetta={`ki (LPL ${d.lpl}; vuoto = da norma)`}><CampoNumero className={inputCls} valore={d.ki} placeholder={f(r.ki, 2)} max={1} onValore={(v) => set({ ki: v && v > 0 ? v : null })} /></Campo>
@@ -130,94 +225,8 @@ export function AntennePage() {
           </tr>; })}</tbody>
         </table></div>
         <p className="mt-2 text-xs text-muted-foreground">Distanze equivalenti dai dati OBO isCon; con LPL I e una sola calata serve Premium (classe H2). Accessori: {ACCESSORI_ISCON.map((a) => `${a.descrizione} (${a.codice})`).join(" · ")}.</p>
-      </section>
-
-      <section className="mt-10" aria-label="Calate da grande altezza">
-        <h2 className="text-[1.7rem] font-medium">3 · Calate isCon da grande altezza e collegamenti equipotenziali</h2>
-        <p className="mt-2 text-sm text-muted-foreground">L'isCon garantisce la distanza di separazione dalla punta fino al punto in cui il conduttore interno si collega al palo (fine del cavo: il cavo non si prolunga, istruzioni OBO). Qui l'app mette la fine del cavo subito sotto l'antenna più bassa, controlla che la lunghezza stia dentro la l massima della versione e dice cosa collegare a ogni quota fino a terra. Quote dal {d.tipo === "tetto" ? "piano del tetto" : "terreno"}.</p>
-        <div className="mt-4 grid gap-4 sm:grid-cols-4">
-          {apparecchi.length ? <Campo etichetta="Apparecchiatura più bassa da isolare (dalla sezione 1)"><input className={inputCls} readOnly value={`${f(apparatoBasso, 2)} m`} /></Campo>
-            : <Campo etichetta={`Antenna più bassa da isolare (m; vuoto = ${f(Math.max(0, d.sommita - 3), 1)})`}><CampoNumero className={inputCls} valore={d.quotaApparatoBasso ?? null} placeholder={f(Math.max(0, d.sommita - 3), 1)} onValore={(v) => set({ quotaApparatoBasso: v })} /></Campo>}
-          <Campo etichetta="Struttura di sostegno"><select className={inputCls} value={d.struttura ?? "metallica"} onChange={(e) => set({ struttura: e.target.value as StrutturaSostegno })}>{(Object.keys(NOMI_STRUTTURA) as StrutturaSostegno[]).map((k) => <option key={k} value={k}>{NOMI_STRUTTURA[k]}</option>)}</select></Campo>
-          {(d.struttura ?? "metallica") === "isolante" && <>
-            <Campo etichetta="Distanza disponibile calate–cavi/impianti (m)"><CampoNumero className={inputCls} valore={d.distanzaImpianti ?? 0.5} onValore={(v) => { if (v != null && v > 0) set({ distanzaImpianti: v }); }} /></Campo>
-            </>}
-          <label className="flex items-center gap-2 self-end pb-2 text-sm" title="Istruzioni OBO: calate ad almeno 20 cm, il più possibile distanti; se corrono affiancate il kc non si riduce"><input type="checkbox" checked={d.calateDistanziate !== false} onChange={(e) => set({ calateDistanziate: e.target.checked })} />Calate distanziate ≥ 20 cm su lati opposti del palo (kc ridotto)</label>
-        </div>
-        <div className="mt-4 rounded-lg border bg-card p-3">
-          <div className="flex flex-wrap items-center gap-1.5" role="group" aria-label="Fin dove isolare">
-            <span className="mr-1 text-sm font-semibold">Fin dove isolare:</span>
-            <Button size="sm" variant={!basso ? "default" : "outline"} aria-pressed={!basso} onClick={() => set({ obiettivo: "antenne" })}>Sotto l'antenna più bassa</Button>
-            <Button size="sm" variant={basso ? "default" : "outline"} aria-pressed={basso} onClick={() => set({ obiettivo: "basso" })}>Il più in basso possibile (anche apparecchi a bordo)</Button>
-          </div>
-          <div className="mt-2 flex flex-wrap items-center gap-1.5" role="group" aria-label="Numero di calate">
-            <span className="mr-1 text-sm font-semibold">Calate in parallelo:</span>
-            {(["auto", 1, 2, 3, 4] as const).map((k) => { const on = k === "auto" ? auto : !auto && Math.min(4, d.numeroCalate) === k; return <Button key={k} size="sm" variant={on ? "default" : "outline"} aria-pressed={on} onClick={() => set(k === "auto" ? { calateAuto: true } : { calateAuto: false, numeroCalate: k })}>{k === "auto" ? "Automatico" : k}</Button>; })}
-          </div>
-          <div className="mt-2 flex flex-wrap items-center gap-1.5" role="group" aria-label="Versione isCon">
-            <span className="mr-1 text-sm font-semibold">Versione isCon:</span>
-            {([null, ...VERSIONI_PROPOSTE] as (VersioneIscon | null)[]).map((v) => { const on = (d.versione ?? null) === v; return <Button key={v ?? "auto"} size="sm" variant={on ? "default" : "outline"} aria-pressed={on} onClick={() => set({ versione: v })}>{v ? ISCON[v].nome.replace("isCon ", "") : "La più semplice"}</Button>; })}
-          </div>
-          {ca.fattibile && ca.versione && <p className="mt-2 text-sm"><strong>Cosa cambia:</strong> {cosaMigliora(ca.n, ca.versione, ca.ki, d.lpl)}</p>}
-          <div className="mt-3 overflow-x-auto"><table className="w-full min-w-[640px] text-xs sm:text-sm">
-            <thead><tr className="border-b text-left"><th className="p-2">Calate</th>{VERSIONI_PROPOSTE.map((v) => <th key={v} className="p-2">{ISCON[v].nome.replace("isCon ", "")} (se {f(ISCON[v].sAria)} m)</th>)}</tr></thead>
-            <tbody>{[1, 2, 3, 4].map((n) => <tr key={n} className="border-b align-top">
-              <td className="p-2 font-semibold">{n}<span className="block text-[11px] font-normal text-muted-foreground">kc {f(n <= 1 ? 1 : n === 2 ? 0.66 : 0.44, 2)}</span></td>
-              {VERSIONI_PROPOSTE.map((v) => { const c = confronto.find((x) => x.n === n && x.versione === v)!; const scelta = ca.fattibile && ca.n === n && ca.versione === v;
-                return <td key={v} className="p-1"><button type="button" onClick={() => set({ calateAuto: false, numeroCalate: n, versione: v })} className={`w-full rounded-md border p-2 text-left ${scelta ? "border-primary bg-primary/10" : c.fattibile ? "hover:border-primary" : "opacity-70"}`}>
-                  {c.fattibile ? <><span className="font-semibold text-[#1d7a45]">basta</span> · fine a {f(c.quotaPAE ?? NaN, 1)} m<br />l {f(c.l, 1)} / max {f(c.lMax, 1)} m · s {f(c.s, 3)} m<br />{c.metriIscon} m isCon · {c.collegamenti} {c.collegamenti === 1 ? "collegamento" : "collegamenti"} · {f(c.correntePerCalata, 0)} kA/calata</>
-                    : <><span className="font-semibold text-[#b3261e]">non basta</span><br />l max {f(c.lMax, 1)} m</>}
-                </button></td>; })}
-            </tr>)}</tbody>
-          </table></div>
-          <p className="mt-1 text-xs text-muted-foreground">Tocca una casella per sceglierla. Con 3 o 4 calate il kc della norma è lo stesso (0,44): la 4ª calata non allunga la l massima.</p>
-        </div>
-        <section className="mt-4 rounded-lg border bg-card p-3" aria-label="Come migliora con più cavi">
-          <h3 className="font-semibold">Come migliora con più cavi ({ISCON[vCavi].nome}, fine del cavo il più in basso possibile)</h3>
-          <p className="mt-1 text-sm">Con più cavi in parallelo la corrente di fulmine si divide: in ogni cavo passa meno corrente, la caduta di tensione lungo il cavo è più bassa e quindi, a parità di isolamento (se), il cavo può essere più lungo. Per la norma il coefficiente kc vale 1 con un cavo, 0,66 con due e 0,44 con tre o più; la lunghezza ammessa è se ÷ (ki × kc), quindi con due cavi si scende circa del 50 % in più e con tre più del doppio rispetto a uno. Dal quarto cavo il kc non scende più: serve solo per ridondanza. I cavi devono stare ad almeno 20 cm tra loro, il più possibile distanti (lati opposti del palo): se corrono affiancati il kc non si riduce.</p>
-          <div className="mt-3 space-y-1.5">{piuCavi.map((c) => { const isolato = c.quotaFine != null ? r.asta - c.quotaFine : 0, perc = Math.max(2, Math.min(100, (isolato / Math.max(1, r.asta)) * 100));
-            return <div key={c.n} className="grid grid-cols-[3.5rem_1fr] items-center gap-2 text-xs sm:grid-cols-[4.5rem_1fr_15rem] sm:text-sm">
-              <span className="font-semibold">{c.n} {c.n === 1 ? "cavo" : "cavi"}</span>
-              <div className="h-5 rounded bg-muted"><div className={`h-5 rounded ${c.fattibile ? "bg-primary" : "bg-[#b3261e]"}`} style={{ width: `${perc}%` }} title={`isolato per ${f(isolato, 1)} m`} /></div>
-              <span className="col-span-2 sm:col-span-1">{c.fattibile && c.quotaFine != null ? <>fino a <strong>{f(c.quotaFine, 1)} m</strong> · isolati {f(isolato, 1)} m · kc {f(c.kc, 2)} · {f(c.corrente, 0)} kA/cavo · {c.metri} m di cavo</> : <>non basta per le antenne (l max {f(c.lMax, 1)} m)</>}</span>
-            </div>; })}</div>
-          <p className="mt-2 text-xs text-muted-foreground">La barra è la parte del palo isolata dalla punta ({f(r.asta, 1)} m) verso terra. Sotto la fine del cavo il palo porta la corrente di fulmine.</p>
-        </section>
-        <div className="mt-4 grid gap-4 md:grid-cols-[340px_1fr]">
-          <SchemaCalateAltezza punta={r.asta} sommita={P.sommita} apparatoBasso={apparatoBasso} r={ca} piano={d.tipo === "tetto" ? "tetto" : "terreno"} finoATerra={false} apparecchi={P.apparecchi} />
-          <div>
-            <div className={`rounded-lg border-l-4 p-4 ${ok(ca.fattibile)}`} role="status">
-              {ca.fattibile && ca.versione && ca.quotaPAE != null ? <>
-                <p className="text-lg font-semibold">{ca.n} {ca.n === 1 ? "calata isolata" : "calate isolate"} {ISCON[ca.versione].nome} dalla punta ({f(r.asta, 1)} m) al collegamento sul palo a {f(ca.quotaPAE, 2)} m</p>
-                <p className="mt-1 text-sm">l = {f(ca.l, 2)} m ≤ l massima {f(ca.lMax, 1)} m · s = {f(ca.ki, 2)} · {f(ca.kc, 2)} · {f(ca.l, 1)} = <strong>{f(ca.s, 3)} m</strong> ≤ {f(ISCON[ca.versione].sAria)} m · zona x {f(ca.zonaX)} m{ca.passoIntermedi ? ` · livelli intermedi ogni ${f(ca.passoIntermedi, 1)} m al massimo` : ""}</p>
-                <p className="mt-1 text-sm"><strong>Collegamenti del conduttore al palo: {ca.collegamentiTotali}</strong> – {ca.collegamentiPAE} a {f(ca.quotaPAE, 2)} m (uno per calata, fine del cavo){ca.zonaX > 0 ? `, ognuno con il terminale PAE 5408036 sulla guaina ${f(ca.zonaX, 2)} m più in alto` : ""}{ca.livelliIntermedi ? ` + ${ca.livelliIntermedi} ${ca.livelliIntermedi === 1 ? "livello intermedio" : "livelli intermedi"} × ${ca.n}` : ""}, poi il collegamento a terra alla base.</p>
-                {!lAuto && Math.abs(ca.l - d.lunghezzaCalata) > 0.05 && <Button size="sm" variant="outline" className="mt-2" onClick={() => set({ lAuto: true })}>Usa l = {f(ca.l, 2)} m nella verifica della sezione 2</Button>}
-              </> : <p className="text-lg font-semibold">Non si può isolare tutto con l'isCon</p>}
-              {ca.avvisi.map((a, i) => <p key={i} className="mt-1 text-sm">{a}</p>)}
-            </div>
-            {ca.livelli.length > 0 && <ol className="mt-4 space-y-2">{ca.livelli.map((l, i) => <li key={i} className="rounded-md border p-3 text-sm">
-              <p className="font-semibold"><span className="mr-2 rounded-full bg-primary px-2 py-0.5 text-xs text-primary-foreground">{f(l.quota, 2)} m</span>{l.titolo}</p>
-              <ul className="mt-1 list-disc space-y-0.5 pl-5">{l.cosa.map((c, k) => <li key={k}>{c}</li>)}</ul>
-            </li>)}</ol>}
-            {P.materiali.length > 0 && <div className="mt-4 overflow-x-auto"><table className="w-full min-w-[420px] text-sm"><thead><tr className="border-b text-left"><th className="p-2">Codice</th><th className="p-2">Materiale</th><th className="p-2 text-right">Quantità</th></tr></thead>
-              <tbody>{P.materiali.map((m, i) => <tr key={i} className="border-b"><td className="p-2 font-mono text-xs">{m.codice || "—"}</td><td className="p-2">{m.descrizione}</td><td className="p-2 text-right font-mono">{m.quantita} {m.unita}</td></tr>)}</tbody></table></div>}
-          </div>
-        </div>
-        {P.asta && <section className="mt-4 rounded-lg border bg-card p-3" aria-label="Particolare dell'asta">
-          <h3 className="font-semibold">Particolare dell'asta: calate isCon fissate con il set isCon HM</h3>
-          <div className="mt-2 grid gap-4 md:grid-cols-[minmax(0,340px)_1fr]">
-            <img src={`data:image/svg+xml;charset=utf-8,${encodeURIComponent(svgParticolareAsta(P.asta))}`} alt="Particolare dell'asta con piastra di contatto, supporti, fascetta e fascetta di terra" className="w-full max-w-[340px] rounded-md border bg-white" />
-            <div className="text-sm">
-              {P.asta.setApplicabile && <p className="font-semibold">Asta da {P.asta.lunghezza} m · set HM SET 5408090{P.asta.estensioni ? " + estensione HM ERW 5408094" : ""} · {P.asta.supporti} supporti · {P.asta.fascetteTerra} {P.asta.fascetteTerra === 1 ? "fascetta" : "fascette"} di terra 927 2 6-K</p>}
-              <ul className="mt-1 list-disc space-y-1 pl-5">{P.asta.note.map((n, i) => <li key={i}>{n}</li>)}</ul>
-              <p className="mt-2 text-xs text-muted-foreground">Dalle istruzioni di montaggio OBO del set isCon HM SET (5408090) e del set di estensione HM ERW (5408094). I materiali sono già nella tabella sopra e nel computo.</p>
-            </div>
-          </div>
-        </section>}
-      </section>
-
-      <section className="mt-10" aria-label="Linee e terra">
-        <h2 className="text-[1.7rem] font-medium">4 · Cavi, SPD e terra</h2>
+        </> },
+        { id: "cavi", nome: "Cavi e SPD", titolo: "Cavi, SPD e terra", aiuto: "Le misure da prevedere sui cavi che scendono dalle antenne.", contenuto: <>
         <div className="mt-3 flex flex-wrap gap-4 text-sm">
           {([["coassiali", "Cavi coassiali verso le antenne"], ["fibraDielettrica", "Fibra ottica dielettrica"], ["fibraMetallica", "Fibra con parti metalliche"], ["alimentazione", "Linea di alimentazione degli apparati"]] as const).map(([k, t]) =>
             <label key={k} className="flex items-center gap-2"><input type="checkbox" checked={d.cavi[k]} onChange={(e) => set({ cavi: { ...d.cavi, [k]: e.target.checked } })} />{t}</label>)}
@@ -226,19 +235,17 @@ export function AntennePage() {
           <span className={`mt-0.5 shrink-0 rounded-full px-2 py-0.5 text-[11px] font-semibold ${m.obbligatoria ? "bg-primary text-white" : "bg-muted"}`}>{m.obbligatoria ? "da fare" : "consiglio"}</span>
           <div><p>{m.testo}</p><p className="mt-0.5 text-xs text-muted-foreground">CEI EN IEC {m.rif}</p></div></li>)}</ol>
         <Campo etichetta="Note del progetto"><textarea className={`${inputCls} min-h-24`} maxLength={5000} value={d.note ?? ""} onChange={(e) => set({ note: e.target.value })} /></Campo>
-      </section>
-
-      <section className="mt-10 rounded-lg border bg-card p-4" aria-label="Relazione">
-        <h2 className="text-[1.7rem] font-medium">5 · Relazione tecnica e distinta</h2>
+        </> },
+        { id: "relazione", nome: "Relazione", titolo: "Relazione tecnica e distinta", contenuto: <>
         <p className="mt-1 text-sm text-muted-foreground">La relazione contiene tutto: sito, captazione, distanza di separazione, numero di calate in parallelo e versione isCon, collegamento al palo (PAE) e collegamenti equipotenziali quota per quota con lo schema, cavi, SPD e terra, posa e materiali. I materiali entrano da soli nel Computo materiali.</p>
         <div className="mt-3 flex flex-wrap items-center gap-3"><Button onClick={() => void relazioneWord()}><FileText strokeWidth={1.5} />Relazione tecnica (Word)</Button><Button asChild variant="outline"><Link to="/computo-materiali">Computo materiali</Link></Button><span role="status" className="text-sm">{msgRel}</span></div>
-      </section>
-
-      <div className="mt-8 flex flex-wrap gap-3">
+          <div className="mt-6 flex flex-wrap gap-3">
         <Button asChild variant="outline"><Link to="/rischio">Valutazione del rischio</Link></Button>
         <Button asChild variant="outline"><Link to="/spd">Scelta SPD</Link></Button>
         <Button asChild variant="outline"><Link to="/resistenza-terra">Impianto di terra</Link></Button>
-      </div>
+          </div>
+        </> },
+      ]} />
     </main>
   </>;
 }

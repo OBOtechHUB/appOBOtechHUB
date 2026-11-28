@@ -13,6 +13,7 @@ export const SPECIFICHE: Specifica[] = [
   { id: "2026-11-27-2", data: "27/11/2026", titolo: "Controllo del progetto", cosa: "Edifici oltre 60 m e dispersori aggiuntivi dell'anello di terra.", riguarda: ["edificio"] },
   { id: "2026-11-27-3", data: "27/11/2026", titolo: "Codici isCon in distinta", cosa: "Cavo al metro o in bobina, elemento di collegamento e supporto secondo la versione, Pro+ con il codice a catalogo.", riguarda: ["edificio", "antenne"] },
   { id: "2026-11-27-4", data: "27/11/2026", titolo: "Aste proposte sui modelli 3D importati", cosa: "«Suggerisci aste» non mette più un'asta per ogni cornicione o balcone: le piccole sporgenze basse restano segnalate. Le proposte già accettate non cambiano.", riguarda: ["edificio"] },
+  { id: "2026-11-28-1", data: "28/11/2026", titolo: "Antenne: cavo isCon lungo quanto ammesso", cosa: "Con la soluzione scelta (numero di calate e versione) il cavo isCon si usa per tutta la lunghezza ammessa e finisce il più in basso possibile; prima finiva subito sotto l'antenna più bassa. Cambiano lunghezza del cavo, distanza di separazione e metri in distinta. Il cavo corto resta scegliendo «Cavo corto».", riguarda: ["antenne"] },
 ];
 
 export const SPECIFICA_ATTUALE = SPECIFICHE[SPECIFICHE.length - 1]!.id;

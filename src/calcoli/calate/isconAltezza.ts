@@ -43,7 +43,8 @@ export interface DatiCalateAltezza {
   isconFinoATerra: boolean;
   /** calate distanziate almeno 20 cm e su lati opposti (kc ridotto); false = affiancate (kc 1 per la distanza) */
   calateDistanziate?: boolean | undefined;
-  /** "antenne" (o assente) = fine del cavo subito sotto l'antenna più bassa; "basso" = fine del cavo il più in basso possibile, per isolare anche gli apparecchi a bordo */
+  /** "basso" (o assente, dal 28/11/2026) = cavo lungo quanto ammesso dalla soluzione scelta (fine il più in basso possibile);
+   *  "antenne" = cavo corto, fine subito sotto l'antenna più bassa */
   obiettivo?: "antenne" | "basso" | undefined;
 }
 
@@ -78,7 +79,7 @@ export function calateIsconAltezza(d: DatiCalateAltezza): RisultatoCalateAltezza
   type Cand = { n: number; v: VersioneIscon; lMax: number; x: number; pae: number };
   // quota della fine del cavo: subito sotto l'antenna più bassa lasciando il tratto x = 2·s (terminale PAE della guaina);
   // x dipende da s, che dipende dalla lunghezza: pae = A − 2·s(pae) → pae = (A − c·top) / (1 − c) con c = 2·ki·kc/km
-  const basso = d.obiettivo === "basso";
+  const basso = d.obiettivo !== "antenne";
   const posizione = (n: number, lMax: number): { pae: number; x: number } => {
     const minimo = Math.max(base, top - (lMax - MARGINE));
     if (d.quotaApparatoBasso == null || basso) { const sx = (ki * kcS(n) * (top - minimo)) / km; return { pae: minimo, x: sx < 0.2 ? 0 : 2 * sx }; }
@@ -89,24 +90,29 @@ export function calateIsconAltezza(d: DatiCalateAltezza): RisultatoCalateAltezza
     return { pae, x: sx < 0.2 ? 0 : 2 * sx };
   };
   let scelta: Cand | null = null;
-  // con l'obiettivo "basso" le antenne devono comunque restare sopra il tratto x della fine del cavo
-  const valida = (pae: number, x: number, lMax: number) => pae >= Math.max(base, top - (lMax - MARGINE)) - 1e-9 && pae < top && (!basso || d.quotaApparatoBasso == null || pae + x <= d.quotaApparatoBasso + 1e-9);
-  if (basso && (!d.nCalate || !d.versione)) {
-    // scendere il più possibile: tra le combinazioni ammesse quella con la fine del cavo più bassa (a parità, meno cavi e versione più semplice)
-    for (const n of numeri) for (const v of ordine) {
+  // 1) soluzione: il minimo numero di calate e la versione più semplice che isolano l'antenna più bassa (cavo corto sotto l'antenna)
+  const posAntenne = (n: number, lMax: number) => {
+    const minimo = Math.max(base, top - (lMax - MARGINE));
+    if (d.quotaApparatoBasso == null) { const sx = (ki * kcS(n) * (top - minimo)) / km; return { pae: minimo, x: sx < 0.2 ? 0 : 2 * sx }; }
+    const c = (2 * ki * kcS(n)) / km, A = d.quotaApparatoBasso;
+    let pae = (A - c * top) / (1 - c), sx = (ki * kcS(n) * (top - pae)) / km;
+    if (sx < 0.2) { pae = A - 0.3; sx = (ki * kcS(n) * (top - pae)) / km; }
+    return { pae, x: sx < 0.2 ? 0 : 2 * sx };
+  };
+  const validaA = (pae: number, lMax: number) => pae >= Math.max(base, top - (lMax - MARGINE)) - 1e-9 && pae < top;
+  for (const n of numeri) {
+    for (const v of ordine) {
       if (!ammessaPerCorrente(v, d.lpl, n)) continue;
-      const lMax = lunghezzaMassima(v, ki, kcS(n), km), { pae, x } = posizione(n, lMax);
-      if (valida(pae, x, lMax) && (!scelta || pae < scelta.pae - 0.05)) scelta = { n, v, lMax, x, pae };
+      const lMax = lunghezzaMassima(v, ki, kcS(n), km), { pae, x } = posAntenne(n, lMax);
+      if (validaA(pae, lMax)) { scelta = { n, v, lMax, x, pae }; break; }
     }
-  } else {
-    for (const n of numeri) {
-      for (const v of ordine) {
-        if (!ammessaPerCorrente(v, d.lpl, n)) continue;
-        const lMax = lunghezzaMassima(v, ki, kcS(n), km), { pae, x } = posizione(n, lMax);
-        if (valida(pae, x, lMax)) { scelta = { n, v, lMax, x, pae }; break; }
-      }
-      if (scelta) break;
-    }
+    if (scelta) break;
+  }
+  // 2) con la soluzione scelta il cavo si usa per tutta la lunghezza ammessa: la fine scende il più possibile
+  //    (le antenne restano sopra il tratto x della fine del cavo); se non si può, resta la posizione sotto l'antenna
+  if (scelta && basso) {
+    const p = posizione(scelta.n, scelta.lMax);
+    if (d.quotaApparatoBasso == null || p.pae + p.x <= d.quotaApparatoBasso + 1e-9) scelta = { ...scelta, pae: p.pae, x: p.x };
   }
   const vMax: VersioneIscon = d.versione ?? "premium", nMax = d.nCalate ? Math.min(4, d.nCalate) : 4;
   const lMassimaPossibile = lunghezzaMassima(vMax, ki, kcS(nMax), km);
@@ -153,7 +159,7 @@ export function calateIsconAltezza(d: DatiCalateAltezza): RisultatoCalateAltezza
       avvisi.push("Il palo sotto la fine del cavo porta la corrente di fulmine: schermi dei cavi d'antenna collegati al palo in alto e alla base, SPD di tipo 1 all'ingresso del locale apparati; per discese lunghe è buona pratica collegare gli schermi al palo anche a quote intermedie.");
     }
   }
-  if (basso) avvisi.push(`Fine del cavo il più in basso possibile: tutto quello che sta sul palo sopra ${f(pae + x, 1)} m (antenne e apparecchi a bordo) resta su un tratto che non porta corrente di fulmine; tra ${f(pae, 1)} e ${f(pae + x, 1)} m (tratto x) nessun apparecchio entro s = ${f(s, 3)} m dal cavo. Sotto ${f(pae, 1)} m il palo porta la corrente.`);
+  if (basso) avvisi.push(`Cavo usato per tutta la lunghezza ammessa (${f(lMax, 1)} m con ${n} ${n === 1 ? "calata" : "calate in parallelo"} ${D.nome}): fine del cavo il più in basso possibile: tutto quello che sta sul palo sopra ${f(pae + x, 1)} m (antenne e apparecchi a bordo) resta su un tratto che non porta corrente di fulmine; tra ${f(pae, 1)} e ${f(pae + x, 1)} m (tratto x) nessun apparecchio entro s = ${f(s, 3)} m dal cavo. Sotto ${f(pae, 1)} m il palo porta la corrente.`);
   avvisi.push(`Lungo il ${metallica ? "palo metallico" : "percorso"}: supporti al massimo ogni 1 m${metallica && C.supportoMetallico ? "; i supporti metallici isCon H VA 5408056 avvitati al palo collegano anche la guaina alle parti a terra, come chiedono le istruzioni OBO" : `; supporto ${C.supporto} (${C.supportoNota})`}. Raggio minimo di curvatura ${D.raggioCurvatura.nero} mm.`);
   if (n > 1) avvisi.push(d.calateDistanziate === false
     ? `Calate affiancate: la corrente si divide (${n} cavi) ma il kc della distanza resta 1 (istruzioni OBO).`

@@ -4,8 +4,8 @@ import { calateIsconAltezza, type DatiCalateAltezza } from "./isconAltezza";
 const base: DatiCalateAltezza = { lpl: "III", quotaPunta: 87.4, quotaBase: 0, quotaApparatoBasso: 74, struttura: "metallica", nCalate: null, versione: null, materiale: "aria", distanzaImpianti: 0.5, isconFinoATerra: false };
 
 describe("calate isCon da grande altezza", () => {
-  it("palo metallico di 80 m: PAE sotto l'antenna più bassa, il resto scende nel palo", () => {
-    const r = calateIsconAltezza(base);
+  it("palo metallico di 80 m, cavo corto: PAE sotto l'antenna più bassa, il resto scende nel palo", () => {
+    const r = calateIsconAltezza({ ...base, obiettivo: "antenne" });
     expect(r.fattibile).toBe(true);
     // fine del cavo sotto l'antenna più bassa lasciando x = 2·s per il terminale PAE (istruzioni OBO)
     expect(r.zonaX).toBeCloseTo(2 * r.s, 9);
@@ -60,10 +60,16 @@ describe("scelta delle calate", () => {
 describe("scendere il più possibile", () => {
   it("la fine del cavo scende con più cavi e versioni migliori", async () => {
     const { scendiConPiuCavi } = await import("./isconAltezza");
-    const r = calateIsconAltezza({ ...base, obiettivo: "basso" });
-    expect(r.fattibile).toBe(true);
-    expect(r.versione).toBe("premium");
-    expect(r.n).toBe(3); // con 3 e 4 cavi kc 0,44: a parità si sceglie il numero minore
+    // dal 28/11/2026 (predefinito): la soluzione è la più semplice che isola le antenne (1 Pro+), poi il cavo si usa per tutta la lunghezza ammessa
+    for (const r of [calateIsconAltezza({ ...base, obiettivo: "basso" }), calateIsconAltezza(base)]) {
+      expect(r.fattibile).toBe(true);
+      expect(r.versione).toBe("proplus"); expect(r.n).toBe(1);
+      expect(r.l).toBeCloseTo(0.75 / 0.04 - 0.5, 6); // l massima 18,75 m meno 0,5 m per i collegamenti
+      expect(r.quotaPAE! + r.zonaX).toBeLessThanOrEqual(74 + 1e-9); // le antenne restano sopra il tratto x
+    }
+    const corto = calateIsconAltezza({ ...base, obiettivo: "antenne" }), lungo = calateIsconAltezza(base);
+    expect(lungo.l).toBeGreaterThan(corto.l);
+    const r = calateIsconAltezza({ ...base, nCalate: 3, versione: "premium" });
     expect(r.quotaPAE!).toBeCloseTo(87.4 - (0.9 / (0.04 * 0.44) - 0.5), 6);
     const righe = scendiConPiuCavi(base, "proplus");
     expect(righe[0]!.quotaFine!).toBeGreaterThan(righe[1]!.quotaFine!);

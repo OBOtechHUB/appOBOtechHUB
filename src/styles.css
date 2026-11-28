@@ -373,3 +373,49 @@ section.bg-ardesia::after {
   #fx-progresso { display: none; }
 }
 @media print { section.bg-ardesia::before, section.bg-ardesia::after, #fx-progresso { display: none !important; } .fx-in { opacity: 1 !important; transform: none !important; filter: none !important; } }
+
+/* ── Schede che scorrono di lato (NastroSchede: Antenne), colori del marchio OBO ── */
+.nastro-schede { padding-bottom: 5.5rem; }
+.ns-passi { list-style: none; display: flex; gap: 6px; margin: 0; padding: 0; overflow-x: auto; scrollbar-width: none; scroll-margin-top: 4.5rem; }
+.ns-passi li { flex: 1 0 auto; }
+.ns-passi button { width: 100%; display: flex; align-items: center; gap: 7px; background: none; border: 0; border-top: 3px solid var(--border); padding: 8px 4px 4px; color: var(--muted-foreground); cursor: pointer; font-size: .82rem; font-weight: 600; white-space: nowrap; }
+.ns-passi span { display: inline-grid; place-items: center; width: 22px; height: 22px; border-radius: 50%; background: var(--border); color: var(--foreground); font-size: 12px; font-weight: 700; flex: none; }
+.ns-passi em { font-style: normal; }
+.ns-passi li.fatto button { border-top-color: #1d7a45; color: var(--foreground); }
+.ns-passi li.fatto span { background: #1d7a45; color: #fff; }
+.ns-passi li.ora button { border-top-color: var(--primary); color: var(--foreground); font-weight: 700; }
+.ns-passi li.ora span { background: var(--primary); color: #fff; }
+.ns-nastro { display: flex; align-items: flex-start; gap: 16px; overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: none; overscroll-behavior-x: contain;
+  padding: 18px max(16px, calc((100vw - 1044px) / 2)) 8px; margin: 0 calc(-1 * max(16px, (100vw - 1076px) / 2)); }
+.ns-nastro::-webkit-scrollbar { display: none; }
+.ns-carta { flex: 0 0 min(1000px, calc(100vw - 56px)); min-width: 0; scroll-snap-align: center; border-radius: 28px; padding: 26px 28px 28px; box-sizing: border-box;
+  opacity: .5; transform: scale(.96); transition: transform .3s ease, opacity .3s ease; cursor: pointer; }
+.ns-carta:not(.ora) { max-height: 420px; overflow: hidden; }
+.ns-carta.ora { opacity: 1; transform: none; cursor: auto; box-shadow: 0 18px 40px rgba(0, 0, 0, .16); }
+.ns-carta.c0 { background: #e4ebed; } .ns-carta.c1 { background: #fbe1b0; } .ns-carta.c2 { background: #c5d9de; }
+.ns-carta.c3 { background: #fdebc9; } .ns-carta.c4 { background: #d5e2e6; } .ns-carta.c5 { background: #f8d79a; }
+.dark .ns-carta.c0 { background: #26313a; } .dark .ns-carta.c1 { background: #3a2f1c; } .dark .ns-carta.c2 { background: #22343a; }
+.dark .ns-carta.c3 { background: #352b1d; } .dark .ns-carta.c4 { background: #28373d; } .dark .ns-carta.c5 { background: #3d3119; }
+@media (prefers-reduced-motion: reduce) { .ns-carta { transition: none; } }
+.ns-n { margin: 0; color: var(--muted-foreground); letter-spacing: .04em; text-transform: uppercase; font-weight: 700; font-size: .8rem; }
+.ns-titolo { margin: 2px 0 0; font-size: 1.75rem; line-height: 1.15; font-weight: 700; text-wrap: balance; }
+.ns-aiuto { margin: 6px 0 0; max-width: 64ch; color: var(--muted-foreground); }
+.ns-carta .bg-card { background: color-mix(in srgb, var(--card) 78%, transparent); }
+.ns-piede { position: fixed; left: 0; right: 0; bottom: 0; z-index: 30; background: var(--background); border-top: 1px solid var(--border); box-shadow: 0 -6px 18px rgba(0, 0, 0, .08);
+  padding: 10px max(16px, env(safe-area-inset-left, 0px)) calc(10px + env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-right, 0px)); }
+.ns-piede-riga { max-width: 64rem; margin: 0 auto; display: flex; align-items: center; gap: 12px; }
+.ns-esito { flex: 1; min-width: 0; text-align: center; font-size: .9rem; color: var(--muted-foreground); }
+.ns-esito b { color: var(--foreground); }
+.ns-btn { border: 1px solid var(--border); background: var(--background); color: var(--foreground); border-radius: 999px; padding: 9px 16px; font-weight: 700; font-size: .9rem; cursor: pointer; white-space: nowrap; }
+.ns-btn.primario { background: var(--primary); border-color: var(--primary); color: #fff; }
+.ns-btn:disabled { opacity: .35; cursor: default; }
+@media (max-width: 760px) {
+  .ns-nastro { gap: 10px; padding: 14px 14px 6px; margin: 0 -16px; }
+  .ns-carta { flex-basis: calc(100vw - 44px); padding: 18px 14px 20px; border-radius: 24px; }
+  .ns-carta:not(.ora) { max-height: 300px; }
+  .ns-titolo { font-size: 1.4rem; }
+  .ns-passi em { display: none; }
+  .ns-passi li.ora em { display: inline; }
+  .ns-dove { display: none; }
+  .ns-btn { padding: 9px 12px; }
+}

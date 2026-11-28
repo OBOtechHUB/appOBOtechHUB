@@ -2,6 +2,23 @@
   "nota": "Registro degli aggiornamenti di Progettazione LPS. Una voce per aggiornamento, la più recente per prima (app: lps). Viene mostrato nella barra \"Aggiorna app\", nel riquadro Novità e nella pagina Novità di OBO Hub. Le novità solo grafiche (animazioni, sigle, aspetto) non si mostrano: restano conservate in 'grafica_non_mostrata'.",
   "aggiornamenti": [
     {
+      "id": "2026-11-28-lps-80",
+      "data": "2026-11-28",
+      "app": "lps",
+      "titolo": "Antenne: cavo isCon lungo quanto ammesso e pagina a schede",
+      "voci": [
+        "Con la soluzione scelta il cavo isCon si usa per tutta la lunghezza ammessa e finisce il più in basso possibile (prima finiva subito sotto l'antenna più bassa); il cavo corto resta come scelta",
+        "Nuova tabella con la lunghezza massima del cavo per calata singola e 2, 3, 4 calate in parallelo, per Basic, Pro+ e Premium",
+        "La pagina Antenne è divisa in schede che scorrono di lato, con la soluzione delle calate sempre visibile in basso"
+      ],
+      "titolo_en": "Antennas: isCon cable as long as allowed, page in cards",
+      "voci_en": [
+        "With the chosen solution the isCon cable uses its full allowed length and ends as low as possible; the short cable stays as an option",
+        "New table with the maximum cable length for a single down conductor and 2, 3, 4 in parallel, for Basic, Pro+ and Premium",
+        "The Antennas page is split into side-scrolling cards, with the down-conductor solution always visible at the bottom"
+      ]
+    },
+    {
       "id": "2026-11-27-lps-79",
       "data": "2026-11-27",
       "app": "lps",
