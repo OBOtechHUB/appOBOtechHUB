@@ -1,0 +1,1 @@
+var e={I:{raggio:20,latoMaglia:5},II:{raggio:30,latoMaglia:10},III:{raggio:45,latoMaglia:15},IV:{raggio:60,latoMaglia:20},pendenzaMassimaMaglia:{valore:null,unita:`Δz/Δx`,verificato:!0,riferimentoNorma:`CEI EN IEC 62305-3:2026-10, 5.2.2.4 Nota 1: la maglia vale per tetti orizzontali e inclinati (nessun limite di pendenza; oltre 1/10 conduttori sul colmo)`}};export{e as t};

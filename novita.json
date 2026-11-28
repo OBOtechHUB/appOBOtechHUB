@@ -1,0 +1,1397 @@
+{
+  "nota": "Registro degli aggiornamenti di Progettazione LPS. Una voce per aggiornamento, la più recente per prima (app: lps). Viene mostrato nella barra \"Aggiorna app\", nel riquadro Novità e nella pagina Novità di OBO Hub. Le novità solo grafiche (animazioni, sigle, aspetto) non si mostrano: restano conservate in 'grafica_non_mostrata'.",
+  "aggiornamenti": [
+    {
+      "id": "2026-11-28-lps-81",
+      "data": "2026-11-28",
+      "app": "lps",
+      "titolo": "Cerca i progetti per numero CRM, nome o comune",
+      "voci": [
+        "In «I miei progetti» c'è la ricerca: scrivi numero CRM, nome o comune e vedi subito i progetti che corrispondono, anche quelli nelle pagine successive",
+        "Filtra anche i progetti condivisi con te"
+      ],
+      "titolo_en": "Find projects by CRM number, name or town",
+      "voci_en": [
+        "«My projects» has a search: type CRM number, name or town and see the matching projects, also those on later pages",
+        "It also filters the projects shared with you"
+      ]
+    },
+    {
+      "id": "2026-11-28-lps-80",
+      "data": "2026-11-28",
+      "app": "lps",
+      "titolo": "Antenne: cavo isCon lungo quanto ammesso e pagina a schede",
+      "voci": [
+        "Con la soluzione scelta il cavo isCon si usa per tutta la lunghezza ammessa e finisce il più in basso possibile (prima finiva subito sotto l'antenna più bassa); il cavo corto resta come scelta",
+        "Nuova tabella con la lunghezza massima del cavo per calata singola e 2, 3, 4 calate in parallelo, per Basic, Pro+ e Premium",
+        "La pagina Antenne è divisa in schede che scorrono di lato, con la soluzione delle calate sempre visibile in basso"
+      ],
+      "titolo_en": "Antennas: isCon cable as long as allowed, page in cards",
+      "voci_en": [
+        "With the chosen solution the isCon cable uses its full allowed length and ends as low as possible; the short cable stays as an option",
+        "New table with the maximum cable length for a single down conductor and 2, 3, 4 in parallel, for Basic, Pro+ and Premium",
+        "The Antennas page is split into side-scrolling cards, with the down-conductor solution always visible at the bottom"
+      ]
+    },
+    {
+      "id": "2026-11-27-lps-79",
+      "data": "2026-11-27",
+      "app": "lps",
+      "titolo": "Edificio 3D: importazione e aste proposte più chiare",
+      "voci": [
+        "Modelli IFC e 3D: «Suggerisci aste» propone molte meno aste, perché non ne mette più una per ogni cornicione o balcone; le piccole sporgenze restano segnate in rosso ed elencate (soglia modificabile)",
+        "Le aste proposte si vedono nel modello: linea arancione con un pallino in cima, più l'elenco con posizione e altezza",
+        "Senza captatori le zone che la sfera non raggiunge sono grigie, non verdi: niente è ancora protetto dall'impianto. Sotto il modello c'è la legenda dei colori",
+        "Corpi con molti lati: un solo campo per il materiale di tutte le facciate (lato per lato solo se serve) e altezze con due decimali",
+        "DWG e DXF: se il file è un prospetto o una sezione l'app lo dice e non crea corpi da tratti minuscoli"
+      ],
+      "titolo_en": "3D building: clearer import and proposed rods",
+      "voci_en": [
+        "IFC and 3D models: «Suggest rods» proposes far fewer rods, as it no longer adds one for every cornice or balcony; small protrusions stay marked in red and listed (threshold can be changed)",
+        "Proposed rods are visible in the model: orange line with a dot on top, plus a list with position and height",
+        "With no air terminals, areas the sphere cannot reach are grey, not green: nothing is protected by the system yet. A colour legend is shown under the model",
+        "Bodies with many sides: a single field for the material of all facades (side by side only if needed) and heights with two decimals",
+        "DWG and DXF: if the file is an elevation or a section the app says so and does not create bodies from tiny strokes"
+      ]
+    },
+    {
+      "id": "2026-11-27-lps-78",
+      "data": "2026-11-27",
+      "app": "lps",
+      "titolo": "Progetti salvati: avviso quando cambiano i calcoli",
+      "voci": [
+        "Quando apri un progetto salvato prima di un aggiornamento dei calcoli, l'app elenca cosa è cambiato e chiede se ricalcolarlo con le nuove specifiche o lasciarlo com'è",
+        "La scelta resta nel progetto: la domanda torna solo al prossimo aggiornamento dei calcoli"
+      ],
+      "titolo_en": "Saved projects: notice when the calculations change",
+      "voci_en": [
+        "When you open a project saved before a calculation update, the app lists what changed and asks whether to recalculate it with the new specifications or leave it as it is",
+        "The choice is stored in the project: the question comes back only at the next calculation update"
+      ]
+    },
+    {
+      "id": "2026-11-27-lps-77",
+      "data": "2026-11-27",
+      "app": "lps",
+      "titolo": "isCon: un solo codice per riga nella distinta",
+      "voci": [
+        "Codici isCon ricontrollati uno per uno sul catalogo obo.it",
+        "Elemento di collegamento secondo la versione: 5408021 per Basic, 5408023 per Premium, 5408022 per Pro+ (non più tre codici insieme)",
+        "Supporti: 5408056 in acciaio inox solo per Pro+ e Premium; per Basic il supporto con fascetta 5408066",
+        "Pro+ 75: codice 5408006, quello presente nel catalogo"
+      ],
+      "titolo_en": "isCon: one article number per line in the bill of materials",
+      "voci_en": [
+        "isCon article numbers re-checked one by one against the obo.it catalogue",
+        "Connection element by version: 5408021 for Basic, 5408023 for Premium, 5408022 for Pro+ (no longer three numbers together)",
+        "Holders: stainless steel 5408056 only for Pro+ and Premium; for Basic the holder with strap 5408066",
+        "Pro+ 75: article 5408006, the one in the catalogue"
+      ]
+    },
+    {
+      "id": "2026-11-27-lps-76",
+      "data": "2026-11-27",
+      "app": "lps",
+      "titolo": "isCon: codici al metro nella distinta",
+      "voci": [
+        "Dati isCon confermati con le schede tecniche OBO (distanza equivalente, classe di corrente, diametri)",
+        "Nella distinta di Antenne e Impianti su palo, quando servono meno metri di una bobina, compare il codice al metro (5407980 Basic, 5407984 Premium) con ordine minimo 6 m; altrimenti la bobina"
+      ],
+      "titolo_en": "isCon: per-metre article numbers in the bill of materials",
+      "voci_en": [
+        "isCon data confirmed with the OBO data sheets (equivalent distance, current class, diameters)",
+        "In the Antennas and Pole bills of materials, when less than a coil is needed, the per-metre article (5407980 Basic, 5407984 Premium) is listed with a 6 m minimum order; otherwise the coil"
+      ]
+    },
+    {
+      "id": "2026-11-27-lps-75",
+      "data": "2026-11-27",
+      "app": "lps",
+      "titolo": "Controllo del progetto: edifici oltre 60 m e dispersori aggiuntivi",
+      "voci": [
+        "Ricontrollate con la norma le tabelle usate nei calcoli (parametri del fulmine, sezioni minime, dispersori, spessori delle lastre, distanze tra le calate): valori corretti",
+        "Il controllo del progetto avvisa se l'edificio supera i 60 m: la parte alta delle facciate va protetta dai fulmini laterali",
+        "Se l'anello di terra è sotto la lunghezza minima, il controllo indica quanti dispersori aggiuntivi servono e quanto devono essere lunghi"
+      ],
+      "titolo_en": "Project check: buildings above 60 m and additional earth electrodes",
+      "voci_en": [
+        "Tables used in the calculations re-checked against the standard (lightning parameters, minimum cross-sections, earth electrodes, sheet thickness, down-conductor spacing): values correct",
+        "The project check warns when the building is taller than 60 m: the upper part of the facades must be protected against side flashes",
+        "If the ring earth electrode is below the minimum length, the check says how many additional electrodes are needed and how long"
+      ]
+    },
+    {
+      "id": "2026-11-27-lps-74",
+      "data": "2026-11-27",
+      "app": "lps",
+      "titolo": "Antenne: ricontrollo con la norma e nuove avvertenze",
+      "voci": [
+        "Ricontrollati con la CEI EN IEC 62305 raggi della sfera rotolante, coefficienti ki e kc e correnti: i valori erano corretti",
+        "Nuove misure nella pagina Antenne e nella relazione: fulmini laterali oltre i 60 m dal suolo, condizione di validità di kc con più calate (dispersore di tipo B o tipo A simili) e correzione per l'altitudine",
+        "Se un'apparecchiatura sul palo supera i 60 m dal suolo l'esito ricorda di verificare i fulmini laterali"
+      ],
+      "titolo_en": "Antennas: re-check against the standard and new warnings",
+      "voci_en": [
+        "Sphere radii, ki and kc coefficients and currents re-checked against IEC 62305: values were correct",
+        "New measures in the Antennas page and report: side flashes above 60 m from the ground, validity condition of kc with several down-conductors (type B earthing or similar type A) and altitude correction",
+        "If equipment on the pole is above 60 m from the ground, its result now reminds you to check side flashes"
+      ]
+    },
+    {
+      "id": "2026-11-27-lps-73",
+      "data": "2026-11-27",
+      "app": "lps",
+      "titolo": "Avviso «Attenzione: perderai i dati» quando esci senza salvare",
+      "voci": [
+        "Con un progetto aperto: se le ultime modifiche non sono ancora salvate e vai su OBO Hub o un'altra app compare l'avviso con «Resta qui», «Salva ed esci» o «Esci senza salvare»",
+        "Senza progetto aperto: l'avviso ricorda che il lavoro non è in nessun progetto, con «Vai a Progetti» per salvarlo",
+        "Se chiudi o ricarichi la scheda avvisa il browser; i cambi pagina dentro l'app non danno avvisi perché non si perde nulla"
+      ]
+    },
+    {
+      "id": "2026-11-26-lps-72",
+      "data": "2026-11-26",
+      "app": "lps",
+      "titolo": "Antenne: apparecchiature da proteggere con quota e altezza",
+      "voci": [
+        "Nella sezione 1 nuovo elenco «Apparecchiature da proteggere sul palo»: per ognuna nome, quota della base e altezza che occupa",
+        "La più bassa decide fin dove scende il cavo isCon; se una è più alta delle antenne l'asta si calcola su di lei",
+        "Nello schema della sezione 3 ogni apparecchiatura è disegnata alla sua quota: verde se resta isolata, rossa se sta sotto la fine del cavo (con cosa fare); elenco ed esito anche nella relazione Word"
+      ]
+    },
+    {
+      "id": "2026-11-26-lps-71",
+      "data": "2026-11-26",
+      "app": "lps",
+      "titolo": "Antenne: particolare dell'asta con il set di supporti isCon HM",
+      "voci": [
+        "Nuovo riquadro «Particolare dell'asta»: disegno con piastra di contatto, supporti delle calate al massimo ogni 1 m, fascetta MBS 100 A2 almeno 20 cm sotto l'ultimo supporto e fascetta di terra 927 2 6-K alla muffa di collegamento",
+        "Scelta automatica dell'asta standard (4, 6, 8 o 10 m), del set isCon HM SET 5408090 e del set di estensione HM ERW 5408094 per aste oltre 6 m; una fascetta di terra ogni 2 calate",
+        "Materiali aggiunti in pagina, nel computo e nella relazione Word (con il disegno e le note di montaggio); con il set la piastra di contatto è compresa, quindi non si contano più le piastre AP1/AP2"
+      ]
+    },
+    {
+      "id": "2026-11-26-lps-70",
+      "data": "2026-11-26",
+      "app": "lps",
+      "titolo": "Antenne: isolare il più in basso possibile e come migliora con più cavi",
+      "voci": [
+        "Scelta «Fin dove isolare»: sotto l'antenna più bassa oppure il più in basso possibile, per tenere fuori dalla corrente di fulmine anche gli apparecchi a bordo del palo",
+        "Nuovo riquadro «Come migliora con più cavi»: spiegazione e barre con fin dove arriva la fine del cavo con 1, 2, 3, 4 cavi, metri isolati, kc, corrente per cavo e metri di cavo",
+        "Le stesse informazioni anche nella relazione tecnica"
+      ]
+    },
+    {
+      "id": "2026-11-26-lps-69",
+      "data": "2026-11-26",
+      "app": "lps",
+      "titolo": "Calate isCon secondo le istruzioni di montaggio OBO",
+      "voci": [
+        "Ogni calata isCon è un pezzo unico dalla punta alla fine del cavo, dove il conduttore interno si collega al palo: il cavo non si prolunga e la sua lunghezza (con 0,5 m per i collegamenti) resta entro quella ammessa",
+        "Terminale isCon PAE 5408036 sulla guaina a x = 2 × s dalla fine del cavo, con il tratto libero entro s (distanziatore isCon DH); lungo il palo supporti metallici isCon H VA ogni 1 m",
+        "Calate in parallelo: la corrente per calata scende (100 → 66 → 44 kA con LPL III); il kc della distanza si riduce solo con calate distanziate almeno 20 cm su lati opposti del palo (casella nuova), affiancate restano a kc 1",
+        "Distinta e relazione con i componenti OBO: elementi di collegamento superiore e inferiore, piastra AP1/AP2-16 VA, terminale PAE, distanziatore, supporti H VA, rame 6 mm², cartello; prove di continuità e di isolamento"
+      ]
+    },
+    {
+      "id": "2026-11-26-lps-68",
+      "data": "2026-11-26",
+      "app": "lps",
+      "titolo": "Antenne: scegli calate e versione isCon con il confronto",
+      "voci": [
+        "Pulsanti per scegliere le calate in parallelo (automatico, 1, 2, 3, 4) e la versione isCon (Basic 45, Pro+ 75, Premium 90 o la più semplice)",
+        "Tabella con tutte le combinazioni: se basta, quota del PAE, l e l massima, s, metri di isCon, collegamenti e corrente per calata; tocca una casella per sceglierla",
+        "«Cosa cambia»: cosa migliora aggiungendo una calata e cosa costa in più",
+        "Numero dei collegamenti equipotenziali (PAE) da fare, anche nella relazione, con la spiegazione di quando basta un solo livello di PAE",
+        "La isCon Pro 75 normale non è più proposta (Antenne, Impianti su palo, Calate); i progetti che la usano restano come sono"
+      ]
+    },
+    {
+      "id": "2026-11-26-lps-67",
+      "data": "2026-11-26",
+      "app": "lps",
+      "titolo": "Antenne: calate isCon da grande altezza e collegamenti equipotenziali",
+      "voci": [
+        "Nuova sezione «Calate isCon da grande altezza»: l'app mette il collegamento equipotenziale principale (PAE) subito sotto l'antenna più bassa e controlla che la lunghezza stia nella l massima della versione isCon",
+        "L'isCon resta continuo dalla punta fino a terra, senza tagli (impostazione predefinita): al PAE si collega il conduttore interno alla struttura e il cavo prosegue fino al dispersore; materiali per tutta l'altezza",
+        "La verifica della sezione 2 usa da sola la lunghezza dalla punta al PAE calcolata (si può ancora scrivere a mano)",
+        "Per ogni quota (PAE, livelli intermedi, base) dice cosa collegare: conduttore interno, guaina, zona x libera, supporti delle antenne, schermi dei cavi, SPD",
+        "Con palo o traliccio metallico o calcestruzzo armato la corrente scende nella struttura; con struttura non conduttiva calcola i livelli equipotenziali intermedi (dalla distanza disponibile, o con isCon fino a terra)",
+        "Schema verticale, materiali (isCon, piastre, supporti, cartello) e pulsante per usare la lunghezza trovata nella verifica",
+        "«Relazione tecnica (Word)» nella pagina Antenne: sito, captazione, distanza di separazione, calate in parallelo e versione isCon, collegamento al palo e collegamenti equipotenziali quota per quota con lo schema, cavi, SPD e terra, posa e materiali",
+        "I materiali delle antenne (asta, isCon per tutta l'altezza secondo il numero di calate, collegamento al palo, piastre, supporti, cartello) entrano da soli nel Computo materiali"
+      ]
+    },
+    {
+      "id": "2026-11-26-lps-66",
+      "data": "2026-11-26",
+      "app": "lps",
+      "titolo": "Antenne: soluzione isCon automatica e numeri più facili da scrivere",
+      "voci": [
+        "Pagina Antenne: l'app propone da sola la soluzione con 1–4 calate isolate e la versione isCon che basta (o quella che scegli), con la tabella di tutte le possibilità",
+        "Se nessun isCon basta, indica la lunghezza massima e la quota minima a cui portare il collegamento equipotenziale",
+        "Campi numerici di Antenne e Impianti su palo con la virgola; svuotando un campo non torna più a 0",
+        "Riquadri verdi e rossi leggibili anche in tema scuro"
+      ]
+    },
+    {
+      "id": "2026-11-26-lps-65",
+      "data": "2026-11-26",
+      "app": "lps",
+      "titolo": "Edificio 3D: blocchi spostabili a mano",
+      "voci": [
+        "Con «Seleziona e sposta» si clicca un blocco (corpo dell'edificio) e lo si trascina nel 3D: si aggancia ogni 10 cm e ai lati degli altri blocchi",
+        "Basta premere sul blocco (o sull'asta) e trascinare: non serve più selezionarlo prima; la vista non ruota mentre trascini",
+        "Pannello del blocco: spostamento preciso in X (est) e Y (nord) o con le frecce da 0,5 m",
+        "Con la spunta (di default) si spostano anche i blocchi appoggiati sulla copertura, le aste, i conduttori di captazione e le calate, i supporti e i dispersori al piede delle calate; i conduttori di terra restano dove sono",
+        "Ctrl+Z annulla lo spostamento"
+      ]
+    },
+    {
+      "id": "2026-11-26-lps-64",
+      "data": "2026-11-26",
+      "app": "lps",
+      "titolo": "Edificio 3D: vista più chiara e nuovi strumenti",
+      "voci": [
+        "Pulsanti delle viste sopra il 3D: assonometria, pianta, prospetti nord/sud/est/ovest, «inquadra tutto» e «inquadra la selezione»; il doppio clic centra la vista sul punto",
+        "Cubo di orientamento con i punti cardinali (clic su una faccia per girare la vista) e scala grafica in metri",
+        "Ombre del sole, da sud-ovest o all'ora del giorno scelta (con la posizione del progetto)",
+        "Terreno con griglia metrica o foto satellitare sotto l'edificio (per gli edifici importati dalla mappa)",
+        "Aste con base in calcestruzzo o treppiede, conduttori del diametro reale, supporti e morsetti nel 3D; «Impianto in arancio» si può togliere per vedere i colori dei materiali",
+        "Sezione regolabile (taglio orizzontale o verticale), edificio trasparente per vedere calate e dispersori, nomi e altezze dei corpi",
+        "Misura con distanza, distanza orizzontale e dislivello",
+        "«Salva immagine (PNG)» e «Usa nella relazione»: la vista 3D entra come figura nella relazione tecnica Word"
+      ]
+    },
+    {
+      "id": "2026-11-26-lps-63",
+      "data": "2026-11-26",
+      "app": "lps",
+      "titolo": "Edificio 3D: modifiche a mano e distanza di separazione ai nodi",
+      "voci": [
+        "«Seleziona e sposta»: clic su un'asta, un conduttore o un dispersore per selezionarlo; le aste si trascinano nel 3D",
+        "Pannello dell'asta: altezza dal catalogo, posizione X/Y e quota, Copia, Elimina, «Calata da qui» (calata fino a terra con supporti, connettore e dispersore) e «Collega alla captazione»",
+        "«Maglia su copertura»: clic su una copertura per metterci la maglia, con le sue calate se scelto",
+        "«Dispersore»: clic a terra per mettere un picchetto collegato al piede della calata più vicina",
+        "Volume protetto mostrato e aggiornato dopo ogni modifica, con le zone ancora esposte segnalate nel 3D (⚠ esposta … m²)",
+        "Distanza di separazione calcolata ai nodi della rete reale (la corrente si divide tra i conduttori): colori nel 3D, valori ai nodi, elenco delle violazioni (anche impianti in copertura) e pulsante «Collega le aste alla captazione»"
+      ]
+    },
+    {
+      "id": "2026-11-26-lps-62",
+      "data": "2026-11-26",
+      "app": "lps",
+      "titolo": "Impianti su palo con calate isolate isCon",
+      "voci": [
+        "Nuova pagina «Impianti su palo» (menu Strumenti): antenne radio/TV, telecamere, illuminazione e altri impianti su palo",
+        "Dalla quota della punta e del collegamento equipotenziale l'app calcola quanti conduttori isCon servono (1–4), quale modello e che lunghezza, con s = ki · kc / km · l e la corrente per conduttore",
+        "Verifica di ogni apparato: protezione con la sfera rotolante e distanza di separazione",
+        "Materiali OBO: conduttore, set di supporti HM SET, estensione per pali oltre 6 m, cartello"
+      ]
+    },
+    {
+      "id": "2026-11-26-lps-61",
+      "data": "2026-11-26",
+      "app": "lps",
+      "titolo": "Calate isolate isCon con i dati dei certificati OBO",
+      "voci": [
+        "Distanze equivalenti, classe di corrente (H1 150 kA, Premium 90 H2 200 kA), diametri e raggi di curvatura presi dai certificati OBO isCon (IEC TS 62561-8)",
+        "Guida alla scelta OBO in Calate: verniciabile, zona ATEX, protezione meccanica, tensioni di contatto → versione e colore consigliati (Basic 45, Pro 75, Pro+ 75 SW/GR, Premium 90)",
+        "Con LPL I e una sola calata isolata l'app chiede la classe H2 (Premium 90); lunghezze massime come la tabella OBO",
+        "Indicazioni di posa: collegamenti equipotenziali, zona di controllo del potenziale, set di supporti isCon HM SET ed estensione per pali oltre 6 m",
+        "Nuovo capitolo della relazione tecnica «Calate isolate con conduttore OBO isCon» con verifica ed esito"
+      ]
+    },
+    {
+      "id": "2026-11-25-lps-60",
+      "data": "2026-11-25",
+      "app": "lps",
+      "titolo": "Proposta automatica anche per i modelli IFC di edifici complessi",
+      "voci": [
+        "«Proponi captazione automatica» funziona anche con i modelli 3D importati: l'app riconosce le coperture piane alle diverse quote (cortili esclusi) e propone il tondo in maglia con le aste solo dove servono, così le parti rosse vengono coperte",
+        "Le calate sono proposte solo lungo il contorno reale dell'edificio, con la testa alla quota della copertura vicina",
+        "Per un tetto piano usa la proposta automatica (tondo + aste); «Suggerisci aste» resta per le soluzioni con sole aste"
+      ]
+    },
+    {
+      "id": "2026-11-25-lps-59",
+      "data": "2026-11-25",
+      "app": "lps",
+      "titolo": "Aste proposte a catalogo, senza limite di numero",
+      "voci": [
+        "«Suggerisci aste» non ha più il numero massimo: propone il minimo di aste necessario, prima sugli spigoli delle coperture, poi dove resta esposto, e toglie quelle superflue",
+        "Ogni asta ha un'altezza di catalogo scelta da sola: set con base 1,5 · 2 · 3 · 4 m, aste Ø 16 mm a parete 1–3 m vicino al bordo, irod 10 e 12 m se le ammetti; ogni asta scende all'altezza più bassa con cui la copertura resta protetta",
+        "Diametro e codice OBO presi dal catalogo; anche l'asta posizionata a mano si sceglie dall'elenco dei prodotti"
+      ]
+    },
+    {
+      "id": "2026-11-25-lps-58",
+      "data": "2026-11-25",
+      "app": "lps",
+      "titolo": "Modelli IFC e 3D: scelta della quota 0",
+      "voci": [
+        "Importando un IFC o un modello 3D scegli la quota 0 (piano di campagna): proposto il piano dell'IFC con quota di progetto più vicina a 0, oppure un altro piano dell'elenco, il punto più basso o uno spostamento a mano",
+        "Fondazioni, pali e interrati sotto la quota 0 vengono tolti: altezze e impronta corrispondono all'edificio fuori terra",
+        "Letti correttamente anche gli IFC in centimetri o millimetri",
+        "Edifici complessi (IFC con migliaia di elementi): si tiene la superficie esterna (coperture, parapetti, volumi tecnici, facciate) e si tolgono solai, pilastri e impianti interni; l'impronta segue il contorno reale dell'edificio, non più un poligono convesso",
+        "Edificio 3D: il comando «Fai rotolare la sfera» è ora sopra il modello 3D, con la scelta del percorso; il nuovo percorso predefinito «Su tutto l'edificio» fa passare la sfera a serpentina su tutta la copertura"
+      ]
+    },
+    {
+      "id": "2026-11-25-lps-57",
+      "data": "2026-11-25",
+      "app": "lps",
+      "titolo": "Rischio con la Guida CEI 81-29:2026 e verifica CEI 64-8 per gli SPD",
+      "voci": [
+        "Analisi del rischio: nuovo «Metodo di valutazione». Predefinito: CEI EN IEC 62305-2 con le indicazioni nazionali della Guida CEI 81-29:2026 (dal 1/11/2026): RL1 ≤ 10⁻⁵ e RL2 ≤ 10⁻³ valutati separatamente, perdite pari ai valori minimi della norma, rp secondo spegnimento automatico e compartimentazione; resta selezionabile la norma senza adattamenti",
+        "La relazione tecnica riporta gli adattamenti nazionali quando sono usati",
+        "Scelta SPD: nuova parte «Serve la protezione dalle sovratensioni?» secondo la CEI 64-8/4 sezione 443 (protezione obbligatoria per vita umana, servizi pubblici, attività, molte persone; altrimenti CRL = fenv/(LP·Ng), serve se < 1000)"
+      ]
+    },
+    {
+      "id": "2026-11-25-lps-56",
+      "data": "2026-11-25",
+      "app": "lps",
+      "titolo": "Annulla e ripeti in tutto il progetto",
+      "voci": [
+        "Ctrl+Z (Cmd+Z su Mac) annulla l'ultima modifica del progetto, Ctrl+Y o Ctrl+Maiusc+Z la ripete; nei campi di testo resta l'annulla normale",
+        "Il tasto laterale «indietro» del mouse torna alla pagina precedente anche sopra il modello 3D e le aree interattive",
+        "Corretto il blocco della pagina Progetti (apertura, eliminazione, lettura dei documenti): serve l'SQL 20"
+      ]
+    },
+    {
+      "id": "2026-11-25-lps-55",
+      "data": "2026-11-25",
+      "app": "lps",
+      "titolo": "Antenne radiomobili (5G) e calate isolate isCon",
+      "voci": [
+        "Nella pagina iniziale scegli che cosa progetti: Edificio oppure Antenne radiomobili",
+        "Nuova sezione Antenne radiomobili (prima versione): altezza dell'asta sopra le antenne con la sfera rotolante, distanza di separazione, calata isolata isCon consigliata, misure per cavi coassiali, fibra, alimentazione, SPD e terra con i riferimenti alla CEI EN IEC 62305-3 e 62305-4",
+        "Calate e distanza di separazione: nuova parte «Calate isolate con conduttore isCon» (Basic, Professional, Professional plus, Premium) con la verifica s richiesta ≤ s equivalente, la versione minima e la lunghezza massima",
+        "Distanze equivalenti isCon e misure per le antenne da completare con le schede tecniche e i documenti in arrivo"
+      ]
+    },
+    {
+      "id": "2026-11-25-lps-54",
+      "data": "2026-11-25",
+      "app": "lps",
+      "titolo": "Istruzioni e download sempre aggiornati, con controllo della versione di LPS.lsp",
+      "voci": [
+        "Nuova pagina «Istruzioni e download», prima voce del menu Strumenti: istruzioni d'uso e istruzioni AutoCAD/ZWCAD in PDF e Word (Rev. D), LPS.lsp e un progetto di prova, anche in un unico ZIP creato al momento dai file più recenti",
+        "In alto c'è sempre l'avviso con l'ultima versione e quella che hai scaricato; quando esce una versione nuova compare una barra in tutta l'app",
+        "LPS.lsp 3.6: nuovo comando LPS-VERSIONE; aprendo un progetto scaricato dall'app, se il programma caricato in AutoCAD o ZWCAD è più vecchio compare una finestra che dice di aggiornarlo e dove scaricarlo"
+      ]
+    },
+    {
+      "id": "2026-11-24-lps-50",
+      "data": "2026-11-24",
+      "app": "lps",
+      "titolo": "Progetto automatico a passi: la squadra di agenti",
+      "voci": [
+        "Assistente → «Progetto automatico a passi»: sette agenti, ognuno fa una cosa sola (lettore dei documenti, geometra, analista del rischio, progettista della captazione, calate e terra, computista, redattore della relazione); «Avvia» passa al prossimo da fare",
+        "Il lettore dei documenti legge davvero PDF e Word della documentazione e trova comune, provincia, indirizzo, committente, dimensioni, altezza, piani, struttura, copertura, destinazione d'uso, zone ATEX, fotovoltaico e numero di commessa, con la frase da cui li ha presi: scegli cosa applicare",
+        "Il progettista della captazione apre Edificio 3D e prepara subito la proposta di aste e maglia, da accettare o modificare"
+      ]
+    },
+    {
+      "id": "2026-11-24-lps-49",
+      "data": "2026-11-24",
+      "app": "lps",
+      "titolo": "Edifici dalla mappa in automatico",
+      "voci": [
+        "Edificio 3D → «Dalla mappa (automatico)»: «Trova tutti gli edifici della zona» prende da OpenStreetMap contorni e altezze di tutti gli edifici del riquadro",
+        "Edifici colorati per altezza; tocchi quelli da usare (o «Seleziona tutti») e «Importa selezionati»: diventano corpi del progetto",
+        "Le parti dell'edificio con altezze diverse (torri, volumi sul tetto) diventano corpi separati; altezze dai piani e tetti a falde dove indicati; se l'altezza manca si usa quella scritta",
+        "Fondo satellitare per controllare; si può ancora disegnare l'impronta a mano"
+      ]
+    },
+    {
+      "id": "2026-11-24-lps-48",
+      "data": "2026-11-24",
+      "app": "lps",
+      "titolo": "Modello 3D vero per AutoCAD e ZWCAD",
+      "voci": [
+        "Edificio 3D, nuovo pulsante «Modello 3D CAD» (anche nel pacchetto AutoCAD/ZWCAD come <nome>_3D.dxf): si apre e si ruota con 3DORBIT anche in AutoCAD LT",
+        "Edificio reale: se il progetto viene da un IFC o da un modello 3D, nel CAD finisce la geometria vera; dai disegni 2D l'edificio è estruso dalla pianta, con le falde",
+        "Aste e picchetti a cilindro, conduttori a tubo con il diametro dalla sezione, supporti, morsetti e compensatori a grandezza reale, su layer LPS-3D-…",
+        "LPS.lsp 3.5: anche LPS-AUTO e LPS-IMPORTA disegnano conduttori a tubo, componenti in 3D e l'edificio reale da IFC/3D (si spegne con (setq *LPS-3D-REALE* nil))"
+      ]
+    },
+    {
+      "id": "2026-11-24-lps-47",
+      "data": "2026-11-24",
+      "app": "lps",
+      "titolo": "LPS.lsp 3.4: importazione completa in ZWCAD e AutoCAD",
+      "voci": [
+        "LPS-IMPORTA in un disegno vuoto porta dentro anche le tavole 2D del pacchetto (testalino, cartiglio, legenda, particolari) dal DXF accanto al .lpsdati, poi modello 3D, distinta, squadratura e testalino",
+        "Dopo LPS-IMPORTA il disegno si salva come DWG accanto al .lpsdati, così LPS-AUTO lo ritrova",
+        "LPS-AUTO non si ferma più con «nessun file»: se il .lpsdati non è accanto al disegno te lo fa scegliere; su un disegno già costruito aggiunge solo quello che manca"
+      ]
+    },
+    {
+      "id": "2026-11-24-lps-46",
+      "data": "2026-11-24",
+      "app": "lps",
+      "titolo": "Progetto unico per tutte le app",
+      "voci": [
+        "Il progetto è uno solo per tutte le app di OBO Hub: in Progetti c'è il collegamento alle soluzioni dello stesso progetto (zavorra WRR, torrette, carichi della Mappa con lo stesso CRM)",
+        "I progetti creati dalla pagina Progetti di OBO Hub si aprono anche qui, come progetti nuovi con il loro nome"
+      ]
+    },
+    {
+      "id": "2026-11-24-lps-45",
+      "data": "2026-11-24",
+      "app": "lps",
+      "titolo": "Pianta 2D: altezze, prospetti e blocchi sul tetto",
+      "voci": [
+        "Edificio 3D, nuova sezione «Pianta 2D, altezze e blocchi sul tetto»: tocchi un corpo e ne modifichi quota base, gronda, copertura e colmo",
+        "Blocchi sul tetto (UTA, volumi tecnici, torrini, vani scala) puntati in pianta con un rettangolo o un poligono e altezza manuale: la base si appoggia da sola sulla copertura sotto",
+        "Altezze da un prospetto o da una sezione 2D (PDF o immagine): calibri con due punti a distanza nota, tocchi la linea di terra e il punto più alto; la quota va in gronda, colmo, quota base o nel nuovo blocco"
+      ]
+    },
+    {
+      "id": "2026-11-24-lps-44",
+      "data": "2026-11-24",
+      "app": "lps",
+      "titolo": "LPS.lsp 3.3: squadratura A3–A0 e file con codice e revisione",
+      "voci": [
+        "LPS-IMPORTA costruisce il disegno come LPS-AUTO: modello, legenda, particolari, distinta (tabella e CSV)",
+        "Squadratura automatica nel formato ISO adatto (A3, A2, A1, A0) e in scala 1:50…1:5000, con il testalino OBO compilato (committente, opera, comune, codice, LPL, data, revisione, progettista)",
+        "Nuovo comando LPS-SQUADRA per scegliere formato e scala; per fissarli: (setq *LPS-FORMATO* \"A1\" *LPS-SCALA-TAVOLA* 200)",
+        "File del progetto con codice CRM e revisione: P-2026-0142_LPS_RevA.lpsdati (…_RevB_bozza se la revisione non è ancora emessa), anche per DXF, PDF, IFC e ZIP del pacchetto CAD"
+      ]
+    },
+    {
+      "id": "2026-11-24-lps-43",
+      "data": "2026-11-24",
+      "app": "lps",
+      "titolo": "Documentazione del progetto come primo passo",
+      "voci": [
+        "In Dati edificio, in alto: trascina planimetrie, prospetti e sezioni, relazioni, zone ATEX, foto e altri documenti ricevuti (fino a 50 MB a file)",
+        "Il tipo del documento si propone dal nome e si può cambiare; i documenti restano nel progetto e li vedono anche i colleghi con cui è condiviso",
+        "\"Usa per l'edificio\" su piante e modelli (DWG, DXF, PDF, IFC…): apre subito l'importazione dell'edificio",
+        "Con le zone ATEX compare il richiamo all'analisi del rischio",
+        "Un documento si nasconde dall'elenco ma il file non si cancella; nuovo primo passo nell'Assistente di progetto"
+      ]
+    },
+    {
+      "id": "2026-11-24-lps-42",
+      "data": "2026-11-24",
+      "app": "lps",
+      "titolo": "Condividi o passa un progetto",
+      "voci": [
+        "In Progetti, icona Condividi: il proprietario condivide il progetto con un collega (email dell'account OBO Hub); il collega lo apre, lo modifica e fa il sopralluogo, con foto e vocali visibili a tutti e due",
+        "La condivisione si toglie o si riattiva quando serve; nulla viene cancellato",
+        "Passa a un'altra persona: il progetto diventa suo e chi lo passa resta tra le persone con cui è condiviso",
+        "Nuova sezione \"Condivisi con me\" in Progetti e nella scelta del progetto del Sopralluogo",
+        "\"Installa app\" ora si trova solo nella homepage di OBO Hub"
+      ]
+    },
+    {
+      "id": "2026-11-24-lps-41",
+      "data": "2026-11-24",
+      "app": "lps",
+      "titolo": "SPD V20, conduttori, putrelle, sovrastrutture metalliche",
+      "voci": [
+        "SPD per i sottoquadri: solo la serie V20, compreso il V20 3+N/PE con fusibile integrato 5095257",
+        "Proposta di captazione: conduttore tondo alluminio Ø 8, tondo acciaio zincato Ø 8 (5021081, connettori Vario FT) o piatto acciaio zincato 30×3,5",
+        "Aste a putrella: profilo IPE (con lo spessore dell'ala) o spessore in mm, riportati nella relazione",
+        "Edificio 3D e Dati della relazione: spunta «Sovrastruttura metallica» per ogni corpo; la relazione indica collegamento all'LPS e uso come captatore naturale"
+      ]
+    },
+    {
+      "id": "2026-11-24-lps-40",
+      "data": "2026-11-24",
+      "app": "lps",
+      "titolo": "Elenco materiali con listino e confezioni",
+      "voci": [
+        "Elenco materiali: quantità intere, arrotondate per eccesso alla confezione del listino METEL (sotto si vede la quantità calcolata)",
+        "Prezzi presi dal listino caricato in Amministrazione (prezzo / moltiplicatore): il totale ora si calcola",
+        "Controllo dei codici sul listino e su obo.it: «Non nel listino» o «Non trovato su obo.it» al posto di «fuori catalogo»",
+        "Dati mancanti del computo in alto, con il collegamento alla sezione dove completarli; righe senza codice segnate in rosso"
+      ]
+    },
+    {
+      "id": "2026-11-24-lps-39",
+      "data": "2026-11-24",
+      "app": "lps",
+      "titolo": "Correzioni: file grandi, dettatura, vocali, dati della relazione",
+      "voci": [
+        "Importazione di file grandi (DWG, DXF, IFC): corretto l'errore «Maximum call stack size exceeded»",
+        "Sopralluogo: «Ferma dettatura» ferma subito il microfono; i messaggi vocali si possono eliminare",
+        "Dati della relazione: data dell'attestato scelta dal calendario (sempre gg/mm/aaaa), NSG e gli altri numeri accettano la virgola",
+        "Destinazione d'uso a scelta: abitativa, ricettiva o uso promiscuo, con i testi relativi nella relazione"
+      ]
+    },
+    {
+      "id": "2026-11-24-lps-38",
+      "data": "2026-11-24",
+      "app": "lps",
+      "titolo": "Importazione di DWG, DXF e IFC più tollerante",
+      "voci": [
+        "DWG e DXF senza polilinee chiuse: l'app legge anche linee, archi, cerchi, spline, polilinee aperte e blocchi, unisce i tratti che si toccano in contorni chiusi e, se non si chiude niente, usa il contorno esterno del layer: il disegno si importa sempre",
+        "IFC e modelli 3D grandi: il modello viene semplificato (fino a 60.000 triangoli) invece di dare «mesh vuota o troppo complessa»; impronta reale dell'edificio; il lettore IFC viene aggiornato insieme alla libreria"
+      ]
+    },
+    {
+      "id": "2026-11-24-lps-37",
+      "data": "2026-11-24",
+      "app": "lps",
+      "titolo": "IFC: esportazione e importazione, importazione in alto con trascina e rilascia",
+      "voci": [
+        "Edificio 3D → «Modello IFC»: scarica il progetto in IFC4 con edificio, aste di captazione, conduttori (captazione, calate, terra) e picchetti, con codice OBO, materiale, sezione e lunghezza nelle proprietà «OBO_LPS»",
+        "Il file .ifc è anche nel pacchetto per AutoCAD e ZWCAD",
+        "Si apre in Revit, ArchiCAD, Solibri, BIMcollab e negli altri programmi BIM; l'importazione di file IFC c'era già (Edificio 3D → Importa file)",
+        "Edificio 3D: «Importa un disegno o un modello» è in cima alla pagina; basta trascinare il file sul riquadro o in qualsiasi punto della pagina (anche in Dati edificio sul riquadro)",
+        "Importazione IFC: un file IFC esportato da Progettazione LPS rientra con corpi, aste, conduttori e picchetti (codici OBO, materiali, sezioni); un IFC di architettura entra come modello 3D con l'impronta reale (involucro) invece del rettangolo d'ingombro"
+      ]
+    },
+    {
+      "id": "2026-11-24-lps-36",
+      "data": "2026-11-24",
+      "app": "lps",
+      "titolo": "Sopralluogo: scegli il progetto dalla pagina",
+      "voci": [
+        "Se non c'è un progetto aperto (per esempio creato su un altro dispositivo o app riaperta sul telefono), la pagina Sopralluogo mostra i tuoi progetti con «Collega il sopralluogo»",
+        "In alto il progetto collegato e «Cambia progetto»",
+        "«Salva lavoro corrente come progetto» ora apre subito il progetto creato"
+      ]
+    },
+    {
+      "id": "2026-11-24-lps-35",
+      "data": "2026-11-24",
+      "app": "lps",
+      "titolo": "Novità visibili a tutti",
+      "voci": [
+        "Menu → Aiuto → «Novità delle app»: apre la pagina con tutti gli aggiornamenti pubblicati di Progettazione LPS, per tutti gli utenti e i visitatori"
+      ]
+    },
+    {
+      "id": "2026-11-24-lps-33",
+      "data": "2026-11-24",
+      "app": "lps",
+      "titolo": "Copie di sicurezza automatiche con data",
+      "voci": [
+        "Amministrazione → Copia di sicurezza: il database fa da solo una copia di tutti i dati ogni notte, con la data, e tiene gli ultimi 31 giorni (serve il SQL 13 copie-automatiche.sql)",
+        "Elenco delle copie per giorno: scarica il file di un giorno o ripristina un progetto LPS com'era quel giorno (diventa un nuovo progetto «… (ripristino del giorno)» del suo proprietario, l'originale non si tocca)",
+        "Copia su SharePoint: scegli una volta la cartella OBO Hub sincronizzata da OneDrive (Edge o Chrome); a ogni apertura della pagina l'app ci salva le copie nuove e toglie quelle più vecchie di 31 giorni"
+      ]
+    },
+    {
+      "id": "2026-11-24-lps-32",
+      "data": "2026-11-24",
+      "app": "lps",
+      "titolo": "Nomi delle persone uniformi",
+      "voci": [
+        "In tutta l'app i nomi delle persone si vedono con il COGNOME tutto maiuscolo e il Nome con solo l'iniziale maiuscola (es. Marco LO VETERE): Amministrazione, richieste, cruscotto, revisioni, relazione tecnica, documenti dell'impianto e testalino CAD",
+        "Il cognome si riconosce dall'email (cognome.nome@…), dalle parole già scritte in maiuscolo o, altrimenti, è tutto quello dopo la prima parola; i titoli (Ing., Arch., Geom., P.I.…) restano come scritti",
+        "Cambia solo come i nomi si vedono: i dati salvati non vengono modificati"
+      ]
+    },
+    {
+      "id": "2026-11-24-lps-31",
+      "data": "2026-11-24",
+      "app": "lps",
+      "titolo": "Verifica al vento di tutte le aste del progetto",
+      "voci": [
+        "Vento e zavorre: nuova sezione «Aste del progetto» con la verifica di ogni asta del modello (quota della sua base, tipo di fissaggio, dati del catalogo OBO): irod calcolate, isFang dalle tabelle OBO, altre aste su treppiede o basamento FangFix, aste fissate alla struttura",
+        "Barre filettate isFang 3B-G1, G2, G3, G4 (270, 340, 430, 500 mm) per 1, 2, 3, 4 blocchi: ogni base mostra la barra da installare; il massimo installabile è 4 blocchi per base",
+        "La relazione tecnica (13.1) riporta parametri del vento, tabelle di verifica di tutte le aste, esito e zavorre; il computo materiali aggiunge blocchi 5403227, protezioni 5403238 e le barre giuste",
+        "Excel della pagina con il foglio «Aste del progetto»",
+        "Irod: dettaglio di tutte le verifiche da 1 a 4 blocchi per piede con la barra da installare (come l'Excel), anche nei fogli «Verifica blocchi irod» e «Barre filettate» dell'Excel della pagina",
+        "Treppiedi isFang dalle istruzioni isCon (ingombro, gamba, altezza): fino a 12 blocchi una base per piede, oltre 12 i treppiedi da 1500 mm usano 3 basi interne in più, ognuna con la sua barra; tabella dei treppiedi nella pagina e nell'Excel"
+      ]
+    },
+    {
+      "id": "2026-11-24-lps-30",
+      "data": "2026-11-24",
+      "app": "lps",
+      "titolo": "Vento e zavorre delle aste",
+      "voci": [
+        "Nuova pagina Strumenti → Vento e zavorre delle aste: dalla località del progetto calcola zona di vento NTC 2018 e altitudine, poi la pressione del vento (EN 1991-1-4)",
+        "Per le aste irod 10, 12, 14 e 19 m sul sostegno a gambe indica quanti blocchi FangFix da 16 kg servono per base e in totale, con la verifica a ribaltamento e scorrimento",
+        "Per tutte le aste isFang su treppiede indica i blocchi dalle tabelle del catalogo OBO in base alla raffica in sommità",
+        "Per le aste a parete con due supporti calcola le forze sui supporti e la tensione nell'asta",
+        "Excel scaricabile e pulsante per portare la velocità del vento nei Dati della relazione"
+      ],
+      "titolo_en": "Wind and ballast for air-termination rods",
+      "voci_en": [
+        "New page Tools → Wind and ballast: from the project location it finds the NTC 2018 wind zone and altitude and the wind pressure (EN 1991-1-4)",
+        "For irod 10, 12, 14 and 19 m rods on legged stands it shows how many 16 kg FangFix blocks are needed per base and in total, with overturning and sliding checks",
+        "For all isFang rods on tripods it shows the blocks from the OBO catalogue tables based on the gust at the top",
+        "For wall-mounted rods with two holders it calculates holder forces and rod stress",
+        "Excel download and a button to take the wind speed into the report data"
+      ]
+    },
+    {
+      "id": "2026-11-23-lps-29",
+      "data": "2026-11-23",
+      "app": "lps",
+      "titolo": "Sopralluogo: note a voce e messaggi vocali",
+      "voci": [
+        "Nota di ogni foto e appunti del sopralluogo si possono dettare: premi \"Detta\", parla, e il testo si scrive da solo (Chrome, Edge, Safari su iPhone e iPad); resta anche il microfono della tastiera",
+        "Nuovi messaggi vocali (fino a 5 minuti): generali, nella sezione \"Messaggi vocali\" sotto gli appunti, oppure di una singola foto aprendo la foto; si riascoltano da qualsiasi dispositivo e si può scriverne o dettarne un riassunto",
+        "Come le foto, i vocali si salvano anche senza rete e si caricano da soli quando torna la connessione"
+      ],
+      "titolo_en": "Site survey: voice notes and voice messages",
+      "voci_en": [
+        "Photo notes and survey notes can be dictated: press \"Dictate\", speak and the text is written for you (Chrome, Edge, Safari on iPhone and iPad); the keyboard microphone still works",
+        "New voice messages (up to 5 minutes): general ones in the \"Voice messages\" section below the notes, or for a single photo by opening it; they can be played back on any device, with a written or dictated summary",
+        "Like photos, voice messages are saved offline too and upload automatically when the connection is back"
+      ]
+    },
+    {
+      "id": "2026-11-21-lps-27",
+      "data": "2026-11-21",
+      "app": "lps",
+      "titolo": "Testalino e legenda dei layer nelle tavole CAD",
+      "voci": [
+        "Nuovo testalino OBO su tutte le tavole: committente, opera, comune, codice, LPL, scala, formato, data, revisioni, progettista con albo, spazio per timbro e firma, numero della tavola",
+        "Committente, opera, progettista e albo vengono da Dati della relazione; le revisioni da Revisioni del progetto",
+        "Legenda dei layer predefiniti (campione di linea, nome, colore, descrizione) nella tavola dei particolari",
+        "LPS.lsp 3.2: comandi LPS-TESTALINO e LPS-LEGENDA per aggiungerli a qualsiasi disegno, sui layer LPS-CART e LPS-LEGE"
+      ]
+    },
+    {
+      "id": "2026-11-21-lps-26",
+      "data": "2026-11-21",
+      "app": "lps",
+      "titolo": "CAD pro: tavole complete, PDF, quote, LPS.lsp e importazione",
+      "voci": [
+        "Esporta per CAD crea 4 tavole: pianta coperture, prospetti con la sfera rotolante, calate e impianto di terra, particolari costruttivi",
+        "Nuovo pulsante Tavole PDF (vettoriale, una pagina per tavola), anche nel pacchetto AutoCAD/ZWCAD",
+        "In pianta: quote a catena delle calate sui lati, verifica della maglia di captazione per corpo, distanze e altezze delle aste",
+        "Calate: interasse misurato lungo il perimetro e confrontato con la distanza tipica (Tab. 5, tolleranza 25 %)",
+        "LPS.lsp 3.1: nuovi comandi LPS-SEPARAZIONE, LPS-PENETRAZIONE, LPS-NUMERA e LPS-TABELLA",
+        "Importazione DXF/DWG: più layer insieme, anteprima, riconoscimento di corpi, impianti sul tetto e lucernari, altezze lette dai testi del disegno"
+      ]
+    },
+    {
+      "id": "2026-11-19-lps-24",
+      "data": "2026-11-19",
+      "app": "lps",
+      "titolo": "Sopralluogo semplificato: solo foto e appunti",
+      "voci": [
+        "La pagina Sopralluogo serve per le foto: scegli il tipo (particolare da ricordare, impianto esistente, altro), scatta, aggiungi didascalia e nota; filtri per tipo e appunti del sopralluogo",
+        "Le foto si salvano anche senza rete; quelle segnate \"Metti nella relazione\" vanno nella relazione tecnica",
+        "Tolte dalla pagina misure, checklist, firma e misura guidata; il verbale di prima verifica resta in Computo materiali"
+      ],
+      "titolo_en": "Simplified site survey: photos and notes only",
+      "voci_en": [
+        "The Site survey page is for photos: choose the type (detail to remember, existing system, other), take the photo, add caption and note; filters by type and survey notes",
+        "Photos are saved offline too; those marked \"Add to report\" go into the technical report",
+        "Measurements, checklist, signature and guided measurement removed from the page; the first inspection record stays in Material take-off"
+      ]
+    },
+    {
+      "id": "2026-11-19-lps-23",
+      "data": "2026-11-19",
+      "app": "lps",
+      "titolo": "Misura guidata con la foto dello strumento",
+      "voci": [
+        "Nel Sopralluogo, \"Misura guidata\": calata per calata l'app indica cosa misurare (continuità, terra, giunto), fai la foto del display dello strumento e il valore si salva con la foto come prova",
+        "Dove il browser lo permette (Chrome su Android) il valore viene letto dalla foto e proposto; altrimenti si scrive guardando la foto",
+        "Pagina provata anche sul telefono; i campi numerici accettano la virgola (anche in Offerta, Richieste ed Editor dei tipologici)"
+      ],
+      "titolo_en": "Guided measurement with a photo of the instrument",
+      "voci_en": [
+        "In Site survey, \"Guided measurement\": down-conductor by down-conductor the app shows what to measure (continuity, earth, test joint), you photograph the instrument display and the value is saved with the photo as evidence",
+        "Where the browser allows it (Chrome on Android) the value is read from the photo and suggested; otherwise type it while looking at the photo",
+        "Page checked on phones too; number fields accept the decimal comma (also in Offer, Requests and the Detail editor)"
+      ]
+    },
+    {
+      "id": "2026-11-19-lps-22",
+      "data": "2026-11-19",
+      "app": "lps",
+      "titolo": "Sopralluogo da tablet e telefono",
+      "voci": [
+        "Nuova pagina Sopralluogo: foto con didascalia (anche senza rete, si caricano quando torna), stato di fatto, misure di continuità e di terra per calata, esame a vista C/NC/NA, SPD, esito e firma con il dito o la penna",
+        "Il verbale di prima verifica si compila da solo con misure, esiti, firma e foto; le foto segnate vanno anche nella relazione"
+      ],
+      "titolo_en": "Site survey from tablet and phone",
+      "voci_en": [
+        "New Site survey page: photos with captions (also offline, uploaded when the connection returns), existing conditions, continuity and earth measurements per down-conductor, visual inspection C/NC/NA, SPDs, outcome and finger or pen signature",
+        "The first inspection record fills itself with measurements, results, signature and photos; selected photos also go into the report"
+      ]
+    },
+    {
+      "id": "2026-11-19-lps-21",
+      "data": "2026-11-19",
+      "app": "lps",
+      "titolo": "Prova notturna di tutti i documenti",
+      "voci": [
+        "Ogni notte l'app genera relazione (italiano e inglese), dichiarazione, verbale, piano delle verifiche, offerta, tipologico e tavola DXF da un progetto di prova completo e ne controlla i file; se qualcosa si rompe arriva un avviso"
+      ],
+      "titolo_en": "Nightly test of all documents",
+      "voci_en": [
+        "Every night the app generates the report (Italian and English), declaration, record, inspection plan, offer, detail and DXF sheet from a complete test project and checks the files; if something breaks a warning is sent"
+      ]
+    },
+    {
+      "id": "2026-11-19-lps-20",
+      "data": "2026-11-19",
+      "app": "lps",
+      "titolo": "Relazione tecnica in inglese",
+      "voci": [
+        "In \"Dati della relazione\" si sceglie la lingua: la relazione in inglese traduce testi, tabelle, grafici, numeri e piè di pagina; nomi e descrizioni degli articoli restano come sono"
+      ],
+      "titolo_en": "Technical report in English",
+      "voci_en": [
+        "In \"Report data\" choose the language: the English report translates texts, tables, charts, numbers and footer; names and article descriptions stay as they are"
+      ]
+    },
+    {
+      "id": "2026-11-19-lps-19",
+      "data": "2026-11-19",
+      "app": "lps",
+      "titolo": "Cruscotto di direzione",
+      "voci": [
+        "Per gli amministratori (menu Amministrazione): progetti creati e modificati, revisioni emesse e giorni alla Rev. A, aste OBO prescritte, richieste e ore della Mappa carichi, per mese, trimestre o anno, con CSV"
+      ],
+      "titolo_en": "Management dashboard",
+      "voci_en": [
+        "For administrators (Administration menu): projects created and modified, revisions issued and days to Rev. A, OBO rods specified, requests and Workload map hours, by month, quarter or year, with CSV"
+      ]
+    },
+    {
+      "id": "2026-11-19-lps-18",
+      "data": "2026-11-19",
+      "app": "lps",
+      "titolo": "Richieste all'ufficio tecnico",
+      "voci": [
+        "Nuova pagina Richieste: si apre una richiesta (cliente, comune, tipo, priorità, scadenza, ore stimate), il tecnico la prende in carico e crea il progetto LPS collegato; niente si cancella, una richiesta si annulla",
+        "In Mappa carichi le stesse richieste si mettono in mappa con le ore stimate"
+      ],
+      "titolo_en": "Requests to the technical office",
+      "voci_en": [
+        "New Requests page: open a request (client, municipality, type, priority, deadline, estimated hours), the engineer takes it on and creates the linked LPS project; nothing is deleted, a request is cancelled",
+        "In the Workload map the same requests are added to the map with the estimated hours"
+      ]
+    },
+    {
+      "id": "2026-11-19-lps-17",
+      "data": "2026-11-19",
+      "app": "lps",
+      "titolo": "Archivio dei documenti di ogni revisione",
+      "voci": [
+        "Con il progetto emesso, relazione, dichiarazione, verbali, offerta e pacchetto CAD creati vengono copiati nella cartella della revisione",
+        "In Revisioni del progetto, colonna Documenti: elenco e apertura delle copie; non si sovrascrivono e non si cancellano"
+      ],
+      "titolo_en": "Archive of the documents of each revision",
+      "voci_en": [
+        "When the project is issued, the report, declaration, records, offer and CAD package you create are copied into the revision folder",
+        "In Project revisions, Documents column: list and open the copies; they cannot be overwritten or deleted"
+      ]
+    },
+    {
+      "id": "2026-11-19-lps-16",
+      "data": "2026-11-19",
+      "app": "lps",
+      "titolo": "Editor dei tipologici con blocchi OBO",
+      "voci": [
+        "In Particolari: \"Disegna nuovo tipologico\" con blocchi realistici (aste, treppiedi, supporti, morsetti, giunti, compensatori, picchetti, strutture), conduttori metallici, quote e testi",
+        "Blocchi anche dal codice OBO con il disegno 2D ufficiale del prodotto; richiami numerati e distinta automatica",
+        "Il tipologico si salva nella libreria dei particolari e va nella relazione; i particolari senza scheda hanno uno schema dei componenti"
+      ],
+      "titolo_en": "Detail drawing editor with OBO blocks",
+      "voci_en": [
+        "In Details: \"Draw new detail\" with realistic blocks (rods, tripods, holders, clamps, joints, expansion pieces, earth rods, structures), metal conductors, dimensions and texts",
+        "Blocks also from the OBO code with the official 2D product drawing; numbered callouts and automatic parts list",
+        "The detail is saved in the details library and goes into the report; details without a sheet get a component diagram"
+      ]
+    },
+    {
+      "id": "2026-11-19-lps-15",
+      "data": "2026-11-19",
+      "app": "lps",
+      "titolo": "Listino OBO e offerta materiali",
+      "voci": [
+        "L'amministratore carica il listino METEL da obo.it (Amministrazione → Listino prezzi); ogni caricamento resta come versione",
+        "In Computo materiali: offerta con prezzi di listino, sconto generale e per famiglia, confezioni, prezzi netti modificabili, Word ed Excel"
+      ],
+      "titolo_en": "OBO price list and material offer",
+      "voci_en": [
+        "The administrator uploads the METEL price list from obo.it (Administration → Price list); each upload is kept as a version",
+        "In Material take-off: offer with list prices, general and family discounts, packaging, editable net prices, Word and Excel"
+      ]
+    },
+    {
+      "id": "2026-11-19-lps-14",
+      "data": "2026-11-19",
+      "app": "lps",
+      "titolo": "Dichiarazione di conformità, verbale e piano delle verifiche",
+      "voci": [
+        "In Computo materiali, \"Documenti dell'impianto\": bozza della dichiarazione di conformità D.M. 37/2008 per l'impresa installatrice, verbale di prima verifica con le misure per calata, piano delle verifiche periodiche con il calendario di 10 anni (anche D.P.R. 462/2001)"
+      ],
+      "titolo_en": "Declaration of conformity, inspection record and inspection plan",
+      "voci_en": [
+        "In Material take-off, \"System documents\": draft declaration of conformity (Italian D.M. 37/2008) for the installer, first inspection record with per down-conductor measurements, periodic inspection plan with a 10-year calendar (also D.P.R. 462/2001)"
+      ]
+    },
+    {
+      "id": "2026-11-19-lps-13",
+      "data": "2026-11-19",
+      "app": "lps",
+      "titolo": "Norma CEI EN IEC 62305:2026-10 in tutta l'app",
+      "voci": [
+        "Pagine, aiuti e calcoli citano l'edizione italiana 2026-10",
+        "Codici dei particolari corretti con il listino OBO 2026-1: 5336457 (233 A VA) e 3133230 (985 M8 35)"
+      ],
+      "titolo_en": "CEI EN IEC 62305:2026-10 across the app",
+      "voci_en": [
+        "Pages, help and calculations cite the Italian 2026-10 edition",
+        "Detail codes corrected with the OBO 2026-1 price list: 5336457 (233 A VA) and 3133230 (985 M8 35)"
+      ]
+    },
+    {
+      "id": "2026-11-19-lps-12",
+      "data": "2026-11-19",
+      "app": "lps",
+      "titolo": "Stemma e provincia del Comune in automatico nella relazione",
+      "voci": [
+        "La copertina della relazione usa lo stemma del Comune indicato nei dati dell'edificio, cercato da solo su Wikidata e Wikimedia Commons, con l'anteprima in \"Dati della relazione\"",
+        "Anche il nome ufficiale del Comune e la provincia si compilano da soli; fra Comuni omonimi vale la provincia scritta o, se manca, la posizione del progetto",
+        "Uno stemma caricato a mano ha sempre la precedenza; se la licenza lo chiede, autore e licenza dello stemma sono riportati negli allegati"
+      ],
+      "titolo_en": "Municipality coat of arms and province filled in automatically in the report",
+      "voci_en": [
+        "The report cover uses the coat of arms of the municipality entered in the building data, found automatically on Wikidata and Wikimedia Commons, with a preview in \"Report data\"",
+        "The official municipality name and province are filled in too; among municipalities with the same name, the province entered or the project location decides",
+        "A coat of arms uploaded by hand always takes priority; where the licence requires it, author and licence are listed in the report attachments"
+      ]
+    },
+    {
+      "id": "2026-11-19-lps-11",
+      "data": "2026-11-19",
+      "app": "lps",
+      "titolo": "Relazione tecnica scritta dai dati del progetto",
+      "voci": [
+        "\"Dati della relazione\" ha nuove sezioni: tipo di intervento, attestato NG/NSG, sopralluogo (parapetti e strutture metalliche, ferri d'armatura, calate, terra e SPD esistenti, impianti in copertura), captazione (fissaggio delle aste, vento di progetto, distanza di sicurezza, altezza da proteggere per ogni blocco) e firma del tecnico",
+        "La relazione scrive da sola lo stato di fatto, la soluzione di captazione, le calate, la terra e gli SPD, le perdite da considerare (dalle zone del rischio) e il tipo di aste (isolate, su treppiede, su basamento, fissate alla struttura)",
+        "Nuovo schema a blocchi dell'edificio con numero, dimensioni, altezza e altezza da proteggere di ogni blocco e le aste colorate per tipo",
+        "Verifica per blocco: interasse delle aste, diagonale della figura replicata, penetrazione della sfera rotolante e altezza protetta, confrontata con l'altezza da proteggere più la distanza di sicurezza",
+        "Blocchi in calcestruzzo per le aste su treppiede scelti in automatico dalla velocità del vento di progetto",
+        "Dopo \"Crea relazione\" l'app elenca le parti che restano da completare"
+      ],
+      "titolo_en": "Technical report written from project data",
+      "voci_en": [
+        "New report data sections: intervention type, NG/NSG certificate, site survey, air-termination fixing, design wind speed, height to protect per block, signature",
+        "Site, solution, down-conductor, earthing and SPD texts generated from the data",
+        "Building block diagram and per-block rolling-sphere check",
+        "Tripod concrete blocks chosen from the design wind speed",
+        "List of parts still to complete after generating"
+      ]
+    },
+    {
+      "id": "2026-11-19-lps-10",
+      "data": "2026-11-19",
+      "app": "lps",
+      "titolo": "Relazione tecnica aggiornata alla CEI EN IEC 62305:2026-10",
+      "voci": [
+        "La relazione cita l'edizione italiana CEI EN IEC 62305-1…4:2026-10 (IEC 62305:2024); la parte 2 si chiama ora \"Gestione del rischio\"",
+        "Valutazione del rischio secondo la nuova edizione: cause di danno D1T, D1D, D2, D3; perdite L1, L2 e L3 (guasto degli impianti, valutato con la frequenza F); componenti RAT e RAD al posto di RA; frequenza del danno con il fattore Pe; RT e FT come valori rappresentativi di competenza di autorità e proprietario",
+        "LPS aggiornato: fulmini sulle facciate (20 % superiore delle strutture oltre 60 m), posa su tetti combustibili, valori preferenziali della distanza tra le calate con tolleranza del 25 %, calate negli spigoli e nei cortili, note della Tab. 7 (tondo da 6 mm, aste da 9,5 mm, carico del vento)",
+        "Punti elenco nello stile OBO (quadratino arancio) ed elenchi numerati per le procedure"
+      ],
+      "titolo_en": "Technical report updated to IEC 62305:2024 (CEI 2026-10)",
+      "voci_en": [
+        "Risk chapter per the new edition (D1T/D1D, losses L1/L2/L3, RAT/RAD, frequency F with Pe)",
+        "Updated external LPS rules (side flashes, down-conductor spacing, Table 7 notes)",
+        "OBO-style bullet points and numbered procedures"
+      ]
+    },
+    {
+      "id": "2026-11-19-lps-9",
+      "data": "2026-11-19",
+      "app": "lps",
+      "titolo": "Relazione tecnica nello stile OBO",
+      "voci": [
+        "La relazione Word usa lo standard del Brand Portal OBO: arancio OBO solo come accento, colori secondari grigio-blu per testi, titoli e tabelle, caratteri Nimbus Sans nelle varianti (Reg per il testo, Bol per grassetti e sottotitoli, ConL-Bol per i titoli, Lig per note e piè di pagina; dove Nimbus non è installato Word usa Arial)",
+        "Nuova copertina: logo, fascia scura con Comune, opera e titolo, barra arancio, tabella con committente, norma, livello di protezione, progetto e data, claim \"Building Connections\"",
+        "Tabelle con intestazione scura, righe alternate e valori del progetto evidenziati; grafici negli stessi colori"
+      ],
+      "titolo_en": "Technical report in OBO corporate style",
+      "voci_en": [
+        "The Word report follows the OBO Brand Portal (OBO orange as accent, secondary colours, Nimbus Sans variants with Arial fallback)",
+        "New cover with dark band, orange bar and project data table",
+        "Tables and charts in the OBO colours"
+      ]
+    },
+    {
+      "id": "2026-11-19-lps-8",
+      "data": "2026-11-19",
+      "app": "lps",
+      "titolo": "Relazione tecnica: logo, foto e tabelle dei treppiedi",
+      "voci": [
+        "In copertina c'è il logo OBO; in \"Dati della relazione\" si possono aggiungere lo stemma del Comune, il logo del committente e le foto del sopralluogo o le planimetrie con la didascalia (vanno scelte ogni volta, non si salvano nel progetto)",
+        "Le tabelle dei blocchi in calcestruzzo per le aste isFang su treppiede (velocità del vento e altezza dell'asta) sono nella relazione come tabelle modificabili",
+        "Nuovo schema a blocchi della procedura di valutazione del rischio; i titoli delle tabelle restano sulla stessa pagina della tabella",
+        "Dopo la copertina c'è il sommario con i capitoli; aprendo il file, Word chiede di aggiornare i campi: rispondendo Sì compaiono i numeri di pagina"
+      ],
+      "titolo_en": "Technical report: logo, photos and tripod tables",
+      "voci_en": [
+        "OBO logo on the cover; optional municipality crest, client logo and site photos with captions",
+        "Concrete block tables for isFang tripod rods as editable tables",
+        "New flowchart of the risk assessment procedure",
+        "Table of contents with the chapters after the cover (Word fills in page numbers when updating fields)"
+      ]
+    },
+    {
+      "id": "2026-11-19-lps-7",
+      "data": "2026-11-19",
+      "app": "lps",
+      "titolo": "Relazione tecnica con grafici e tabelle della norma",
+      "voci": [
+        "La relazione Word ha ora grafici disegnati con i dati del progetto: sorgenti di danno, probabilità della corrente di fulmine con il campo dell'LPL, rischio e frequenza del danno di ogni zona confrontati con RT e FT, componenti di rischio, penetrazione della sfera rotolante con schema in sezione, pianta della copertura con aste, conduttori e calate, distanza di separazione",
+        "Tabelle numerate con i valori della CEI EN IEC 62305:2024 e la riga o colonna del progetto evidenziata: parametri del fulmine, spessori delle lastre, distanze delle calate, sezioni minime, conduttori equipotenziali, fattore CD, perdite LF/LO, rf, rp, rt, misure di contatto, PLPS/PEB/PSPD, ki, km, lunghezza l1 dei dispersori, dimensioni dei dispersori",
+        "Nei tipologici della relazione compare il disegno della scheda OBO del particolare, preso dall'archivio dei particolari (se la scheda non c'è resta il segnaposto giallo)"
+      ],
+      "titolo_en": "Technical report with charts and standard tables",
+      "voci_en": [
+        "The Word report now includes charts drawn from the project data (risk, rolling sphere, roof plan, separation distance)",
+        "Numbered tables with the values of IEC 62305:2024 and the project row or column highlighted",
+        "The typical details in the report now show the OBO detail sheet drawing from the details archive"
+      ]
+    },
+    {
+      "id": "2026-11-19-lps-6",
+      "data": "2026-11-19",
+      "app": "lps",
+      "titolo": "Relazione tecnica in Word sul format OBO",
+      "voci": [
+        "In Computo materiali c'è \"Relazione tecnica (Word)\": crea la relazione completa sul format OBO, in due parti. Prima parte: premessa, norme, definizioni, valutazione del rischio con tutte le componenti, LPS esterno, captazione, calate, materiali. Seconda parte \"Valutazione del rischio e scelta delle misure di protezione\": densità NG/NSG, struttura, valori calcolati del rischio, soluzione di progetto con penetrazione della sfera, calate, distanza di separazione, terra, SPD, tipologici con Art. No e quantità, elenco materiale, valori NG/NSG",
+        "Committente, provincia, destinazione d'uso e testo del sopralluogo si scrivono in \"Dati della relazione\" e restano nel progetto",
+        "Le parti che l'app non conosce sono evidenziate in giallo nel documento, da completare in Word"
+      ],
+      "titolo_en": "Technical report in Word (OBO format)",
+      "voci_en": [
+        "Bill of materials has \"Technical report (Word)\": creates the report in the OBO format with the calculated values",
+        "Client, province, use and site survey text are saved in the project",
+        "Parts the app does not know are highlighted in yellow in the document"
+      ]
+    },
+    {
+      "id": "2026-11-19-lps-5",
+      "data": "2026-11-19",
+      "app": "lps",
+      "titolo": "Cambio password ogni 90 giorni",
+      "voci": [
+        "La password scade dopo 90 giorni dall'ultimo cambio: al primo accesso dopo la scadenza l'app chiede di sceglierne una nuova",
+        "In Amministrazione → Utenti gli amministratori scelgono la scadenza (60, 90, 180 giorni o mai) e vedono la data dell'ultimo cambio di ogni utente"
+      ],
+      "titolo_en": "Password change every 90 days",
+      "voci_en": [
+        "Passwords expire 90 days after the last change: at the first sign-in after expiry the app asks for a new one",
+        "In Administration → Users, admins choose the expiry (60, 90, 180 days or never) and see each user's last change date"
+      ]
+    },
+    {
+      "id": "2026-11-19-lps-4",
+      "data": "2026-11-19",
+      "app": "lps",
+      "titolo": "Pagina Licenze",
+      "voci": [
+        "Nel piè di pagina c'è il link Licenze: elenco delle librerie usate dall'app con la loro licenza e la nota sul lettore DWG (GPL-3.0), con il link al codice sorgente"
+      ],
+      "titolo_en": "Licences page",
+      "voci_en": [
+        "The footer has a Licences link: list of the libraries used by the app with their licence and the note on the DWG reader (GPL-3.0), with a link to the source code"
+      ]
+    },
+    {
+      "id": "2026-11-19-lps-3",
+      "data": "2026-11-19",
+      "app": "lps",
+      "titolo": "Pacchetto unico per AutoCAD e ZWCAD",
+      "voci": [
+        "In Edificio 3D il pulsante Pacchetto AutoCAD / ZWCAD scarica una cartella con la tavola DXF, i dati del progetto, LPS.lsp e le istruzioni",
+        "Si apre il DXF, si trascina LPS.lsp nel disegno e, con una conferma, il programma disegna il modello 3D con blocchi e codici OBO, inserisce la distinta dei materiali e salva il DWG",
+        "LPS.lsp 3.0: nuovo comando LPS-AUTO; se accanto al disegno c'è una cartella \"blocchi\" con i blocchi OBO ufficiali vengono usati in automatico"
+      ],
+      "titolo_en": "Single package for AutoCAD and ZWCAD",
+      "voci_en": [
+        "In 3D building the AutoCAD / ZWCAD package button downloads a folder with the DXF sheet, the project data, LPS.lsp and instructions",
+        "Open the DXF, drag LPS.lsp into the drawing and, after one confirmation, the program draws the 3D model with OBO blocks and codes, adds the bill of materials and saves the DWG",
+        "LPS.lsp 3.0: new LPS-AUTO command; a \"blocchi\" folder next to the drawing with the official OBO blocks is used automatically"
+      ]
+    },
+    {
+      "id": "2026-11-19-lps-2",
+      "data": "2026-11-19",
+      "app": "lps",
+      "titolo": "Rischio: perdita per la struttura separata da quella per le persone",
+      "voci": [
+        "Per ogni zona si può scegliere una categoria di perdita per la struttura e il contenuto diversa da quella per le persone, come prevede la norma (es. museo: persone a perdita normale, patrimonio a perdita elevata; ospedale: il contrario)"
+      ],
+      "titolo_en": "Risk: structure loss separate from people loss",
+      "voci_en": [
+        "Each zone can take a loss category for the structure and contents different from the one for people, as the standard allows (e.g. museum: normal loss for people, high for heritage; hospital: the other way round)"
+      ]
+    },
+    {
+      "id": "2026-11-19-lps-1",
+      "data": "2026-11-19",
+      "app": "lps",
+      "titolo": "Revisioni del progetto e controllo prima dell'emissione",
+      "voci": [
+        "In Dati edificio c'è il Controllo del progetto: segnala cosa manca o non torna (dati, livello di protezione rispetto al rischio, captazione, calate, distanza di separazione, dispersore, SPD) con il link alla pagina da sistemare",
+        "Revisioni del progetto: bozza ed emesso, con Rev. A, B, C, data, autore e descrizione. Ogni emissione viene archiviata e si può scaricare",
+        "Un progetto emesso non si modifica per errore: se cambi qualcosa compare un avviso e il salvataggio si ferma finché non apri la revisione successiva o annulli le modifiche"
+      ],
+      "titolo_en": "Project revisions and check before issue",
+      "voci_en": [
+        "Building data now has a Project check: it flags what is missing or wrong (data, protection level against the risk, air-termination, down conductors, separation distance, earthing, SPDs) with a link to the page to fix",
+        "Project revisions: draft and issued, with Rev. A, B, C, date, author and description. Each issue is archived and can be downloaded",
+        "An issued project cannot be changed by mistake: if you change something a notice appears and saving stops until you open the next revision or undo the changes"
+      ]
+    },
+    {
+      "id": "2026-11-18-lps-3",
+      "data": "2026-11-18",
+      "app": "lps",
+      "titolo": "Codici OBO collegati ai particolari costruttivi",
+      "voci": [
+        "Il computo dei materiali propone ora un codice OBO reale per conduttori, supporti, morsetti, calate, sezionamenti e dispersori, preso dal particolare costruttivo adatto alla copertura e alla parete",
+        "Proposta di captazione, calate e impianto di terra prendono i codici dai particolari: se un particolare cambia articolo, proposte e computo usano subito il nuovo codice",
+        "Le righe dei particolari non ancora verificati non hanno più la scritta ESEMPIO nella descrizione: l'indicazione \"da verificare\" è nella provenienza"
+      ],
+      "titolo_en": "OBO codes linked to construction details",
+      "voci_en": [
+        "The bill of materials now proposes a real OBO code for conductors, supports, clamps, down conductors, test joints and earth electrodes, taken from the detail that fits the roof and wall",
+        "Air-termination, down-conductor and earthing proposals take their codes from the details: if a detail changes article, proposals and bill use the new code at once",
+        "Rows from details not yet checked no longer carry EXAMPLE in the description: \"to be checked\" is shown in the source column"
+      ]
+    },
+    {
+      "id": "2026-11-18-lps-2",
+      "data": "2026-11-18",
+      "app": "lps",
+      "titolo": "Valutazione del rischio verificata con gli esempi della norma",
+      "voci": [
+        "Il calcolo del rischio ora riproduce i tre esempi della norma (fabbricato residenziale, uffici, ospedale) ed è controllato in automatico a ogni aggiornamento",
+        "Per ogni linea si indicano la tensione di tenuta e il cablaggio del suo impianto interno; si può indicare anche un impianto in rame su una linea esterna in fibra",
+        "Gli SPD all'ingresso delle linee valgono per tutta la struttura; ogni zona può avere i propri SPD coordinati, anche con un valore PSPD indicato",
+        "Per ogni zona si può inserire la frequenza tollerabile del danno FT indicata dal proprietario"
+      ],
+      "titolo_en": "Risk assessment checked against the standard's examples",
+      "voci_en": [
+        "The risk calculation now reproduces the three examples of the standard (house, office building, hospital) and is checked automatically at every update",
+        "Each line has the withstand voltage and wiring of its internal system; a copper internal system on an external fibre line can be entered",
+        "Entrance SPDs apply to the whole structure; each zone can have its own coordinated SPDs, also with a given PSPD value",
+        "Each zone can take the tolerable frequency of damage FT set by the owner"
+      ]
+    },
+    {
+      "id": "2026-11-18-lps-1",
+      "data": "2026-11-18",
+      "app": "lps",
+      "titolo": "Dati normativi più completi",
+      "voci": [
+        "Nuova sezione Riferimenti normativi di progetto in Dati normativi: parametri del fulmine, captazione, calate e distanza di separazione, dispersori, materiali e sezioni minime, valutazione del rischio, SPD e verifiche periodiche",
+        "Il livello di protezione del progetto è evidenziato; si può evidenziare un altro livello per confrontare"
+      ],
+      "titolo_en": "More complete standard data",
+      "voci_en": [
+        "New Project standard references section in Standard data: lightning parameters, air-termination, down conductors and separation distance, earthing, materials and minimum sizes, risk assessment, SPDs and periodic inspections",
+        "The project protection level is highlighted; another level can be highlighted to compare"
+      ]
+    },
+    {
+      "id": "2026-11-17-lps-4",
+      "data": "2026-11-17",
+      "app": "lps",
+      "titolo": "Importazione dei DWG",
+      "voci": [
+        "Ora si importano anche i file DWG di AutoCAD e ZWCAD, in Dati edificio e in Edificio 3D: unità, layer e impronte dell'edificio come per il DXF",
+        "Tolto il pulsante La mia posizione: l'indirizzo si cerca scrivendolo"
+      ],
+      "titolo_en": "DWG import",
+      "voci_en": [
+        "AutoCAD and ZWCAD DWG files can now be imported too, in Building data and 3D building: units, layers and building outlines as for DXF",
+        "My location button removed: search the address by typing it"
+      ]
+    },
+    {
+      "id": "2026-11-17-lps-3",
+      "data": "2026-11-17",
+      "app": "lps",
+      "titolo": "Importazione in Dati edificio e ricerca indirizzi più comoda",
+      "voci": [
+        "In Dati edificio, in alto, puoi importare un disegno o un modello: lunghezza, larghezza e altezza si compilano da sole e il modello va anche in Edificio 3D",
+        "Ricerca dell'indirizzo come in Google Maps: suggerimenti mentre scrivi, nome e comune su due righe, frecce e Invio per scegliere, anche coordinate incollate",
+        "La mia posizione: se non funziona l'app spiega cosa attivare nel browser o nel computer"
+      ],
+      "titolo_en": "Import in Building data and easier address search",
+      "voci_en": [
+        "In Building data, at the top, you can import a drawing or a model: length, width and height fill in automatically and the model also goes to 3D building",
+        "Address search like Google Maps: suggestions while typing, name and town on two lines, arrows and Enter to choose, pasted coordinates too",
+        "My location: if it does not work the app explains what to enable in the browser or computer"
+      ]
+    },
+    {
+      "id": "2026-11-17-lps-2",
+      "data": "2026-11-17",
+      "app": "lps",
+      "titolo": "Disegno CAD professionale",
+      "voci": [
+        "Il DXF di Edificio 3D è ora una tavola completa: pianta coperture in scala (1:100 o 1:200), squadratura e cartiglio con i dati del progetto",
+        "Layer divisi secondo lo standard LPS OBO (captazione, calate, terra, supporti, morsetti, particolari, quote, testi) con colori pronti per la stampa",
+        "Ogni componente è un blocco con il codice OBO (OBO_codice) e gli attributi codice, descrizione e tipo; calate numerate C1, C2…",
+        "Richiami P01, P02… ai particolari costruttivi, con l'elenco dei particolari e la legenda con codici e quantità",
+        "Lo stesso standard vale per LPS-IMPORTA in ZWCAD e AutoCAD: scarica di nuovo LPS.lsp da Download CAD"
+      ],
+      "titolo_en": "Professional CAD drawing",
+      "voci_en": [
+        "The 3D building DXF is now a complete sheet: roof plan to scale (1:100 or 1:200), frame and title block with the project data",
+        "Layers split by the OBO LPS standard (air termination, down conductors, earthing, supports, clamps, details, dimensions, texts) with print-ready colours",
+        "Each component is a block named with the OBO code (OBO_code) with code, description and type attributes; down conductors numbered C1, C2…",
+        "Callouts P01, P02… to the construction details, with the list of details and a legend with codes and quantities",
+        "The same standard applies to LPS-IMPORTA in ZWCAD and AutoCAD: download LPS.lsp again from CAD download"
+      ]
+    },
+    {
+      "id": "2026-11-17-lps-1",
+      "data": "2026-11-17",
+      "app": "lps",
+      "titolo": "Importa disegni e modelli con verifica della scala",
+      "voci": [
+        "In Edificio 3D, nuova scheda \"Importa file\": DXF, PDF, immagini di pianta, OBJ, STL, PLY, GLB/GLTF, IFC, STEP e IGES",
+        "L'app controlla la scala, propone l'unità più realistica e chiede conferma; si può verificare con una misura nota",
+        "Dai PDF legge la scala scritta sul disegno (es. 1:100) e permette di ricalcare l'impronta dell'edificio"
+      ],
+      "titolo_en": "Import drawings and models with scale check",
+      "voci_en": [
+        "In 3D building, new \"Import file\" tab: DXF, PDF, plan images, OBJ, STL, PLY, GLB/GLTF, IFC, STEP and IGES",
+        "The app checks the scale, proposes the most realistic unit and asks for confirmation; it can be verified with a known measurement",
+        "From PDFs it reads the scale written on the drawing (e.g. 1:100) and lets you trace the building outline"
+      ]
+    },
+    {
+      "id": "2026-11-11-lps-1",
+      "data": "2026-11-11",
+      "app": "lps",
+      "titolo": "Testo regolabile in alto e pagine ferme di lato",
+      "voci": [
+        "Nuovo pulsante \"Testo\" nella barra in alto: A− e A+ per rimpicciolire o ingrandire il testo",
+        "Su telefono e tablet le pagine non scorrono più di lato"
+      ],
+      "titolo_en": "Text size at the top and pages locked sideways",
+      "voci_en": [
+        "New \"Text\" button in the top bar: A− and A+ to shrink or enlarge the text",
+        "On phones and tablets pages no longer move sideways"
+      ]
+    },
+    {
+      "id": "2026-11-10-lps-3",
+      "data": "2026-11-10",
+      "app": "lps",
+      "titolo": "Piè di pagina comune e apertura dei progetti dalla ricerca",
+      "voci": [
+        "In fondo alla pagina: OBO Hub, Novità, Privacy e Condizioni d'uso, uguali in tutte le app",
+        "I progetti salvati si aprono anche dalla ricerca della pagina iniziale di OBO Hub"
+      ],
+      "titolo_en": "Common footer and opening projects from search",
+      "voci_en": [
+        "At the bottom of the page: OBO Hub, What's new, Privacy and Terms of use, the same in every app",
+        "Saved projects can also be opened from the search on the OBO Hub home page"
+      ]
+    },
+    {
+      "id": "2026-11-10-lps-2",
+      "data": "2026-11-10",
+      "app": "lps",
+      "titolo": "Comune e indirizzo con ricerca, posizione e Google Maps",
+      "titolo_en": "Municipality and address with search, location and Google Maps",
+      "voci": [
+        "Dati edificio: scrivi l'indirizzo o il comune e scegli dall'elenco (suggerimenti gratuiti da Photon, dati OpenStreetMap), oppure premi \"La mia posizione\"",
+        "Vista satellitare di Google Maps dell'edificio e collegamenti \"Apri in Google Maps\" e \"Apri in Google Earth\"",
+        "Coordinate salvate nel progetto e riportate nella relazione; la mappa dell'Edificio 3D si apre già sul posto",
+        "Verifiche: spunta \"Condizioni ambientali severe\" (a vista ogni 6 mesi, completa ogni anno)",
+        "Calate: opzione kc = 1 per dispersori di tipo A con resistenze molto diverse",
+        "Fotovoltaico: aggiunti i valori per SPD a commutazione (Tab. F.2)",
+        "SPD: avviso quando si sceglie la categoria di tenuta III o IV"
+      ],
+      "voci_en": [
+        "Building data: type the address or municipality and pick from the list (free suggestions from Photon, OpenStreetMap data), or press \"My location\"",
+        "Google Maps satellite view of the building and \"Open in Google Maps\" / \"Open in Google Earth\" links",
+        "Coordinates saved in the project and shown in the report; the 3D Building map opens on the site",
+        "Inspections: \"Severe environmental conditions\" tick (visual every 6 months, complete every year)",
+        "Down conductors: kc = 1 option for type A earthing with very different resistances",
+        "Photovoltaics: values for switching SPDs added (Table F.2)",
+        "SPD: warning when withstand category III or IV is chosen"
+      ]
+    },
+    {
+      "id": "2026-11-10-lps-1",
+      "data": "2026-11-10",
+      "app": "lps",
+      "titolo": "Controllo indipendente con la norma: correzioni",
+      "titolo_en": "Independent check against the standard: corrections",
+      "voci": [
+        "Tutti i valori di tabella e le formule sono stati riletti sulla CEI EN IEC 62305:2024: oltre 400 confermati",
+        "Rischio: senza LPS gli SPD non riducono più il rischio per fulmine sulla struttura e le misure contro il contatto non contano",
+        "Rischio: nelle zone con rischio di esplosione la protezione antincendio non riduce il rischio e i guasti degli impianti contano sempre",
+        "Rischio: schermo della linea senza resistenza indicata calcolato con il valore più prudente",
+        "SPD: nei sistemi TT e TN-C-S la corrente si divide sui conduttori che entrano davvero (4 in trifase): Iimp per polo più alta di prima",
+        "Terra: i picchetti del tipo A devono essere almeno 2 e lunghi 0,5·l1 + 0,5 m",
+        "Calate: avviso quando la formula dettagliata di kc è usata fuori dal suo campo di validità"
+      ],
+      "voci_en": [
+        "All table values and formulas re-read against IEC 62305:2024: more than 400 confirmed",
+        "Risk: without an LPS, SPDs no longer reduce the risk from flashes to the structure and touch-voltage measures do not count",
+        "Risk: in zones with explosion risk fire protection does not reduce the risk and failures of internal systems always count",
+        "Risk: line shield without stated resistance calculated with the most cautious value",
+        "SPD: in TT and TN-C-S systems the current is shared by the conductors actually entering (4 for three-phase): higher Iimp per pole than before",
+        "Earthing: type A rods must be at least 2 and 0.5·l1 + 0.5 m long",
+        "Down conductors: warning when the detailed kc formula is used outside its validity range"
+      ]
+    },
+    {
+      "id": "2026-11-09-lps-5",
+      "data": "2026-11-09",
+      "app": "lps",
+      "titolo": "Nuova pagina \"Norma 62305: calcoli e tabelle\"",
+      "titolo_en": "New page \"IEC 62305: calculations and tables\"",
+      "voci": [
+        "Parametri del fulmine per livello di protezione e raggio della sfera rotolante",
+        "Verifica delle sezioni minime di captatori, calate, dispersori e collegamenti equipotenziali, con le tabelle dei materiali",
+        "Sezione minima dello schermo dei cavi entranti",
+        "Tensioni di contatto e di passo, requisiti per strutture con rischio di esplosione",
+        "Schermatura magnetica, livello di protezione effettivo degli SPD e tensione indotta",
+        "Impianti fotovoltaici sul tetto: corrente nei conduttori CC e SPD lato continua",
+        "Analisi del rischio: linee divise in tratti con posa o ambiente diversi"
+      ],
+      "voci_en": [
+        "Lightning parameters per protection level and rolling sphere radius",
+        "Minimum size check for air terminals, down conductors, earth electrodes and bonding conductors, with material tables",
+        "Minimum shield cross-section of incoming cables",
+        "Touch and step voltages, requirements for structures with explosion risk",
+        "Magnetic shielding, effective SPD protection level and induced voltage",
+        "Rooftop PV systems: current in DC conductors and DC side SPDs",
+        "Risk assessment: lines split into sections with different installation or environment"
+      ]
+    },
+    {
+      "id": "2026-11-09-lps-4",
+      "data": "2026-11-09",
+      "app": "lps",
+      "titolo": "Analisi del rischio: SPD per zona e danni all'ambiente circostante",
+      "titolo_en": "Risk assessment: per-zone SPDs and damage to the surroundings",
+      "voci": [
+        "Ogni zona può avere SPD propri; la tabella mostra l'SPD minimo di ogni zona",
+        "Proposta ottimizzata: LPS più basso con gli SPD giusti per ogni zona, applicabile con un clic",
+        "Perdita esterna LE (Allegato E): esplosione, fumi tossici, inquinamento e ambiente circostante"
+      ],
+      "voci_en": [
+        "Each zone may have its own SPDs; the table shows the minimum SPD of each zone",
+        "Optimised proposal: lowest LPS with the right SPDs per zone, applied with one click",
+        "External loss LE (Annex E): explosion, toxic fumes, pollution and surroundings"
+      ]
+    },
+    {
+      "id": "2026-11-09-lps-3",
+      "data": "2026-11-09",
+      "app": "lps",
+      "titolo": "Analisi del rischio con più zone (edizione 2024)",
+      "titolo_en": "Multi-zone risk assessment (2024 edition)",
+      "voci": [
+        "Zone di rischio da aggiungere, duplicare ed eliminare, ognuna con i propri parametri e confrontata da sola con RT",
+        "Persone esposte sul tetto, struttura adiacente, schermature e cablaggio interno, sistema di allerta temporali",
+        "Schemi disegnati: aree di raccolta, zone, ripartizione della corrente sulle calate, grafico di l1",
+        "Calate: kc della Tab. 13 e km per vetroresina; impianto di terra: pulsante \"Calcola l1\""
+      ],
+      "voci_en": [
+        "Risk zones to add, duplicate and delete, each with its own parameters and compared with RT on its own",
+        "People exposed on the roof, adjacent structure, shielding and internal wiring, thunderstorm warning system",
+        "Drawn diagrams: collection areas, zones, current sharing on down conductors, l1 chart",
+        "Down conductors: kc from Table 13 and km for fibreglass; earthing: \"Calculate l1\" button"
+      ]
+    },
+    {
+      "id": "2026-11-09-lps-2",
+      "data": "2026-11-09",
+      "app": "lps",
+      "titolo": "Aiuti \"?\" aggiornati alla CEI EN IEC 62305:2024",
+      "titolo_en": "\"?\" help updated to IEC 62305:2024",
+      "voci": [
+        "Ogni scelta ha una spiegazione e il riferimento all'articolo della norma",
+        "Verifiche: a vista ogni anno, completa ogni 3 anni, ogni anno per sistemi critici"
+      ],
+      "voci_en": [
+        "Every choice has an explanation and the reference to the clause of the standard",
+        "Inspections: visual every year, complete every 3 years, every year for critical systems"
+      ]
+    }
+  ],
+  "grafica_non_mostrata": [
+    {
+      "id": "2026-11-24-lps-53",
+      "data": "2026-11-24",
+      "app": "lps",
+      "titolo": "Sigla d'apertura al posto dell'introduzione lunga",
+      "voci": [
+        "All'apertura dell'app una sigla di 2-3 secondi a tutto schermo: tempesta, il fulmine colpisce l'asta, la corrente va a terra, compare «Progettazione LPS», poi sparisce",
+        "Una volta per sessione; un tocco o un tasto la chiudono subito",
+        "Tolta l'introduzione lunga da scorrere nella pagina iniziale"
+      ]
+    },
+    {
+      "id": "2026-11-24-lps-52",
+      "data": "2026-11-24",
+      "app": "lps",
+      "titolo": "Introduzione cinematografica: la tempesta",
+      "voci": [
+        "Nella pagina iniziale, scorrendo, si attraversa una tempesta: la telecamera scende dalle nuvole all'edificio, la sfera rotolante scorre sul tetto, il fulmine colpisce l'asta, la corrente scende dalle calate al dispersore e poi si entra dalla finestra nel salotto protetto dagli SPD",
+        "Cinque capitoli con titoli grandi, lampi, pioggia e onde nel terreno, tutto disegnato dall'app (nessuna foto)",
+        "«Salta l'introduzione» porta subito agli strumenti; «Inizia il progetto» apre l'assistente; con «riduci movimento» resta un'immagine ferma"
+      ]
+    },
+    {
+      "id": "2026-11-24-lps-51",
+      "data": "2026-11-24",
+      "app": "lps",
+      "titolo": "Grafica futuristica",
+      "voci": [
+        "Fasce in cima alle pagine con aurora arancio in movimento e griglia tecnica",
+        "Schede con luce che segue il puntatore e bordo arancio che si accende",
+        "Contenuti che compaiono allo scorrimento e barra di avanzamento della pagina in alto",
+        "Agenti del progetto automatico che entrano in sequenza",
+        "Tutto si spegne da solo con «riduci movimento» del sistema e in stampa"
+      ]
+    },
+    {
+      "id": "2026-11-24-lps-34",
+      "data": "2026-11-24",
+      "app": "lps",
+      "titolo": "OBO Hub sempre in evidenza",
+      "voci": [
+        "Nella barra in alto c'è sempre il pulsante arancione «OBO Hub» per tornare alla pagina iniziale di OBO Hub, come in tutte le altre app"
+      ]
+    },
+    {
+      "id": "2026-11-22-lps-28",
+      "data": "2026-11-22",
+      "app": "lps",
+      "titolo": "Pagine più fluide",
+      "voci": [
+        "Passando da una pagina all'altra il contenuto compare con una dissolvenza morbida (spenta se nel sistema è attivo \"riduci movimento\")."
+      ],
+      "titolo_en": "Smoother pages",
+      "voci_en": [
+        "Moving between pages, the content now fades in smoothly (off when \"reduce motion\" is enabled in the system)."
+      ]
+    },
+    {
+      "id": "2026-11-20-lps-25",
+      "data": "2026-11-20",
+      "app": "lps",
+      "titolo": "Barra in alto più pulita e menu a tendina",
+      "voci": [
+        "In alto restano solo Assistente, Progetti, Sopralluogo e Menu",
+        "Il Menu si apre a tendina con effetto sfumato: in cima Cerca, OBO Hub, lingua, tema e dimensione del testo; sotto le pagine divise per sezione",
+        "Da telefono il menu occupa tutta la larghezza, con pulsanti grandi"
+      ]
+    }
+  ]
+}
